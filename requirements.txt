@@ -1,0 +1,7 @@
+coreapi
+click
+gunicorn
+jinja2
+pytest
+requests
+werkzeug
