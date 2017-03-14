@@ -14,16 +14,14 @@ def not_found_view() -> http.Response:
 
 def get_router(routes):
     mapping = {}
-    requirement = wsgi.WSGIResponse
+    required_type = wsgi.WSGIResponse
     initial_types = [wsgi.WSGIEnviron]
 
     for (path, method, view) in routes:
-        functions = [view] + [wsgi.WSGIResponse.build]
-        pipeline, seen_types = pipelines.build_function_pipeline(functions, initial_types)
+        pipeline = pipelines.build_pipeline(view, initial_types, required_type)
         mapping[(path, method.upper())] = Endpoint(view, pipeline)
 
-    functions = [not_found_view] + [wsgi.WSGIResponse.build]
-    pipeline, seen_types = pipelines.build_function_pipeline(functions, initial_types)
+    pipeline = pipelines.build_pipeline(not_found_view, initial_types, required_type)
     not_found = Endpoint(not_found_view, pipeline)
 
     def router(path, method):

@@ -55,7 +55,7 @@ def get_wsgi_server(app):
             'path': path,
         }
         (state['view'], pipeline) = lookup(path, method)
-        for function, inputs, output, it, ot in pipeline:
+        for function, inputs, output in pipeline:
             kwargs = {
                 func_key: state[state_key]
                 for func_key, state_key in inputs
