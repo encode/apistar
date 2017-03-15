@@ -4,7 +4,7 @@ import re
 
 
 Func = namedtuple('Func', ('function', 'inputs', 'output'))
-Input = namedtuple('Input', ('argname', 'statename'))
+Input = namedtuple('Input', ('argname', 'statename', 'subname'))
 
 first_cap_re = re.compile('(.)([A-Z][a-z]+)')
 all_cap_re = re.compile('([a-z0-9])([A-Z])')
@@ -25,8 +25,8 @@ def get_func(function):
     returns a `Func` instance, describing the type information.
     """
     inputs = tuple([
-        Input(argname, get_class_id(input_type))
-        for argname, input_type in get_input_types(function)
+        Input(argname, get_class_id(input_type), argname if use_subkey else None)
+        for argname, input_type, use_subkey in get_input_types(function)
     ])
     output = get_class_id(get_output_type(function))
     return Func(function, inputs, output)
@@ -47,10 +47,15 @@ def get_input_types(function):
         annotations = function.__annotations__
         argnames = inspect.getfullargspec(function)[0]
 
-    return [
-        (argname, annotations[argname])
-        for argname in argnames
-    ]
+    input_types = []
+    for argname in argnames:
+        input_type = annotations[argname]
+        parent_type = getattr(input_type, 'parent_type', None)
+        if parent_type is None:
+            input_types.append((argname, input_type, False))
+        else:
+            input_types.append((argname, parent_type, True))
+    return input_types
 
 
 def get_output_type(function):
@@ -69,7 +74,7 @@ def _build_pipeline(function, initial_types=None):
     seen_types = set(initial_types or [])
 
     # Add all the function's input requirements to the pipeline
-    for argname, required_type in get_input_types(function):
+    for argname, required_type, use_subkey in get_input_types(function):
         if required_type in seen_types:
             continue
         this_function = getattr(required_type, 'build')

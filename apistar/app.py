@@ -36,10 +36,12 @@ def get_wsgi_server(app):
         }
         (state['view'], pipeline, state['url_args']) = lookup(path, method)
         for function, inputs, output in pipeline:
-            kwargs = {
-                arg_name: state[state_key]
-                for arg_name, state_key in inputs
-            }
+            kwargs = {}
+            for arg_name, state_key, sub_key in inputs:
+                if sub_key is None:
+                    kwargs[arg_name] = state[state_key]
+                else:
+                    kwargs[arg_name] = state[state_key][sub_key]
             state[output] = function(**kwargs)
         wsgi_response = state['wsgi_response']
         start_response(wsgi_response.status, wsgi_response.headers)

@@ -1,7 +1,7 @@
 from apistar import pipelines
 from apistar.components import http, wsgi
 from collections import namedtuple
-from typing import List
+from typing import Any, List
 from werkzeug.routing import Map, Rule
 import json
 
@@ -12,6 +12,10 @@ Endpoint = namedtuple('Endpoint', ['view', 'pipeline'])
 
 class URLArgs(dict):
     pass
+
+
+URLArg = Any
+URLArg.parent_type = URLArgs
 
 
 class Router(object):

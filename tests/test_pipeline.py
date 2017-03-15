@@ -39,7 +39,10 @@ def test_get_func():
     assert func.function == view
     print(func.inputs)
     print(type(func.inputs))
-    assert func.inputs == (('session', 'session'), ('req', 'wsgi_request'))
+    assert func.inputs == (
+        ('session', 'session', None),
+        ('req', 'wsgi_request', None)
+    )
     assert func.output == 'response'
 
 
