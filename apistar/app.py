@@ -17,13 +17,13 @@ class App(object):
         self.routes = routes
         self.commands = built_in_commands + commands
 
-        self.router = routing.get_router(self.routes)
+        self.router = routing.Router(self.routes)
         self.wsgi = get_wsgi_server(app=self)
         self.click = get_click_client(app=self)
 
 
 def get_wsgi_server(app):
-    lookup = app.router
+    lookup = app.router.lookup
 
     def func(environ, start_response):
         method = environ['REQUEST_METHOD']
@@ -34,11 +34,11 @@ def get_wsgi_server(app):
             'method': method,
             'path': path,
         }
-        (state['view'], pipeline) = lookup(path, method)
+        (state['view'], pipeline, state['url_args']) = lookup(path, method)
         for function, inputs, output in pipeline:
             kwargs = {
-                func_key: state[state_key]
-                for func_key, state_key in inputs
+                arg_name: state[state_key]
+                for arg_name, state_key in inputs
             }
             state[output] = function(**kwargs)
         wsgi_response = state['wsgi_response']
