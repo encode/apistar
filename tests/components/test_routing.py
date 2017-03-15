@@ -1,6 +1,6 @@
 from apistar import App, Route
 from apistar.components import http, test
-from apistar.routing import URLArg, URLArgs
+from apistar.routing import URLArgs
 
 
 def get_args(path: http.Path, args: URLArgs) -> http.Response:
@@ -10,7 +10,7 @@ def get_args(path: http.Path, args: URLArgs) -> http.Response:
     })
 
 
-def get_arg(path: http.Path, var: URLArg) -> http.Response:
+def get_arg(path: http.Path, var: int) -> http.Response:
     return http.Response({
         'path': path,
         'var': var

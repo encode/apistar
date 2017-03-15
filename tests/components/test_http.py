@@ -34,19 +34,27 @@ def get_query_params(query_params: http.QueryParams) -> http.Response:
     return http.Response({'query_params': query_params.to_dict(flat=False)})
 
 
+def get_page_query_param(page: http.NamedQueryParam) -> http.Response:
+    return http.Response({'page': page})
+
+
 def get_url(url: http.URL) -> http.Response:
     return http.Response({'url': url})
 
 
 def get_headers(headers: http.Headers) -> http.Response:
-    return http.Response({'headers': headers})
+    return http.Response({'headers': dict(headers)})
+
+
+def get_accept_header(accept: http.NamedHeader) -> http.Response:
+    return http.Response({'accept': accept})
 
 
 def get_request(request: http.Request) -> http.Response:
     return http.Response({
         'method': request.method,
         'url': request.url,
-        'headers': request.headers
+        'headers': dict(request.headers)
     })
 
 
@@ -60,8 +68,10 @@ app = App(routes=[
     Route('/path/', 'get', get_path),
     Route('/query_string/', 'get', get_query_string),
     Route('/query_params/', 'get', get_query_params),
+    Route('/page_query_param/', 'get', get_page_query_param),
     Route('/url/', 'get', get_url),
     Route('/headers/', 'get', get_headers),
+    Route('/accept_header/', 'get', get_accept_header),
     Route('/request/', 'get', get_request),
 ])
 
@@ -141,6 +151,15 @@ def test_query_params():
     }
 
 
+def test_single_query_param():
+    response = client.get('http://example.com/page_query_param/')
+    assert response.json() == {'page': None}
+    response = client.get('http://example.com/page_query_param/?page=123')
+    assert response.json() == {'page': '123'}
+    response = client.get('http://example.com/page_query_param/?page=123&page=456')
+    assert response.json() == {'page': '123'}
+
+
 def test_url():
     response = client.get('http://example.com/url/')
     assert response.json() == {'url': 'http://example.com/url/'}
@@ -174,6 +193,11 @@ def test_headers():
         'User-Agent': 'requests_client',
         'X-Example-Header': 'example'
     }}
+
+
+def test_accept_header():
+    response = client.get('http://example.com/accept_header/')
+    assert response.json() == {'accept': '*/*'}
 
 
 def test_request():

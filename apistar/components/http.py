@@ -1,7 +1,9 @@
 from apistar.components.base import WSGIEnviron
 from typing import Dict, Any
 from urllib.parse import quote
-from werkzeug.datastructures import EnvironHeaders, ImmutableMultiDict
+from werkzeug.datastructures import (
+    EnvironHeaders, Headers, ImmutableMultiDict, ImmutableHeadersMixin
+)
 from werkzeug.urls import url_decode
 import json
 
@@ -76,7 +78,7 @@ class URL(str):
         return cls(url)
 
 
-class Headers(ImmutableMultiDict):
+class Headers(ImmutableHeadersMixin, Headers):
     @classmethod
     def build(cls, environ: WSGIEnviron):
         return cls(EnvironHeaders(environ))
@@ -86,6 +88,14 @@ class QueryParams(ImmutableMultiDict):
     @classmethod
     def build(cls, environ: WSGIEnviron):
         return cls(url_decode(environ['QUERY_STRING']))
+
+
+class NamedHeader(str):
+    parent_type = Headers
+
+
+class NamedQueryParam(str):
+    parent_type = QueryParams
 
 
 class Request(object):

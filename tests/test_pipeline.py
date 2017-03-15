@@ -37,8 +37,6 @@ def test_get_func():
     """
     func = pipelines.get_func(view)
     assert func.function == view
-    print(func.inputs)
-    print(type(func.inputs))
     assert func.inputs == (
         ('session', 'session', None),
         ('req', 'wsgi_request', None)

@@ -41,7 +41,7 @@ def get_wsgi_server(app):
                 if sub_key is None:
                     kwargs[arg_name] = state[state_key]
                 else:
-                    kwargs[arg_name] = state[state_key][sub_key]
+                    kwargs[arg_name] = state[state_key].get(sub_key, None)
             state[output] = function(**kwargs)
         wsgi_response = state['wsgi_response']
         start_response(wsgi_response.status, wsgi_response.headers)

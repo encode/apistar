@@ -19,21 +19,21 @@ def get_class_id(cls):
     return all_cap_re.sub(r'\1_\2', s1).lower()
 
 
-def get_func(function):
+def get_func(function, extra_annotations=None):
     """
     Given a function which is fully type-annotated,
     returns a `Func` instance, describing the type information.
     """
     inputs = tuple([
         Input(argname, get_class_id(input_type), argname if use_subkey else None)
-        for argname, input_type, use_subkey in get_input_types(function)
+        for argname, input_type, use_subkey in get_input_types(function, extra_annotations)
     ])
     output = get_class_id(get_output_type(function))
     return Func(function, inputs, output)
 
 
 
-def get_input_types(function):
+def get_input_types(function, extra_annotations=None):
     if type(function) == type:
         # Class()
         annotations = function.__init__.__annotations__
@@ -46,6 +46,10 @@ def get_input_types(function):
         # Plain function
         annotations = function.__annotations__
         argnames = inspect.getfullargspec(function)[0]
+
+    if extra_annotations:
+        annotations = annotations.copy()
+        annotations.update(extra_annotations)
 
     input_types = []
     for argname in argnames:
@@ -69,12 +73,12 @@ def get_output_type(function):
     return function.__annotations__['return']
 
 
-def _build_pipeline(function, initial_types=None):
+def _build_pipeline(function, initial_types=None, extra_annotations=None):
     pipeline = []
     seen_types = set(initial_types or [])
 
     # Add all the function's input requirements to the pipeline
-    for argname, required_type, use_subkey in get_input_types(function):
+    for argname, required_type, use_subkey in get_input_types(function, extra_annotations):
         if required_type in seen_types:
             continue
         this_function = getattr(required_type, 'build')
@@ -83,7 +87,7 @@ def _build_pipeline(function, initial_types=None):
         seen_types |= this_seen_types
 
     # Add the function itself to the pipeline
-    func = get_func(function)
+    func = get_func(function, extra_annotations)
     output_type = get_output_type(function)
 
     pipeline.append(func)
@@ -93,11 +97,11 @@ def _build_pipeline(function, initial_types=None):
     return (pipeline, seen_types)
 
 
-def build_pipeline(function, initial_types=None, required_type=None):
+def build_pipeline(function, initial_types=None, required_type=None, extra_annotations=None):
     """
     Return a Pipeline instance.
     """
-    pipeline, seen_types = _build_pipeline(function, initial_types)
+    pipeline, seen_types = _build_pipeline(function, initial_types, extra_annotations)
     if (required_type is not None) and (required_type not in seen_types):
         function = getattr(required_type, 'build')
         final_pipeline, seen_types = _build_pipeline(function, seen_types)
