@@ -8,17 +8,17 @@ def get_wsgi_environ(environ: wsgi.WSGIEnviron) -> http.Response:
     })
 
 
-# def get_wsgi_response() -> wsgi.WSGIResponse:
-#     return wsgi.WSGIResponse(
-#         '200 OK',
-#         [('Content-Type', 'application/json')],
-#         [b'{"hello": "world"}']
-#     )
+def get_wsgi_response() -> wsgi.WSGIResponse:
+    return wsgi.WSGIResponse(
+        '200 OK',
+        [('Content-Type', 'application/json')],
+        [b'{"hello": "world"}']
+    )
 
 
 app = App(routes=[
     Route('/wsgi_environ/', 'get', get_wsgi_environ),
-    # Route('/wsgi_response/', 'get', get_wsgi_response),
+    Route('/wsgi_response/', 'get', get_wsgi_response),
 ])
 
 
@@ -41,6 +41,6 @@ def test_wsgi_environ():
     }}
 
 
-# def test_wsgi_response():
-#     response = client.get('http://example.com/wsgi_response/')
-#     assert response.json() == {'hello': 'world'}
+def test_wsgi_response():
+    response = client.get('http://example.com/wsgi_response/')
+    assert response.json() == {'hello': 'world'}

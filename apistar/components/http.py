@@ -1,4 +1,5 @@
 from apistar.components.base import WSGIEnviron
+from typing import Dict, Any
 from urllib.parse import quote
 from werkzeug.datastructures import EnvironHeaders, ImmutableMultiDict
 from werkzeug.urls import url_decode
@@ -90,7 +91,7 @@ class QueryParams(ImmutableMultiDict):
 class Request(object):
     __slots__ = ('method', 'url', 'headers')
 
-    def __init__(self, method, url, headers):
+    def __init__(self, method: str, url: str, headers: Dict[str, str]) -> None:
         self.method = method
         self.url = url
         self.headers = headers
@@ -103,7 +104,7 @@ class Request(object):
 class Response(object):
     __slots__ = ('data', 'content', 'status', 'headers')
 
-    def __init__(self, data, status=200, headers=None):
+    def __init__(self, data: Any, status: int=200, headers: Dict[str, str]=None) -> None:
         self.data = data
         self.content = json.dumps(data).encode('utf-8')
         self.status = status

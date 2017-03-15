@@ -2,26 +2,6 @@ from apistar import components, commands, routing
 import click
 
 
-def get_click_client(app):
-    @click.group(invoke_without_command=True, help='API Star')
-    @click.option('--version', is_flag=True, help='Display the `apistar` version number.')
-    @click.pass_context
-    def client(ctx, version):
-        if ctx.invoked_subcommand is not None:
-            return
-
-        if version:
-            from apistar import __version__
-            click.echo(__version__)
-        else:
-            click.echo(ctx.get_help())
-
-    for command in app.commands:
-        client.add_command(command)
-
-    return client
-
-
 built_in_commands = [
     commands.new,
     commands.run,
@@ -66,3 +46,23 @@ def get_wsgi_server(app):
         return wsgi_response.iterator
 
     return func
+
+
+def get_click_client(app):
+    @click.group(invoke_without_command=True, help='API Star')
+    @click.option('--version', is_flag=True, help='Display the `apistar` version number.')
+    @click.pass_context
+    def client(ctx, version):
+        if ctx.invoked_subcommand is not None:
+            return
+
+        if version:
+            from apistar import __version__
+            click.echo(__version__)
+        else:
+            click.echo(ctx.get_help())
+
+    for command in app.commands:
+        client.add_command(command)
+
+    return client

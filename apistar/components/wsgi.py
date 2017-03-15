@@ -1,5 +1,6 @@
 from apistar.components.base import WSGIEnviron
 from apistar.components import http
+from typing import Iterable, Tuple, List
 
 
 __all__ = ['WSGIEnviron', 'WSGIResponse']
@@ -8,7 +9,7 @@ __all__ = ['WSGIEnviron', 'WSGIResponse']
 class WSGIResponse(object):
     __slots__ = ('status', 'headers', 'iterator')
 
-    def __init__(self, status, headers, iterator):
+    def __init__(self, status: str, headers: List[Tuple[str, str]], iterator: Iterable[bytes]) -> None:
         self.status = status
         self.headers = headers
         self.iterator = iterator

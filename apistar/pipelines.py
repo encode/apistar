@@ -19,10 +19,6 @@ def get_class_id(cls):
     return all_cap_re.sub(r'\1_\2', s1).lower()
 
 
-def get_argnames(callable_object):
-    return inspect.getfullargspec(callable_object)[0]
-
-
 def get_func(function):
     """
     Given a function which is fully type-annotated,
