@@ -1,6 +1,6 @@
 from apistar.app import App
 from apistar.components.wsgi import WSGIEnviron, WSGIResponse
-from apistar.components.http import Request, Response, QueryParams, Headers
+from apistar.components.http import Request, Response, QueryParams, Headers, ResponseData
 from apistar.routing import Route
 
 

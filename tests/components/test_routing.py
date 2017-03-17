@@ -3,7 +3,7 @@ from apistar.components import http, test
 from apistar.routing import URLArgs
 
 
-def get_args(path: http.Path, args: URLArgs) -> http.Response:
+def get_args(path: http.Path, args: URLArgs, var: int) -> http.Response:
     return http.Response({
         'path': path,
         'args': args
@@ -18,8 +18,8 @@ def get_arg(path: http.Path, var: int) -> http.Response:
 
 
 app = App(routes=[
-    Route('/args/<int:var>/', 'get', get_args),
-    Route('/arg/<int:var>/', 'get', get_arg),
+    Route('/args/{var}/', 'get', get_args),
+    Route('/arg/{var}/', 'get', get_arg),
 ])
 
 

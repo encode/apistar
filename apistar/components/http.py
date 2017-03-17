@@ -1,8 +1,8 @@
 from apistar.components.base import WSGIEnviron
-from typing import Dict, Any
+from typing import Dict, Any, Union, List, Tuple, TypeVar
 from urllib.parse import quote
 from werkzeug.datastructures import (
-    EnvironHeaders, Headers, ImmutableMultiDict, ImmutableHeadersMixin
+    EnvironHeaders, Headers as WerkzeugHeaders, ImmutableMultiDict, ImmutableHeadersMixin
 )
 from werkzeug.urls import url_decode
 import json
@@ -78,7 +78,7 @@ class URL(str):
         return cls(url)
 
 
-class Headers(ImmutableHeadersMixin, Headers):
+class Headers(ImmutableHeadersMixin, WerkzeugHeaders):
     @classmethod
     def build(cls, environ: WSGIEnviron):
         return cls(EnvironHeaders(environ))
@@ -98,24 +98,42 @@ class NamedQueryParam(str):
     parent_type = QueryParams
 
 
+HeadersType = Union[
+    List[Tuple[str, str]],
+    Dict[str, str],
+    Headers
+]
+
+
+ResponseData = TypeVar('ResponseData')
+
+
 class Request(object):
     __slots__ = ('method', 'url', 'headers')
 
-    def __init__(self, method: str, url: str, headers: Dict[str, str]) -> None:
+    def __init__(self, method: str, url: str, headers: HeadersType=None) -> None:
+        if isinstance(headers, dict):
+            headers = list(headers.items())
         self.method = method
         self.url = url
-        self.headers = headers
+        self.headers = Headers(headers)
 
     @classmethod
     def build(cls, method: Method, url: URL, headers: Headers):
-        return Request(method=method, url=url, headers=headers)
+        return cls(method=method, url=url, headers=headers)
 
 
 class Response(object):
     __slots__ = ('data', 'content', 'status', 'headers')
 
-    def __init__(self, data: Any, status: int=200, headers: Dict[str, str]=None) -> None:
+    def __init__(self, data: Any, status: int=200, headers: HeadersType=None) -> None:
+        if isinstance(headers, dict):
+            headers = list(headers.items())
         self.data = data
         self.content = json.dumps(data).encode('utf-8')
         self.status = status
-        self.headers = {} if (headers is None) else headers
+        self.headers = Headers(headers)
+
+    @classmethod
+    def build(cls, data: ResponseData):
+        return cls(data=data)

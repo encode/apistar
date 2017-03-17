@@ -28,7 +28,7 @@ def get_func(function, extra_annotations=None):
         Input(argname, get_class_id(input_type), argname if use_subkey else None)
         for argname, input_type, use_subkey in get_input_types(function, extra_annotations)
     ])
-    output = get_class_id(get_output_type(function))
+    output = get_class_id(get_output_type(function, extra_annotations))
     return Func(function, inputs, output)
 
 
@@ -62,7 +62,10 @@ def get_input_types(function, extra_annotations=None):
     return input_types
 
 
-def get_output_type(function):
+def get_output_type(function, extra_annotations=None):
+    if extra_annotations and 'return' in extra_annotations:
+        return extra_annotations['return']
+
     if type(function) == type:
         # Class()
         return function
@@ -88,7 +91,7 @@ def _build_pipeline(function, initial_types=None, extra_annotations=None):
 
     # Add the function itself to the pipeline
     func = get_func(function, extra_annotations)
-    output_type = get_output_type(function)
+    output_type = get_output_type(function, extra_annotations)
 
     pipeline.append(func)
     if output_type is not None:
