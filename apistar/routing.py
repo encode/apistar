@@ -7,6 +7,10 @@ from werkzeug.routing import Map, Rule, parse_rule
 import inspect
 import json
 
+# TODO: Path
+# TODO: 404
+# TODO: Redirects
+# TODO: Caching
 
 Route = namedtuple('Route', ['path', 'method', 'view'])
 Endpoint = namedtuple('Endpoint', ['view', 'pipeline'])

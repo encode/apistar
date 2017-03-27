@@ -4,7 +4,14 @@ import re
 
 
 # TODO: Validation errors
+# TODO: Error on unknown attributes
 # TODO: allow_blank?
+# TODO: Enum
+# TODO: Array
+# TODO: default=empty
+# TODO: check 'required' exists in 'properties'
+# TODO: smarter ordering
+# TODO: extra_properties=False by default
 
 
 class _StringMetaclass(type):
@@ -239,15 +246,18 @@ class Object(metaclass=_ObjectMetaclass):
         if additional_properties is None and kwargs:
             additional_properties = False
 
+        # Ensure all property keys are strings.
         errors = {}
         if any(not isinstance(key, str) for key in self.keys()):
             errors[''] = self.errors['invalid_key']
 
+        # Enforce any required properties.
         if self.required is not None:
             for key in self.required:
                 if key not in self:
                     errors[key] = self.errors['required']
 
+        # Ensure object has at least 'min_properties'
         if self.min_properties is not None:
             if len(self) < self.min_properties:
                 if self.min_properties == 1:
@@ -257,6 +267,7 @@ class Object(metaclass=_ObjectMetaclass):
                         min_properties=self.min_properties
                     )
 
+        # Ensure object has at no more than 'max_properties'
         if self.max_properties is not None:
             if len(self) > self.max_properties:
                 errors[''] = self.errors['max_properties'].format(
@@ -268,25 +279,33 @@ class Object(metaclass=_ObjectMetaclass):
         if self.properties is not None:
             remaining_keys -= set(self.properties.keys())
             for key, schema in self.properties.items():
-                if key not in self:
-                    continue
-                item = self[key]
-                if isinstance(item, schema):
-                    continue
-                self[key] = schema(self[key])
+                if key in self:
+                    # Coerce value into the given schema type if needed.
+                    item = self[key]
+                    if not isinstance(item, schema):
+                        self[key] = schema(item)
+                elif hasattr(schema, 'default'):
+                    # If a key is missing but has a default, then use that.
+                    self[key] = schema.default
 
         # Pattern properties
         if self.pattern_properties is not None:
             for key in list(remaining_keys):
                 for pattern, schema in self._pattern_properties_regex.items():
                     if re.search(pattern, key):
-                        self[key] = schema(self[key])
+                        # Coerce value into the given schema type if needed.
+                        item = self[key]
+                        if not isinstance(item, schema):
+                            self[key] = schema(item)
                         remaining_keys.discard(key)
 
         # Additional properties
         if isinstance(additional_properties, type):
             for key in remaining_keys:
-                self[key] = additional_properties(self[key])
+                # Coerce value into the given schema type if needed.
+                item = self[key]
+                if not isinstance(item, additional_properties):
+                    self[key] = additional_properties(self[key])
         elif additional_properties is False:
             for key in remaining_keys:
                 errors[key] = self.errors['invalid_property']
@@ -328,30 +347,40 @@ class Username(String):
 
 
 class Score(Number):
-    minimum = 0
+    minimum = 0.0
+    maximum = 10.0
+    default = None
+
+#
+# class User(Object):
+#     properties = {
+#         'username': Username(default=None)
+#         'is_active': Boolean
+#         'score': Score
+#         'age': Integer(maximum=10, default=True)
+#     }
 
 
-class User(Object):
-    properties = [
-        ('username', Username),
-        ('is_active', Boolean),
-        ('score', Score),
-        ('age', Type(Integer, maximum=10))
-    ]
-    pattern_properties = {
-        '^x_': Type(String, min_length=1, max_length=10)
-    }
+u = User({
+    'username': Username('tomchrdg35istie'),
+    'is_active': Boolean('true'),
+    'score': Score(3),
+    'age': 9
+})
+
+# class User(Object):
+#     properties = [
+#         ('username', Username),
+#         ('is_active', Boolean),
+#         ('score', Score),
+#         ('age', Type(Integer, maximum=10, default=0))
+#     ]
+#     pattern_properties = {
+#         '^x_': Type(String, min_length=1, max_length=10)
+#     }
 
 
-u = User(
-    username='tomchrdgfg35istie',
-    is_active=Boolean('true'),
-    score=Score(3),
-    age=9,
-    x_extra='sdf'
-)
-
+print(String)
+print(String(max_length=100))
 import json
 print(json.dumps(u.ordered(), indent=4))
-#print(json.dumps(u, indent=4))
-#print(type(u['score']))
