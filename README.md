@@ -13,10 +13,10 @@ Create a new project:
     myproject/tests.py
     $ cd myproject
     $ cat app.py
-    from apistar import App, Response, Route
+    from apistar import App, Route
 
-    def welcome() -> Response:
-        return Response({'message': 'Welcome to API Star!'})
+    def welcome():
+        return {'message': 'Welcome to API Star!'}
 
     app = App(routes=[
         Route('/', 'get', welcome)
@@ -32,3 +32,13 @@ Run the tests:
     $ apistar test
     tests.py .
     ===== 1 passed in 0.01 seconds =====
+
+
+## Routing
+
+    def hello(username):
+        return {'message': f'Welcome, {username}'}
+
+    app = App(routes=[
+        Route('/user/{username}/', 'get', hello)
+    ])
