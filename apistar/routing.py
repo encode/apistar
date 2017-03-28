@@ -1,5 +1,6 @@
 from apistar import pipelines
 from apistar.components import http, wsgi
+from apistar.pipelines import ArgName
 from collections import namedtuple
 from typing import Any, List, TypeVar
 from uritemplate import URITemplate
@@ -16,15 +17,14 @@ Route = namedtuple('Route', ['path', 'method', 'view'])
 Endpoint = namedtuple('Endpoint', ['view', 'pipeline'])
 
 
-class URLArgs(dict):
+class URLPathArgs(dict):
     pass
 
 
-class NamedURLArg(object):
-    parent_type = URLArgs
-
-    def __new__(cls, *args, **kwargs):
-        return args[0]
+class URLPathArg(str):
+    @classmethod
+    def build(cls, args: URLPathArgs, arg_name: ArgName):
+        return args.get(arg_name)
 
 
 class Router(object):
@@ -37,7 +37,7 @@ class Router(object):
 
     def __init__(self, routes: List[Route]):
         required_type = wsgi.WSGIResponse
-        initial_types = [wsgi.WSGIEnviron, URLArgs]
+        initial_types = [wsgi.WSGIEnviron, URLPathArgs]
 
         rules = []
         views = {}
@@ -72,7 +72,7 @@ class Router(object):
             # Determine any inferred type annotations for the view
             extra_annotations = {}
             for arg in uritemplate.variable_names:
-                extra_annotations[arg] = NamedURLArg
+                extra_annotations[arg] = URLPathArg
             if 'return' not in view.__annotations__:
                 extra_annotations['return'] = http.ResponseData
 

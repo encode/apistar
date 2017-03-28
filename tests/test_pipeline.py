@@ -30,19 +30,6 @@ def view(session: Session, req: WSGIRequest) -> Response:
     pass
 
 
-def test_get_func():
-    """
-    Ensure `get_func` can properly resolve a functions annotations,
-    and return a `Func` instance.
-    """
-    func = pipelines.get_func(view)
-    assert func.function == view
-    assert func.inputs == (
-        ('session', 'session', None),
-        ('req', 'wsgi_request', None)
-    )
-    assert func.output == 'response'
-
 
 # def test_build_pipeline():
 #     """

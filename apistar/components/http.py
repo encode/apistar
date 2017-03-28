@@ -1,4 +1,5 @@
 from apistar.components.base import WSGIEnviron
+from apistar.pipelines import ArgName
 from typing import Dict, Any, Union, List, Tuple, TypeVar
 from urllib.parse import quote
 from werkzeug.datastructures import (
@@ -91,11 +92,15 @@ class QueryParams(ImmutableMultiDict):
 
 
 class NamedHeader(str):
-    parent_type = Headers
+    @classmethod
+    def build(cls, headers: Headers, arg_name: ArgName):
+        return headers.get(arg_name.replace('_', '-'))
 
 
 class NamedQueryParam(str):
-    parent_type = QueryParams
+    @classmethod
+    def build(cls, params: QueryParams, arg_name: ArgName):
+        return params.get(arg_name)
 
 
 HeadersType = Union[

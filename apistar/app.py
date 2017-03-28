@@ -34,15 +34,18 @@ def get_wsgi_server(app):
             'method': method,
             'path': path,
         }
-        (state['view'], pipeline, state['url_args']) = lookup(path, method)
-        for function, inputs, output in pipeline:
+        (state['view'], pipeline, state['url_path_args']) = lookup(path, method)
+        for function, inputs, output, extra_kwargs in pipeline:
             kwargs = {}
-            for arg_name, state_key, sub_key in inputs:
-                if sub_key is None:
-                    kwargs[arg_name] = state[state_key]
-                else:
-                    kwargs[arg_name] = state[state_key].get(sub_key, None)
-            state[output] = function(**kwargs)
+            for arg_name, state_key in inputs:
+                kwargs[arg_name] = state[state_key]
+            if extra_kwargs is not None:
+                kwargs.update(extra_kwargs)
+
+            if output is None:
+                function(**kwargs)
+            else:
+                state[output] = function(**kwargs)
         wsgi_response = state['wsgi_response']
         start_response(wsgi_response.status, wsgi_response.headers)
         return wsgi_response.iterator

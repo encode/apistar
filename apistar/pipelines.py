@@ -1,112 +1,153 @@
 from collections import namedtuple
-import inspect
+from typing import Callable
 import re
+import inspect
 
 
-Func = namedtuple('Func', ('function', 'inputs', 'output'))
-Input = namedtuple('Input', ('argname', 'statename', 'subname'))
-
-first_cap_re = re.compile('(.)([A-Z][a-z]+)')
-all_cap_re = re.compile('([a-z0-9])([A-Z])')
+empty = inspect.Signature.empty
+FIRST_CAP_RE = re.compile('(.)([A-Z][a-z]+)')
+ALL_CAP_RE = re.compile('([a-z0-9])([A-Z])')
 
 
-def get_class_id(cls):
+Step = namedtuple('Step', ('function', 'inputs', 'output', 'extra_kwargs'))
+Input = namedtuple('Input', ('arg_name', 'state_key'))
+
+
+class Pipeline(list):
+    pass
+
+
+class ArgName(str):
+    """
+    A type annotation that may be used in a class `build` method, in order
+    to inject the argument name that the annotation is being used with.
+    """
+    pass
+
+
+def parameterize_by_argument_name(cls):
+    """
+    Return `True` if the class build method includes any `ArgName` markers.
+    """
+    if not hasattr(cls, 'build'):
+        return False
+    signature = inspect.signature(cls.build)
+    for parameter in signature.parameters.values():
+        if parameter.annotation == ArgName:
+            return True
+    return False
+
+
+def get_class_id(cls, arg_name=None):
     # http://stackoverflow.com/questions/1175208/elegant-python-function-to-convert-camelcase-to-snake-case
-    if cls is None:
-        return ''
     name = cls.__name__
-    s1 = first_cap_re.sub(r'\1_\2', name)
-    return all_cap_re.sub(r'\1_\2', s1).lower()
+    s1 = FIRST_CAP_RE.sub(r'\1_\2', name)
+    s2 = ALL_CAP_RE.sub(r'\1_\2', s1).lower()
+    if parameterize_by_argument_name(cls):
+        return '%s:%s' % (s2, arg_name)
+    return s2
 
 
-def get_func(function, extra_annotations=None):
-    """
-    Given a function which is fully type-annotated,
-    returns a `Func` instance, describing the type information.
-    """
-    inputs = tuple([
-        Input(argname, get_class_id(input_type), argname if use_subkey else None)
-        for argname, input_type, use_subkey in get_input_types(function, extra_annotations)
-    ])
-    output = get_class_id(get_output_type(function, extra_annotations))
-    return Func(function, inputs, output)
+def run_pipeline(pipeline: Pipeline):  # type: dict
+    state = {}
+    for function, inputs, output, extra_kwargs in pipeline:
 
+        kwargs = {}
+        for arg_name, state_key in inputs:
+            kwargs[arg_name] = state[state_key]
+        if extra_kwargs is not None:
+            kwargs.update(extra_kwargs)
 
-
-def get_input_types(function, extra_annotations=None):
-    if type(function) == type:
-        # Class()
-        annotations = function.__init__.__annotations__
-        argnames = inspect.getfullargspec(function.__init__)[0][1:]
-    elif hasattr(function, '__self__'):
-        # @classmethod
-        annotations = function.__annotations__
-        argnames = inspect.getfullargspec(function)[0][1:]
-    else:
-        # Plain function
-        annotations = function.__annotations__
-        argnames = inspect.getfullargspec(function)[0]
-
-    if extra_annotations:
-        annotations = annotations.copy()
-        annotations.update(extra_annotations)
-
-    input_types = []
-    for argname in argnames:
-        input_type = annotations[argname]
-        parent_type = getattr(input_type, 'parent_type', None)
-        if parent_type is None:
-            input_types.append((argname, input_type, False))
+        if output is None:
+            function(**kwargs)
         else:
-            input_types.append((argname, parent_type, True))
-    return input_types
+            state[output] = function(**kwargs)
+
+    return state
 
 
-def get_output_type(function, extra_annotations=None):
-    if extra_annotations and 'return' in extra_annotations:
-        return extra_annotations['return']
+def _build_step(function: Callable, arg_name=None, extra_annotations=None):  # type: Step
+    """
+    Given a function, return the single pipeline step that
+    corresponds to calling that function.
+    """
+    if extra_annotations is None:
+        extra_annotations = {}
 
-    if type(function) == type:
-        # Class()
-        return function
-    elif hasattr(function, '__self__'):
-        # @classmethod
-        return function.__self__
-    # Plain function
-    return function.__annotations__['return']
+    signature = inspect.signature(function)
+    extra_kwargs = {}
+
+    inputs = []
+    for parameter in signature.parameters.values():
+        if parameter.name in extra_annotations:
+            parameter_cls = extra_annotations[parameter.name]
+        else:
+            parameter_cls = parameter.annotation
+
+        if parameter_cls == ArgName:
+            extra_kwargs[parameter.name] = arg_name
+        else:
+            input = (parameter.name, get_class_id(parameter_cls, parameter.name))
+            inputs.append(input)
+
+    if 'return' in extra_annotations:
+        return_cls = extra_annotations['return']
+    else:
+        return_cls = signature.return_annotation
+        if return_cls is empty:
+            if hasattr(function, '__self__'):
+                return_cls = function.__self__
+            else:
+                return_cls = None
+
+    if return_cls is None:
+        output = None
+    else:
+        output = get_class_id(return_cls, arg_name)
+
+    return Step(function, inputs, output, extra_kwargs)
 
 
-def _build_pipeline(function, initial_types=None, extra_annotations=None):
+def _build_pipeline(function: Callable, arg_name=None, seen=None, extra_annotations=None):  # type: Pipeline
+    """
+    Given a function, return the pipeline that runs that
+    function and all its dependancies.
+    """
     pipeline = []
-    seen_types = set(initial_types or [])
+    if seen is None:
+        seen = set()
+    if extra_annotations is None:
+        extra_annotations = {}
 
-    # Add all the function's input requirements to the pipeline
-    for argname, required_type, use_subkey in get_input_types(function, extra_annotations):
-        if required_type in seen_types:
+    signature = inspect.signature(function)
+    for parameter in signature.parameters.values():
+        annotation = extra_annotations.get(parameter.name, parameter.annotation)
+
+        if get_class_id(annotation, parameter.name) in seen:
+            # Don't build a dependancy if it has already been satisfied.
             continue
-        this_function = getattr(required_type, 'build')
-        this_pipeline, this_seen_types = _build_pipeline(this_function, seen_types)
-        pipeline.extend(this_pipeline)
-        seen_types |= this_seen_types
 
-    # Add the function itself to the pipeline
-    func = get_func(function, extra_annotations)
-    output_type = get_output_type(function, extra_annotations)
+        if annotation == ArgName:
+            continue
 
-    pipeline.append(func)
-    if output_type is not None:
-        seen_types.add(output_type)
+        build_function = annotation.build
+        dependancy = _build_pipeline(build_function, seen=seen, arg_name=parameter.name)
+        pipeline.extend(dependancy)
+        seen |= set([step.output for step in dependancy])
 
-    return (pipeline, seen_types)
+    step = _build_step(function, arg_name, extra_annotations)
+    pipeline.append(step)
+    return pipeline
 
 
-def build_pipeline(function, initial_types=None, required_type=None, extra_annotations=None):
-    """
-    Return a Pipeline instance.
-    """
-    pipeline, seen_types = _build_pipeline(function, initial_types, extra_annotations)
-    if (required_type is not None) and (required_type not in seen_types):
-        function = getattr(required_type, 'build')
-        final_pipeline, seen_types = _build_pipeline(function, seen_types)
-        pipeline.extend(final_pipeline)
+def build_pipeline(function: Callable, initial_types=None, required_type=None, extra_annotations=None):
+    seen = None
+    if initial_types:
+        seen = set([get_class_id(cls) for cls in initial_types])
+    pipeline = _build_pipeline(function, seen=seen, extra_annotations=extra_annotations)
+    if required_type is not None:
+        seen |= set([step.output for step in pipeline])
+        if get_class_id(required_type) not in seen:
+            final_pipeline = _build_pipeline(required_type.build, seen=seen)
+            pipeline.extend(final_pipeline)
     return pipeline
