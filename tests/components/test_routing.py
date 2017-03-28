@@ -3,18 +3,18 @@ from apistar.components import http, test
 from apistar.routing import URLArgs
 
 
-def get_args(path: http.Path, args: URLArgs, var: int) -> http.Response:
-    return http.Response({
+def get_args(path: http.Path, args: URLArgs, var: int):
+    return {
         'path': path,
         'args': args
-    })
+    }
 
 
-def get_arg(path: http.Path, var: int) -> http.Response:
-    return http.Response({
+def get_arg(path: http.Path, var: int):
+    return {
         'path': path,
         'var': var
-    })
+    }
 
 
 app = App(routes=[

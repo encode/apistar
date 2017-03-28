@@ -20,8 +20,11 @@ class URLArgs(dict):
     pass
 
 
-NamedURLArg = TypeVar('NamedURLArg')
-NamedURLArg.parent_type = URLArgs
+class NamedURLArg(object):
+    parent_type = URLArgs
+
+    def __new__(cls, *args, **kwargs):
+        return args[0]
 
 
 class Router(object):
@@ -32,7 +35,7 @@ class Router(object):
         # path, any, uuid
     }
 
-    def __init__(self, routes: List[Route]) -> None:
+    def __init__(self, routes: List[Route]):
         required_type = wsgi.WSGIResponse
         initial_types = [wsgi.WSGIEnviron, URLArgs]
 
@@ -51,38 +54,27 @@ class Router(object):
                     (arg, path, view.__name__)
                 )
 
-            # Coerce any URL arguments to URLArg.
+            # Create a werkzeug path string
             werkzeug_path = path[:]
-            arg_types = {}
             for arg in uritemplate.variable_names:
-                arg_type = view.__annotations__.get(arg, str)
-                converter = self.converters[arg_type]
-                arg_types[arg] = arg_type
+                annotated_type = view.__annotations__.get(arg, str)
+                converter = self.converters[annotated_type]
                 werkzeug_path = werkzeug_path.replace(
                     '{%s}' % arg,
                     '<%s:%s>' % (converter, arg)
                 )
 
-            # Add any inferred type annotations to the view.
+            # Create a werkzeug routing rule
+            name = view.__name__
+            rule = Rule(werkzeug_path, methods=[method], endpoint=name)
+            rules.append(rule)
+
+            # Determine any inferred type annotations for the view
             extra_annotations = {}
             for arg in uritemplate.variable_names:
                 extra_annotations[arg] = NamedURLArg
             if 'return' not in view.__annotations__:
                 extra_annotations['return'] = http.ResponseData
-
-            # Create a werkzeug routing rule.
-            name = view.__name__
-            rule = Rule(werkzeug_path, methods=[method], endpoint=name)
-            rules.append(rule)
-
-            # TODO: Apply type casting.
-
-            # LATER: Ensure view arguments include all URL arguments
-            # func_args = inspect.getfullargspec(view)[0]
-            # assert arg in func_args, (
-            #     'URL argument "%s" must be included in function "%s"' %
-            #     (arg, view.__name__)
-            # )
 
             # Determine the pipeline for the view.
             pipeline = pipelines.build_pipeline(view, initial_types, required_type, extra_annotations)
