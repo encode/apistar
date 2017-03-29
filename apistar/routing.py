@@ -21,9 +21,14 @@ class URLPathArgs(dict):
 
 
 class URLPathArg(object):
+    schema = None
+
     @classmethod
     def build(cls, args: URLPathArgs, arg_name: ArgName):
-        return args.get(arg_name)
+        value = args.get(arg_name)
+        if cls.schema is not None and not isinstance(value, cls.schema):
+            value = cls.schema(value)
+        return value
 
 
 class Router(object):
@@ -42,12 +47,12 @@ class Router(object):
         views = {}
 
         for (path, method, view) in routes:
+            view_signature = inspect.signature(view)
             uritemplate = URITemplate(path)
 
             # Ensure view arguments include all URL arguments
-            func_args = inspect.getfullargspec(view)[0]
             for arg in uritemplate.variable_names:
-                assert arg in func_args, (
+                assert arg in view_signature.parameters, (
                     'URL argument "%s" in path "%s" must be included as a '
                     'keyword argument in the view function "%s"' %
                     (arg, path, view.__name__)
@@ -56,7 +61,11 @@ class Router(object):
             # Create a werkzeug path string
             werkzeug_path = path[:]
             for arg in uritemplate.variable_names:
-                annotated_type = view.__annotations__.get(arg, str)
+                param = view_signature.parameters[arg]
+                if param.annotation == inspect.Signature.empty:
+                    annotated_type = str
+                else:
+                    annotated_type = param.annotation
                 converter = self.converters[annotated_type]
                 werkzeug_path = werkzeug_path.replace(
                     '{%s}' % arg,
