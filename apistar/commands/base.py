@@ -13,17 +13,28 @@ PROJECT_TEMPLATE_CHOICES = os.listdir(PROJECT_TEMPLATES_DIR)
 
 
 @click.command(help='Create a new project in TARGET_DIR.')
-@click.argument('target_dir')
+@click.argument('target_dir', default='.')
 @click.option('--template', type=click.Choice(PROJECT_TEMPLATE_CHOICES), default='standard', help='Select the project template to use.')
-def new(target_dir, template):
+@click.option('-f', '--force', is_flag=True, help='Overwrite any existing project files.')
+def new(target_dir, template, force):
     source_dir = os.path.join(PROJECT_TEMPLATES_DIR, template)
-    shutil.copytree(source_dir, target_dir)
-    for dir_path, dirs, files in os.walk(source_dir):
-        for file in files:
-            abs_path = os.path.join(dir_path, file)
-            rel_path = os.path.relpath(abs_path, source_dir)
+    #shutil.copytree(source_dir, target_dir)
+    copy_paths = []
+    for dir_path, dirs, filenames in os.walk(source_dir):
+        for filename in filenames:
+            source_path = os.path.join(dir_path, filename)
+            rel_path = os.path.relpath(source_path, source_dir)
             target_path = os.path.join(target_dir, rel_path)
-            click.echo(target_path)
+            if os.path.exists(target_path) and not force:
+                click.echo('Project files already exist. Use `-f` to overwrite.')
+                sys.exit(1)
+            copy_paths.append((source_path, target_path))
+
+    for source_path, target_path in copy_paths:
+        target_dir = os.path.dirname(target_path)
+        click.echo(target_path)
+        os.makedirs(target_dir, exist_ok=True)
+        shutil.copy(source_path, target_path)
 
 
 @click.command(help='Run the current app.')
