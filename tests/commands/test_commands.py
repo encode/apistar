@@ -42,7 +42,7 @@ def test_testsuite_minimal():
         os.chdir('myproject')
         setup_pythonpath()
         result = runner.invoke(['test'])
-        assert '1 passed' in result.output
+        assert '2 passed' in result.output
         assert result.exit_code == 0
 
 
@@ -52,5 +52,5 @@ def test_testsuite_standard():
         os.chdir('myproject')
         setup_pythonpath()
         result = runner.invoke(['test'])
-        assert '1 passed' in result.output
+        assert '2 passed' in result.output
         assert result.exit_code == 0

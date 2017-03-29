@@ -1,5 +1,4 @@
-from apistar import pipelines
-from apistar.components import http, wsgi
+from apistar import pipelines, http, wsgi
 from apistar.pipelines import ArgName
 from collections import namedtuple
 from typing import Any, List, TypeVar

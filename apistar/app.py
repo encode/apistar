@@ -1,4 +1,4 @@
-from apistar import components, commands, routing
+from apistar import commands, routing
 import click
 
 

@@ -1,9 +1,12 @@
-from apistar.components.base import WSGIEnviron
-from apistar.components import http
+from apistar import http
 from typing import Iterable, Tuple, List
+from werkzeug.datastructures import ImmutableDict
 
 
 __all__ = ['WSGIEnviron', 'WSGIResponse']
+
+
+WSGIEnviron = http.WSGIEnviron
 
 
 class WSGIResponse(object):

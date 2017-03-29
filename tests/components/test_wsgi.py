@@ -1,5 +1,5 @@
 from apistar import App, Route
-from apistar.components import http, wsgi
+from apistar import http, wsgi
 from apistar.test import TestClient
 
 

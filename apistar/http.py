@@ -1,12 +1,16 @@
-from apistar.components.base import WSGIEnviron
 from apistar.pipelines import ArgName
 from typing import Dict, Any, Union, List, Tuple, TypeVar
 from urllib.parse import quote
 from werkzeug.datastructures import (
-    EnvironHeaders, Headers as WerkzeugHeaders, ImmutableMultiDict, ImmutableHeadersMixin
+    EnvironHeaders, Headers as WerkzeugHeaders,
+    ImmutableDict, ImmutableMultiDict, ImmutableHeadersMixin
 )
 from werkzeug.urls import url_decode
 import json
+
+
+class WSGIEnviron(ImmutableDict):
+    pass
 
 
 class Method(str):
@@ -116,7 +120,7 @@ ResponseData = TypeVar('ResponseData')
 class Request(object):
     __slots__ = ('method', 'url', 'headers')
 
-    def __init__(self, method: str, url: str, headers: HeadersType=None) -> None:
+    def __init__(self, method: str, url: str, headers: HeadersType=None):
         if isinstance(headers, dict):
             headers = list(headers.items())
         self.method = method
@@ -131,7 +135,7 @@ class Request(object):
 class Response(object):
     __slots__ = ('data', 'content', 'status', 'headers')
 
-    def __init__(self, data: Any, status: int=200, headers: HeadersType=None) -> None:
+    def __init__(self, data: Any, status: int=200, headers: HeadersType=None):
         if isinstance(headers, dict):
             headers = list(headers.items())
         self.data = data
