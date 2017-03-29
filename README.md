@@ -1,6 +1,6 @@
 # API Star ✨🚀✨🌟
 
-API Star is a smart Web API framework, designed for Python 3.
+A smart Web API framework, designed for Python 3.
 
 Install API Star:
 
