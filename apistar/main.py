@@ -6,6 +6,9 @@ import os
 import sys
 
 
+sys.dont_write_bytecode = True
+
+
 def get_current_app():
     app_path = os.path.join(os.getcwd(), 'app.py')
     if os.path.exists(app_path):

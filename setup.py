@@ -7,6 +7,9 @@ import os
 import sys
 
 
+sys.dont_write_bytecode = True
+
+
 def get_version(package):
     """
     Return package version as listed in `__version__` in `init.py`.
@@ -56,7 +59,7 @@ setup(
     version=version,
     url='http://www.api-star.org',
     license='BSD',
-    description='',
+    description='Blazingly fast & beautifully expressive Web APIs',
     author='Tom Christie',
     author_email='tom@tomchristie.com',
     packages=get_packages('apistar'),
@@ -64,7 +67,9 @@ setup(
     install_requires=[
         'coreapi',
         'werkzeug',
-        'jinja2'
+        'jinja2',
+        'click',
+        'pytest'
     ],
     classifiers=[
         'Development Status :: 3 - Alpha',
@@ -72,8 +77,10 @@ setup(
         'Intended Audience :: Developers',
         'License :: OSI Approved :: BSD License',
         'Operating System :: OS Independent',
-        'Programming Language :: Python',
         'Topic :: Internet :: WWW/HTTP',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
     ],
     entry_points={
         'console_scripts': [
