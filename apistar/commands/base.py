@@ -13,12 +13,12 @@ PROJECT_TEMPLATE_CHOICES = os.listdir(PROJECT_TEMPLATES_DIR)
 
 
 @click.command(help='Create a new project in TARGET_DIR.')
-@click.argument('target_dir', default='.')
+@click.argument('target_dir', default='')
 @click.option('--template', type=click.Choice(PROJECT_TEMPLATE_CHOICES), default='standard', help='Select the project template to use.')
 @click.option('-f', '--force', is_flag=True, help='Overwrite any existing project files.')
 def new(target_dir, template, force):
     source_dir = os.path.join(PROJECT_TEMPLATES_DIR, template)
-    #shutil.copytree(source_dir, target_dir)
+
     copy_paths = []
     for dir_path, dirs, filenames in os.walk(source_dir):
         for filename in filenames:
@@ -31,9 +31,10 @@ def new(target_dir, template, force):
             copy_paths.append((source_path, target_path))
 
     for source_path, target_path in copy_paths:
-        target_dir = os.path.dirname(target_path)
         click.echo(target_path)
-        os.makedirs(target_dir, exist_ok=True)
+        target_dir = os.path.dirname(target_path)
+        if target_dir:
+            os.makedirs(target_dir, exist_ok=True)
         shutil.copy(source_path, target_path)
 
 
