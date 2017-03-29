@@ -1,5 +1,6 @@
 from apistar import App, Route
-from apistar.components import http, test, wsgi
+from apistar.components import http, wsgi
+from apistar.test import TestClient
 
 
 def get_wsgi_environ(environ: wsgi.WSGIEnviron) -> http.Response:
@@ -22,7 +23,7 @@ app = App(routes=[
 ])
 
 
-client = test.RequestsClient(app)
+client = TestClient(app)
 
 
 def test_wsgi_environ():

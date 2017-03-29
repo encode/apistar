@@ -2,6 +2,6 @@ from apistar import Route
 from project.views import welcome
 
 
-routes=[
+routes = [
     Route('/', 'get', welcome)
 ]

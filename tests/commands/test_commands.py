@@ -1,7 +1,7 @@
 from apistar import __version__
 from apistar.app import App
 from apistar.main import setup_pythonpath, setup_environ
-from apistar.components.test import CommandLineRunner
+from apistar.test import CommandLineRunner
 import os
 import subprocess
 import requests

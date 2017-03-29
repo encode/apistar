@@ -1,8 +1,8 @@
-from apistar import App, Route, Response
+from apistar import App, Route
 
 
-def welcome() -> Response:
-    return Response({'message': 'Welcome to API Star!'})
+def welcome():
+    return {'message': 'Welcome to API Star!'}
 
 
 app = App(routes=[

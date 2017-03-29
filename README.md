@@ -30,15 +30,5 @@ Run the application:
 Run the tests:
 
     $ apistar test
-    tests.py .
-    ===== 1 passed in 0.01 seconds =====
-
-
-## Routing
-
-    def hello(username):
-        return {'message': f'Welcome, {username}'}
-
-    app = App(routes=[
-        Route('/user/{username}/', 'get', hello)
-    ])
+    tests.py ..
+    ===== 2 passed in 0.05 seconds =====

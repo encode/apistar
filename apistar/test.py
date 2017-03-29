@@ -1,7 +1,9 @@
+from apistar.main import get_current_app
 from click.testing import CliRunner
 from urllib.parse import urlparse
 import requests
 import io
+import pytest
 
 
 class HeaderDict(requests.packages.urllib3._collections.HTTPHeaderDict):
@@ -62,7 +64,7 @@ class WSGIAdapter(requests.adapters.HTTPAdapter):
 
     def send(self, request, *args, **kwargs):
         """
-        Make an outgoing request to the Django WSGI application.
+        Make an outgoing request to a WSGI application.
         """
         raw_kwargs = {}
 
@@ -90,13 +92,23 @@ class WSGIAdapter(requests.adapters.HTTPAdapter):
         pass
 
 
-class RequestsClient(requests.Session):
-    def __init__(self, app, root_path=None):
-        super(RequestsClient, self).__init__()
+class _TestClient(requests.Session):
+    def __init__(self, app=None, root_path=None):
+        super(_TestClient, self).__init__()
+        if app is None:
+            app = get_current_app()
         adapter = WSGIAdapter(app.wsgi, root_path=root_path)
         self.mount('http://', adapter)
         self.mount('https://', adapter)
         self.headers.update({'User-Agent': 'requests_client'})
+
+
+def TestClient(*args, **kwargs):
+    """
+    We have to work around py.test discovery attempting to pick up
+    the `TestClient` class, by declaring this as a function.
+    """
+    return _TestClient(*args, **kwargs)
 
 
 class CommandLineRunner(CliRunner):

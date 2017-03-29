@@ -1,5 +1,6 @@
 from apistar import App, Route
-from apistar.components import http, test
+from apistar.test import TestClient
+from apistar.components import http
 from apistar.routing import URLPathArgs
 
 
@@ -23,7 +24,7 @@ app = App(routes=[
 ])
 
 
-client = test.RequestsClient(app)
+client = TestClient(app)
 
 
 def test_args():

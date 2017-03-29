@@ -21,7 +21,7 @@ class URLPathArgs(dict):
     pass
 
 
-class URLPathArg(str):
+class URLPathArg(object):
     @classmethod
     def build(cls, args: URLPathArgs, arg_name: ArgName):
         return args.get(arg_name)

@@ -1,5 +1,6 @@
 from apistar import App, Route
-from apistar.components import http, test
+from apistar.test import TestClient
+from apistar.components import http
 
 
 def get_method(method: http.Method) -> http.Response:
@@ -76,7 +77,7 @@ app = App(routes=[
 ])
 
 
-client = test.RequestsClient(app)
+client = TestClient(app)
 
 
 def test_method():
