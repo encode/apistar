@@ -8,10 +8,9 @@ Install API Star:
 
 Create a new project:
 
-    $ apistar new myproject --template minimal
-    myproject/app.py
-    myproject/tests.py
-    $ cd myproject
+    $ apistar new --template minimal
+    app.py
+    tests.py
     $ cat app.py
     from apistar import App, Route
 
