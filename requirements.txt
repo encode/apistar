@@ -5,3 +5,4 @@ jinja2
 pytest
 requests
 werkzeug
+typing
