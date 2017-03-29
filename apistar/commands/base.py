@@ -36,25 +36,6 @@ def run():
     except KeyboardInterrupt:
         pass
 
-#
-# class MyPlugin:
-#     def pytest_generate_tests(self, metafunc):
-#         print('generate', metafunc)
-#
-#     def pytest_fixture_setup(fixturedef, request):
-#         print ('fixture', request)
-#
-#     def pytest_collection_modifyitems(self, items, config):
-#         print('modify', items)
-#     #     for item in items:
-#     #         #if item.name == 'test_abc':
-#     #             # print(item)
-#     #             # print(item.name)
-#     #             # print(dir(item))
-#     #         p = pytest.mark.parametrize('foo', ['directly-overridden-username'])
-#     #         item.add_marker(p)
-#     #         print(list(item.keywords))
-
 
 @click.command(help='Run the test suite.')
 @click.argument('file_or_dir', nargs=-1)
