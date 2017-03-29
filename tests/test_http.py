@@ -35,7 +35,7 @@ def get_query_params(query_params: http.QueryParams) -> http.Response:
     return http.Response({'query_params': query_params.to_dict(flat=False)})
 
 
-def get_page_query_param(page: http.NamedQueryParam) -> http.Response:
+def get_page_query_param(page: http.QueryParam) -> http.Response:
     return http.Response({'page': page})
 
 
@@ -47,7 +47,7 @@ def get_headers(headers: http.Headers) -> http.Response:
     return http.Response({'headers': dict(headers)})
 
 
-def get_accept_header(accept: http.NamedHeader) -> http.Response:
+def get_accept_header(accept: http.Header) -> http.Response:
     return http.Response({'accept': accept})
 
 

@@ -89,19 +89,19 @@ class Headers(ImmutableHeadersMixin, WerkzeugHeaders):
         return cls(EnvironHeaders(environ))
 
 
+class Header(str):
+    @classmethod
+    def build(cls, headers: Headers, arg_name: ArgName):
+        return headers.get(arg_name.replace('_', '-'))
+
+
 class QueryParams(ImmutableMultiDict):
     @classmethod
     def build(cls, environ: WSGIEnviron):
         return cls(url_decode(environ['QUERY_STRING']))
 
 
-class NamedHeader(str):
-    @classmethod
-    def build(cls, headers: Headers, arg_name: ArgName):
-        return headers.get(arg_name.replace('_', '-'))
-
-
-class NamedQueryParam(str):
+class QueryParam(str):
     @classmethod
     def build(cls, params: QueryParams, arg_name: ArgName):
         return params.get(arg_name)
