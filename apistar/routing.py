@@ -3,6 +3,7 @@ from apistar.pipelines import ArgName
 from collections import namedtuple
 from typing import Any, List, TypeVar
 from uritemplate import URITemplate
+from werkzeug.exceptions import NotFound
 from werkzeug.routing import Map, Rule, parse_rule
 import inspect
 import json
@@ -112,15 +113,21 @@ class Router(object):
             pipeline = pipelines.build_pipeline(view, initial_types, required_type, extra_annotations)
             views[name] = Endpoint(view, pipeline)
 
+        pipeline = pipelines.build_pipeline(view_404, initial_types, required_type, {})
+        self.not_found = (None, pipeline, {})
+
         self.routes = routes
         self.adapter = Map(rules).bind('example.com')
         self.views = views
 
     def lookup(self, path, method):
-        (name, kwargs) = self.adapter.match(path, method)
+        try:
+            (name, kwargs) = self.adapter.match(path, method)
+        except NotFound:
+            return self.not_found
         (view, pipeline) = self.views[name]
         return (view, pipeline, kwargs)
 
 
-def not_found_view() -> http.Response:
+def view_404() -> http.Response:
     return http.Response({'message': 'Not found'}, 404)

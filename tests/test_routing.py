@@ -39,6 +39,14 @@ app = App(routes=[
 client = TestClient(app)
 
 
+def test_404():
+    response = client.get('http://example.com/404/')
+    assert response.status_code == 404
+    assert response.json() == {
+        'message': 'Not found'
+    }
+
+
 def test_args():
     response = client.get('http://example.com/args/1/')
     assert response.json() == {
