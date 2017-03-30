@@ -128,3 +128,26 @@ query parameters.
     app = App(routes=[
         Route('/hello/', 'GET', echo_username)
     ])
+
+---
+
+# WSGI
+
+Because API views are so dynamic, they'll even let you drop right down to
+returning a WSGI response directly:
+
+    from apistar import wsgi
+
+    def hello_world() -> wsgi.WSGIResponse:
+        wsgi.WSGIResponse(
+            '200 OK',
+            [('Content-Type', 'text/plain')],
+            [b'Hello, world!']
+        )
+
+You can also inject the WSGI environment into your view arguments:
+
+    def debug_environ(environ: wsgi.WSGIEnviron):
+        return {
+            'environ': environ
+        }
