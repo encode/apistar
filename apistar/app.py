@@ -37,7 +37,7 @@ def get_wsgi_server(app):
     def func(environ, start_response):
         method = environ['REQUEST_METHOD']
         path = environ['PATH_INFO']
-        key = method + ' ' + path
+        lookup_key = method + ' ' + path
         state = {
             'wsgi_environ': environ,
             'app': app,
@@ -46,9 +46,9 @@ def get_wsgi_server(app):
         }
 
         try:
-            (state['view'], pipeline, state['url_path_args']) = lookup_cache[key]
+            (state['view'], pipeline, state['url_path_args']) = lookup_cache[lookup_key]
         except KeyError:
-            (state['view'], pipeline, state['url_path_args']) = lookup_cache[key] = lookup(path, method)
+            (state['view'], pipeline, state['url_path_args']) = lookup_cache[lookup_key] = lookup(path, method)
             if len(lookup_cache) > max_cache:
                 lookup_cache.pop(next(iter(lookup_cache)))
 

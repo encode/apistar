@@ -7,11 +7,14 @@ from werkzeug.http import HTTP_STATUS_CODES
 __all__ = ['WSGIEnviron', 'WSGIResponse']
 
 
-WSGIEnviron = http.WSGIEnviron
 STATUS_CODES = {
     code: "%d %s" % (code, msg)
     for code, msg in HTTP_STATUS_CODES.items()
 }
+
+
+WSGIEnviron = http.WSGIEnviron
+
 
 class WSGIResponse(object):
     __slots__ = ('status', 'headers', 'iterator')
