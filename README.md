@@ -81,8 +81,8 @@ Some of the components you might use most often:
 By default API star expects view to return plain data, and will return
 `200 OK` responses.
 
-def create_project():
-    return {'name': 'new project', 'id': 123}
+    def create_project():
+        return {'name': 'new project', 'id': 123}
 
 You can instead set the status code or headers by annotating the view as
 returning a `Response`.
