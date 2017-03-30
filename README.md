@@ -64,21 +64,28 @@ using type annotation.
             'user-agent': user_agent
         }
 
-| Component    | Description |
-| ------------ | ----------- |
-| Request      | The HTTP request. Includes `.method`, `.url` and `.headers` attributes. |
-| Headers      | The request headers, returned as a dictionary-like object. |
-| Header       | Lookup a single request header, corresponding to the argument name. Returns a string or `None`. |
-| QueryParams  | The request query parameters, returned as a dictionary-like object. |
-| QueryParam   | Lookup a single query parameter, corresponding to the argument name. Returns a string or `None`. |
+Some of the components you might use most often:
+
+| Component     | Description |
+| ------------- | ----------- |
+| `Request`     | The HTTP request. Includes `.method`, `.url` and `.headers` attributes. |
+| `Headers`     | The request headers, returned as a dictionary-like object. |
+| `Header`      | Lookup a single request header, corresponding to the argument name.<br/>Returns a string or `None`. |
+| `QueryParams` | The request query parameters, returned as a dictionary-like object. |
+| `QueryParam`  | Lookup a single query parameter, corresponding to the argument name.<br/>Returns a string or `None`. |
 
 ---
 
 # Responses
 
 By default API star expects view to return plain data, and will return
-`200 OK` responses. You can instead set the status code or headers by
-annotating the view as returning a `Response`.
+`200 OK` responses.
+
+def create_project():
+    return {'name': 'new project', 'id': 123}
+
+You can instead set the status code or headers by annotating the view as
+returning a `Response`.
 
     def create_project() -> Response:
         data = {'name': 'new project', 'id': 123}
