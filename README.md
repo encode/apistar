@@ -42,8 +42,8 @@ Run the tests:
 
 # Requests
 
-API Star allows you to dynamically inject various information into your views
-using type annotation.
+API Star allows you to dynamically inject various information about the
+incoming request into your views using type annotation.
 
     from apistar import http
 
@@ -68,7 +68,7 @@ Some of the components you might use most often:
 
 | Component     | Description |
 | ------------- | ----------- |
-| `Request`     | The HTTP request. Includes `.method`, `.url` and `.headers` attributes. |
+| `Request`     | The HTTP request. Includes `.method`, `.url`, and `.headers` attributes. |
 | `Headers`     | The request headers, returned as a dictionary-like object. |
 | `Header`      | Lookup a single request header, corresponding to the argument name.<br/>Returns a string or `None`. |
 | `QueryParams` | The request query parameters, returned as a dictionary-like object. |
