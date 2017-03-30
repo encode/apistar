@@ -1,4 +1,5 @@
 from apistar import commands, routing
+from collections import OrderedDict
 import click
 
 
@@ -24,28 +25,47 @@ class App(object):
 
 def get_wsgi_server(app):
     lookup = app.router.lookup
+    lookup_cache = OrderedDict()  # FIFO Cache for URL lookups.
+    max_cache = 10000
+
+    # Pre-fill the lookup cache for URLs without path arguments.
+    for path, method, view in app.router.routes:
+        if '{' not in path:
+            key = method.upper() + ' ' + path
+            lookup_cache[key] = lookup(path, method)
 
     def func(environ, start_response):
         method = environ['REQUEST_METHOD']
         path = environ['PATH_INFO']
+        key = method + ' ' + path
         state = {
             'wsgi_environ': environ,
             'app': app,
             'method': method,
             'path': path,
         }
-        (state['view'], pipeline, state['url_path_args']) = lookup(path, method)
+
+        try:
+            (state['view'], pipeline, state['url_path_args']) = lookup_cache[key]
+        except KeyError:
+            (state['view'], pipeline, state['url_path_args']) = lookup_cache[key] = lookup(path, method)
+            if len(lookup_cache) > max_cache:
+                lookup_cache.pop(next(iter(lookup_cache)))
+
         for function, inputs, output, extra_kwargs in pipeline:
+            # Determine the keyword arguments for each step in the pipeline.
             kwargs = {}
             for arg_name, state_key in inputs:
                 kwargs[arg_name] = state[state_key]
             if extra_kwargs is not None:
                 kwargs.update(extra_kwargs)
 
+            # Call the function for each step in the pipeline.
             if output is None:
                 function(**kwargs)
             else:
                 state[output] = function(**kwargs)
+
         wsgi_response = state['wsgi_response']
         start_response(wsgi_response.status, wsgi_response.headers)
         return wsgi_response.iterator

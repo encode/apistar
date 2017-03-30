@@ -102,9 +102,16 @@ class QueryParams(ImmutableMultiDict):
 
 
 class QueryParam(str):
+    schema = None
+
     @classmethod
     def build(cls, params: QueryParams, arg_name: ArgName):
-        return params.get(arg_name)
+        value = params.get(arg_name)
+        if value is None or cls.schema is None:
+            return value
+        if not isinstance(value, cls.schema):
+            value = cls.schema(value)
+        return value
 
 
 HeadersType = Union[

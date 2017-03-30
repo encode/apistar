@@ -1,4 +1,4 @@
-from apistar import pipelines, http, wsgi
+from apistar import pipelines, http, schema, wsgi
 from apistar.pipelines import ArgName
 from collections import namedtuple
 from typing import Any, List, TypeVar
@@ -11,6 +11,16 @@ import json
 # TODO: 404
 # TODO: Redirects
 # TODO: Caching
+
+
+primitive_types = (
+    str, int, float, bool, list, dict
+)
+
+schema_types = (
+    schema.String, schema.Integer, schema.Number,
+    schema.Boolean, schema.Object
+)
 
 Route = namedtuple('Route', ['path', 'method', 'view'])
 Endpoint = namedtuple('Endpoint', ['view', 'pipeline'])
@@ -35,7 +45,7 @@ class Router(object):
     converters = {
         str: 'string',
         int: 'int',
-        float: 'float'
+        float: 'float',
         # path, any, uuid
     }
 
@@ -79,8 +89,22 @@ class Router(object):
 
             # Determine any inferred type annotations for the view
             extra_annotations = {}
-            for arg in uritemplate.variable_names:
-                extra_annotations[arg] = URLPathArg
+            for param in view_signature.parameters.values():
+
+                if param.annotation == inspect.Signature.empty:
+                    annotated_type = str
+                else:
+                    annotated_type = param.annotation
+
+                if param.name in uritemplate.variable_names:
+                    class TypedURLPathArg(URLPathArg):
+                        schema = annotated_type
+                    extra_annotations[param.name] = TypedURLPathArg
+                elif (annotated_type in primitive_types) or issubclass(annotated_type, schema_types):
+                    class TypedQueryParam(http.QueryParam):
+                        schema = annotated_type
+                    extra_annotations[param.name] = TypedQueryParam
+
             if 'return' not in view.__annotations__:
                 extra_annotations['return'] = http.ResponseData
 
@@ -88,6 +112,7 @@ class Router(object):
             pipeline = pipelines.build_pipeline(view, initial_types, required_type, extra_annotations)
             views[name] = Endpoint(view, pipeline)
 
+        self.routes = routes
         self.adapter = Map(rules).bind('example.com')
         self.views = views
 

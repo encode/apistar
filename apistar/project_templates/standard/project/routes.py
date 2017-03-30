@@ -3,5 +3,5 @@ from project.views import welcome
 
 
 routes = [
-    Route('/', 'get', welcome)
+    Route('/', 'GET', welcome)
 ]

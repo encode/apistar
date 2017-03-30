@@ -6,5 +6,5 @@ def welcome():
 
 
 app = App(routes=[
-    Route('/', 'get', welcome)
+    Route('/', 'GET', welcome)
 ])
