@@ -16,7 +16,7 @@ STATUS_CODES = {
 class WSGIResponse(object):
     __slots__ = ('status', 'headers', 'iterator')
 
-    def __init__(self, status: str, headers: List[Tuple[str, str]], iterator: Iterable[bytes]) -> None:
+    def __init__(self, status: str, headers: List[Tuple[str, str]], iterator: Iterable[bytes]):
         self.status = status
         self.headers = headers
         self.iterator = iterator
@@ -27,6 +27,7 @@ class WSGIResponse(object):
             status_text = STATUS_CODES[response.status]
         except KeyError:
             status_text = str(response.status)
+
         return WSGIResponse(
             status=status_text,
             headers=list(response.headers.items()),
