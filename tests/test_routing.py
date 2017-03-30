@@ -4,6 +4,12 @@ from apistar.test import TestClient
 from apistar.routing import URLPathArgs
 
 
+def found():
+    return {
+        'message': 'found'
+    }
+
+
 def get_args(args: URLPathArgs, var: int):
     return {
         'args': args
@@ -29,10 +35,11 @@ def get_query_param_with_schema(query: schema.Number):
 
 
 app = App(routes=[
-    Route('/args/{var}/', 'get', get_args),
-    Route('/arg/{var}/', 'get', get_arg),
-    Route('/query_param/', 'get', get_query_param),
-    Route('/query_param_with_schema/', 'get', get_query_param_with_schema),
+    Route('/found/', 'GET', found),
+    Route('/args/{var}/', 'GET', get_args),
+    Route('/arg/{var}/', 'GET', get_arg),
+    Route('/query_param/', 'GET', get_query_param),
+    Route('/query_param_with_schema/', 'GET', get_query_param_with_schema),
 ])
 
 
@@ -44,6 +51,14 @@ def test_404():
     assert response.status_code == 404
     assert response.json() == {
         'message': 'Not found'
+    }
+
+
+def test_405():
+    response = client.post('http://example.com/found/')
+    assert response.status_code == 405
+    assert response.json() == {
+        'message': 'Method not allowed'
     }
 
 
