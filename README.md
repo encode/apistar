@@ -2,6 +2,7 @@
 
 A smart Web API framework, designed for Python 3.
 
+[![PyPI version](https://badge.fury.io/py/apistar.svg)](https://badge.fury.io/py/apistar)
 [![Build Status](https://travis-ci.org/tomchristie/apistar.svg?branch=master)](https://travis-ci.org/tomchristie/apistar)
 
 ---
@@ -22,7 +23,7 @@ Create a new project:
         return {'message': 'Welcome to API Star!'}
 
     app = App(routes=[
-        Route('/', 'get', welcome)
+        Route('/', 'GET', welcome)
     ])
 
 Run the application:
