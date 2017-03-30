@@ -3,10 +3,10 @@ from apistar.pipelines import ArgName
 from collections import namedtuple
 from typing import Any, List, TypeVar
 from uritemplate import URITemplate
-from werkzeug.exceptions import NotFound
 from werkzeug.routing import Map, Rule, parse_rule
 import inspect
 import json
+import werkzeug
 
 # TODO: Path
 # TODO: 404
@@ -49,6 +49,8 @@ class Router(object):
         float: 'float',
         # path, any, uuid
     }
+    not_found = None
+    method_not_allowed = None
 
     def __init__(self, routes: List[Route]):
         required_type = wsgi.WSGIResponse
@@ -113,8 +115,11 @@ class Router(object):
             pipeline = pipelines.build_pipeline(view, initial_types, required_type, extra_annotations)
             views[name] = Endpoint(view, pipeline)
 
+        # Add pipelines for 404 and 405 cases.
         pipeline = pipelines.build_pipeline(view_404, initial_types, required_type, {})
         self.not_found = (None, pipeline, {})
+        pipeline = pipelines.build_pipeline(view_405, initial_types, required_type, {})
+        self.method_not_allowed = (None, pipeline, {})
 
         self.routes = routes
         self.adapter = Map(rules).bind('example.com')
@@ -123,11 +128,17 @@ class Router(object):
     def lookup(self, path, method):
         try:
             (name, kwargs) = self.adapter.match(path, method)
-        except NotFound:
+        except werkzeug.exceptions.NotFound:
             return self.not_found
+        except werkzeug.exceptions.MethodNotAllowed:
+            return self.method_not_allowed
         (view, pipeline) = self.views[name]
         return (view, pipeline, kwargs)
 
 
 def view_404() -> http.Response:
     return http.Response({'message': 'Not found'}, 404)
+
+
+def view_405() -> http.Response:
+    return http.Response({'message': 'Method not allowed'}, 405)

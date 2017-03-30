@@ -1,13 +1,17 @@
 from apistar import http
 from typing import Iterable, Tuple, List
 from werkzeug.datastructures import ImmutableDict
+from werkzeug.http import HTTP_STATUS_CODES
 
 
 __all__ = ['WSGIEnviron', 'WSGIResponse']
 
 
 WSGIEnviron = http.WSGIEnviron
-
+STATUS_CODES = {
+    code: "%d %s" % (code, msg)
+    for code, msg in HTTP_STATUS_CODES.items()
+}
 
 class WSGIResponse(object):
     __slots__ = ('status', 'headers', 'iterator')
@@ -19,11 +23,12 @@ class WSGIResponse(object):
 
     @classmethod
     def build(cls, response: http.Response):
+        try:
+            status_text = STATUS_CODES[response.status]
+        except KeyError:
+            status_text = str(response.status)
         return WSGIResponse(
-            status={
-                200: '200 OK',
-                404: '404 NOT FOUND'
-            }[response.status],
+            status=status_text,
             headers=list(response.headers.items()),
             iterator=[response.content]
         )
