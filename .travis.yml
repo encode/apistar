@@ -1,0 +1,13 @@
+language: python
+
+python:
+    - "3.5"
+    - "3.6"
+
+cache: pip
+
+install:
+    - pip install -r requirements.txt
+    - export PYTHONPATH=.
+
+script: py.test tests

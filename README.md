@@ -2,6 +2,10 @@
 
 A smart Web API framework, designed for Python 3.
 
+[![Build Status](https://travis-ci.org/tomchristie/apistar.svg?branch=master)](https://travis-ci.org/tomchristie/apistar)
+
+---
+
 Install API Star:
 
     $ pip3 install apistar
