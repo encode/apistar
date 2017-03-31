@@ -40,24 +40,6 @@ Run the tests:
 
 ---
 
-# Performance
-
-The following results were obtained on a 2013 MacBook Air, using the simplest
-"JSON Serialization" [TechEmpower benchmark](https://www.techempower.com/benchmarks/).
-
-Framework | Configuration       | Requests/sec | Avg Latency
-----------|---------------------|--------------|-------------
-API Star  | gunicorn + meinheld | 25,195       |  7.94ms
-Sanic     | uvloop              | 21,233       | 10.19ms
-Falcon    | gunicorn + meinheld | 16,692       | 12.08ms
-Flask     | gunicorn + meinheld |  5,238       | 38.28ms
-
-A pull request [has been issued](https://github.com/TechEmpower/FrameworkBenchmarks/pull/2633)
-to add API Star to future rounds of the TechEmpower benchmarks. In the future we
-plan to be adding more realistic & useful test types, such as database query performance.
-
----
-
 # Requests
 
 API Star allows you to dynamically inject various information about the
@@ -172,10 +154,29 @@ You can also inject the WSGI environment into your view arguments:
 
 ---
 
+# Performance
+
+The following results were obtained on a 2013 MacBook Air, using the simplest
+"JSON Serialization" [TechEmpower benchmark](https://www.techempower.com/benchmarks/).
+
+Framework | Configuration       | Requests/sec | Avg Latency
+----------|---------------------|--------------|-------------
+API Star  | gunicorn + meinheld | 25,195       |  7.94ms
+Sanic     | uvloop              | 21,233       | 10.19ms
+Falcon    | gunicorn + meinheld | 16,692       | 12.08ms
+Flask     | gunicorn + meinheld |  5,238       | 38.28ms
+
+A pull request [has been issued](https://github.com/TechEmpower/FrameworkBenchmarks/pull/2633)
+to add API Star to future rounds of the TechEmpower benchmarks. In the future we
+plan to be adding more realistic & useful test types, such as database query performance.
+
+---
+
 # Deployment
 
 The recommended deployment is Gunicorn, using the Meinheld worker.
 
+    $ pip install gunicorn
     $ pip install meinheld
     $ gunicorn app:app.wsgi --workers=4 --bind=0.0.0.0:5000 --pid=pid --worker-class=meinheld.gmeinheld.MeinheldWorker
 
