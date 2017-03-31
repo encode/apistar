@@ -181,3 +181,7 @@ The recommended deployment is Gunicorn, using the Meinheld worker.
     $ gunicorn app:app.wsgi --workers=4 --bind=0.0.0.0:5000 --pid=pid --worker-class=meinheld.gmeinheld.MeinheldWorker
 
 Typically you'll want to run as many workers as you have CPU cores on the server.
+
+---
+
+<p align="center"><i>API Star is <a href="https://github.com/tomchristie/apistar/blob/master/LICENSE.md">BSD licensed</a> code.<br/>Designed & built in Brighton, England.</i><br/>&mdash; ⭐️ &mdash;</p>
