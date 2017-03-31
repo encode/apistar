@@ -6,7 +6,7 @@ from werkzeug.datastructures import (
     ImmutableDict, ImmutableMultiDict, ImmutableHeadersMixin
 )
 from werkzeug.urls import url_decode
-import json
+import ujson as json
 
 
 class WSGIEnviron(ImmutableDict):
