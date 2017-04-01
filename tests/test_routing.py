@@ -1,7 +1,6 @@
-from apistar import App, Route
-from apistar import http, schema
-from apistar.test import TestClient
+from apistar import App, Route, http, schema
 from apistar.routing import URLPathArgs
+from apistar.test import TestClient
 
 
 def found():

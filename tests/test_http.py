@@ -1,5 +1,4 @@
-from apistar import App, Route
-from apistar import http
+from apistar import App, Route, http
 from apistar.test import TestClient
 
 

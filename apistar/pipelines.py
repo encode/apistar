@@ -1,8 +1,7 @@
+import inspect
+import re
 from collections import namedtuple
 from typing import Callable
-import re
-import inspect
-
 
 empty = inspect.Signature.empty
 FIRST_CAP_RE = re.compile('(.)([A-Z][a-z]+)')

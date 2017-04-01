@@ -1,0 +1,2 @@
+lint:
+	isort --check-only

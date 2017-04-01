@@ -1,7 +1,8 @@
-from apistar.exceptions import SchemaError
+import re
 from collections import OrderedDict
 from typing import Dict, List, Tuple, Union
-import re
+
+from apistar.exceptions import SchemaError
 
 
 # TODO: Validation errors

@@ -1,6 +1,7 @@
-coreapi
 click
+coreapi
 gunicorn
+isort
 jinja2
 pytest
 requests

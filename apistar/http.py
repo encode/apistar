@@ -1,12 +1,14 @@
-from apistar.pipelines import ArgName
-from typing import Dict, Any, Union, List, Tuple, TypeVar
+from typing import Any, Dict, List, Tuple, TypeVar, Union
 from urllib.parse import quote
+
+from werkzeug.datastructures import Headers as WerkzeugHeaders
 from werkzeug.datastructures import (
-    EnvironHeaders, Headers as WerkzeugHeaders,
-    ImmutableDict, ImmutableMultiDict, ImmutableHeadersMixin
+    EnvironHeaders, ImmutableDict, ImmutableHeadersMixin, ImmutableMultiDict
 )
 from werkzeug.urls import url_decode
+
 import ujson as json
+from apistar.pipelines import ArgName
 
 
 class WSGIEnviron(ImmutableDict):
