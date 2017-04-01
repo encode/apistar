@@ -1,5 +1,6 @@
 click
 coreapi
+flake8
 gunicorn
 isort
 jinja2

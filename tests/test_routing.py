@@ -1,4 +1,4 @@
-from apistar import App, Route, http, schema
+from apistar import App, Route, schema
 from apistar.routing import URLPathArgs
 from apistar.test import TestClient
 

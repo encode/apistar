@@ -1,11 +1,10 @@
 import inspect
-import json
 from collections import namedtuple
-from typing import Any, List, TypeVar
+from typing import List
 
 import werkzeug
 from uritemplate import URITemplate
-from werkzeug.routing import Map, Rule, parse_rule
+from werkzeug.routing import Map, Rule
 
 from apistar import http, pipelines, schema, wsgi
 from apistar.pipelines import ArgName

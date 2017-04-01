@@ -1,12 +1,8 @@
 import os
-import subprocess
-import threading
-
-import requests
 
 from apistar import __version__
 from apistar.app import App
-from apistar.main import setup_environ, setup_pythonpath
+from apistar.main import setup_pythonpath
 from apistar.test import CommandLineRunner
 
 app = App()

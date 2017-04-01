@@ -63,7 +63,7 @@ class URL(str):
     @classmethod
     def build(cls, environ: WSGIEnviron):
         # https://www.python.org/dev/peps/pep-0333/#url-reconstruction
-        url = environ['wsgi.url_scheme']+'://'
+        url = environ['wsgi.url_scheme'] + '://'
 
         if environ.get('HTTP_HOST'):
             url += environ['HTTP_HOST']
@@ -72,10 +72,10 @@ class URL(str):
 
             if environ['wsgi.url_scheme'] == 'https':
                 if environ['SERVER_PORT'] != '443':
-                   url += ':' + environ['SERVER_PORT']
+                    url += ':' + environ['SERVER_PORT']
             else:
                 if environ['SERVER_PORT'] != '80':
-                   url += ':' + environ['SERVER_PORT']
+                    url += ':' + environ['SERVER_PORT']
 
         url += quote(environ.get('SCRIPT_NAME', ''))
         url += quote(environ.get('PATH_INFO', ''))

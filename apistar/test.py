@@ -1,7 +1,6 @@
 import io
 from urllib.parse import urlparse
 
-import pytest
 import requests
 from click.testing import CliRunner
 
@@ -54,7 +53,7 @@ class WSGIAdapter(requests.adapters.HTTPAdapter):
             environ['SERVER_NAME'] = url_components.hostname
             environ['SERVER_PORT'] = str(url_components.port)
         else:
-            environ['HTTP_HOST'] =  url_components.hostname
+            environ['HTTP_HOST'] = url_components.hostname
 
         for key, value in request.headers.items():
             key = key.upper().replace('-', '_')

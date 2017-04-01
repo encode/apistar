@@ -7,7 +7,7 @@
 """
 from apistar.app import App
 from apistar.wsgi import WSGIEnviron, WSGIResponse
-from apistar.http import Request, Response, QueryParams, Headers, ResponseData
+from apistar.http import Request, Response, QueryParams, Headers
 from apistar.routing import Route
 
 

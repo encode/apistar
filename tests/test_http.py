@@ -110,22 +110,6 @@ def test_port():
 
 
 def test_root_path():
-    client = test.RequestsClient(app, root_path='/mount_point/')
-    response = client.get('http://example.com/mount_point/root_path/')
-    assert response.json() == {
-        'root_path': '/mount_point'
-    }
-    response = client.get('http://example.com/mount_point/path/')
-    assert response.json() == {
-        'path': '/path/'
-    }
-    response = client.get('http://example.com/mount_point/path/')
-    assert response.json() == {
-        'url': 'http://example.com/mount_point/root_path/'
-    }
-
-
-def test_root_path():
     response = client.get('http://example.com/root_path/')
     assert response.json() == {'root_path': ''}
 
