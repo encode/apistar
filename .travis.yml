@@ -8,6 +8,10 @@ cache: pip
 
 install:
     - pip install -r requirements.txt
+    - pip install codecov
     - export PYTHONPATH=.
 
-script: py.test tests
+script: make test
+
+after_success:
+  - codecov
