@@ -102,6 +102,15 @@ class _TestClient(requests.Session):
         self.mount('https://', adapter)
         self.headers.update({'User-Agent': 'requests_client'})
 
+    def request(self, method, url, **kwargs):
+        if not (url.startswith('http:') or url.startswith('https:')):
+            assert url.startswith('/'), (
+                "TestClient expected either "
+                "an absolute URL starting 'http:' / 'https:', "
+                "or a relative URL starting with '/'. URL was '%s'." % url
+            )
+            url = 'http://example.com' + url
+        return super().request(method, url, **kwargs)
 
 def TestClient(*args, **kwargs):
     """

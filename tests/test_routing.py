@@ -47,7 +47,7 @@ client = TestClient(app)
 
 
 def test_404():
-    response = client.get('http://example.com/404/')
+    response = client.get('/404/')
     assert response.status_code == 404
     assert response.json() == {
         'message': 'Not found'
@@ -55,7 +55,7 @@ def test_404():
 
 
 def test_405():
-    response = client.post('http://example.com/found/')
+    response = client.post('/found/')
     assert response.status_code == 405
     assert response.json() == {
         'message': 'Method not allowed'
@@ -63,28 +63,28 @@ def test_405():
 
 
 def test_args():
-    response = client.get('http://example.com/args/1/')
+    response = client.get('/args/1/')
     assert response.json() == {
         'args': {'var': 1}
     }
 
 
 def test_arg():
-    response = client.get('http://example.com/arg/1/')
+    response = client.get('/arg/1/')
     assert response.json() == {
         'var': 1
     }
 
 
 def test_query_param():
-    response = client.get('http://example.com/query_param/?query=1')
+    response = client.get('/query_param/?query=1')
     assert response.json() == {
         'query': 1.0
     }
 
 
 def test_query_param_with_schema():
-    response = client.get('http://example.com/query_param_with_schema/?query=1')
+    response = client.get('/query_param_with_schema/?query=1')
     assert response.json() == {
         'query': 1.0
     }
