@@ -4,3 +4,11 @@ class SchemaError(Exception):
         self.code = code
         msg = schema.errors[code].format(**schema.__dict__)
         super().__init__(msg)
+
+
+class NoCurrentApp(Exception):
+    pass
+
+
+class ConfigurationError(Exception):
+    pass

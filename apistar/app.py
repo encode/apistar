@@ -3,20 +3,19 @@ from collections import OrderedDict
 import click
 
 
-built_in_commands = [
-    commands.new,
-    commands.run,
-    commands.test,
-]
-
-
 class App(object):
+    built_in_commands = (
+        commands.new,
+        commands.run,
+        commands.test,
+    )
+
     def __init__(self, routes=None, commands=None):
         routes = [] if (routes is None) else routes
         commands = [] if (commands is None) else commands
 
         self.routes = routes
-        self.commands = built_in_commands + commands
+        self.commands = list(self.built_in_commands) + commands
 
         self.router = routing.Router(self.routes)
         self.wsgi = get_wsgi_server(app=self)
