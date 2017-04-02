@@ -1,5 +1,4 @@
-from apistar import App, Route
-from apistar import http
+from apistar import App, Route, http
 from apistar.test import TestClient
 
 
@@ -108,22 +107,6 @@ def test_port():
     assert response.json() == {'port': 123}
     response = client.get('https://example.com:123/port/')
     assert response.json() == {'port': 123}
-
-
-def test_root_path():
-    client = test.RequestsClient(app, root_path='/mount_point/')
-    response = client.get('http://example.com/mount_point/root_path/')
-    assert response.json() == {
-        'root_path': '/mount_point'
-    }
-    response = client.get('http://example.com/mount_point/path/')
-    assert response.json() == {
-        'path': '/path/'
-    }
-    response = client.get('http://example.com/mount_point/path/')
-    assert response.json() == {
-        'url': 'http://example.com/mount_point/root_path/'
-    }
 
 
 def test_root_path():

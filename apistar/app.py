@@ -1,7 +1,8 @@
-from apistar import commands, routing
 from collections import OrderedDict
+
 import click
 
+from apistar import commands, routing
 
 built_in_commands = [
     commands.new,

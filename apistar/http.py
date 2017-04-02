@@ -1,12 +1,14 @@
-from apistar.pipelines import ArgName
-from typing import Dict, Any, Union, List, Tuple, TypeVar
+from typing import Any, Dict, List, Tuple, TypeVar, Union
 from urllib.parse import quote
+
+from werkzeug.datastructures import Headers as WerkzeugHeaders
 from werkzeug.datastructures import (
-    EnvironHeaders, Headers as WerkzeugHeaders,
-    ImmutableDict, ImmutableMultiDict, ImmutableHeadersMixin
+    EnvironHeaders, ImmutableDict, ImmutableHeadersMixin, ImmutableMultiDict
 )
 from werkzeug.urls import url_decode
+
 import ujson as json
+from apistar.pipelines import ArgName
 
 
 class WSGIEnviron(ImmutableDict):
@@ -61,7 +63,7 @@ class URL(str):
     @classmethod
     def build(cls, environ: WSGIEnviron):
         # https://www.python.org/dev/peps/pep-0333/#url-reconstruction
-        url = environ['wsgi.url_scheme']+'://'
+        url = environ['wsgi.url_scheme'] + '://'
 
         if environ.get('HTTP_HOST'):
             url += environ['HTTP_HOST']
@@ -70,10 +72,10 @@ class URL(str):
 
             if environ['wsgi.url_scheme'] == 'https':
                 if environ['SERVER_PORT'] != '443':
-                   url += ':' + environ['SERVER_PORT']
+                    url += ':' + environ['SERVER_PORT']
             else:
                 if environ['SERVER_PORT'] != '80':
-                   url += ':' + environ['SERVER_PORT']
+                    url += ':' + environ['SERVER_PORT']
 
         url += quote(environ.get('SCRIPT_NAME', ''))
         url += quote(environ.get('PATH_INFO', ''))

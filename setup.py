@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from setuptools import setup
-import re
 import os
+import re
 import sys
 
+from setuptools import setup
 
 sys.dont_write_bytecode = True
 
