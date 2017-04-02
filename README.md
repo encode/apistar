@@ -154,6 +154,37 @@ You can also inject the WSGI environment into your view arguments:
 
 ---
 
+# Testing
+
+API Star includes the `py.test` testing framework. You can run all tests in
+a `tests.py` module or a `tests/` directory, by using the following command:
+
+    $ apistar test
+
+The simplest way to test a view is to call it directly.
+
+    from app import hello_world
+
+    def test_hello_world():
+        assert hello_world() == {"hello": "world"}
+
+There is also a test client, that allows you to make HTTP requests directly to
+your application, using the `requests` library.
+
+    from apistar.test import TestClient
+
+    def test_hello_world():
+        client = TestClient()
+        response = client.get('/hello_world/')
+        assert response.status_code == 200
+        assert response.json() == {"hello": "world"}
+
+Requests made using the test client may use either relative URLs, or absolute
+URLs. In either case, all requests will be directed at your application,
+rather than making external requests.
+
+    response = client.get('http://www.example.com/hello_world/')
+
 # Performance
 
 The following results were obtained on a 2013 MacBook Air, using the simplest
@@ -174,7 +205,11 @@ plan to be adding more realistic & useful test types, such as database query per
 
 # Deployment
 
-The recommended deployment is Gunicorn, using the Meinheld worker.
+A development server is available, using the `run` command:
+
+    $ apistar run
+
+The recommended production deployment is GUnicorn, using the Meinheld worker.
 
     $ pip install gunicorn
     $ pip install meinheld
