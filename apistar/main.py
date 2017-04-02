@@ -1,6 +1,9 @@
 """
 The `apistar` command line client.
 """
+from apistar import App
+from apistar.exceptions import NoCurrentApp, ConfigurationError
+import click
 import importlib.util
 import os
 import sys
@@ -11,14 +14,16 @@ sys.dont_write_bytecode = True
 
 def get_current_app():
     app_path = os.path.join(os.getcwd(), 'app.py')
-    if os.path.exists(app_path):
-        spec = importlib.util.spec_from_file_location("app", app_path)
-        module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
-        app = module.app
-    else:
-        from apistar import App
-        app = App()
+    if not os.path.exists(app_path):
+        raise NoCurrentApp("No app.py module exists.")
+
+    spec = importlib.util.spec_from_file_location("app", app_path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    if not hasattr(module, 'app'):
+        raise ConfigurationError("The app.py module did not contain an 'app' variable.")
+
+    app = module.app
     return app
 
 
@@ -41,8 +46,16 @@ def setup_pythonpath():
 def main():  # pragma: no cover
     setup_pythonpath()
     setup_environ()
-    app = get_current_app()
-    app.click()
+    try:
+        app = get_current_app()
+    except NoCurrentApp:
+        app = App()
+
+    try:
+        app.click()
+    except (NoCurrentApp, ConfigurationError) as exc:
+        click.echo(str(exc))
+        sys.exit(1)
 
 
 if __name__ == '__main__':  # pragma: no cover
