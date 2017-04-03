@@ -45,24 +45,26 @@ Run the tests:
 API Star allows you to dynamically inject various information about the
 incoming request into your views using type annotation.
 
-    from apistar import http
+```python
+from apistar import http
 
-    def show_request(request: http.Request):
-        return {
-            'method': request.method,
-            'url': request.url,
-            'headers': dict(request.headers)
-        }
+def show_request(request: http.Request):
+    return {
+        'method': request.method,
+        'url': request.url,
+        'headers': dict(request.headers)
+    }
 
-    def show_query_params(query_params: http.QueryParams):
-        return {
-            'params': dict(query_params)
-        }
+def show_query_params(query_params: http.QueryParams):
+    return {
+        'params': dict(query_params)
+    }
 
-    def show_user_agent(user_agent: http.Header):
-        return {
-            'user-agent': user_agent
-        }
+def show_user_agent(user_agent: http.Header):
+    return {
+        'user-agent': user_agent
+    }
+```
 
 Some of the components you might use most often:
 
@@ -81,16 +83,20 @@ Some of the components you might use most often:
 By default API star expects view to return plain data, and will return
 `200 OK` responses.
 
-    def create_project():
-        return {'name': 'new project', 'id': 123}
+```python
+def create_project():
+    return {'name': 'new project', 'id': 123}
+```
 
 You can instead set the status code or headers by annotating the view as
 returning a `Response`.
 
-    def create_project() -> Response:
-        data = {'name': 'new project', 'id': 123}
-        headers = {'Location', 'http://example.com/project/123/'}
-        return Response(data, status=201, headers=headers)
+```python
+def create_project() -> Response:
+    data = {'name': 'new project', 'id': 123}
+    headers = {'Location', 'http://example.com/project/123/'}
+    return Response(data, status=201, headers=headers)
+```
 
 ---
 
@@ -98,36 +104,43 @@ returning a `Response`.
 
 Use `{curly_braces}` in your URL conf to include a URL path parameter.
 
-    def echo_username(username):
-        return {'message': f'Welcome, {username}!'}
 
-    app = App(routes=[
-        Route('/{username}/', 'GET', echo_username)
-    ])
+```python
+def echo_username(username):
+    return {'message': f'Welcome, {username}!'}
+
+app = App(routes=[
+    Route('/{username}/', 'GET', echo_username)
+])
+```
 
 Use type annotation on the view method to include typed URL path parameters.
 
-    users = {0: 'penny', 1: 'benny', 2: 'jenny'}
+```python
+users = {0: 'penny', 1: 'benny', 2: 'jenny'}
 
-    def echo_username(user_id: int):
-        username = users[user_id]
-        return {'message': f'Welcome, {username}!'}
+def echo_username(user_id: int):
+    username = users[user_id]
+    return {'message': f'Welcome, {username}!'}
 
-    app = App(routes=[
-        Route('/{user_id}/', 'GET', echo_username)
-    ])
+app = App(routes=[
+    Route('/{user_id}/', 'GET', echo_username)
+])
+```
 
 Parameters which do not correspond to a URL path parameter will be treated as
 query parameters.
 
-    def echo_username(username):
-        if username is None:
-            return {'message': 'Welcome!'}
-        return {'message': f'Welcome, {username}!'}
+```python
+def echo_username(username):
+    if username is None:
+        return {'message': 'Welcome!'}
+    return {'message': f'Welcome, {username}!'}
 
-    app = App(routes=[
-        Route('/hello/', 'GET', echo_username)
-    ])
+app = App(routes=[
+    Route('/hello/', 'GET', echo_username)
+])
+```
 
 ---
 
@@ -136,21 +149,25 @@ query parameters.
 Because API views are so dynamic, they'll even let you drop right down to
 returning a WSGI response directly:
 
-    from apistar import wsgi
+```python
+from apistar import wsgi
 
-    def hello_world() -> wsgi.WSGIResponse:
-        wsgi.WSGIResponse(
-            '200 OK',
-            [('Content-Type', 'text/plain')],
-            [b'Hello, world!']
-        )
+def hello_world() -> wsgi.WSGIResponse:
+    wsgi.WSGIResponse(
+        '200 OK',
+        [('Content-Type', 'text/plain')],
+        [b'Hello, world!']
+    )
+```
 
 You can also inject the WSGI environment into your view arguments:
 
-    def debug_environ(environ: wsgi.WSGIEnviron):
-        return {
-            'environ': environ
-        }
+```python
+def debug_environ(environ: wsgi.WSGIEnviron):
+    return {
+        'environ': environ
+    }
+```
 
 ---
 
@@ -163,27 +180,33 @@ a `tests.py` module or a `tests/` directory, by using the following command:
 
 The simplest way to test a view is to call it directly.
 
-    from app import hello_world
+```python
+from app import hello_world
 
-    def test_hello_world():
-        assert hello_world() == {"hello": "world"}
+def test_hello_world():
+    assert hello_world() == {"hello": "world"}
+```
 
 There is also a test client, that allows you to make HTTP requests directly to
 your application, using the `requests` library.
 
-    from apistar.test import TestClient
+```python
+from apistar.test import TestClient
 
-    def test_hello_world():
-        client = TestClient()
-        response = client.get('/hello_world/')
-        assert response.status_code == 200
-        assert response.json() == {"hello": "world"}
+def test_hello_world():
+    client = TestClient()
+    response = client.get('/hello_world/')
+    assert response.status_code == 200
+    assert response.json() == {"hello": "world"}
+```
 
 Requests made using the test client may use either relative URLs, or absolute
 URLs. In either case, all requests will be directed at your application,
 rather than making external requests.
 
-    response = client.get('http://www.example.com/hello_world/')
+```python
+response = client.get('http://www.example.com/hello_world/')
+```
 
 # Performance
 
