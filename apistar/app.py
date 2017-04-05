@@ -1,6 +1,7 @@
-from apistar import commands, routing
+from apistar import commands, routing, wsgi
 from collections import OrderedDict
 import click
+import ujson as json
 
 
 built_in_commands = [
@@ -66,9 +67,31 @@ def get_wsgi_server(app):
             else:
                 state[output] = function(**kwargs)
 
-        wsgi_response = state['wsgi_response']
-        start_response(wsgi_response.status, wsgi_response.headers)
-        return wsgi_response.iterator
+        if output == 'response_data':
+            response_data = state['response_data']
+            content = json.dumps(response_data).encode('utf-8')
+            status = '200 OK'
+            headers = [
+                ('Content-Type', 'application/json'),
+                ('Content-Length', str(len(content)))
+            ]
+            iterator = [content]
+
+        elif output == 'response':
+            response = state['response']
+            status = response.status
+            status = wsgi.STATUS_CODES.get(status, str(status))
+            headers = list(response.headers.items())
+            iterator = [response.content]
+
+        elif output == 'wsgi_response':
+            wsgi_response = state['wsgi_response']
+            status = wsgi_response.status
+            headers = wsgi_response.headers
+            iterator = wsgi_response.iterator
+
+        start_response(status, headers)
+        return iterator
 
     return func
 

@@ -112,7 +112,7 @@ class Router(object):
                 extra_annotations['return'] = http.ResponseData
 
             # Determine the pipeline for the view.
-            pipeline = pipelines.build_pipeline(view, initial_types, required_type, extra_annotations)
+            pipeline = pipelines.build_pipeline(view, initial_types, None, extra_annotations)
             views[name] = Endpoint(view, pipeline)
 
         # Add pipelines for 404 and 405 cases.
