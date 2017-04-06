@@ -1,8 +1,9 @@
-coreapi
 click
+coreapi
 gunicorn
 jinja2
 pytest
+pytest-cov
 requests
 ujson
 werkzeug

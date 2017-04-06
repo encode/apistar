@@ -1,0 +1,21 @@
+#!/usr/bin/env python
+from subprocess import run
+
+import click
+
+
+@click.command()
+@click.option('--cov', is_flag=True, help='Run tests with coverage.')
+def test(cov):
+    command = ['pytest']
+
+    if cov:
+        command += ['--cov=apistar', '--cov-report=xml', '--cov-report=term']
+
+    command += ['tests']
+
+    run(command)
+
+
+if __name__ == '__main__':
+    test()
