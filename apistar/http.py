@@ -143,12 +143,28 @@ class Response(object):
     __slots__ = ('data', 'content', 'status', 'headers')
 
     def __init__(self, data: Any, status: int=200, headers: HeadersType=None):
-        if isinstance(headers, dict):
-            headers = list(headers.items())
+        content = json.dumps(data).encode('utf-8')
+
+        if headers is None:
+            headers_dict = {}
+            headers_list = []
+        elif isinstance(headers, dict):
+            headers_dict = headers
+            headers_list = list(headers.items())
+        elif isinstance(headers, list):
+            headers_dict = dict(headers)
+            headers_list = headers
+        else:
+            headers_dict = headers
+            headers_list = headers.to_list()
+
+        if 'Content-Length' not in headers_dict:
+            headers_list += [('Content-Length', str(len(content)))]
+
         self.data = data
         self.content = json.dumps(data).encode('utf-8')
         self.status = status
-        self.headers = Headers(headers)
+        self.headers = Headers(headers_list)
 
     @classmethod
     def build(cls, data: ResponseData):
