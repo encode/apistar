@@ -40,13 +40,15 @@ def new(target_dir, template, force):
 
 
 @click.command(help='Run the current app.')
-def run():
+@click.option('--host', '-h', default='localhost', type=str, help='The host of the webserver.')
+@click.option('--port', '-p', default=8080, type=int, help='The port of the webserver.')
+def run(host, port):
     from apistar.main import get_current_app
     app = get_current_app()
 
     try:
-        click.echo('Running at http://localhost:8080/')
-        make_server('', 8080, app.wsgi).serve_forever()
+        click.echo('Running at http://{host}:{port}/'.format(host=host, port=port))
+        make_server(host, port, app.wsgi).serve_forever()
     except KeyboardInterrupt:
         pass
 
