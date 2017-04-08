@@ -1,0 +1,16 @@
+#!/usr/bin/env python
+from subprocess import run
+
+import click
+
+
+@click.command()
+@click.option('--flake8', is_flag=True, help='Run flake8 check.')
+def lint(flake8):
+    if flake8:
+        command = ['flake8', '.']
+        run(command, check=True)
+
+
+if __name__ == '__main__':
+    lint()

@@ -11,7 +11,9 @@ install:
     - pip install codecov
     - export PYTHONPATH=.
 
-script: ./scripts/test --cov
+script:
+  - ./scripts/lint --flake8
+  - ./scripts/test --cov
 
 after_success:
     - codecov
