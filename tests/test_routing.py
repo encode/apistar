@@ -1,5 +1,5 @@
 from apistar import App, Route
-from apistar import http, schema
+from apistar import schema
 from apistar.test import TestClient
 from apistar.routing import URLPathArgs
 

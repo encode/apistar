@@ -3,7 +3,6 @@ from click.testing import CliRunner
 from urllib.parse import urlparse
 import requests
 import io
-import pytest
 
 
 class HeaderDict(requests.packages.urllib3._collections.HTTPHeaderDict):
@@ -52,7 +51,7 @@ class WSGIAdapter(requests.adapters.HTTPAdapter):
             environ['SERVER_NAME'] = url_components.hostname
             environ['SERVER_PORT'] = str(url_components.port)
         else:
-            environ['HTTP_HOST'] =  url_components.hostname
+            environ['HTTP_HOST'] = url_components.hostname
 
         for key, value in request.headers.items():
             key = key.upper().replace('-', '_')
@@ -111,6 +110,7 @@ class _TestClient(requests.Session):
             )
             url = 'http://example.com' + url
         return super().request(method, url, **kwargs)
+
 
 def TestClient(*args, **kwargs):
     """

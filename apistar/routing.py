@@ -1,11 +1,10 @@
 from apistar import pipelines, http, schema, wsgi
 from apistar.pipelines import ArgName
 from collections import namedtuple
-from typing import Any, List, TypeVar
+from typing import List
 from uritemplate import URITemplate
-from werkzeug.routing import Map, Rule, parse_rule
+from werkzeug.routing import Map, Rule
 import inspect
-import json
 import werkzeug
 
 # TODO: Path

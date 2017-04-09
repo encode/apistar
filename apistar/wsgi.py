@@ -1,6 +1,5 @@
 from apistar import http
 from typing import Iterable, Tuple, List
-from werkzeug.datastructures import ImmutableDict
 from werkzeug.http import HTTP_STATUS_CODES
 
 
