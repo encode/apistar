@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from subprocess import run
+import subprocess
 
 import click
 
@@ -12,7 +12,18 @@ def lint():
     ]
 
     for command in commands:
-        run(command, check=True)
+        error = 0
+
+        try:
+            click.echo('')
+            click.echo('Runnig {}'.format(' '.join(command)))
+
+            subprocess.run(command, check=True)
+        except subprocess.CalledProcessError:
+            error = 1
+
+    exit_command = 'exit {}'.format(error)
+    subprocess.run(exit_command, shell=True, check=True)
 
 
 if __name__ == '__main__':
