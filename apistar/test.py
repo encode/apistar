@@ -1,8 +1,10 @@
-from apistar.main import get_current_app
-from click.testing import CliRunner
-from urllib.parse import urlparse
-import requests
 import io
+from urllib.parse import urlparse
+
+import requests
+from click.testing import CliRunner
+
+from apistar.main import get_current_app
 
 
 class HeaderDict(requests.packages.urllib3._collections.HTTPHeaderDict):

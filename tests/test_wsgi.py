@@ -1,5 +1,4 @@
-from apistar import App, Route
-from apistar import http, wsgi
+from apistar import App, Route, http, wsgi
 from apistar.test import TestClient
 
 

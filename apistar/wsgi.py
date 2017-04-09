@@ -1,7 +1,8 @@
-from apistar import http
-from typing import Iterable, Tuple, List
+from typing import Iterable, List, Tuple
+
 from werkzeug.http import HTTP_STATUS_CODES
 
+from apistar import http
 
 __all__ = ['WSGIEnviron', 'WSGIResponse']
 

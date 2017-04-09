@@ -1,11 +1,13 @@
-from apistar import pipelines, http, schema, wsgi
-from apistar.pipelines import ArgName
+import inspect
 from collections import namedtuple
 from typing import List
+
+import werkzeug
 from uritemplate import URITemplate
 from werkzeug.routing import Map, Rule
-import inspect
-import werkzeug
+
+from apistar import http, pipelines, schema, wsgi
+from apistar.pipelines import ArgName
 
 # TODO: Path
 # TODO: 404

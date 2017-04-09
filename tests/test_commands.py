@@ -1,9 +1,9 @@
+import os
+
 from apistar import __version__
 from apistar.app import App
 from apistar.main import setup_pythonpath
 from apistar.test import CommandLineRunner
-import os
-
 
 app = App()
 runner = CommandLineRunner(app)

@@ -1,5 +1,6 @@
-from apistar.exceptions import SchemaError
 import re
+
+from apistar.exceptions import SchemaError
 
 
 # TODO: Validation errors

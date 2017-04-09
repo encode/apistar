@@ -1,12 +1,13 @@
-from apistar.exceptions import ConfigurationError
-import apistar
-import click
 import os
-import pytest
 import shutil
 import sys
 from wsgiref.simple_server import make_server
 
+import click
+import pytest
+
+import apistar
+from apistar.exceptions import ConfigurationError
 
 ROOT_DIR = os.path.dirname(apistar.__file__)
 PROJECT_TEMPLATES_DIR = os.path.join(ROOT_DIR, 'project_templates')
