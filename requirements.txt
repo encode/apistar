@@ -2,6 +2,7 @@ click
 coreapi
 flake8
 gunicorn
+isort
 jinja2
 pytest
 pytest-cov

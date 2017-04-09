@@ -6,8 +6,13 @@ import click
 
 @click.command()
 def lint():
-    command = ['flake8', '.']
-    run(command, check=True)
+    commands = [
+        ['flake8', '.'],
+        ['isort', '--check-only']
+    ]
+
+    for command in commands:
+        run(command, check=True)
 
 
 if __name__ == '__main__':
