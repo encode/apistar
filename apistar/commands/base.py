@@ -1,12 +1,13 @@
-from apistar.exceptions import ConfigurationError
-import apistar
-import click
 import os
-import pytest
 import shutil
 import sys
 from wsgiref.simple_server import make_server
 
+import click
+import pytest
+
+import apistar
+from apistar.exceptions import ConfigurationError
 
 ROOT_DIR = os.path.dirname(apistar.__file__)
 PROJECT_TEMPLATES_DIR = os.path.join(ROOT_DIR, 'project_templates')
@@ -56,9 +57,6 @@ def run(host, port):
 @click.command(help='Run the test suite.')
 @click.argument('file_or_dir', nargs=-1)
 def test(file_or_dir):
-    from apistar.main import get_current_app
-    app = get_current_app()
-
     if not file_or_dir:
         file_or_dir = []
         if os.path.exists('tests'):

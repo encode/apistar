@@ -1,13 +1,14 @@
 """
 The `apistar` command line client.
 """
-from apistar import App
-from apistar.exceptions import NoCurrentApp, ConfigurationError
-import click
 import importlib.util
 import os
 import sys
 
+import click
+
+from apistar import App
+from apistar.exceptions import ConfigurationError, NoCurrentApp
 
 sys.dont_write_bytecode = True
 

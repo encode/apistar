@@ -1,0 +1,30 @@
+#!/usr/bin/env python
+import subprocess
+
+import click
+
+
+@click.command()
+def lint():
+    commands = [
+        ['flake8', '.'],
+        ['isort', '--check-only']
+    ]
+
+    for command in commands:
+        error = 0
+
+        try:
+            click.echo('')
+            click.echo('Runnig {}'.format(' '.join(command)))
+
+            subprocess.run(command, check=True)
+        except subprocess.CalledProcessError:
+            error = 1
+
+    exit_command = 'exit {}'.format(error)
+    subprocess.run(exit_command, shell=True, check=True)
+
+
+if __name__ == '__main__':
+    lint()

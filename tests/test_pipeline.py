@@ -1,16 +1,17 @@
-from apistar import pipelines
-
-
 # Some mock types:
+
 
 class WSGIRequest(object):
     pass
 
+
 class Session(object):
     pass
 
+
 class Response(object):
     pass
+
 
 class WSGIResponse(object):
     pass
@@ -28,7 +29,6 @@ def finalize_wsgi(req: Response) -> WSGIResponse:
 
 def view(session: Session, req: WSGIRequest) -> Response:
     pass
-
 
 
 # def test_build_pipeline():

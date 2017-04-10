@@ -11,7 +11,15 @@ install:
     - pip install codecov
     - export PYTHONPATH=.
 
-script: ./scripts/test --cov
+matrix:
+  fast_finish: true
+  include:
+  - python: "3.5"
+    env: LINT=true
+
+script:
+  - if [ $LINT = "true" ]; then ./scripts/lint; fi
+  - if [ $LINT != "true" ]; then ./scripts/test --cov; fi
 
 after_success:
     - codecov
