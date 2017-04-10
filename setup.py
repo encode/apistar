@@ -61,7 +61,8 @@ setup(
         'werkzeug',
         'jinja2',
         'click',
-        'pytest'
+        'pytest',
+        'ujson'
     ],
     classifiers=[
         'Development Status :: 3 - Alpha',
