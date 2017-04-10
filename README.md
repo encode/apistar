@@ -244,11 +244,14 @@ Typically you'll want to run as many workers as you have CPU cores on the server
 
 # Development
 
-To clone the repo, install requirements, and run the tests:
+To get started:
 
     $ git clone git@github.com:tomchristie/apistar.git
     $ cd apistar
     $ ./scripts/setup
+
+To run the tests and code linting:
+
     $ ./scripts/test
     $ ./scripts/lint
 
