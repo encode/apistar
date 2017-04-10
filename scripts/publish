@@ -6,10 +6,11 @@ if [ -d 'venv' ] ; then
     export PREFIX="venv/bin/"
 fi
 
-
 find apistar -type f -name "*.py[co]" -delete
 find apistar -type d -name __pycache__ -delete
+
 ${PREFIX}python setup.py sdist upload
+
 rm -r dist
 
 echo "You probably want to also tag the version now:"
