@@ -75,6 +75,7 @@ Some of the components you might use most often:
 | `Header`      | Lookup a single request header, corresponding to the argument name.<br/>Returns a string or `None`. |
 | `QueryParams` | The request query parameters, returned as a dictionary-like object. |
 | `QueryParam`  | Lookup a single query parameter, corresponding to the argument name.<br/>Returns a string or `None`. |
+| `Body`        | The request body. |
 
 ---
 

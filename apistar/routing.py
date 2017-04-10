@@ -6,7 +6,7 @@ import werkzeug
 from uritemplate import URITemplate
 from werkzeug.routing import Map, Rule
 
-from apistar import http, pipelines, schema, wsgi
+from apistar import app, http, pipelines, schema, wsgi
 from apistar.pipelines import ArgName
 
 # TODO: Path
@@ -55,7 +55,7 @@ class Router(object):
 
     def __init__(self, routes: List[Route]):
         required_type = wsgi.WSGIResponse
-        initial_types = [wsgi.WSGIEnviron, URLPathArgs]
+        initial_types = [app.App, wsgi.WSGIEnviron, URLPathArgs]
 
         rules = []
         views = {}
