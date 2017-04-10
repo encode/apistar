@@ -6,10 +6,9 @@
    \/     /_/   \_\_|  |___| |____/ \__\__,_|_|        \/
 """
 from apistar.app import App
-from apistar.wsgi import WSGIEnviron, WSGIResponse
-from apistar.http import Request, Response, QueryParams, Headers
+from apistar.http import Headers, QueryParams, Request, Response
 from apistar.routing import Route
-
+from apistar.wsgi import WSGIEnviron, WSGIResponse
 
 __version__ = '0.1.6'
 __all__ = [

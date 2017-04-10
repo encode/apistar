@@ -1,30 +1,15 @@
-#!/usr/bin/env python
-import subprocess
+#!/bin/sh
 
-import click
+set -e
 
-
-@click.command()
-def lint():
-    commands = [
-        ['flake8', '.'],
-        ['isort', '--check-only']
-    ]
-
-    for command in commands:
-        error = 0
-
-        try:
-            click.echo('')
-            click.echo('Runnig {}'.format(' '.join(command)))
-
-            subprocess.run(command, check=True)
-        except subprocess.CalledProcessError:
-            error = 1
-
-    exit_command = 'exit {}'.format(error)
-    subprocess.run(exit_command, shell=True, check=True)
+export PREFIX=""
+if [[ -d 'venv' ]] ; then
+    export PATH="venv/bin/"
+    export PREFIX=$PATH
+fi
 
 
-if __name__ == '__main__':
-    lint()
+echo "${PREFIX}flake8 apistar tests"
+flake8 apistar tests
+echo "${PREFIX}isort --check-only --recursive apistar tests"
+isort --check-only --recursive apistar tests

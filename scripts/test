@@ -1,21 +1,13 @@
-#!/usr/bin/env python
-from subprocess import run
+#!/bin/sh
 
-import click
+set -e
 
-
-@click.command()
-@click.option('--cov', is_flag=True, help='Run tests with coverage.')
-def test(cov):
-    command = ['pytest']
-
-    if cov:
-        command += ['--cov=apistar', '--cov-report=xml', '--cov-report=term']
-
-    command += ['tests']
-
-    run(command)
+export PREFIX=""
+if [[ -d 'venv' ]] ; then
+    export PATH="venv/bin/"
+    export PREFIX=$PATH
+fi
 
 
-if __name__ == '__main__':
-    test()
+echo "PYTHONPATH=. ${PREFIX}py.test --ignore venv --ignore apistar/project_templates $@"
+PYTHONPATH=. py.test --ignore venv --ignore apistar/project_templates $@

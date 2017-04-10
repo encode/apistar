@@ -4,22 +4,11 @@ python:
     - "3.5"
     - "3.6"
 
-cache: pip
-
 install:
     - pip install -r requirements.txt
-    - pip install codecov
-    - export PYTHONPATH=.
-
-matrix:
-  fast_finish: true
-  include:
-  - python: "3.5"
-    env: LINT=true
 
 script:
-  - if [ $LINT = "true" ]; then ./scripts/lint; fi
-  - if [ $LINT != "true" ]; then ./scripts/test --cov; fi
+    - scripts/ci
 
 after_success:
     - codecov
