@@ -16,7 +16,8 @@ PROJECT_TEMPLATE_CHOICES = os.listdir(PROJECT_TEMPLATES_DIR)
 
 @click.command(help='Create a new project in TARGET_DIR.')
 @click.argument('target_dir', default='')
-@click.option('--template', type=click.Choice(PROJECT_TEMPLATE_CHOICES), default='standard', help='Select the project template to use.')
+@click.option('--template', type=click.Choice(PROJECT_TEMPLATE_CHOICES), default='standard',
+              help='Select the project template to use.')
 @click.option('-f', '--force', is_flag=True, help='Overwrite any existing project files.')
 def new(target_dir, template, force):
     source_dir = os.path.join(PROJECT_TEMPLATES_DIR, template)
