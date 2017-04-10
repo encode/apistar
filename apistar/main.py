@@ -28,17 +28,6 @@ def get_current_app():
     return app
 
 
-def setup_environ():
-    env_path = os.path.join(os.getcwd(), '.env')
-    if os.path.exists(env_path):
-        for line in open(env_path, 'r'):
-            variable, sep, value = line.partition('=')
-            variable = variable.strip()
-            value = value.strip()
-            if variable:
-                os.environ[variable] = value
-
-
 def setup_pythonpath():
     cwd = os.getcwd()
     sys.path.insert(0, cwd)
@@ -46,7 +35,6 @@ def setup_pythonpath():
 
 def main():  # pragma: no cover
     setup_pythonpath()
-    setup_environ()
     try:
         app = get_current_app()
     except NoCurrentApp:
