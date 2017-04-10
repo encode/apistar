@@ -13,7 +13,7 @@ matrix:
       env: LINT=true
 
 script:
-    - scripts/travis
+    - scripts/ci
 
 after_success:
     - codecov
