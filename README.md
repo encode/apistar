@@ -242,4 +242,16 @@ Typically you'll want to run as many workers as you have CPU cores on the server
 
 ---
 
+# Development
+
+To clone the repo, install requirements, and run the tests:
+
+    $ git clone git@github.com:tomchristie/apistar.git
+    $ cd apistar
+    $ ./scripts/setup
+    $ ./scripts/test
+    $ ./scripts/lint
+
+---
+
 <p align="center"><i>API Star is <a href="https://github.com/tomchristie/apistar/blob/master/LICENSE.md">BSD licensed</a> code.<br/>Designed & built in Brighton, England.</i><br/>&mdash; ⭐️ &mdash;</p>

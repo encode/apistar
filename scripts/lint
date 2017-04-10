@@ -1,22 +1,31 @@
-#!/usr/bin/env python
+#!venv/bin/python
 import subprocess
 
 import click
+import os
+
+
+# By default we want to run scripts from the virtualenv, without
+# requiring it to be activated.
+if os.path.exists('venv'):
+    PATH = os.path.join('venv', 'bin')
+else:
+    PATH = ''
+
 
 
 @click.command()
 def lint():
     commands = [
-        ['flake8', '.'],
-        ['isort', '--check-only']
+        [os.path.join(PATH, 'flake8'), 'apistar', 'tests'],
+        [os.path.join(PATH, 'isort'), '--check-only', '--recursive', 'apistar', 'tests']
     ]
 
     for command in commands:
         error = 0
 
         try:
-            click.echo('')
-            click.echo('Runnig {}'.format(' '.join(command)))
+            click.echo('Running {}'.format(' '.join(command)))
 
             subprocess.run(command, check=True)
         except subprocess.CalledProcessError:
