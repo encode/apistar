@@ -1,4 +1,6 @@
 #!/bin/sh
 
 python3 -m venv venv
+ls venv
+ls venv/bin
 venv/bin/pip3 install -r requirements.txt
