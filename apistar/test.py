@@ -40,13 +40,18 @@ class WSGIAdapter(requests.adapters.HTTPAdapter):
         """
         Given a `requests.PreparedRequest` instance, return a WSGI environ dict.
         """
+        body = request.body
+        if body and not isinstance(body, bytes):
+            body = body.encode('utf-8')
+
         url_components = urlparse(request.url)
         environ = {
             'REQUEST_METHOD': request.method,
             'wsgi.url_scheme': url_components.scheme,
             'SCRIPT_NAME': self.root_path,
             'PATH_INFO': url_components.path,
-            'QUERY_STRING': url_components.query
+            'QUERY_STRING': url_components.query,
+            'wsgi.input': io.BytesIO(body)
         }
 
         if url_components.port:

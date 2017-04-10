@@ -85,6 +85,12 @@ class URL(str):
         return cls(url)
 
 
+class Body(bytes):
+    @classmethod
+    def build(cls, environ: WSGIEnviron):
+        return environ['wsgi.input'].read()
+
+
 class Headers(ImmutableHeadersMixin, WerkzeugHeaders):
     @classmethod
     def build(cls, environ: WSGIEnviron):

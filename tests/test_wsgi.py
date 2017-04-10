@@ -3,6 +3,7 @@ from apistar.test import TestClient
 
 
 def get_wsgi_environ(environ: wsgi.WSGIEnviron) -> http.Response:
+    environ['wsgi.input'] = None
     return http.Response({
         'environ': environ
     })
@@ -37,6 +38,7 @@ def test_wsgi_environ():
         'QUERY_STRING': '',
         'REQUEST_METHOD': 'GET',
         'SCRIPT_NAME': '',
+        'wsgi.input': None,
         'wsgi.url_scheme': 'http',
     }}
 
