@@ -1,15 +1,11 @@
-#!/bin/sh
-
-set -e
+#!/bin/sh -e
 
 export PREFIX=""
 if [[ -d 'venv' ]] ; then
-    export PATH="venv/bin/"
-    export PREFIX=$PATH
+    export PREFIX="venv/bin/"
 fi
 
+set -x
 
-echo "${PREFIX}flake8 apistar tests"
-flake8 apistar tests
-echo "${PREFIX}isort --check-only --recursive apistar tests"
-isort --check-only --recursive apistar tests
+${PREFIX}flake8 apistar tests
+${PREFIX}isort --check-only --recursive apistar tests

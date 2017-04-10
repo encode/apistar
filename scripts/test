@@ -1,13 +1,10 @@
-#!/bin/sh
-
-set -e
+#!/bin/sh -e
 
 export PREFIX=""
 if [[ -d 'venv' ]] ; then
-    export PATH="venv/bin/"
-    export PREFIX=$PATH
+    export PREFIX="venv/bin/"
 fi
 
+set -x
 
-echo "PYTHONPATH=. ${PREFIX}py.test --ignore venv --ignore apistar/project_templates $@"
-PYTHONPATH=. py.test --ignore venv --ignore apistar/project_templates $@
+PYTHONPATH=. ${PREFIX}py.test --ignore venv --ignore apistar/project_templates ${@}
