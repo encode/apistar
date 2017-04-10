@@ -5,13 +5,7 @@ import click
 import os
 
 
-# By default we want to run scripts from the virtualenv, without
-# requiring it to be activated.
-if os.path.exists('venv'):
-    PATH = os.path.join('venv', 'bin')
-else:
-    PATH = ''
-
+PATH = os.path.join('venv', 'bin')
 
 
 @click.command()
