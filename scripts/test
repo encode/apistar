@@ -1,29 +1,13 @@
-#!venv/bin/python
-from subprocess import run
-import os
-import sys
+#!/bin/sh
 
-import click
-import pytest
+set -e
 
-
-@click.command()
-@click.option('--cov', is_flag=True, help='Run tests with coverage.')
-def test(cov):
-    command = []
-
-    if cov:
-        command += ['--cov=apistar', '--cov-report=xml', '--cov-report=term']
-
-    command += ['tests']
-
-    # Ensure that apistar is on the PYTHONPATH
-    cwd = os.getcwd()
-    sys.path.insert(0, cwd)
-
-    retcode = pytest.main(command)
-    sys.exit(retcode)
+export PREFIX=""
+if [[ -d 'venv' ]] ; then
+    export PATH="venv/bin/"
+    export PREFIX=$PATH
+fi
 
 
-if __name__ == '__main__':
-    test()
+echo "PYTHONPATH=. ${PREFIX}py.test --ignore venv --ignore apistar/project_templates $@"
+PYTHONPATH=. py.test --ignore venv --ignore apistar/project_templates $@

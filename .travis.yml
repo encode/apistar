@@ -5,17 +5,15 @@ python:
     - "3.6"
 
 install:
-    - ./scripts/setup
+    - pip install -r requirements.txt
 
 matrix:
-  include:
-  - python: "3.6"
-    env: LINT=true
+    include:
+    - python: "3.6"
+      env: LINT=true
 
 script:
-  - ls venv/bin
-  - if [[ $LINT = "true" ]]; then ./scripts/lint; fi
-  - if [[ $LINT != "true" ]]; then ./scripts/test --cov; fi
+    - scripts/travis
 
 after_success:
-    - if [[ $LINT != "true" ]]; then codecov; fi
+    - codecov

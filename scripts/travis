@@ -1,0 +1,8 @@
+#!/bin/sh
+
+
+if [[  $LINT == "true" ]]; then
+    scripts/lint
+else
+    scripts/test --cov=apistar --cov-report=xml --cov-report=term
+fi
