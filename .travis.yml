@@ -13,9 +13,9 @@ matrix:
     env: LINT=true
 
 script:
-  - if [ $LINT = "true" ]; then ./scripts/lint; fi
-  - if [ $LINT != "true" ]; then ./scripts/test --cov; fi
+  - ls venv/bin
+  - if [[ $LINT = "true" ]]; then ./scripts/lint; fi
+  - if [[ $LINT != "true" ]]; then ./scripts/test --cov; fi
 
 after_success:
-    - pip install codecov
-    - codecov
+    - if [[ $LINT != "true" ]]; then codecov; fi

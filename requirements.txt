@@ -1,4 +1,5 @@
 click
+codecov
 coreapi
 flake8
 gunicorn
