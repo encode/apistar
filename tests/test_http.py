@@ -207,3 +207,41 @@ def test_request():
             'User-Agent': 'requests_client'
         }
     }
+
+
+# Test reponse types
+
+def binary_response():
+    return b'<html><h1>Hello, world</h1></html>'
+
+
+def text_response():
+    return '<html><h1>Hello, world</h1></html>'
+
+
+def data_response():
+    return {'hello': 'world'}
+
+
+def test_binary_response():
+    app = App(routes=[Route('/', 'GET', binary_response)])
+    client = TestClient(app)
+    response = client.get('http://example.com/')
+    assert response.text == '<html><h1>Hello, world</h1></html>'
+    assert response.headers['Content-Type'] == 'text/html; charset=utf-8'
+
+
+def test_text_response():
+    app = App(routes=[Route('/', 'GET', text_response)])
+    client = TestClient(app)
+    response = client.get('http://example.com/')
+    assert response.text == '<html><h1>Hello, world</h1></html>'
+    assert response.headers['Content-Type'] == 'text/html; charset=utf-8'
+
+
+def test_data_response():
+    app = App(routes=[Route('/', 'GET', data_response)])
+    client = TestClient(app)
+    response = client.get('http://example.com/')
+    assert response.json() == {'hello': 'world'}
+    assert response.headers['Content-Type'] == 'application/json'
