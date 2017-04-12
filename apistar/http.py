@@ -110,7 +110,7 @@ class QueryParams(ImmutableMultiDict):
 
 
 class QueryParam(str):
-    schema = None  # type: Callable
+    schema = None  # type: type
 
     @classmethod
     def build(cls, params: QueryParams, arg_name: ArgName):
