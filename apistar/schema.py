@@ -1,4 +1,5 @@
 import re
+from typing import Any, Dict, List, Tuple, Union  # noqa
 
 from apistar.exceptions import SchemaError
 
@@ -27,7 +28,7 @@ class String(str):
     max_length = None  # type: int
     min_length = None  # type: int
     pattern = None  # type: str
-    format = None  # type: str
+    format = None  # type: Any
     trim_whitespace = True
 
     def __new__(cls, *args, **kwargs):

@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Tuple, TypeVar, Union
+from typing import Any, Callable, Dict, List, Tuple, TypeVar, Union  # noqa
 from urllib.parse import quote
 
 from werkzeug.datastructures import Headers as WerkzeugHeaders
@@ -110,7 +110,7 @@ class QueryParams(ImmutableMultiDict):
 
 
 class QueryParam(str):
-    schema = None
+    schema = None  # type: type
 
     @classmethod
     def build(cls, params: QueryParams, arg_name: ArgName):
@@ -135,7 +135,7 @@ ResponseData = TypeVar('ResponseData')
 class Request(object):
     __slots__ = ('method', 'url', 'headers')
 
-    def __init__(self, method: str, url: str, headers: HeadersType=None):
+    def __init__(self, method: str, url: str, headers: HeadersType=None) -> None:
         if isinstance(headers, dict):
             headers = list(headers.items())
         self.method = method
@@ -150,7 +150,7 @@ class Request(object):
 class Response(object):
     __slots__ = ('data', 'content', 'status', 'headers')
 
-    def __init__(self, data: Any, status: int=200, headers: HeadersType=None):
+    def __init__(self, data: Any, status: int=200, headers: HeadersType=None) -> None:
         if isinstance(headers, dict):
             headers = list(headers.items())
         self.data = data
