@@ -209,14 +209,6 @@ def test_request():
     }
 
 
-def get_request(request: http.Request) -> http.Response:
-    return http.Response({
-        'method': request.method,
-        'url': request.url,
-        'headers': dict(request.headers)
-    })
-
-
 # Test reponse types
 
 def binary_response():
