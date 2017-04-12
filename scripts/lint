@@ -9,3 +9,4 @@ set -x
 
 ${PREFIX}flake8 apistar tests
 ${PREFIX}isort --check-only --recursive apistar tests
+${PREFIX}mypy apistar tests --ignore-missing-imports

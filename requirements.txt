@@ -5,6 +5,7 @@ flake8
 gunicorn
 isort
 jinja2
+mypy
 pytest
 pytest-cov
 requests

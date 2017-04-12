@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Tuple, TypeVar, Union
+from typing import Any, Callable, Dict, List, Tuple, TypeVar, Union  # noqa
 from urllib.parse import quote
 
 from werkzeug.datastructures import Headers as WerkzeugHeaders
@@ -17,25 +17,25 @@ class WSGIEnviron(ImmutableDict):
 
 class Method(str):
     @classmethod
-    def build(cls, environ: WSGIEnviron):
+    def build(cls, environ: WSGIEnviron) -> 'Method':
         return cls(environ['REQUEST_METHOD'])
 
 
 class Scheme(str):
     @classmethod
-    def build(cls, environ: WSGIEnviron):
+    def build(cls, environ: WSGIEnviron) -> 'Scheme':
         return cls(environ['wsgi.url_scheme'])
 
 
 class Host(str):
     @classmethod
-    def build(cls, environ: WSGIEnviron):
+    def build(cls, environ: WSGIEnviron) -> 'Host':
         return cls(environ.get('HTTP_HOST') or environ['SERVER_NAME'])
 
 
 class Port(int):
     @classmethod
-    def build(cls, environ: WSGIEnviron):
+    def build(cls, environ: WSGIEnviron) -> 'Port':
         if environ['wsgi.url_scheme'] == 'https':
             return cls(environ.get('SERVER_PORT') or 443)
         return cls(environ.get('SERVER_PORT') or 80)
@@ -43,25 +43,25 @@ class Port(int):
 
 class RootPath(str):
     @classmethod
-    def build(cls, environ: WSGIEnviron):
+    def build(cls, environ: WSGIEnviron) -> 'RootPath':
         return cls(quote(environ.get('SCRIPT_NAME', '')))
 
 
 class Path(str):
     @classmethod
-    def build(cls, environ: WSGIEnviron):
+    def build(cls, environ: WSGIEnviron) -> 'Path':
         return cls(quote(environ.get('PATH_INFO', '')))
 
 
 class QueryString(str):
     @classmethod
-    def build(cls, environ: WSGIEnviron):
+    def build(cls, environ: WSGIEnviron) -> 'QueryString':
         return cls(environ['QUERY_STRING'])
 
 
 class URL(str):
     @classmethod
-    def build(cls, environ: WSGIEnviron):
+    def build(cls, environ: WSGIEnviron) -> 'URL':
         # https://www.python.org/dev/peps/pep-0333/#url-reconstruction
         url = environ['wsgi.url_scheme'] + '://'
 
@@ -87,33 +87,33 @@ class URL(str):
 
 class Body(bytes):
     @classmethod
-    def build(cls, environ: WSGIEnviron):
+    def build(cls, environ: WSGIEnviron) -> 'Body':
         return environ['wsgi.input'].read()
 
 
 class Headers(ImmutableHeadersMixin, WerkzeugHeaders):
     @classmethod
-    def build(cls, environ: WSGIEnviron):
+    def build(cls, environ: WSGIEnviron) -> 'Headers':
         return cls(EnvironHeaders(environ))
 
 
 class Header(str):
     @classmethod
-    def build(cls, headers: Headers, arg_name: ArgName):
+    def build(cls, headers: Headers, arg_name: ArgName) -> 'Header':
         return headers.get(arg_name.replace('_', '-'))
 
 
 class QueryParams(ImmutableMultiDict):
     @classmethod
-    def build(cls, environ: WSGIEnviron):
+    def build(cls, environ: WSGIEnviron) -> 'QueryParams':
         return cls(url_decode(environ['QUERY_STRING']))
 
 
 class QueryParam(str):
-    schema = None
+    schema = None  # type: Callable
 
     @classmethod
-    def build(cls, params: QueryParams, arg_name: ArgName):
+    def build(cls, params: QueryParams, arg_name: ArgName) -> 'QueryParam':
         value = params.get(arg_name)
         if value is None or cls.schema is None:
             return value
@@ -135,7 +135,7 @@ ResponseData = TypeVar('ResponseData')
 class Request(object):
     __slots__ = ('method', 'url', 'headers')
 
-    def __init__(self, method: str, url: str, headers: HeadersType=None):
+    def __init__(self, method: str, url: str, headers: HeadersType=None) -> None:
         if isinstance(headers, dict):
             headers = list(headers.items())
         self.method = method
@@ -143,14 +143,14 @@ class Request(object):
         self.headers = Headers(headers)
 
     @classmethod
-    def build(cls, method: Method, url: URL, headers: Headers):
+    def build(cls, method: Method, url: URL, headers: Headers) -> 'Request':
         return cls(method=method, url=url, headers=headers)
 
 
 class Response(object):
     __slots__ = ('data', 'content', 'status', 'headers')
 
-    def __init__(self, data: Any, status: int=200, headers: HeadersType=None):
+    def __init__(self, data: Any, status: int=200, headers: HeadersType=None) -> None:
         if isinstance(headers, dict):
             headers = list(headers.items())
         self.data = data
@@ -159,5 +159,5 @@ class Response(object):
         self.headers = Headers(headers)
 
     @classmethod
-    def build(cls, data: ResponseData):
+    def build(cls, data: ResponseData) -> 'Response':
         return cls(data=data)
