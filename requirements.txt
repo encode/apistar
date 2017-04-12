@@ -2,7 +2,6 @@ click
 codecov
 coreapi
 flake8
-gunicorn
 isort
 jinja2
 mypy
