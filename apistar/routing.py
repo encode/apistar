@@ -56,17 +56,12 @@ class Router(object):
     }
 
     def __init__(self, routes: List[Route]) -> None:
-<<<<<<< HEAD
         from apistar.app import DBBackend
         self.not_found = None  # type: RouterLookup
         self.method_not_allowed = None  # type: RouterLookup
 
         required_type = wsgi.WSGIResponse
-        initial_types = [DBBackend, app.App, wsgi.WSGIEnviron, URLPathArgs]
-=======
-        required_type = wsgi.WSGIResponse
-        initial_types = [app.App, wsgi.WSGIEnviron, URLPathArgs, Exception]
->>>>>>> origin/master
+        initial_types = [DBBackend, app.App, wsgi.WSGIEnviron, URLPathArgs, Exception]
 
         rules = []
         views = {}
