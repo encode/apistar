@@ -5,7 +5,7 @@
  /_  _\    / ___ \|  __/| |   ___) | || (_| | |      /_  _\
    \/     /_/   \_\_|  |___| |____/ \__\__,_|_|        \/
 """
-from apistar.app import App
+from apistar.app import App, DBBackend
 from apistar.wsgi import WSGIEnviron, WSGIResponse
 from apistar.http import Request, Response, QueryParams, Headers, ResponseData
 from apistar.routing import Route
@@ -13,6 +13,6 @@ from apistar.routing import Route
 
 __version__ = '0.1.6'
 __all__ = [
-    'App', 'Route',
+    'App', 'Route', 'DBBackend',
     'WSGIEnviron', 'WSGIResponse', 'Request', 'Response', 'QueryParams', 'Headers'
 ]

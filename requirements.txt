@@ -4,5 +4,6 @@ gunicorn
 jinja2
 pytest
 requests
+SQLAlchemy==1.1.9
 ujson
 werkzeug

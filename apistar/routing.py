@@ -53,8 +53,9 @@ class Router(object):
     method_not_allowed = None
 
     def __init__(self, routes: List[Route]):
+        from apistar.app import DBBackend
         required_type = wsgi.WSGIResponse
-        initial_types = [wsgi.WSGIEnviron, URLPathArgs]
+        initial_types = [DBBackend, wsgi.WSGIEnviron, URLPathArgs]
 
         rules = []
         views = {}

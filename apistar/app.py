@@ -10,7 +10,7 @@ class App(object):
         commands.test,
     )
 
-    def __init__(self, routes=None, commands=None):
+    def __init__(self, routes=None, commands=None, db_engine_config=None):
         routes = [] if (routes is None) else routes
         commands = [] if (commands is None) else commands
 
@@ -20,6 +20,40 @@ class App(object):
         self.router = routing.Router(self.routes)
         self.wsgi = get_wsgi_server(app=self)
         self.click = get_click_client(app=self)
+
+        # testing sql alchamy
+        self.db_backend = None
+
+        if db_engine_config:
+            # this could be moved into a plugin or external backend?
+            if db_engine_config.get('TYPE') == "SQLALCHEMY":
+
+                if 'DB_URL' in db_engine_config:
+
+                    from sqlalchemy import create_engine
+                    from sqlalchemy.orm import sessionmaker
+
+                    engine = create_engine(
+                        db_engine_config['DB_URL'],
+                        echo=True,
+                        echo_pool=True,
+                        pool_size=db_engine_config.get('DB_POOL_SIZE', 5)
+                    )
+                    session_class = sessionmaker(bind=engine)
+
+                    self.db_backend = DBBackend(engine=engine, session_class=session_class)
+
+                    if 'METADATA' in db_engine_config:
+                        # put in command
+                        db_engine_config['METADATA'].create_all(self.db_backend.engine)
+
+
+class DBBackend(object):
+    __slots__ = ('engine', 'session_class')
+
+    def __init__(self, engine, session_class):
+        self.engine = engine
+        self.session_class = session_class
 
 
 def get_wsgi_server(app):
@@ -39,7 +73,7 @@ def get_wsgi_server(app):
         lookup_key = method + ' ' + path
         state = {
             'wsgi_environ': environ,
-            'app': app,
+            'db_backend': app.db_backend,
             'method': method,
             'path': path,
         }
