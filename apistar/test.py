@@ -1,9 +1,10 @@
-from apistar.main import get_current_app
-from click.testing import CliRunner
-from urllib.parse import urlparse
-import requests
 import io
-import pytest
+from urllib.parse import urlparse
+
+import requests
+from click.testing import CliRunner
+
+from apistar.main import get_current_app
 
 
 class HeaderDict(requests.packages.urllib3._collections.HTTPHeaderDict):
@@ -39,20 +40,25 @@ class WSGIAdapter(requests.adapters.HTTPAdapter):
         """
         Given a `requests.PreparedRequest` instance, return a WSGI environ dict.
         """
+        body = request.body
+        if body and not isinstance(body, bytes):
+            body = body.encode('utf-8')
+
         url_components = urlparse(request.url)
         environ = {
             'REQUEST_METHOD': request.method,
             'wsgi.url_scheme': url_components.scheme,
             'SCRIPT_NAME': self.root_path,
             'PATH_INFO': url_components.path,
-            'QUERY_STRING': url_components.query
+            'QUERY_STRING': url_components.query,
+            'wsgi.input': io.BytesIO(body)
         }
 
         if url_components.port:
             environ['SERVER_NAME'] = url_components.hostname
             environ['SERVER_PORT'] = str(url_components.port)
         else:
-            environ['HTTP_HOST'] =  url_components.hostname
+            environ['HTTP_HOST'] = url_components.hostname
 
         for key, value in request.headers.items():
             key = key.upper().replace('-', '_')
@@ -111,6 +117,7 @@ class _TestClient(requests.Session):
             )
             url = 'http://example.com' + url
         return super().request(method, url, **kwargs)
+
 
 def TestClient(*args, **kwargs):
     """

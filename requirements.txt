@@ -1,8 +1,12 @@
-coreapi
 click
-gunicorn
+codecov
+coreapi
+flake8
+isort
 jinja2
+mypy
 pytest
+pytest-cov
 requests
 SQLAlchemy==1.1.9
 ujson

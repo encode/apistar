@@ -1,12 +1,13 @@
-from apistar import pipelines, http, schema, wsgi
-from apistar.pipelines import ArgName
-from collections import namedtuple
-from typing import Any, List, TypeVar
-from uritemplate import URITemplate
-from werkzeug.routing import Map, Rule, parse_rule
 import inspect
-import json
+from collections import namedtuple
+from typing import Callable, Dict, List, Tuple  # noqa
+
 import werkzeug
+from uritemplate import URITemplate
+from werkzeug.routing import Map, Rule
+
+from apistar import app, http, pipelines, schema, wsgi
+from apistar.pipelines import ArgName, Pipeline
 
 # TODO: Path
 # TODO: 404
@@ -32,7 +33,7 @@ class URLPathArgs(dict):
 
 
 class URLPathArg(object):
-    schema = None
+    schema = None  # type: type
 
     @classmethod
     def build(cls, args: URLPathArgs, arg_name: ArgName):
@@ -42,6 +43,9 @@ class URLPathArg(object):
         return value
 
 
+RouterLookup = Tuple[Callable, Pipeline, URLPathArgs]
+
+
 class Router(object):
     converters = {
         str: 'string',
@@ -49,13 +53,14 @@ class Router(object):
         float: 'float',
         # path, any, uuid
     }
-    not_found = None
-    method_not_allowed = None
 
-    def __init__(self, routes: List[Route]):
+    def __init__(self, routes: List[Route]) -> None:
         from apistar.app import DBBackend
+        self.not_found = None  # type: RouterLookup
+        self.method_not_allowed = None  # type: RouterLookup
+
         required_type = wsgi.WSGIResponse
-        initial_types = [DBBackend, wsgi.WSGIEnviron, URLPathArgs]
+        initial_types = [DBBackend, app.App, wsgi.WSGIEnviron, URLPathArgs]
 
         rules = []
         views = {}
@@ -92,7 +97,7 @@ class Router(object):
             rules.append(rule)
 
             # Determine any inferred type annotations for the view
-            extra_annotations = {}
+            extra_annotations = {}  # type: Dict[str, type]
             for param in view_signature.parameters.values():
 
                 if param.annotation == inspect.Signature.empty:
@@ -117,16 +122,19 @@ class Router(object):
             views[name] = Endpoint(view, pipeline)
 
         # Add pipelines for 404 and 405 cases.
+        empty_url_args = URLPathArgs()
         pipeline = pipelines.build_pipeline(view_404, initial_types, required_type, {})
-        self.not_found = (None, pipeline, {})
+        self.not_found = (None, pipeline, empty_url_args)
+
+        empty_url_args = URLPathArgs()
         pipeline = pipelines.build_pipeline(view_405, initial_types, required_type, {})
-        self.method_not_allowed = (None, pipeline, {})
+        self.method_not_allowed = (None, pipeline, empty_url_args)
 
         self.routes = routes
         self.adapter = Map(rules).bind('example.com')
         self.views = views
 
-    def lookup(self, path, method):
+    def lookup(self, path, method) -> RouterLookup:
         try:
             (name, kwargs) = self.adapter.match(path, method)
         except werkzeug.exceptions.NotFound:

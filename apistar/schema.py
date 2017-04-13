@@ -1,7 +1,7 @@
-from apistar.exceptions import SchemaError
-from collections import OrderedDict
-from typing import Dict, List, Tuple, Union
 import re
+from typing import Any, Dict, List, Tuple, Union  # noqa
+
+from apistar.exceptions import SchemaError
 
 
 # TODO: Validation errors
@@ -28,7 +28,7 @@ class String(str):
     max_length = None  # type: int
     min_length = None  # type: int
     pattern = None  # type: str
-    format = None  # type: str
+    format = None  # type: Any
     trim_whitespace = True
 
     def __new__(cls, *args, **kwargs):
@@ -56,7 +56,6 @@ class String(str):
         if cls.pattern is not None:
             if not re.search(cls.pattern, value):
                 raise SchemaError(cls, 'pattern')
-
 
         return value
 
@@ -138,7 +137,7 @@ class Boolean(object):
     def __new__(self, *args, **kwargs):
         if kwargs:
             assert not args
-            return type(cls.__name__, (cls,), kwargs)
+            return type(self.__name__, (self,), kwargs)
 
         assert len(args) == 1
         value = args[0]

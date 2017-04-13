@@ -5,7 +5,7 @@ A smart Web API framework, designed for Python 3.
 [![Build Status](https://travis-ci.org/tomchristie/apistar.svg?branch=master)](https://travis-ci.org/tomchristie/apistar)
 [![Package version](https://badge.fury.io/py/apistar.svg)](https://pypi.python.org/pypi/apistar)
 [![Python versions](https://img.shields.io/pypi/pyversions/apistar.svg)](https://pypi.python.org/pypi/apistar)
-
+[![codecov](https://codecov.io/gh/tomchristie/apistar/branch/master/graph/badge.svg)](https://codecov.io/gh/tomchristie/apistar)
 ---
 
 Install API Star:
@@ -75,6 +75,7 @@ Some of the components you might use most often:
 | `Header`      | Lookup a single request header, corresponding to the argument name.<br/>Returns a string or `None`. |
 | `QueryParams` | The request query parameters, returned as a dictionary-like object. |
 | `QueryParam`  | Lookup a single query parameter, corresponding to the argument name.<br/>Returns a string or `None`. |
+| `Body`        | The request body. Returns a bytestring. |
 
 ---
 
@@ -208,6 +209,67 @@ rather than making external requests.
 response = client.get('http://www.example.com/hello_world/')
 ```
 
+---
+
+# Components
+
+You can create new components to inject into your views, by declaring a
+class with a `build` method. For instance:
+
+```python
+import base64
+
+class Username(str):
+    """
+    A component which returns the username that the incoming request
+    is associated with, using HTTP Basic Authentication.
+    """
+    @classmethod
+    def build(cls, authorization: http.Header):
+        if authorization is None:
+            return None
+        scheme, token = authorization.split()
+        if scheme.lower() != 'basic':
+            return None
+        username, password = base64.b64decode(token).decode('utf-8').split(':')
+        return cls(username)
+```
+
+You can then use your component in a view:
+
+```python
+def say_hello(username: Username):
+    return {'hello': username}
+```
+
+A complete listing of the available built-in components:
+
+Component             | Description
+----------------------|-------------
+`app.App`             | The application instance.
+`http.Method`         | The HTTP method of the request, such as `GET`.
+`http.Host`           | The host component of the request URL, such as `'example.com'`.
+`http.Port`           | The port number that the request is made to, such as 443.
+`http.Scheme`         | The scheme component of the request URL, such as 'https'.
+`http.Path`           | The path component of the request URL, such as `/api/v1/my_view/`.
+`http.QueryString`    | The query component of the request URL, such as `page=2`.
+`http.URL`            | The full URL of the request, such as `https://example.com/api/v1/my_view/?page=2`.
+`http.Body`           | The body of the request, as a bytestring.
+`http.QueryParams`    | A multi-dict containing the request query parameters.
+`http.QueryParam`     | A single request query parameter, corresponding to the keyword argument name. Automatically used for data arguments.
+`http.Headers`        | A multi-dict containing the request headers parameters.
+`http.Header`         | A single request query parameter, corresponding to the keyword argument name.
+`http.Request`        | The full request instance.
+`http.Response`       | A return type for returning an HTTP response explicitly.
+`http.ResponseData`   | A return type for plain data responses.
+`wsgi.Environ`        | The WSGI environ of the incoming request.
+`wsgi.Response`       | A return type for directly returning a WSGI response.
+`routing.URLPathArgs` | A dictionary containing all the matched URL path arguments.
+`routing.URLPathArg`  | A single URL path argument, corresponding to the keyword argument name. Automatically used for data arguments with a matching URL path component.
+`pipelines.ArgName`   | The keyword argument with which a component is being injected into the view. May be used within component `build` methods.
+
+---
+
 # Performance
 
 The following results were obtained on a 2013 MacBook Air, using the simplest
@@ -239,6 +301,22 @@ The recommended production deployment is GUnicorn, using the Meinheld worker.
     $ gunicorn app:app.wsgi --workers=4 --bind=0.0.0.0:5000 --pid=pid --worker-class=meinheld.gmeinheld.MeinheldWorker
 
 Typically you'll want to run as many workers as you have CPU cores on the server.
+
+---
+
+# Development
+
+To work on the API Star codebase, you'll want to clone the repository,
+and create a Python virtualenv with the project requirements installed:
+
+    $ git clone git@github.com:tomchristie/apistar.git
+    $ cd apistar
+    $ ./scripts/setup
+
+To run the tests and code linting:
+
+    $ ./scripts/test
+    $ ./scripts/lint
 
 ---
 

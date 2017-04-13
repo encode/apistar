@@ -1,8 +1,8 @@
-from apistar import http
-from typing import Iterable, Tuple, List
-from werkzeug.datastructures import ImmutableDict
+from typing import Iterable, List, Tuple
+
 from werkzeug.http import HTTP_STATUS_CODES
 
+from apistar import http
 
 __all__ = ['WSGIEnviron', 'WSGIResponse']
 
@@ -19,7 +19,7 @@ WSGIEnviron = http.WSGIEnviron
 class WSGIResponse(object):
     __slots__ = ('status', 'headers', 'iterator')
 
-    def __init__(self, status: str, headers: List[Tuple[str, str]], iterator: Iterable[bytes]):
+    def __init__(self, status: str, headers: List[Tuple[str, str]], iterator: Iterable[bytes]) -> None:
         self.status = status
         self.headers = headers
         self.iterator = iterator

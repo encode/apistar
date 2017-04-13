@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from setuptools import setup
-import re
 import os
+import re
 import sys
 
+from setuptools import setup
 
 sys.dont_write_bytecode = True
 
@@ -46,15 +46,6 @@ def get_package_data(package):
 version = get_version('apistar')
 
 
-if sys.argv[-1] == 'publish':
-    os.system("python setup.py sdist upload")
-    os.system("rm -r dist")
-    print("You probably want to also tag the version now:")
-    print("  git tag -a %s -m 'version %s'" % (version, version))
-    print("  git push --tags")
-    sys.exit()
-
-
 setup(
     name='apistar',
     version=version,
@@ -70,7 +61,8 @@ setup(
         'werkzeug',
         'jinja2',
         'click',
-        'pytest'
+        'pytest',
+        'ujson'
     ],
     classifiers=[
         'Development Status :: 3 - Alpha',

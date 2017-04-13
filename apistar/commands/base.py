@@ -1,12 +1,13 @@
-from apistar.exceptions import ConfigurationError
-import apistar
-import click
 import os
-import pytest
 import shutil
 import sys
 from wsgiref.simple_server import make_server
 
+import click
+import pytest
+
+import apistar
+from apistar.exceptions import ConfigurationError
 
 ROOT_DIR = os.path.dirname(apistar.__file__)
 PROJECT_TEMPLATES_DIR = os.path.join(ROOT_DIR, 'project_templates')
@@ -15,7 +16,8 @@ PROJECT_TEMPLATE_CHOICES = os.listdir(PROJECT_TEMPLATES_DIR)
 
 @click.command(help='Create a new project in TARGET_DIR.')
 @click.argument('target_dir', default='')
-@click.option('--template', type=click.Choice(PROJECT_TEMPLATE_CHOICES), default='standard', help='Select the project template to use.')
+@click.option('--template', type=click.Choice(PROJECT_TEMPLATE_CHOICES), default='standard',
+              help='Select the project template to use.')
 @click.option('-f', '--force', is_flag=True, help='Overwrite any existing project files.')
 def new(target_dir, template, force):
     source_dir = os.path.join(PROJECT_TEMPLATES_DIR, template)
@@ -40,13 +42,15 @@ def new(target_dir, template, force):
 
 
 @click.command(help='Run the current app.')
-def run():
+@click.option('--host', '-h', default='localhost', type=str, help='The host of the webserver.')
+@click.option('--port', '-p', default=8080, type=int, help='The port of the webserver.')
+def run(host, port):
     from apistar.main import get_current_app
     app = get_current_app()
 
     try:
-        click.echo('Running at http://localhost:8080/')
-        make_server('', 8080, app.wsgi).serve_forever()
+        click.echo('Running at http://{host}:{port}/'.format(host=host, port=port))
+        make_server(host, port, app.wsgi).serve_forever()
     except KeyboardInterrupt:
         pass
 
@@ -54,9 +58,6 @@ def run():
 @click.command(help='Run the test suite.')
 @click.argument('file_or_dir', nargs=-1)
 def test(file_or_dir):
-    from apistar.main import get_current_app
-    app = get_current_app()
-
     if not file_or_dir:
         file_or_dir = []
         if os.path.exists('tests'):

@@ -1,8 +1,7 @@
-from collections import namedtuple
-from typing import Callable
-import re
 import inspect
-
+import re
+from collections import namedtuple
+from typing import Any, Callable, Dict  # noqa
 
 empty = inspect.Signature.empty
 FIRST_CAP_RE = re.compile('(.)([A-Z][a-z]+)')
@@ -25,7 +24,7 @@ class ArgName(str):
     pass
 
 
-def parameterize_by_argument_name(cls):
+def parameterize_by_argument_name(cls) -> bool:
     """
     Return `True` if the class build method includes any `ArgName` markers.
     """
@@ -38,7 +37,7 @@ def parameterize_by_argument_name(cls):
     return False
 
 
-def get_class_id(cls, arg_name=None):
+def get_class_id(cls, arg_name=None) -> str:
     # http://stackoverflow.com/questions/1175208/elegant-python-function-to-convert-camelcase-to-snake-case
     name = cls.__name__
     s1 = FIRST_CAP_RE.sub(r'\1_\2', name)
@@ -48,8 +47,8 @@ def get_class_id(cls, arg_name=None):
     return s2
 
 
-def run_pipeline(pipeline: Pipeline):  # type: dict
-    state = {}
+def run_pipeline(pipeline: Pipeline) -> dict:
+    state = {}  # type: Dict[str, Any]
     for function, inputs, output, extra_kwargs in pipeline:
 
         kwargs = {}
@@ -66,7 +65,7 @@ def run_pipeline(pipeline: Pipeline):  # type: dict
     return state
 
 
-def _build_step(function: Callable, arg_name=None, extra_annotations=None):  # type: Step
+def _build_step(function: Callable, arg_name=None, extra_annotations=None) -> Step:
     """
     Given a function, return the single pipeline step that
     corresponds to calling that function.
@@ -95,10 +94,7 @@ def _build_step(function: Callable, arg_name=None, extra_annotations=None):  # t
     else:
         return_cls = signature.return_annotation
         if return_cls is empty:
-            if hasattr(function, '__self__'):
-                return_cls = function.__self__
-            else:
-                return_cls = None
+            return_cls = getattr(function, '__self__', None)
 
     if return_cls is None:
         output = None
@@ -108,12 +104,12 @@ def _build_step(function: Callable, arg_name=None, extra_annotations=None):  # t
     return Step(function, inputs, output, extra_kwargs)
 
 
-def _build_pipeline(function: Callable, arg_name=None, seen=None, extra_annotations=None):  # type: Pipeline
+def _build_pipeline(function: Callable, arg_name=None, seen=None, extra_annotations=None) -> Pipeline:
     """
     Given a function, return the pipeline that runs that
     function and all its dependancies.
     """
-    pipeline = []
+    pipeline = Pipeline()
     if seen is None:
         seen = set()
     if extra_annotations is None:
@@ -140,7 +136,7 @@ def _build_pipeline(function: Callable, arg_name=None, seen=None, extra_annotati
     return pipeline
 
 
-def build_pipeline(function: Callable, initial_types=None, required_type=None, extra_annotations=None):
+def build_pipeline(function: Callable, initial_types=None, required_type=None, extra_annotations=None) -> Pipeline:
     seen = None
     if initial_types:
         seen = set([get_class_id(cls) for cls in initial_types])

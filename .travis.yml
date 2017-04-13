@@ -4,10 +4,11 @@ python:
     - "3.5"
     - "3.6"
 
-cache: pip
-
 install:
     - pip install -r requirements.txt
-    - export PYTHONPATH=.
 
-script: py.test tests
+script:
+    - scripts/ci
+
+after_success:
+    - codecov
