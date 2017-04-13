@@ -216,27 +216,31 @@ response = client.get('http://www.example.com/hello_world/')
 You can create new components to inject into your views, by declaring a
 class with a `build` method. For instance:
 
-    import base64
+```python
+import base64
 
-    class Username(str):
-        """
-        A component which returns the username that the incoming request
-        is associated with, using HTTP Basic Authentication.
-        """
-        @classmethod
-        def build(cls, authorization: http.Header):
-            if authorization is None:
-                return None
-            scheme, token = authorization.split()
-            if scheme.lower() != 'basic':
-                return None
-            username, password = base64.b64decode(token).decode('utf-8').split(':')
-            return cls(username)
+class Username(str):
+    """
+    A component which returns the username that the incoming request
+    is associated with, using HTTP Basic Authentication.
+    """
+    @classmethod
+    def build(cls, authorization: http.Header):
+        if authorization is None:
+            return None
+        scheme, token = authorization.split()
+        if scheme.lower() != 'basic':
+            return None
+        username, password = base64.b64decode(token).decode('utf-8').split(':')
+        return cls(username)
+```
 
 You can then use your component in a view:
 
-    def say_hello(username: Username):
-        return {'hello': username}
+```python
+def say_hello(username: Username):
+    return {'hello': username}
+```
 
 ---
 
