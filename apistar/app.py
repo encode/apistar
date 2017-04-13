@@ -1,3 +1,4 @@
+import os
 from collections import OrderedDict
 
 import click
@@ -22,6 +23,12 @@ class App(object):
         self.router = routing.Router(self.routes)
         self.wsgi = get_wsgi_server(app=self)
         self.click = get_click_client(app=self)
+
+
+class AppRoot(str):
+    @classmethod
+    def build(cls):
+        return os.getcwd()
 
 
 def get_wsgi_server(app):
