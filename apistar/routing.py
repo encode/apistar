@@ -1,12 +1,13 @@
 import inspect
+import traceback
 from collections import namedtuple
-from typing import Callable, Dict, List, Tuple  # noqa
+from typing import Any, Callable, Dict, List, Tuple  # noqa
 
 import werkzeug
 from uritemplate import URITemplate
 from werkzeug.routing import Map, Rule
 
-from apistar import app, http, pipelines, schema, wsgi
+from apistar import app, exceptions, http, pipelines, schema, wsgi
 from apistar.pipelines import ArgName, Pipeline
 
 # TODO: Path
@@ -55,11 +56,8 @@ class Router(object):
     }
 
     def __init__(self, routes: List[Route]) -> None:
-        self.not_found = None  # type: RouterLookup
-        self.method_not_allowed = None  # type: RouterLookup
-
         required_type = wsgi.WSGIResponse
-        initial_types = [app.App, wsgi.WSGIEnviron, URLPathArgs]
+        initial_types = [app.App, wsgi.WSGIEnviron, URLPathArgs, Exception]
 
         rules = []
         views = {}
@@ -120,15 +118,7 @@ class Router(object):
             pipeline = pipelines.build_pipeline(view, initial_types, required_type, extra_annotations)
             views[name] = Endpoint(view, pipeline)
 
-        # Add pipelines for 404 and 405 cases.
-        empty_url_args = URLPathArgs()
-        pipeline = pipelines.build_pipeline(view_404, initial_types, required_type, {})
-        self.not_found = (None, pipeline, empty_url_args)
-
-        empty_url_args = URLPathArgs()
-        pipeline = pipelines.build_pipeline(view_405, initial_types, required_type, {})
-        self.method_not_allowed = (None, pipeline, empty_url_args)
-
+        self.exception_pipeline = pipelines.build_pipeline(exception_handler, initial_types, required_type, {})
         self.routes = routes
         self.adapter = Map(rules).bind('example.com')
         self.views = views
@@ -137,16 +127,15 @@ class Router(object):
         try:
             (name, kwargs) = self.adapter.match(path, method)
         except werkzeug.exceptions.NotFound:
-            return self.not_found
+            raise exceptions.NotFound()
         except werkzeug.exceptions.MethodNotAllowed:
-            return self.method_not_allowed
+            raise exceptions.MethodNotAllowed()
         (view, pipeline) = self.views[name]
         return (view, pipeline, kwargs)
 
 
-def view_404() -> http.Response:
-    return http.Response({'message': 'Not found'}, 404)
-
-
-def view_405() -> http.Response:
-    return http.Response({'message': 'Method not allowed'}, 405)
+def exception_handler(exc: Exception) -> http.Response:
+    if isinstance(exc, exceptions.APIException):
+        return http.Response({'message': exc.message}, exc.status_code)
+    message = traceback.format_exc()
+    return http.Response(message, 500, {'Content-Type': 'text/plain; charset=utf-8'})

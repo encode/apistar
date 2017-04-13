@@ -2,7 +2,7 @@ from collections import OrderedDict
 
 import click
 
-from apistar import commands, routing
+from apistar import commands, pipelines, routing
 
 
 class App(object):
@@ -44,28 +44,35 @@ def get_wsgi_server(app):
             'app': app,
             'method': method,
             'path': path,
+            'exception': None,
+            'view': None,
+            'url_path_args': {}
         }
 
         try:
-            (state['view'], pipeline, state['url_path_args']) = lookup_cache[lookup_key]
-        except KeyError:
-            (state['view'], pipeline, state['url_path_args']) = lookup_cache[lookup_key] = lookup(path, method)
-            if len(lookup_cache) > max_cache:
-                lookup_cache.pop(next(iter(lookup_cache)))
+            try:
+                (state['view'], pipeline, state['url_path_args']) = lookup_cache[lookup_key]
+            except KeyError:
+                (state['view'], pipeline, state['url_path_args']) = lookup_cache[lookup_key] = lookup(path, method)
+                if len(lookup_cache) > max_cache:
+                    lookup_cache.pop(next(iter(lookup_cache)))
 
-        for function, inputs, output, extra_kwargs in pipeline:
-            # Determine the keyword arguments for each step in the pipeline.
-            kwargs = {}
-            for arg_name, state_key in inputs:
-                kwargs[arg_name] = state[state_key]
-            if extra_kwargs is not None:
-                kwargs.update(extra_kwargs)
+            for function, inputs, output, extra_kwargs in pipeline:
+                # Determine the keyword arguments for each step in the pipeline.
+                kwargs = {}
+                for arg_name, state_key in inputs:
+                    kwargs[arg_name] = state[state_key]
+                if extra_kwargs is not None:
+                    kwargs.update(extra_kwargs)
 
-            # Call the function for each step in the pipeline.
-            if output is None:
-                function(**kwargs)
-            else:
-                state[output] = function(**kwargs)
+                # Call the function for each step in the pipeline.
+                if output is None:
+                    function(**kwargs)
+                else:
+                    state[output] = function(**kwargs)
+        except Exception as exc:
+            state['exception'] = exc
+            pipelines.run_pipeline(app.router.exception_pipeline, state)
 
         wsgi_response = state['wsgi_response']
         start_response(wsgi_response.status, wsgi_response.headers)
