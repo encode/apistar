@@ -209,6 +209,8 @@ rather than making external requests.
 response = client.get('http://www.example.com/hello_world/')
 ```
 
+---
+
 # Performance
 
 The following results were obtained on a 2013 MacBook Air, using the simplest
@@ -245,7 +247,8 @@ Typically you'll want to run as many workers as you have CPU cores on the server
 
 # Development
 
-To get started:
+To work on the API Star codebase, you'll want to clone the repository,
+and create a Python virtualenv with the project requirements installed:
 
     $ git clone git@github.com:tomchristie/apistar.git
     $ cd apistar
