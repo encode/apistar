@@ -18,8 +18,12 @@ def get_port(port: http.Port) -> http.Response:
     return http.Response({'port': port})
 
 
-def get_root_path(root_path: http.RootPath) -> http.Response:
-    return http.Response({'root_path': root_path})
+def get_mount_path(mount_path: http.MountPath) -> http.Response:
+    return http.Response({'mount_path': mount_path})
+
+
+def get_relative_path(relative_path: http.RelativePath) -> http.Response:
+    return http.Response({'relative_path': relative_path})
 
 
 def get_path(path: http.Path) -> http.Response:
@@ -68,7 +72,8 @@ app = App(routes=[
     Route('/scheme/', 'get', get_scheme),
     Route('/host/', 'get', get_host),
     Route('/port/', 'get', get_port),
-    Route('/root_path/', 'get', get_root_path),
+    Route('/mount_path/', 'get', get_mount_path),
+    Route('/relative_path/', 'get', get_relative_path),
     Route('/path/', 'get', get_path),
     Route('/query_string/', 'get', get_query_string),
     Route('/query_params/', 'get', get_query_params),
@@ -114,9 +119,14 @@ def test_port():
     assert response.json() == {'port': 123}
 
 
-def test_root_path():
-    response = client.get('http://example.com/root_path/')
-    assert response.json() == {'root_path': ''}
+def test_mount_path():
+    response = client.get('http://example.com/mount_path/')
+    assert response.json() == {'mount_path': ''}
+
+
+def test_relative_path():
+    response = client.get('http://example.com/relative_path/')
+    assert response.json() == {'relative_path': '/relative_path/'}
 
 
 def test_path():

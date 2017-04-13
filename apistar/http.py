@@ -41,16 +41,23 @@ class Port(int):
         return cls(environ.get('SERVER_PORT') or 80)
 
 
-class RootPath(str):
+class MountPath(str):
     @classmethod
     def build(cls, environ: WSGIEnviron):
         return cls(quote(environ.get('SCRIPT_NAME', '')))
 
 
-class Path(str):
+class RelativePath(str):
     @classmethod
     def build(cls, environ: WSGIEnviron):
         return cls(quote(environ.get('PATH_INFO', '')))
+
+
+class Path(str):
+    @classmethod
+    def build(cls, environ: WSGIEnviron):
+        path = environ.get('SCRIPT_NAME', '') + environ.get('PATH_INFO', '')
+        return cls(quote(path))
 
 
 class QueryString(str):
