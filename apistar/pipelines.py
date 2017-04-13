@@ -47,8 +47,7 @@ def get_class_id(cls, arg_name=None) -> str:
     return s2
 
 
-def run_pipeline(pipeline: Pipeline) -> dict:
-    state = {}  # type: Dict[str, Any]
+def run_pipeline(pipeline: Pipeline, state: Dict[str, Any]):
     for function, inputs, output, extra_kwargs in pipeline:
 
         kwargs = {}
@@ -61,8 +60,6 @@ def run_pipeline(pipeline: Pipeline) -> dict:
             function(**kwargs)
         else:
             state[output] = function(**kwargs)
-
-    return state
 
 
 def _build_step(function: Callable, arg_name=None, extra_annotations=None) -> Step:

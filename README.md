@@ -177,7 +177,9 @@ def debug_environ(environ: wsgi.WSGIEnviron):
 API Star includes the `py.test` testing framework. You can run all tests in
 a `tests.py` module or a `tests/` directory, by using the following command:
 
-    $ apistar test
+```bash
+$ apistar test
+```
 
 The simplest way to test a view is to call it directly.
 
