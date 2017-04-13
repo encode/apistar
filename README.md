@@ -266,7 +266,7 @@ Component             | Description
 `wsgi.Response`       | A return type for directly returning a WSGI response.
 `routing.URLPathArgs` | A dictionary containing all the matched URL path arguments.
 `routing.URLPathArg`  | A single URL path argument, corresponding to the keyword argument name. Automatically used for data arguments with a matching URL path component.
-`pipelines.ArgName`   | The keyword argument with which a component is being injected.
+`pipelines.ArgName`   | The keyword argument with which a component is being injected into the view. May be used within component `build` methods.
 
 ---
 
