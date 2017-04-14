@@ -8,6 +8,7 @@ from uritemplate import URITemplate
 from werkzeug.routing import Map, Rule
 
 from apistar import app, exceptions, http, pipelines, schema, wsgi
+from apistar.db import DBBackend
 from apistar.pipelines import ArgName, Pipeline
 
 # TODO: Path
@@ -56,7 +57,6 @@ class Router(object):
     }
 
     def __init__(self, routes: List[Route]) -> None:
-        from apistar.app import DBBackend
         self.not_found = None  # type: RouterLookup
         self.method_not_allowed = None  # type: RouterLookup
 
