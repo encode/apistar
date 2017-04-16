@@ -5,7 +5,8 @@
  /_  _\    / ___ \|  __/| |   ___) | || (_| | |      /_  _\
    \/     /_/   \_\_|  |___| |____/ \__\__,_|_|        \/
 """
-from apistar.app import App, DBBackend
+from apistar.app import App
+from apistar.db import DBBackend
 from apistar.http import Headers, QueryParams, Request, Response
 from apistar.routing import Route
 from apistar.wsgi import WSGIEnviron, WSGIResponse
