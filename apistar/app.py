@@ -11,6 +11,7 @@ class App(object):
         commands.new,
         commands.run,
         commands.test,
+        commands.create_tables,
     )
 
     def __init__(self, routes=None, commands=None, db_engine_config=None):

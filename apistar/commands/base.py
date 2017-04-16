@@ -7,6 +7,7 @@ import click
 import pytest
 
 import apistar
+from apistar.db import DBBackend
 from apistar.exceptions import ConfigurationError
 
 ROOT_DIR = os.path.dirname(apistar.__file__)
@@ -70,3 +71,11 @@ def test(file_or_dir):
     exitcode = pytest.main(list(file_or_dir))
     if exitcode:
         sys.exit(exitcode)
+
+
+@click.command(help='Create SQLAlchemy tables.')
+def create_tables():
+    from apistar.main import get_current_app
+    app = get_current_app()
+    db_backend = DBBackend.build(db_engine_config=app.db_engine_config)
+    db_backend.create_tables()

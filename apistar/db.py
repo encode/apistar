@@ -1,12 +1,14 @@
 from typing import Dict
+from apistar.exceptions import ConfigurationError
 
 
 class DBBackend(object):
-    __slots__ = ('engine', 'session_class')
+    __slots__ = ('engine', 'session_class', 'metadata')
 
-    def __init__(self, engine, session_class):
+    def __init__(self, engine, session_class, metadata=None):
         self.engine = engine
         self.session_class = session_class
+        self.metadata = metadata
 
     @classmethod
     def build(cls, db_engine_config: Dict):
@@ -24,10 +26,16 @@ class DBBackend(object):
                 )
                 session_class = sessionmaker(bind=engine)
 
-                db_backend = cls(engine=engine, session_class=session_class)
+                db_backend = cls(
+                    engine=engine,
+                    session_class=session_class,
+                    metadata=db_engine_config.get('METADATA')
+                )
 
-                if 'METADATA' in db_engine_config:
-                    # put in command
-                    db_engine_config['METADATA'].create_all(db_backend.engine)
                 return db_backend
         return None
+
+    def create_tables(self):
+        if not self.metadata:
+            raise ConfigurationError("App must be configured with Metadata class to create tables")
+        self.metadata.create_all(self.engine)
