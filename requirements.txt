@@ -8,6 +8,6 @@ mypy
 pytest
 pytest-cov
 requests
-SQLAlchemy==1.1.9
+SQLAlchemy
 ujson
 werkzeug
