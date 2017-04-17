@@ -35,7 +35,6 @@ def test_wsgi_environ():
         'HTTP_HOST': 'example.com',
         'HTTP_USER_AGENT': 'requests_client',
         'PATH_INFO': '/wsgi_environ/',
-        'QUERY_STRING': '',
         'REQUEST_METHOD': 'GET',
         'SCRIPT_NAME': '',
         'wsgi.input': None,
