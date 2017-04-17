@@ -63,7 +63,8 @@ class Path(str):
 class QueryString(str):
     @classmethod
     def build(cls, environ: WSGIEnviron):
-        return cls(environ['QUERY_STRING'])
+        query_string = environ.get('QUERY_STRING', '')
+        return cls(query_string)
 
 
 class URL(str):
