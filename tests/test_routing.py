@@ -3,6 +3,10 @@ from apistar.routing import URLPathArgs
 from apistar.test import TestClient
 
 
+class MaxLength(schema.String):
+    max_length = 10
+
+
 def found():
     return {
         'message': 'found'
@@ -21,15 +25,21 @@ def get_arg(var: int):
     }
 
 
-def get_query_param(query: float):
+def path_param_with_max_length(var: MaxLength):
     return {
-        'query': query
+        'var': var
     }
 
 
-def get_query_param_with_schema(query: schema.Number):
+def path_param_with_number(var: schema.Number):
     return {
-        'query': query
+        'var': var
+    }
+
+
+def path_param_with_integer(var: schema.Integer):
+    return {
+        'var': var
     }
 
 
@@ -37,8 +47,9 @@ app = App(routes=[
     Route('/found/', 'GET', found),
     Route('/args/{var}/', 'GET', get_args),
     Route('/arg/{var}/', 'GET', get_arg),
-    Route('/query_param/', 'GET', get_query_param),
-    Route('/query_param_with_schema/', 'GET', get_query_param_with_schema),
+    Route('/max_length/{var}/', 'GET', path_param_with_max_length),
+    Route('/number/{var}/', 'GET', path_param_with_number),
+    Route('/integer/{var}/', 'GET', path_param_with_integer),
 ])
 
 
@@ -75,15 +86,49 @@ def test_arg():
     }
 
 
-def test_query_param():
-    response = client.get('/query_param/?query=1')
+def test_valid_max_length():
+    response = client.get('/max_length/abcde/')
+    assert response.status_code == 200
     assert response.json() == {
-        'query': 1.0
+        'var': 'abcde'
     }
 
 
-def test_query_param_with_schema():
-    response = client.get('/query_param_with_schema/?query=1')
+def test_invalid_max_length():
+    response = client.get('/arg/abcdef/')
+    assert response.status_code == 404
     assert response.json() == {
-        'query': 1.0
+        'message': 'Not found'
+    }
+
+
+def test_valid_number():
+    response = client.get('/number/1.23/')
+    assert response.status_code == 200
+    assert response.json() == {
+        'var': 1.23
+    }
+
+
+def test_invalid_number():
+    response = client.get('/number/abc/')
+    assert response.status_code == 404
+    assert response.json() == {
+        'message': 'Not found'
+    }
+
+
+def test_valid_integer():
+    response = client.get('/integer/123/')
+    assert response.status_code == 200
+    assert response.json() == {
+        'var': 123
+    }
+
+
+def test_invalid_integer():
+    response = client.get('/integer/abc/')
+    assert response.status_code == 404
+    assert response.json() == {
+        'message': 'Not found'
     }

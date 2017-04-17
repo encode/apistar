@@ -40,7 +40,10 @@ class URLPathArg(object):
     def build(cls, args: URLPathArgs, arg_name: ArgName):
         value = args.get(arg_name)
         if cls.schema is not None and not isinstance(value, cls.schema):
-            value = cls.schema(value)
+            try:
+                value = cls.schema(value)
+            except exceptions.SchemaError:
+                raise exceptions.NotFound()
         return value
 
 
@@ -80,6 +83,12 @@ class Router(object):
                 param = view_signature.parameters[arg]
                 if param.annotation == inspect.Signature.empty:
                     annotated_type = str
+                elif issubclass(param.annotation, schema.String):
+                    annotated_type = str
+                elif issubclass(param.annotation, schema.Number):
+                    annotated_type = float
+                elif issubclass(param.annotation, schema.Integer):
+                    annotated_type = int
                 else:
                     annotated_type = param.annotation
                 converter = self.converters[annotated_type]

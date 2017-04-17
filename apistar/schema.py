@@ -15,6 +15,9 @@ from apistar.exceptions import SchemaError, ValidationError
 # TODO: smarter ordering
 # TODO: extra_properties=False by default
 # TODO: inf, -inf, nan
+# TODO: Overriding errors
+# TODO: Blank booleans as False?
+
 
 def validate(schema, value):
     try:
