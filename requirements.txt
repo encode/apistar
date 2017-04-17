@@ -10,3 +10,4 @@ pytest-cov
 requests
 ujson
 werkzeug
+typing
