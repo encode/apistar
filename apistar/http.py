@@ -113,9 +113,8 @@ class Header(str):
 class QueryParams(ImmutableMultiDict):
     @classmethod
     def build(cls, environ: WSGIEnviron):
-	if 'QUERY_STRING' not in environ:
-	    return cls(None)
-        return cls(url_decode(environ['QUERY_STRING']))
+        query_string = environ.get('QUERY_STRING', '')
+        return cls(url_decode(query_string))
 
 
 class QueryParam(str):
