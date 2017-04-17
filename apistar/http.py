@@ -9,6 +9,7 @@ from werkzeug.urls import url_decode
 
 import ujson as json
 from apistar.pipelines import ArgName
+from apistar.schema import validate
 
 
 class WSGIEnviron(ImmutableDict):
@@ -125,7 +126,7 @@ class QueryParam(str):
         if value is None or cls.schema is None:
             return value
         if not isinstance(value, cls.schema):
-            value = cls.schema(value)
+            value = validate(cls.schema, value)
         return value
 
 

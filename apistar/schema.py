@@ -1,7 +1,7 @@
 import re
 from typing import Any, Dict, List, Tuple, Union  # noqa
 
-from apistar.exceptions import SchemaError
+from apistar.exceptions import SchemaError, ValidationError
 
 
 # TODO: Validation errors
@@ -15,6 +15,12 @@ from apistar.exceptions import SchemaError
 # TODO: smarter ordering
 # TODO: extra_properties=False by default
 # TODO: inf, -inf, nan
+
+def validate(schema, value):
+    try:
+        return schema(value)
+    except SchemaError as exc:
+        raise ValidationError(message=str(exc))
 
 
 class String(str):
@@ -112,7 +118,7 @@ class _NumericType(object):
 
         if cls.multiple_of is not None:
             if isinstance(cls.multiple_of, float):
-                failed = not (float(value) / cls.multiple_of).is_integer()
+                failed = not (value * (1/cls.multiple_of)).is_integer()
             else:
                 failed = value % cls.multiple_of
             if failed:
