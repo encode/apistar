@@ -50,9 +50,11 @@ class WSGIAdapter(requests.adapters.HTTPAdapter):
             'wsgi.url_scheme': url_components.scheme,
             'SCRIPT_NAME': self.root_path,
             'PATH_INFO': url_components.path,
-            'QUERY_STRING': url_components.query,
             'wsgi.input': io.BytesIO(body)
         }
+
+        if url_components.query:
+            environ['QUERY_STRING'] = url_components.query
 
         if url_components.port:
             environ['SERVER_NAME'] = url_components.hostname
