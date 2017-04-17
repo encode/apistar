@@ -11,9 +11,7 @@ from apistar import app, exceptions, http, pipelines, schema, wsgi
 from apistar.pipelines import ArgName, Pipeline
 
 # TODO: Path
-# TODO: 404
 # TODO: Redirects
-# TODO: Caching
 
 
 primitive_types = (
