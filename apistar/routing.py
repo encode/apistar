@@ -11,9 +11,7 @@ from apistar import app, exceptions, http, pipelines, schema, wsgi
 from apistar.pipelines import ArgName, Pipeline
 
 # TODO: Path
-# TODO: 404
 # TODO: Redirects
-# TODO: Caching
 
 
 primitive_types = (
@@ -40,7 +38,10 @@ class URLPathArg(object):
     def build(cls, args: URLPathArgs, arg_name: ArgName):
         value = args.get(arg_name)
         if cls.schema is not None and not isinstance(value, cls.schema):
-            value = cls.schema(value)
+            try:
+                value = cls.schema(value)
+            except exceptions.SchemaError:
+                raise exceptions.NotFound()
         return value
 
 
@@ -48,13 +49,6 @@ RouterLookup = Tuple[Callable, Pipeline, URLPathArgs]
 
 
 class Router(object):
-    converters = {
-        str: 'string',
-        int: 'int',
-        float: 'float',
-        # path, any, uuid
-    }
-
     def __init__(self, routes: List[Route]) -> None:
         required_type = wsgi.WSGIResponse
         initial_types = [app.App, wsgi.WSGIEnviron, URLPathArgs, Exception]
@@ -79,10 +73,17 @@ class Router(object):
             for arg in uritemplate.variable_names:
                 param = view_signature.parameters[arg]
                 if param.annotation == inspect.Signature.empty:
-                    annotated_type = str
+                    converter = 'string'
+                elif issubclass(param.annotation, (schema.String, str)):
+                    converter = 'string'
+                elif issubclass(param.annotation, (schema.Number, float)):
+                    converter = 'float'
+                elif issubclass(param.annotation, (schema.Integer, int)):
+                    converter = 'int'
                 else:
-                    annotated_type = param.annotation
-                converter = self.converters[annotated_type]
+                    msg = 'Invalid type for path parameter, %s.' % param.annotation
+                    raise exceptions.ConfigurationError(msg)
+
                 werkzeug_path = werkzeug_path.replace(
                     '{%s}' % arg,
                     '<%s:%s>' % (converter, arg)

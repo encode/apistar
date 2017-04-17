@@ -25,6 +25,11 @@ class APIException(Exception):
         self.message = self.default_message if (message is None) else message
 
 
+class ValidationError(APIException):
+    default_status_code = 400
+    default_message = 'Invalid request'
+
+
 class NotFound(APIException):
     default_status_code = 404
     default_message = 'Not found'
