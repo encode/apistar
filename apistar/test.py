@@ -7,26 +7,6 @@ from click.testing import CliRunner
 from apistar.main import get_current_app
 
 
-class HeaderDict(requests.packages.urllib3._collections.HTTPHeaderDict):
-    def get_all(self, key, default):
-        return self.getheaders(key)
-
-
-class MockOriginalResponse(object):
-    """
-    A mock urllib3.Response object.
-    """
-    def __init__(self, headers):
-        self.msg = HeaderDict(headers)
-        self.closed = False
-
-    def isclosed(self):
-        return self.closed
-
-    def close(self):
-        self.closed = True
-
-
 class WSGIAdapter(requests.adapters.HTTPAdapter):
     """
     A transport adapter for `requests` that makes requests directly to a
@@ -83,7 +63,7 @@ class WSGIAdapter(requests.adapters.HTTPAdapter):
             raw_kwargs['headers'] = wsgi_headers
             raw_kwargs['version'] = 11
             raw_kwargs['preload_content'] = False
-            raw_kwargs['original_response'] = MockOriginalResponse(wsgi_headers)
+            raw_kwargs['original_response'] = None
 
         # Make the outgoing request via WSGI.
         environ = self.get_environ(request)
@@ -95,9 +75,6 @@ class WSGIAdapter(requests.adapters.HTTPAdapter):
 
         # Build the requests.Response
         return self.build_response(request, raw)
-
-    def close(self):
-        pass
 
 
 class _TestClient(requests.Session):
