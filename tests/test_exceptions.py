@@ -33,3 +33,10 @@ def test_handled_exception():
 def test_unhandled_exception():
     with pytest.raises(Exception):
         client.get('/unhandled_exception/')
+
+
+def test_unhandled_exception_as_500():
+    client = TestClient(app, raise_500_exc=False)
+    response = client.get('/unhandled_exception/')
+    assert response.status_code == 500
+    assert 'Traceback' in response.text

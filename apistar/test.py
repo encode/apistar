@@ -12,9 +12,10 @@ class WSGIAdapter(requests.adapters.HTTPAdapter):
     A transport adapter for `requests` that makes requests directly to a
     WSGI app, rather than making actual HTTP requests over the network.
     """
-    def __init__(self, wsgi_app, root_path=None):
+    def __init__(self, wsgi_app, root_path=None, raise_500_exc=True):
         self.wsgi_app = wsgi_app
         self.root_path = ('/' + root_path.strip('/')) if root_path else ''
+        self.raise_500_exc = raise_500_exc
 
     def get_environ(self, request):
         """
@@ -30,7 +31,8 @@ class WSGIAdapter(requests.adapters.HTTPAdapter):
             'wsgi.url_scheme': url_components.scheme,
             'SCRIPT_NAME': self.root_path,
             'PATH_INFO': url_components.path,
-            'wsgi.input': io.BytesIO(body)
+            'wsgi.input': io.BytesIO(body),
+            'APISTAR_RAISE_500_EXC': self.raise_500_exc
         }
 
         if url_components.query:
@@ -78,7 +80,7 @@ class WSGIAdapter(requests.adapters.HTTPAdapter):
 
 
 class _TestClient(requests.Session):
-    def __init__(self, wsgi_or_app=None, root_path=None):
+    def __init__(self, wsgi_or_app=None, root_path=None, raise_500_exc=True):
         super(_TestClient, self).__init__()
         if wsgi_or_app is None:
             wsgi_or_app = get_current_app()
@@ -90,7 +92,7 @@ class _TestClient(requests.Session):
             # Passed a WSGI callable.
             wsgi = wsgi_or_app
 
-        adapter = WSGIAdapter(wsgi, root_path=root_path)
+        adapter = WSGIAdapter(wsgi, root_path=root_path, raise_500_exc=raise_500_exc)
         self.mount('http://', adapter)
         self.mount('https://', adapter)
         self.headers.update({'User-Agent': 'requests_client'})

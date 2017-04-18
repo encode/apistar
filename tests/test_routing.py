@@ -164,7 +164,6 @@ def test_lookup_cache_expiry():
     Forcibly cycle the URL lookup cache, and ensure that
     we continue to generate correct lookups.
     """
-
     def get_path(var: int, path: http.Path):
         return {'path': path}
 

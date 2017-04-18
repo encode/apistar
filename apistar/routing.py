@@ -1,5 +1,4 @@
 import inspect
-import os
 import traceback
 from collections import namedtuple
 from typing import Any, Callable, Dict, List, Tuple  # noqa
@@ -137,11 +136,11 @@ class Router(object):
         return (view, pipeline, kwargs)
 
 
-def exception_handler(exc: Exception) -> http.Response:
+def exception_handler(environ: wsgi.WSGIEnviron, exc: Exception) -> http.Response:
     if isinstance(exc, exceptions.APIException):
         return http.Response({'message': exc.message}, exc.status_code)
 
-    if is_running_from_reloader() or os.environ['APISTAR_TEST'] == 'true':
+    if is_running_from_reloader() or environ.get('APISTAR_RAISE_500_EXC'):
         raise
 
     message = traceback.format_exc()
