@@ -13,6 +13,17 @@ app = app.App(routes=[
 client = test.TestClient(app)
 
 
+def test_boolean():
+    assert schema.Boolean(1) is True
+    assert schema.Boolean(0) is False
+    assert schema.Boolean('1') is True
+    assert schema.Boolean('0') is False
+    assert schema.Boolean(True) is True
+    assert schema.Boolean(False) is False
+    assert schema.Boolean('TRUE') is True
+    assert schema.Boolean('FALSE') is False
+
+
 def test_valid_boolean():
     response = client.get('/boolean/?value=true')
     assert response.status_code == 200
