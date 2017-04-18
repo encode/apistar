@@ -41,11 +41,7 @@ class String(str):
     trim_whitespace = True
 
     def __new__(cls, *args, **kwargs):
-        if kwargs:
-            assert not args
-            return type(cls.__name__, (cls,), kwargs)
-
-        assert len(args) == 1
+        assert len(args) == 1 and not kwargs
         value = str.__new__(cls, *args)
 
         if cls.trim_whitespace:
@@ -89,11 +85,7 @@ class _NumericType(object):
     multiple_of = None  # type: Union[float, int]
 
     def __new__(cls, *args, **kwargs):
-        if kwargs:
-            assert not args
-            return type(cls.__name__, (cls,), kwargs)
-
-        assert len(args) == 1
+        assert len(args) == 1 and not kwargs
         value = args[0]
         try:
             value = cls._numeric_type.__new__(cls, value)
@@ -141,11 +133,7 @@ class Boolean(object):
     }
 
     def __new__(self, *args, **kwargs):
-        if kwargs:
-            assert not args
-            return type(self.__name__, (self,), kwargs)
-
-        assert len(args) == 1
+        assert len(args) == 1 and not kwargs
         value = args[0]
 
         if isinstance(value, str):
