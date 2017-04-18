@@ -1,6 +1,7 @@
 import pytest
 
-from apistar import App, Route, exceptions, schema
+from apistar import App, Route, exceptions, http, schema
+from apistar.app import get_wsgi_server
 from apistar.routing import URLPathArgs
 from apistar.test import TestClient
 
@@ -156,3 +157,24 @@ def test_misconfigured_route():
 
     with pytest.raises(exceptions.ConfigurationError):
         App(routes=[Route('/{var}/', 'GET', set_type)])
+
+
+def test_lookup_cache_expiry():
+    """
+    Forcibly cycle the URL lookup cache, and ensure that
+    we continue to generate correct lookups.
+    """
+
+    def get_path(var: int, path: http.Path):
+        return {'path': path}
+
+    app = App(routes=[
+        Route('/{var}/', 'GET', get_path)
+    ])
+
+    wsgi = get_wsgi_server(app, lookup_cache_size=3)
+    client = TestClient(wsgi)
+    for index in range(10):
+        response = client.get('/%d/' % index)
+        assert response.status_code == 200
+        assert response.json() == {'path': '/%d/' % index}

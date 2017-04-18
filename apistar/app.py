@@ -24,10 +24,9 @@ class App(object):
         self.click = get_click_client(app=self)
 
 
-def get_wsgi_server(app):
+def get_wsgi_server(app, lookup_cache_size=10000):
     lookup = app.router.lookup
     lookup_cache = OrderedDict()  # FIFO Cache for URL lookups.
-    max_cache = 10000
 
     # Pre-fill the lookup cache for URLs without path arguments.
     for path, method, view in app.router.routes:
@@ -54,7 +53,7 @@ def get_wsgi_server(app):
                 (state['view'], pipeline, state['url_path_args']) = lookup_cache[lookup_key]
             except KeyError:
                 (state['view'], pipeline, state['url_path_args']) = lookup_cache[lookup_key] = lookup(path, method)
-                if len(lookup_cache) > max_cache:
+                if len(lookup_cache) > lookup_cache_size:
                     lookup_cache.pop(next(iter(lookup_cache)))
 
             for function, inputs, output, extra_kwargs in pipeline:
