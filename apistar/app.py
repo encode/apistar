@@ -66,10 +66,7 @@ def get_wsgi_server(app):
                     kwargs.update(extra_kwargs)
 
                 # Call the function for each step in the pipeline.
-                if output is None:
-                    function(**kwargs)
-                else:
-                    state[output] = function(**kwargs)
+                state[output] = function(**kwargs)
         except Exception as exc:
             state['exception'] = exc
             pipelines.run_pipeline(app.router.exception_pipeline, state)
