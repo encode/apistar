@@ -7,6 +7,7 @@ import pytest
 from werkzeug.serving import is_running_from_reloader, run_simple
 
 import apistar
+from apistar import schema
 from apistar.exceptions import ConfigurationError
 
 ROOT_DIR = os.path.dirname(apistar.__file__)
@@ -14,12 +15,25 @@ LAYOUTS_DIR = os.path.join(ROOT_DIR, 'layouts')
 LAYOUT_CHOICES = os.listdir(LAYOUTS_DIR)
 
 
-@click.command(help='Create a new project in TARGET_DIR.')
-@click.argument('target_dir', default='')
-@click.option('-l', '--layout', type=click.Choice(LAYOUT_CHOICES), default='standard',
-              help='Select the project layout to use.')
-@click.option('-f', '--force', is_flag=True, help='Overwrite any existing project files.')
-def new(target_dir, layout, force):
+class TargetDir(schema.String):
+    pass
+
+
+class Layout(schema.String):
+    description = 'Select the project layout to use.'
+    default = 'standard'
+    choices = LAYOUT_CHOICES
+
+
+class Force(schema.Boolean):
+    description = 'Overwrite any existing project files.'
+    default = False
+
+
+def new(target_dir: TargetDir, layout: Layout, force: Force):
+    """
+    Create a new project in TARGET_DIR.
+    """
     source_dir = os.path.join(LAYOUTS_DIR, layout)
 
     copy_paths = []
@@ -35,16 +49,26 @@ def new(target_dir, layout, force):
 
     for source_path, target_path in copy_paths:
         click.echo(target_path)
-        target_dir = os.path.dirname(target_path)
-        if target_dir:
-            os.makedirs(target_dir, exist_ok=True)
+        parent = os.path.dirname(target_path)
+        if parent:
+            os.makedirs(parent, exist_ok=True)
         shutil.copy(source_path, target_path)
 
 
-@click.command(help='Run the current app.')
-@click.option('--host', '-h', default='localhost', type=str, help='The host of the webserver.')
-@click.option('--port', '-p', default=8080, type=int, help='The port of the webserver.')
-def run(host, port):  # pragma: nocover
+class Host(schema.String):
+    description = 'The host of the webserver.'
+    default = 'localhost'
+
+
+class Port(schema.Integer):
+    description = 'The port of the webserver.'
+    default = 8080
+
+
+def run(host: Host, port: Port):  # pragma: nocover
+    """
+    Run the current app.
+    """
     from apistar.main import get_current_app
     app = get_current_app()
 
@@ -56,19 +80,18 @@ def run(host, port):  # pragma: nocover
         pass
 
 
-@click.command(help='Run the test suite.')
-@click.argument('file_or_dir', nargs=-1)
-def test(file_or_dir):
+def test():
+    """
+    Run the test suite.
+    """
+    file_or_dir = []
+    if os.path.exists('tests'):
+        file_or_dir.append('tests')
+    if os.path.exists('tests.py'):
+        file_or_dir.append('tests.py')
     if not file_or_dir:
-        file_or_dir = []
-        if os.path.exists('tests'):
-            file_or_dir.append('tests')
-        if os.path.exists('tests.py'):
-            file_or_dir.append('tests.py')
-        if not file_or_dir:
-            raise ConfigurationError("No 'tests/' directory or 'tests.py' module.")
+        raise ConfigurationError("No 'tests/' directory or 'tests.py' module.")
 
-    os.environ['APISTAR_TEST'] = 'true'
     exitcode = pytest.main(list(file_or_dir))
     if exitcode:
         sys.exit(exitcode)

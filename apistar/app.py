@@ -1,8 +1,9 @@
+import inspect
 from collections import OrderedDict
 
 import click
 
-from apistar import commands, pipelines, routing
+from apistar import commands, pipelines, routing, schema
 
 
 class App(object):
@@ -92,6 +93,41 @@ def get_click_client(app):
             click.echo(ctx.get_help())
 
     for command in app.commands:
+
+        command_signature = inspect.signature(command)
+        for param in reversed(command_signature.parameters.values()):
+            name = param.name.replace('_', '-')
+            annotation = param.annotation
+            kwargs = {}
+            if hasattr(annotation, 'default'):
+                kwargs['default'] = annotation.default
+            if hasattr(annotation, 'description'):
+                kwargs['help'] = annotation.description
+
+            if issubclass(annotation, (bool, schema.Boolean)):
+                kwargs['is_flag'] = True
+                kwargs['default'] = False
+            elif hasattr(annotation, 'choices'):
+                kwargs['type'] = click.Choice(annotation.choices)
+            elif hasattr(annotation, 'native_type'):
+                kwargs['type'] = annotation.native_type
+            elif inspect.Signature.empty:
+                kwargs['type'] = str
+            else:
+                kwargs['type'] = annotation
+
+            if 'default' in kwargs:
+                name = '--%s' % param.name.replace('_', '-')
+                option = click.option(name, **kwargs)
+                command = option(command)
+            else:
+                kwargs.pop('help', None)
+                argument = click.argument(param.name, **kwargs)
+                command = argument(command)
+
+        cmd_wrapper = click.command(help=command.__doc__)
+        command = cmd_wrapper(command)
+
         client.add_command(command)
 
     return client

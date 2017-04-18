@@ -27,6 +27,7 @@ def validate(schema, value):
 
 
 class String(str):
+    native_type = str
     errors = {
         'blank': 'Must not be blank.',
         'max_length': 'Must have no more than {max_length} characters.',
@@ -69,7 +70,7 @@ class _NumericType(object):
     """
     Base class for both `Number` and `Integer`.
     """
-    _numeric_type = None  # type: type
+    native_type = None  # type: type
     errors = {
         'type': 'Must be a valid number.',
         'minimum': 'Must be greater than or equal to {minimum}.',
@@ -88,7 +89,7 @@ class _NumericType(object):
         assert len(args) == 1 and not kwargs
         value = args[0]
         try:
-            value = cls._numeric_type.__new__(cls, value)
+            value = cls.native_type.__new__(cls, value)
         except (TypeError, ValueError):
             raise SchemaError(cls, 'type')
 
@@ -120,14 +121,15 @@ class _NumericType(object):
 
 
 class Number(_NumericType, float):
-    _numeric_type = float
+    native_type = float
 
 
 class Integer(_NumericType, int):
-    _numeric_type = int
+    native_type = int
 
 
 class Boolean(object):
+    native_type = bool
     errors = {
         'type': 'Must be a valid boolean.'
     }
