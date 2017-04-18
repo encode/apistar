@@ -27,7 +27,7 @@ def test_version_flag():
 
 def test_new():
     with runner.isolated_filesystem():
-        runner.invoke(['new', 'myproject', '--template', 'minimal'])
+        runner.invoke(['new', 'myproject', '--layout', 'minimal'])
         assert os.path.exists('myproject')
         assert os.path.exists(os.path.join('myproject', 'app.py'))
         assert os.path.exists(os.path.join('myproject', 'tests.py'))
@@ -35,15 +35,15 @@ def test_new():
 
 def test_do_not_overwrite_existing_project():
     with runner.isolated_filesystem():
-        result = runner.invoke(['new', 'myproject', '--template', 'minimal'])
+        result = runner.invoke(['new', 'myproject', '--layout', 'minimal'])
         assert result.exit_code == 0
-        result = runner.invoke(['new', 'myproject', '--template', 'minimal'])
+        result = runner.invoke(['new', 'myproject', '--layout', 'minimal'])
         assert result.exit_code != 0
 
 
 def test_testsuite_minimal():
     with runner.isolated_filesystem():
-        runner.invoke(['new', 'myproject', '--template', 'minimal'])
+        runner.invoke(['new', 'myproject', '--layout', 'minimal'])
         os.chdir('myproject')
         setup_pythonpath()
         result = runner.invoke(['test'])
@@ -71,7 +71,7 @@ def test_testsuite_standard():
 
 def test_testsuite_missing_tests_module():
     with runner.isolated_filesystem():
-        runner.invoke(['new', 'myproject', '--template', 'minimal'])
+        runner.invoke(['new', 'myproject', '--layout', 'minimal'])
         os.chdir('myproject')
         setup_pythonpath()
         os.remove('tests.py')
@@ -82,7 +82,7 @@ def test_testsuite_missing_tests_module():
 
 def test_missing_app_module():
     with runner.isolated_filesystem():
-        runner.invoke(['new', 'myproject', '--template', 'minimal'])
+        runner.invoke(['new', 'myproject', '--layout', 'minimal'])
         os.chdir('myproject')
         setup_pythonpath()
         os.remove('app.py')
@@ -93,7 +93,7 @@ def test_missing_app_module():
 
 def test_misconfigured_app_module():
     with runner.isolated_filesystem():
-        runner.invoke(['new', 'myproject', '--template', 'minimal'])
+        runner.invoke(['new', 'myproject', '--layout', 'minimal'])
         os.chdir('myproject')
         setup_pythonpath()
         with open('app.py', 'w') as app_module:

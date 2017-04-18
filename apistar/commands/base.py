@@ -10,17 +10,17 @@ import apistar
 from apistar.exceptions import ConfigurationError
 
 ROOT_DIR = os.path.dirname(apistar.__file__)
-PROJECT_TEMPLATES_DIR = os.path.join(ROOT_DIR, 'project_templates')
-PROJECT_TEMPLATE_CHOICES = os.listdir(PROJECT_TEMPLATES_DIR)
+LAYOUTS_DIR = os.path.join(ROOT_DIR, 'layouts')
+LAYOUT_CHOICES = os.listdir(LAYOUTS_DIR)
 
 
 @click.command(help='Create a new project in TARGET_DIR.')
 @click.argument('target_dir', default='')
-@click.option('--template', type=click.Choice(PROJECT_TEMPLATE_CHOICES), default='standard',
-              help='Select the project template to use.')
+@click.option('-l', '--layout', type=click.Choice(LAYOUT_CHOICES), default='standard',
+              help='Select the project layout to use.')
 @click.option('-f', '--force', is_flag=True, help='Overwrite any existing project files.')
-def new(target_dir, template, force):
-    source_dir = os.path.join(PROJECT_TEMPLATES_DIR, template)
+def new(target_dir, layout, force):
+    source_dir = os.path.join(LAYOUTS_DIR, layout)
 
     copy_paths = []
     for dir_path, dirs, filenames in os.walk(source_dir):

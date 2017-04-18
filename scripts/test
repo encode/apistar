@@ -7,4 +7,4 @@ fi
 
 set -x
 
-PYTHONPATH=. ${PREFIX}py.test --ignore venv --ignore apistar/project_templates --cov=apistar --cov=tests --cov-fail-under=100 --no-cov-on-fail --cov-report=term-missing ${@}
+PYTHONPATH=. ${PREFIX}py.test --ignore venv --ignore apistar/layouts --cov=apistar --cov=tests --cov-fail-under=100 --no-cov-on-fail --cov-report=term-missing ${@}
