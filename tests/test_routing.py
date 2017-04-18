@@ -1,4 +1,6 @@
-from apistar import App, Route, schema
+import pytest
+
+from apistar import App, Route, exceptions, schema
 from apistar.routing import URLPathArgs
 from apistar.test import TestClient
 
@@ -146,3 +148,11 @@ def test_invalid_integer():
     assert response.json() == {
         'message': 'Not found'
     }
+
+
+def test_misconfigured_route():
+    def set_type(var: set):
+        pass
+
+    with pytest.raises(exceptions.ConfigurationError):
+        App(routes=[Route('/{var}/', 'GET', set_type)])
