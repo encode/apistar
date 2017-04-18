@@ -1,6 +1,6 @@
 import os
 
-from apistar import __version__
+from apistar import __version__, exceptions
 from apistar.app import App
 from apistar.main import setup_pythonpath
 from apistar.test import CommandLineRunner
@@ -33,6 +33,14 @@ def test_new():
         assert os.path.exists(os.path.join('myproject', 'tests.py'))
 
 
+def test_do_not_overwrite_existing_project():
+    with runner.isolated_filesystem():
+        result = runner.invoke(['new', 'myproject', '--template', 'minimal'])
+        assert result.exit_code == 0
+        result = runner.invoke(['new', 'myproject', '--template', 'minimal'])
+        assert result.exit_code != 0
+
+
 def test_testsuite_minimal():
     with runner.isolated_filesystem():
         runner.invoke(['new', 'myproject', '--template', 'minimal'])
@@ -51,3 +59,22 @@ def test_testsuite_standard():
         result = runner.invoke(['test'])
         assert '2 passed' in result.output
         assert result.exit_code == 0
+
+        # Add a failing test case.
+        failing_test_module = os.path.join('tests', 'test_failure.py')
+        with open(failing_test_module, 'w') as test_module:
+            test_module.write('def test_failure():\n    raise Exception()\n')
+        result = runner.invoke(['test'])
+        assert '1 failed, 2 passed' in result.output
+        assert result.exit_code != 0
+
+
+def test_testsuite_missing_tests_module():
+    with runner.isolated_filesystem():
+        runner.invoke(['new', 'myproject', '--template', 'minimal'])
+        os.chdir('myproject')
+        setup_pythonpath()
+        os.remove('tests.py')
+        result = runner.invoke(['test'])
+        assert isinstance(result.exception, exceptions.ConfigurationError)
+        assert result.exit_code != 0
