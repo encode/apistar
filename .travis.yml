@@ -13,5 +13,5 @@ script:
     - scripts/lint
     - scripts/test
 
-after_success:
+after_script:
     - codecov

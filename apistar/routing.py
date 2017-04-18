@@ -72,7 +72,7 @@ class Router(object):
             werkzeug_path = path[:]
             for arg in uritemplate.variable_names:
                 param = view_signature.parameters[arg]
-                if param.annotation == inspect.Signature.empty:
+                if param.annotation is inspect.Signature.empty:
                     converter = 'string'
                 elif issubclass(param.annotation, (schema.String, str)):
                     converter = 'string'
