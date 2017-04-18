@@ -44,7 +44,7 @@ def new(target_dir, template, force):
 @click.command(help='Run the current app.')
 @click.option('--host', '-h', default='localhost', type=str, help='The host of the webserver.')
 @click.option('--port', '-p', default=8080, type=int, help='The port of the webserver.')
-def run(host, port):
+def run(host, port):  # pragma: nocover
     from apistar.main import get_current_app
     app = get_current_app()
 
