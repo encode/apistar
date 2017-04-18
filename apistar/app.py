@@ -111,7 +111,7 @@ def get_click_client(app):
                 kwargs['type'] = click.Choice(annotation.choices)
             elif hasattr(annotation, 'native_type'):
                 kwargs['type'] = annotation.native_type
-            elif inspect.Signature.empty:
+            elif annotation is inspect.Signature.empty:
                 kwargs['type'] = str
             else:
                 kwargs['type'] = annotation

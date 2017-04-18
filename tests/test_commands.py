@@ -1,3 +1,4 @@
+import click
 import os
 
 from apistar import __version__, exceptions
@@ -22,6 +23,36 @@ def test_help_flag():
 def test_version_flag():
     result = runner.invoke(['--version'])
     assert __version__ in result.output
+    assert result.exit_code == 0
+
+
+def test_custom_command():
+    def custom(var):
+        click.echo(var)
+
+    app = App(commands=[custom])
+    runner = CommandLineRunner(app)
+
+    result = runner.invoke([])
+    assert 'custom' in result.output
+
+    result = runner.invoke(['custom', '123'])
+    assert result.output == '123\n'
+    assert result.exit_code == 0
+
+
+def test_custom_command_with_int_arguments():
+    def add(a: int, b: int):
+        click.echo(a + b)
+
+    app = App(commands=[add])
+    runner = CommandLineRunner(app)
+
+    result = runner.invoke([])
+    assert 'add' in result.output
+
+    result = runner.invoke(['add', '1', '2'])
+    assert result.output == '3\n'
     assert result.exit_code == 0
 
 
