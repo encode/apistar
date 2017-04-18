@@ -101,6 +101,11 @@ class Body(bytes):
 
 
 class Headers(ImmutableHeadersMixin, WerkzeugHeaders):
+    def __init__(self, *args, **kwargs):
+        if len(args) == 1 and isinstance(args[0], dict):
+            args = [list(args[0].items())]
+        super().__init__(*args, **kwargs)
+
     @classmethod
     def build(cls, environ: WSGIEnviron):
         return cls(EnvironHeaders(environ))
@@ -146,8 +151,6 @@ class Request(object):
     __slots__ = ('method', 'url', 'headers')
 
     def __init__(self, method: str, url: str, headers: HeadersType=None) -> None:
-        if isinstance(headers, dict):
-            headers = list(headers.items())
         self.method = method
         self.url = url
         self.headers = Headers(headers)

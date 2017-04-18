@@ -252,7 +252,7 @@ def list_headers() -> http.Response:
 
 def object_headers() -> http.Response:
     data = {'hello': 'world'}
-    headers = http.Headers([('Content-Language', 'de')])
+    headers = http.Headers({'Content-Language': 'de'})
     return http.Response(data, headers=headers)
 
 
