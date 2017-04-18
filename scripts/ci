@@ -1,9 +1,4 @@
 #!/bin/sh -e
 
-export XML_REPORT=""
-if [[ "$TRAVIS" == "true" ]] ; then
-    export XML_REPORT="--cov-report=xml"
-fi
-
 scripts/lint
-scripts/test ${XML_REPORT}
+scripts/test
