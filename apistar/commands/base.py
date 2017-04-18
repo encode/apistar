@@ -1,10 +1,10 @@
 import os
 import shutil
 import sys
-from wsgiref.simple_server import make_server
 
 import click
 import pytest
+from werkzeug.serving import is_running_from_reloader, run_simple
 
 import apistar
 from apistar.exceptions import ConfigurationError
@@ -49,8 +49,9 @@ def run(host, port):
     app = get_current_app()
 
     try:
-        click.echo('Running at http://{host}:{port}/'.format(host=host, port=port))
-        make_server(host, port, app.wsgi).serve_forever()
+        if not is_running_from_reloader():
+            click.echo('Starting up...')
+        run_simple(host, port, app.wsgi, use_reloader=True, use_debugger=True, extra_files=['app.py'])
     except KeyboardInterrupt:
         pass
 
@@ -67,6 +68,7 @@ def test(file_or_dir):
         if not file_or_dir:
             raise ConfigurationError("No 'tests/' directory or 'tests.py' module.")
 
+    os.environ['APISTAR_TEST'] = 'true'
     exitcode = pytest.main(list(file_or_dir))
     if exitcode:
         sys.exit(exitcode)

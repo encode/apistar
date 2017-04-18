@@ -1,3 +1,5 @@
+import pytest
+
 from apistar import App, Route
 from apistar.exceptions import APIException
 from apistar.test import TestClient
@@ -29,7 +31,5 @@ def test_handled_exception():
 
 
 def test_unhandled_exception():
-    response = client.get('/unhandled_exception/')
-    assert response.status_code == 500
-    assert response.headers['Content-Type'] == 'text/plain; charset=utf-8'
-    assert 'Traceback' in response.text
+    with pytest.raises(Exception):
+        client.get('/unhandled_exception/')

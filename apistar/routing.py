@@ -1,4 +1,5 @@
 import inspect
+import os
 import traceback
 from collections import namedtuple
 from typing import Any, Callable, Dict, List, Tuple  # noqa
@@ -6,6 +7,7 @@ from typing import Any, Callable, Dict, List, Tuple  # noqa
 import werkzeug
 from uritemplate import URITemplate
 from werkzeug.routing import Map, Rule
+from werkzeug.serving import is_running_from_reloader
 
 from apistar import app, exceptions, http, pipelines, schema, wsgi
 from apistar.pipelines import ArgName, Pipeline
@@ -138,5 +140,9 @@ class Router(object):
 def exception_handler(exc: Exception) -> http.Response:
     if isinstance(exc, exceptions.APIException):
         return http.Response({'message': exc.message}, exc.status_code)
+
+    if is_running_from_reloader() or os.environ['APISTAR_TEST'] == 'true':
+        raise
+
     message = traceback.format_exc()
     return http.Response(message, 500, {'Content-Type': 'text/plain; charset=utf-8'})
