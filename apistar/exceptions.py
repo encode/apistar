@@ -6,10 +6,6 @@ class SchemaError(Exception):
         super().__init__(msg)
 
 
-class NoCurrentApp(Exception):
-    pass
-
-
 class ConfigurationError(Exception):
     pass
 

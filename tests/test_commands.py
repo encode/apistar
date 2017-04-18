@@ -78,3 +78,26 @@ def test_testsuite_missing_tests_module():
         result = runner.invoke(['test'])
         assert isinstance(result.exception, exceptions.ConfigurationError)
         assert result.exit_code != 0
+
+
+def test_missing_app_module():
+    with runner.isolated_filesystem():
+        runner.invoke(['new', 'myproject', '--template', 'minimal'])
+        os.chdir('myproject')
+        setup_pythonpath()
+        os.remove('app.py')
+        result = runner.invoke(['run'])
+        assert isinstance(result.exception, exceptions.ConfigurationError)
+        assert result.exit_code != 0
+
+
+def test_misconfigured_app_module():
+    with runner.isolated_filesystem():
+        runner.invoke(['new', 'myproject', '--template', 'minimal'])
+        os.chdir('myproject')
+        setup_pythonpath()
+        with open('app.py', 'w') as app_module:
+            app_module.write('123\n')
+        result = runner.invoke(['run'])
+        assert isinstance(result.exception, exceptions.ConfigurationError)
+        assert result.exit_code != 0
