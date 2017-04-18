@@ -6,14 +6,11 @@ if [ -d 'venv' ] ; then
 fi
 
 export COVERAGE_FLAGS=""
-if [ "$TRAVIS" = "true" ] ; then
-    # On travis we always upload the coverage report, and allow
-    export COVERAGE_FLAGS="--cov-report=xml"
-else
-    # Locally we enforce 100% coverage if all tests are passing.
-    export COVERAGE_FLAGS="--cov-fail-under=100 --no-cov-on-fail"
+if [ "$TRAVIS" != "true" ] ; then
+    # Locally only display the coverage report once all tests are passing.
+    export COVERAGE_FLAGS="--no-cov-on-fail"
 fi
 
 set -x
 
-PYTHONPATH=. ${PREFIX}pytest --ignore venv --ignore apistar/layouts --cov=apistar --cov=tests --cov-report=term-missing ${COVERAGE_FLAGS} ${@}
+PYTHONPATH=. ${PREFIX}pytest --ignore venv --ignore apistar/layouts --cov=apistar --cov=tests --cov-fail-under=100 --cov-report=term-missing ${COVERAGE_FLAGS} ${@}
