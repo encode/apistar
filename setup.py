@@ -63,7 +63,7 @@ setup(
         'pytest',
         'requests',
         'ujson',
-        'werkzeug
+        'werkzeug'
     ],
     classifiers=[
         'Development Status :: 3 - Alpha',
