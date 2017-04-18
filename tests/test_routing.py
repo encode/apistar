@@ -12,7 +12,7 @@ class MaxLength(schema.String):
 
 def found():
     return {
-        'message': 'found'
+        'message': 'Found'
     }
 
 
@@ -64,6 +64,14 @@ app = App(routes=[
 
 
 client = TestClient(app)
+
+
+def test_200():
+    response = client.get('/found/')
+    assert response.status_code == 200
+    assert response.json() == {
+        'message': 'Found'
+    }
 
 
 def test_404():
