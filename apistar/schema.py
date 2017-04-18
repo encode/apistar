@@ -68,9 +68,6 @@ class String(str):
 
         return value
 
-    def native(self):
-        pass  # TODO
-
 
 class _NumericType(object):
     """
