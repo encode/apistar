@@ -7,7 +7,6 @@ import click
 import apistar
 from apistar import schema
 
-
 APISTAR_PACKAGE_DIR = os.path.dirname(apistar.__file__)
 LAYOUTS_DIR = os.path.join(APISTAR_PACKAGE_DIR, 'layouts')
 LAYOUT_CHOICES = os.listdir(LAYOUTS_DIR)

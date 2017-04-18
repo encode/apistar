@@ -1,5 +1,6 @@
-import click
 import os
+
+import click
 
 from apistar import __version__, exceptions
 from apistar.app import App
@@ -43,7 +44,7 @@ def test_custom_command():
 
 def test_custom_command_with_int_arguments():
     def add(a: int, b: int):
-        click.echo(a + b)
+        click.echo(str(a + b))
 
     app = App(commands=[add])
     runner = CommandLineRunner(app)
