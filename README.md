@@ -316,7 +316,7 @@ and create a Python virtualenv with the project requirements installed:
     $ cd apistar
     $ ./scripts/setup
 
-To run the tests and code linting:
+To run the continuous integration tests and code linting:
 
     $ ./scripts/test
     $ ./scripts/lint

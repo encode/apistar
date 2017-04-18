@@ -6,4 +6,4 @@ if [[ "$TRAVIS" == "true" ]] ; then
 fi
 
 scripts/lint
-scripts/test --cov=apistar --cov=tests --cov-fail-under=100 --cov-report=term-missing ${XML_REPORT}
+scripts/test ${XML_REPORT}
