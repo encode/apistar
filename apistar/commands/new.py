@@ -3,15 +3,13 @@ import shutil
 import sys
 
 import click
-import pytest
-from werkzeug.serving import is_running_from_reloader, run_simple
 
 import apistar
 from apistar import schema
-from apistar.exceptions import ConfigurationError
 
-ROOT_DIR = os.path.dirname(apistar.__file__)
-LAYOUTS_DIR = os.path.join(ROOT_DIR, 'layouts')
+
+APISTAR_PACKAGE_DIR = os.path.dirname(apistar.__file__)
+LAYOUTS_DIR = os.path.join(APISTAR_PACKAGE_DIR, 'layouts')
 LAYOUT_CHOICES = os.listdir(LAYOUTS_DIR)
 
 
@@ -53,45 +51,3 @@ def new(target_dir: TargetDir, layout: Layout, force: Force):
         if parent:
             os.makedirs(parent, exist_ok=True)
         shutil.copy(source_path, target_path)
-
-
-class Host(schema.String):
-    description = 'The host of the webserver.'
-    default = 'localhost'
-
-
-class Port(schema.Integer):
-    description = 'The port of the webserver.'
-    default = 8080
-
-
-def run(host: Host, port: Port):  # pragma: nocover
-    """
-    Run the current app.
-    """
-    from apistar.main import get_current_app
-    app = get_current_app()
-
-    try:
-        if not is_running_from_reloader():
-            click.echo('Starting up...')
-        run_simple(host, port, app.wsgi, use_reloader=True, use_debugger=True, extra_files=['app.py'])
-    except KeyboardInterrupt:
-        pass
-
-
-def test():
-    """
-    Run the test suite.
-    """
-    file_or_dir = []
-    if os.path.exists('tests'):
-        file_or_dir.append('tests')
-    if os.path.exists('tests.py'):
-        file_or_dir.append('tests.py')
-    if not file_or_dir:
-        raise ConfigurationError("No 'tests/' directory or 'tests.py' module.")
-
-    exitcode = pytest.main(list(file_or_dir))
-    if exitcode:
-        sys.exit(exitcode)
