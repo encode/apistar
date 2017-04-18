@@ -20,8 +20,7 @@ primitive_types = (
 )
 
 schema_types = (
-    schema.String, schema.Integer, schema.Number,
-    schema.Boolean, schema.Object
+    schema.String, schema.Integer, schema.Number, schema.Boolean
 )
 
 Route = namedtuple('Route', ['path', 'method', 'view'])
