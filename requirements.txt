@@ -1,13 +1,18 @@
+# Core requirements
 click
-codecov
 coreapi
-flake8
-isort
 jinja2
-mypy
 pytest
-pytest-cov
 requests
 SQLAlchemy
 ujson
 werkzeug
+
+# Testing requirements
+codecov
+flake8
+isort
+mypy
+psycopg2
+pytest-cov
+SQLAlchemy

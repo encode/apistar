@@ -5,6 +5,13 @@ if [ -d 'venv' ] ; then
     export PREFIX="venv/bin/"
 fi
 
+export EXTRA_COVERAGE_FLAGS=""
+if [ "$TRAVIS" != "true" ] ; then
+    # If we're on travis we'll allow codecov to handle coverage pass/fail.
+    # Locally we enforce 100% coverage, once all tests are passing.
+    export EXTRA_COVERAGE_FLAGS="--cov-fail-under=100 --no-cov-on-fail"
+fi
+
 set -x
 
-PYTHONPATH=. ${PREFIX}py.test --ignore venv --ignore apistar/project_templates ${@}
+PYTHONPATH=. ${PREFIX}pytest --ignore venv --ignore apistar/layouts --cov=apistar --cov=tests --cov-report=term-missing ${EXTRA_COVERAGE_FLAGS} ${@}

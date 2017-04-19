@@ -6,15 +6,14 @@ from typing import Any, Callable, Dict, List, Tuple  # noqa
 import werkzeug
 from uritemplate import URITemplate
 from werkzeug.routing import Map, Rule
+from werkzeug.serving import is_running_from_reloader
 
 from apistar import app, exceptions, http, pipelines, schema, wsgi
 from apistar.db import DBBackend
 from apistar.pipelines import ArgName, Pipeline
 
 # TODO: Path
-# TODO: 404
 # TODO: Redirects
-# TODO: Caching
 
 
 primitive_types = (
@@ -22,8 +21,7 @@ primitive_types = (
 )
 
 schema_types = (
-    schema.String, schema.Integer, schema.Number,
-    schema.Boolean, schema.Object
+    schema.String, schema.Integer, schema.Number, schema.Boolean
 )
 
 Route = namedtuple('Route', ['path', 'method', 'view'])
@@ -41,7 +39,10 @@ class URLPathArg(object):
     def build(cls, args: URLPathArgs, arg_name: ArgName):
         value = args.get(arg_name)
         if cls.schema is not None and not isinstance(value, cls.schema):
-            value = cls.schema(value)
+            try:
+                value = cls.schema(value)
+            except exceptions.SchemaError:
+                raise exceptions.NotFound()
         return value
 
 
@@ -49,13 +50,6 @@ RouterLookup = Tuple[Callable, Pipeline, URLPathArgs]
 
 
 class Router(object):
-    converters = {
-        str: 'string',
-        int: 'int',
-        float: 'float',
-        # path, any, uuid
-    }
-
     def __init__(self, routes: List[Route]) -> None:
         required_type = wsgi.WSGIResponse
         initial_types = [DBBackend, app.App, wsgi.WSGIEnviron, URLPathArgs, Exception]
@@ -79,11 +73,18 @@ class Router(object):
             werkzeug_path = path[:]
             for arg in uritemplate.variable_names:
                 param = view_signature.parameters[arg]
-                if param.annotation == inspect.Signature.empty:
-                    annotated_type = str
+                if param.annotation is inspect.Signature.empty:
+                    converter = 'string'
+                elif issubclass(param.annotation, (schema.String, str)):
+                    converter = 'string'
+                elif issubclass(param.annotation, (schema.Number, float)):
+                    converter = 'float'
+                elif issubclass(param.annotation, (schema.Integer, int)):
+                    converter = 'int'
                 else:
-                    annotated_type = param.annotation
-                converter = self.converters[annotated_type]
+                    msg = 'Invalid type for path parameter, %s.' % param.annotation
+                    raise exceptions.ConfigurationError(msg)
+
                 werkzeug_path = werkzeug_path.replace(
                     '{%s}' % arg,
                     '<%s:%s>' % (converter, arg)
@@ -135,8 +136,12 @@ class Router(object):
         return (view, pipeline, kwargs)
 
 
-def exception_handler(exc: Exception) -> http.Response:
+def exception_handler(environ: wsgi.WSGIEnviron, exc: Exception) -> http.Response:
     if isinstance(exc, exceptions.APIException):
         return http.Response({'message': exc.message}, exc.status_code)
+
+    if is_running_from_reloader() or environ.get('APISTAR_RAISE_500_EXC'):
+        raise
+
     message = traceback.format_exc()
     return http.Response(message, 500, {'Content-Type': 'text/plain; charset=utf-8'})

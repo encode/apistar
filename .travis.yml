@@ -1,5 +1,7 @@
 language: python
 
+cache: pip
+
 python:
     - "3.5"
     - "3.6"
@@ -8,7 +10,8 @@ install:
     - pip install -r requirements.txt
 
 script:
-    - scripts/ci
+    - scripts/lint
+    - scripts/test
 
-after_success:
+after_script:
     - codecov

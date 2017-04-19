@@ -11,7 +11,7 @@ from apistar.http import Headers, QueryParams, Request, Response
 from apistar.routing import Route
 from apistar.wsgi import WSGIEnviron, WSGIResponse
 
-__version__ = '0.1.8'
+__version__ = '0.1.9'
 __all__ = [
     'App', 'Route', 'DBBackend',
     'WSGIEnviron', 'WSGIResponse', 'Request', 'Response', 'QueryParams', 'Headers'

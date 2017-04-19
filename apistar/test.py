@@ -7,34 +7,15 @@ from click.testing import CliRunner
 from apistar.main import get_current_app
 
 
-class HeaderDict(requests.packages.urllib3._collections.HTTPHeaderDict):
-    def get_all(self, key, default):
-        return self.getheaders(key)
-
-
-class MockOriginalResponse(object):
-    """
-    A mock urllib3.Response object.
-    """
-    def __init__(self, headers):
-        self.msg = HeaderDict(headers)
-        self.closed = False
-
-    def isclosed(self):
-        return self.closed
-
-    def close(self):
-        self.closed = True
-
-
 class WSGIAdapter(requests.adapters.HTTPAdapter):
     """
     A transport adapter for `requests` that makes requests directly to a
     WSGI app, rather than making actual HTTP requests over the network.
     """
-    def __init__(self, wsgi_app, root_path=None):
+    def __init__(self, wsgi_app, root_path=None, raise_500_exc=True):
         self.wsgi_app = wsgi_app
         self.root_path = ('/' + root_path.strip('/')) if root_path else ''
+        self.raise_500_exc = raise_500_exc
 
     def get_environ(self, request):
         """
@@ -50,9 +31,12 @@ class WSGIAdapter(requests.adapters.HTTPAdapter):
             'wsgi.url_scheme': url_components.scheme,
             'SCRIPT_NAME': self.root_path,
             'PATH_INFO': url_components.path,
-            'QUERY_STRING': url_components.query,
-            'wsgi.input': io.BytesIO(body)
+            'wsgi.input': io.BytesIO(body),
+            'APISTAR_RAISE_500_EXC': self.raise_500_exc
         }
+
+        if url_components.query:
+            environ['QUERY_STRING'] = url_components.query
 
         if url_components.port:
             environ['SERVER_NAME'] = url_components.hostname
@@ -81,7 +65,7 @@ class WSGIAdapter(requests.adapters.HTTPAdapter):
             raw_kwargs['headers'] = wsgi_headers
             raw_kwargs['version'] = 11
             raw_kwargs['preload_content'] = False
-            raw_kwargs['original_response'] = MockOriginalResponse(wsgi_headers)
+            raw_kwargs['original_response'] = None
 
         # Make the outgoing request via WSGI.
         environ = self.get_environ(request)
@@ -94,16 +78,21 @@ class WSGIAdapter(requests.adapters.HTTPAdapter):
         # Build the requests.Response
         return self.build_response(request, raw)
 
-    def close(self):
-        pass
-
 
 class _TestClient(requests.Session):
-    def __init__(self, app=None, root_path=None):
+    def __init__(self, wsgi_or_app=None, root_path=None, raise_500_exc=True):
         super(_TestClient, self).__init__()
-        if app is None:
-            app = get_current_app()
-        adapter = WSGIAdapter(app.wsgi, root_path=root_path)
+        if wsgi_or_app is None:
+            wsgi_or_app = get_current_app()
+
+        if hasattr(wsgi_or_app, 'wsgi'):
+            # Passed an `App` instance.
+            wsgi = wsgi_or_app.wsgi
+        else:
+            # Passed a WSGI callable.
+            wsgi = wsgi_or_app
+
+        adapter = WSGIAdapter(wsgi, root_path=root_path, raise_500_exc=raise_500_exc)
         self.mount('http://', adapter)
         self.mount('https://', adapter)
         self.headers.update({'User-Agent': 'requests_client'})

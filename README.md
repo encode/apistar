@@ -3,9 +3,10 @@
 A smart Web API framework, designed for Python 3.
 
 [![Build Status](https://travis-ci.org/tomchristie/apistar.svg?branch=master)](https://travis-ci.org/tomchristie/apistar)
-[![Package version](https://badge.fury.io/py/apistar.svg)](https://pypi.python.org/pypi/apistar)
-[![Python versions](https://img.shields.io/pypi/pyversions/apistar.svg)](https://pypi.python.org/pypi/apistar)
 [![codecov](https://codecov.io/gh/tomchristie/apistar/branch/master/graph/badge.svg)](https://codecov.io/gh/tomchristie/apistar)
+[![Package version](https://badge.fury.io/py/apistar.svg)](https://pypi.python.org/pypi/apistar)
+[![Python versions](https://img.shields.io/pypi/pyversions/apistar.svg)](https://www.python.org/doc/versions/)
+
 ---
 
 Install API Star:
@@ -14,7 +15,7 @@ Install API Star:
 
 Create a new project:
 
-    $ apistar new --template minimal
+    $ apistar new --layout minimal
     app.py
     tests.py
     $ cat app.py
@@ -315,7 +316,7 @@ and create a Python virtualenv with the project requirements installed:
     $ cd apistar
     $ ./scripts/setup
 
-To run the tests and code linting:
+To run the continuous integration tests and code linting:
 
     $ ./scripts/test
     $ ./scripts/lint

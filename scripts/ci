@@ -1,4 +1,4 @@
 #!/bin/sh -e
 
 scripts/lint
-scripts/test --cov=apistar --cov-report=xml --cov-report=term
+scripts/test

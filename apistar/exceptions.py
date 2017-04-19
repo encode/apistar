@@ -6,10 +6,6 @@ class SchemaError(Exception):
         super().__init__(msg)
 
 
-class NoCurrentApp(Exception):
-    pass
-
-
 class ConfigurationError(Exception):
     pass
 
@@ -23,6 +19,11 @@ class APIException(Exception):
     def __init__(self, status_code=None, message=None):
         self.status_code = self.default_status_code if (status_code is None) else status_code
         self.message = self.default_message if (message is None) else message
+
+
+class ValidationError(APIException):
+    default_status_code = 400
+    default_message = 'Invalid request'
 
 
 class NotFound(APIException):
