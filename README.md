@@ -327,6 +327,9 @@ Component             | Description
 `routing.URLPathArgs` | A dictionary containing all the matched URL path arguments.
 `routing.URLPathArg`  | A single URL path argument, corresponding to the keyword argument name. Automatically used for data arguments with a matching URL path component.
 `pipelines.ArgName`   | The keyword argument with which a component is being injected into the view. May be used within component `build` methods.
+`settings.Settings`   | A dictionary containing the application settings.
+`templating.Templates` | The template environment.
+`templating.Template` | A single loaded template, as determined by the argument name.
 
 ---
 
