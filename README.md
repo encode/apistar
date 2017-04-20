@@ -146,6 +146,63 @@ app = App(routes=[
 
 ---
 
+# Templates
+
+API Star includes a templating component, that allows you to return templated
+responses, using Jinja2.
+
+**templates/index.html:**
+
+```html
+<html>
+    <body>
+        <h1>Hello, {{ username }}</h1>
+    </body>
+</html>
+```
+
+**app.py:**
+
+```python
+from apistar import App, Route, Templates
+import os
+
+ROOT_DIR = os.path.dirname(__file__)
+
+def hello(username: str, templates: Templates):
+    index = templates.get_template('index.html')
+    return index.render(username=username)
+
+routes = [
+    Route('/', 'GET', index)
+]
+
+settings = {
+    'TEMPLATES': {
+        'TEMPLATE_DIR': os.path.join(ROOT_DIR, 'templates')
+    }
+}
+
+app = App(routes=routes, settings=settings)
+```
+
+You can also use the `Template` component to inject a single template instance
+as a view argument:
+
+```python
+def hello(username: str, index: Template):
+    return index.render(username=username)
+```
+
+This will default to attempting to locate `index.html`, based on the argument
+name of `index`.
+
+Returning a string response from a view will default to using the `text/html`
+content type. You can override this by returning a `Response`, including an
+explicit `Content-Type` header.
+
+---
+
 # WSGI
 
 Because API views are so dynamic, they'll even let you drop right down to
