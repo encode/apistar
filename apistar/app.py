@@ -1,8 +1,5 @@
-<<<<<<< HEAD
 import os
-=======
 import inspect
->>>>>>> master
 from collections import OrderedDict
 
 import click
