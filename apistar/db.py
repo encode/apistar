@@ -1,5 +1,4 @@
 from typing import Dict
-from apistar.exceptions import ConfigurationError
 
 
 class DBBackend(object):
@@ -18,12 +17,15 @@ class DBBackend(object):
                 from sqlalchemy import create_engine
                 from sqlalchemy.orm import sessionmaker
 
-                engine = create_engine(
-                    db_config['URL'],
-                    echo=True,
-                    echo_pool=True,
-                    pool_size=db_config.get('POOL_SIZE', 5)
-                )
+                try:
+                    engine = create_engine(
+                        db_config['URL'],
+                        pool_size=db_config.get('POOL_SIZE', 5)
+                    )
+                except TypeError:
+                    # pool size doesnt work with SQLite
+                    engine = create_engine(db_config['URL'])
+
                 session_class = sessionmaker(bind=engine)
 
                 db_backend = cls(
@@ -36,6 +38,7 @@ class DBBackend(object):
         return None
 
     def create_tables(self):
-        if not self.metadata:
-            raise ConfigurationError("App must be configured with Metadata class to create tables")
         self.metadata.create_all(self.engine)
+
+    def drop_tables(self):
+        self.metadata.drop_all(self.engine)

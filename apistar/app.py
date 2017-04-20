@@ -7,7 +7,6 @@ import click
 from apistar import commands, pipelines, routing, schema
 from apistar.db import DBBackend
 
-
 DEFAULT_LOOKUP_CACHE_SIZE = 10000
 
 
@@ -57,6 +56,7 @@ def get_wsgi_server(app):
         lookup_key = method + ' ' + path
         state = {
             'wsgi_environ': environ,
+            'app': app,
             'method': method,
             'path': path,
             'exception': None,
