@@ -9,7 +9,7 @@ from apistar.settings import Settings
 class Templates(jinja2.Environment):
     @classmethod
     def build(cls, settings: Settings):
-        template_dir = settings['TEMPLATES']['TEMPLATE_DIR']
+        template_dir = settings.get(['TEMPLATES', 'TEMPLATE_DIR'])
         return Templates(
             loader=jinja2.FileSystemLoader(template_dir)
         )

@@ -80,19 +80,12 @@ class WSGIAdapter(requests.adapters.HTTPAdapter):
 
 
 class _TestClient(requests.Session):
-    def __init__(self, wsgi_or_app=None, root_path=None, raise_500_exc=True):
+    def __init__(self, app=None, root_path=None, raise_500_exc=True):
         super(_TestClient, self).__init__()
-        if wsgi_or_app is None:
-            wsgi_or_app = get_current_app()
+        if app is None:
+            app = get_current_app()
 
-        if hasattr(wsgi_or_app, 'wsgi'):
-            # Passed an `App` instance.
-            wsgi = wsgi_or_app.wsgi
-        else:
-            # Passed a WSGI callable.
-            wsgi = wsgi_or_app
-
-        adapter = WSGIAdapter(wsgi, root_path=root_path, raise_500_exc=raise_500_exc)
+        adapter = WSGIAdapter(app.wsgi, root_path=root_path, raise_500_exc=raise_500_exc)
         self.mount('http://', adapter)
         self.mount('https://', adapter)
         self.headers.update({'User-Agent': 'requests_client'})

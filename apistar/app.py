@@ -7,6 +7,9 @@ import click
 from apistar import commands, pipelines, routing, schema
 
 
+DEFAULT_LOOKUP_CACHE_SIZE = 10000
+
+
 class App(object):
     built_in_commands = (
         commands.new,
@@ -18,21 +21,27 @@ class App(object):
                  routes: List[routing.Route] = None,
                  commands: List[Callable] = None,
                  settings: Dict[str, Any] = None) -> None:
+        from apistar.settings import Settings
+
         routes = [] if (routes is None) else routes
         commands = [] if (commands is None) else commands
 
         self.routes = routes
         self.commands = list(self.built_in_commands) + commands
-        self.settings = settings or {}
+        self.settings = Settings(settings or {})
 
         self.router = routing.Router(self.routes)
         self.wsgi = get_wsgi_server(app=self)
         self.click = get_click_client(app=self)
 
 
-def get_wsgi_server(app, lookup_cache_size=10000):
+def get_wsgi_server(app):
     lookup = app.router.lookup
     lookup_cache = OrderedDict()  # FIFO Cache for URL lookups.
+    lookup_cache_size = app.settings.get(
+        ['ROUTING', 'LOOKUP_CACHE_SIZE'],
+        DEFAULT_LOOKUP_CACHE_SIZE
+    )
 
     # Pre-fill the lookup cache for URLs without path arguments.
     for path, method, view in app.router.routes:

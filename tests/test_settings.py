@@ -45,3 +45,17 @@ def test_setting():
 def test_use_setting_as_argument():
     abc = Setting(789)
     assert get_setting(abc) == {'ABC': 789}
+
+
+def test_settings_lookup():
+    settings = Settings(
+        ABC=123,
+        DEF={'XYZ': 456}
+    )
+    assert settings.get('ABC') == 123
+    assert settings.get(['DEF']) == {'XYZ': 456}
+    assert settings.get(['DEF', 'XYZ']) == 456
+    assert settings.get('missing') is None
+    assert settings.get(['ABC', 'missing']) is None
+    assert settings.get(['DEF', 'missing']) is None
+    assert settings.get(['DEF', 'missing'], '') == ''

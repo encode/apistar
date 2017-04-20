@@ -1,7 +1,6 @@
 import pytest
 
 from apistar import App, Route, exceptions, http, schema
-from apistar.app import get_wsgi_server
 from apistar.routing import URLPathArgs
 from apistar.test import TestClient
 
@@ -175,12 +174,12 @@ def test_lookup_cache_expiry():
     def get_path(var: int, path: http.Path):
         return {'path': path}
 
-    app = App(routes=[
+    routes = [
         Route('/{var}/', 'GET', get_path)
-    ])
-
-    wsgi = get_wsgi_server(app, lookup_cache_size=3)
-    client = TestClient(wsgi)
+    ]
+    settings = {'ROUTING': {'LOOKUP_CACHE_SIZE': 3}}
+    app = App(routes=routes, settings=settings)
+    client = TestClient(app)
     for index in range(10):
         response = client.get('/%d/' % index)
         assert response.status_code == 200

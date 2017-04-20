@@ -7,6 +7,17 @@ class Settings(dict):
     def build(cls, app: app.App):
         return cls(app.settings)
 
+    def get(self, indexes, default=None):
+        if isinstance(indexes, str):
+            return super().get(indexes, default)
+
+        value = self
+        for index in indexes:
+            if not isinstance(value, dict):
+                return default
+            value = value.get(index, default)
+        return value
+
 
 class Setting(object):
     def __new__(cls, *args):
