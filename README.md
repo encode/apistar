@@ -304,32 +304,32 @@ def say_hello(username: Username):
 
 A complete listing of the available built-in components:
 
-Component             | Description
-----------------------|-------------
-`app.App`             | The application instance.
-`http.Method`         | The HTTP method of the request, such as `GET`.
-`http.Host`           | The host component of the request URL, such as `'example.com'`.
-`http.Port`           | The port number that the request is made to, such as 443.
-`http.Scheme`         | The scheme component of the request URL, such as 'https'.
-`http.Path`           | The path component of the request URL, such as `/api/v1/my_view/`.
-`http.QueryString`    | The query component of the request URL, such as `page=2`.
-`http.URL`            | The full URL of the request, such as `https://example.com/api/v1/my_view/?page=2`.
-`http.Body`           | The body of the request, as a bytestring.
-`http.QueryParams`    | A multi-dict containing the request query parameters.
-`http.QueryParam`     | A single request query parameter, corresponding to the keyword argument name. Automatically used for data arguments.
-`http.Headers`        | A multi-dict containing the request headers parameters.
-`http.Header`         | A single request query parameter, corresponding to the keyword argument name.
-`http.Request`        | The full request instance.
-`http.Response`       | A return type for returning an HTTP response explicitly.
-`http.ResponseData`   | A return type for plain data responses.
-`wsgi.Environ`        | The WSGI environ of the incoming request.
-`wsgi.Response`       | A return type for directly returning a WSGI response.
-`routing.URLPathArgs` | A dictionary containing all the matched URL path arguments.
-`routing.URLPathArg`  | A single URL path argument, corresponding to the keyword argument name. Automatically used for data arguments with a matching URL path component.
-`pipelines.ArgName`   | The keyword argument with which a component is being injected into the view. May be used within component `build` methods.
-`settings.Settings`   | A dictionary containing the application settings.
+Component              | Description
+-----------------------|-------------
+`app.App`              | The application instance.
+`http.Method`          | The HTTP method of the request, such as `GET`.
+`http.Host`            | The host component of the request URL, such as `'example.com'`.
+`http.Port`            | The port number that the request is made to, such as 443.
+`http.Scheme`          | The scheme component of the request URL, such as 'https'.
+`http.Path`            | The path component of the request URL, such as `/api/v1/my_view/`.
+`http.QueryString`     | The query component of the request URL, such as `page=2`.
+`http.URL`             | The full URL of the request, such as `https://example.com/api/v1/my_view/?page=2`.
+`http.Body`            | The body of the request, as a bytestring.
+`http.QueryParams`     | A multi-dict containing the request query parameters.
+`http.QueryParam`      | A single request query parameter, corresponding to the keyword argument name. Automatically used for data arguments.
+`http.Headers`         | A multi-dict containing the request headers parameters.
+`http.Header`          | A single request query parameter, corresponding to the keyword argument name.
+`http.Request`         | The full request instance.
+`http.Response`        | A return type for returning an HTTP response explicitly.
+`http.ResponseData`    | A return type for plain data responses.
+`pipelines.ArgName`    | The keyword argument with which a component is being injected into the view. May be used within component `build` methods.
+`routing.URLPathArgs`  | A dictionary containing all the matched URL path arguments.
+`routing.URLPathArg`   | A single URL path argument, corresponding to the keyword argument name. Automatically used for data arguments with a matching URL path component.
+`settings.Settings`    | A dictionary containing the application settings.
 `templating.Templates` | The template environment.
-`templating.Template` | A single loaded template, as determined by the argument name.
+`templating.Template`  | A single loaded template, as determined by the argument name.
+`wsgi.Environ`         | The WSGI environ of the incoming request.
+`wsgi.Response`        | A return type for directly returning a WSGI response.
 
 ---
 
