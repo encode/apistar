@@ -1,5 +1,5 @@
-import os
 import inspect
+import os
 from collections import OrderedDict
 
 import click
