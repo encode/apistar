@@ -7,12 +7,13 @@
 """
 from apistar.app import App
 from apistar.db import DBBackend
-from apistar.http import Headers, QueryParams, Request, Response
+from apistar.http import Request, Response
 from apistar.routing import Route
-from apistar.wsgi import WSGIEnviron, WSGIResponse
+from apistar.templating import Template, Templates
+from apistar.test import TestClient
+
 
 __version__ = '0.1.9'
 __all__ = [
-    'App', 'Route', 'DBBackend',
-    'WSGIEnviron', 'WSGIResponse', 'Request', 'Response', 'QueryParams', 'Headers'
+    'App', 'DBBackend', 'Route', 'Request', 'Response', 'Template', 'Templates', 'TestClient'
 ]

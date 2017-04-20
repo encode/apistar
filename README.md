@@ -146,30 +146,107 @@ app = App(routes=[
 
 ---
 
-# WSGI
+# Templates
 
-Because API views are so dynamic, they'll even let you drop right down to
-returning a WSGI response directly:
+API Star includes a templating component, that allows you to return templated
+responses, using Jinja2.
 
-```python
-from apistar import wsgi
+**templates/index.html:**
 
-def hello_world() -> wsgi.WSGIResponse:
-    wsgi.WSGIResponse(
-        '200 OK',
-        [('Content-Type', 'text/plain')],
-        [b'Hello, world!']
-    )
+```html
+<html>
+    <body>
+        <h1>Hello, {{ username }}</h1>
+    </body>
+</html>
 ```
 
-You can also inject the WSGI environment into your view arguments:
+**app.py:**
 
 ```python
-def debug_environ(environ: wsgi.WSGIEnviron):
-    return {
-        'environ': environ
+from apistar import App, Route, Templates
+import os
+
+ROOT_DIR = os.path.dirname(__file__)
+
+def hello(username: str, templates: Templates):
+    index = templates.get_template('index.html')
+    return index.render(username=username)
+
+routes = [
+    Route('/', 'GET', hello)
+]
+
+settings = {
+    'TEMPLATES': {
+        'TEMPLATE_DIR': os.path.join(ROOT_DIR, 'templates')
     }
+}
+
+app = App(routes=routes, settings=settings)
 ```
+
+You can also use the `Template` component to inject a single template instance
+as a view argument:
+
+```python
+def hello(username: str, index: Template):
+    return index.render(username=username)
+```
+
+This will default to attempting to locate `index.html`, based on the argument
+name of `index`.
+
+Returning a string response from a view will default to using the `text/html`
+content type. You can override this by returning a `Response`, including an
+explicit `Content-Type` header.
+
+---
+
+# Settings
+
+Application settings are configured at the point of instantiating the app.
+
+
+```python
+routes = [...]
+
+settings = {
+    'TEMPLATES': {
+        'TEMPLATE_DIR': '/foo/bar'
+    }
+}
+
+app = App(routes=routes, settings=settings)
+```
+
+You can include the application settings in a view, by using the `Settings`
+type annotation:
+
+```python
+from apistar.settings import Settings
+
+
+def debug_settings(settings: Settings):
+    """
+    Return a JSON response containing the application settings dictionary.
+    """
+    return settings
+```
+
+Similarly you can include a single application setting:
+
+```python
+def debug_template_settings(TEMPLATES: Setting):
+    """
+    Return a JSON response containing the application settings dictionary.
+    """
+    return {'TEMPLATES': TEMPLATES}
+```
+
+More typically you'll want to include settings into the `build` method of
+custom components, so that you can control their initialization, based on the
+application settings.
 
 ---
 
@@ -247,29 +324,60 @@ def say_hello(username: Username):
 
 A complete listing of the available built-in components:
 
-Component             | Description
-----------------------|-------------
-`app.App`             | The application instance.
-`http.Method`         | The HTTP method of the request, such as `GET`.
-`http.Host`           | The host component of the request URL, such as `'example.com'`.
-`http.Port`           | The port number that the request is made to, such as 443.
-`http.Scheme`         | The scheme component of the request URL, such as 'https'.
-`http.Path`           | The path component of the request URL, such as `/api/v1/my_view/`.
-`http.QueryString`    | The query component of the request URL, such as `page=2`.
-`http.URL`            | The full URL of the request, such as `https://example.com/api/v1/my_view/?page=2`.
-`http.Body`           | The body of the request, as a bytestring.
-`http.QueryParams`    | A multi-dict containing the request query parameters.
-`http.QueryParam`     | A single request query parameter, corresponding to the keyword argument name. Automatically used for data arguments.
-`http.Headers`        | A multi-dict containing the request headers parameters.
-`http.Header`         | A single request query parameter, corresponding to the keyword argument name.
-`http.Request`        | The full request instance.
-`http.Response`       | A return type for returning an HTTP response explicitly.
-`http.ResponseData`   | A return type for plain data responses.
-`wsgi.Environ`        | The WSGI environ of the incoming request.
-`wsgi.Response`       | A return type for directly returning a WSGI response.
-`routing.URLPathArgs` | A dictionary containing all the matched URL path arguments.
-`routing.URLPathArg`  | A single URL path argument, corresponding to the keyword argument name. Automatically used for data arguments with a matching URL path component.
-`pipelines.ArgName`   | The keyword argument with which a component is being injected into the view. May be used within component `build` methods.
+Component              | Description
+-----------------------|-------------
+`app.App`              | The application instance.
+`http.Method`          | The HTTP method of the request, such as `GET`.
+`http.Host`            | The host component of the request URL, such as `'example.com'`.
+`http.Port`            | The port number that the request is made to, such as 443.
+`http.Scheme`          | The scheme component of the request URL, such as 'https'.
+`http.Path`            | The path component of the request URL, such as `/api/v1/my_view/`.
+`http.QueryString`     | The query component of the request URL, such as `page=2`.
+`http.URL`             | The full URL of the request, such as `https://example.com/api/v1/my_view/?page=2`.
+`http.Body`            | The body of the request, as a bytestring.
+`http.QueryParams`     | A multi-dict containing the request query parameters.
+`http.QueryParam`      | A single request query parameter, corresponding to the keyword argument name. Automatically used for data arguments.
+`http.Headers`         | A multi-dict containing the request headers parameters.
+`http.Header`          | A single request query parameter, corresponding to the keyword argument name.
+`http.Request`         | The full request instance.
+`http.Response`        | A return type for returning an HTTP response explicitly.
+`http.ResponseData`    | A return type for plain data responses.
+`pipelines.ArgName`    | The keyword argument with which a component is being injected into the view. May be used within component `build` methods.
+`routing.URLPathArgs`  | A dictionary containing all the matched URL path arguments.
+`routing.URLPathArg`   | A single URL path argument, corresponding to the keyword argument name. Automatically used for data arguments with a matching URL path component.
+`settings.Settings`    | A dictionary containing the application settings.
+`settings.Setting`     | A single named setting, as determined by the argument name.
+`templating.Templates` | The template environment.
+`templating.Template`  | A single loaded template, as determined by the argument name.
+`wsgi.Environ`         | The WSGI environ of the incoming request.
+`wsgi.Response`        | A return type for directly returning a WSGI response.
+
+---
+
+# WSGI
+
+Because API views are so dynamic, they'll even let you drop right down to
+returning a WSGI response directly:
+
+```python
+from apistar import wsgi
+
+def hello_world() -> wsgi.WSGIResponse:
+    wsgi.WSGIResponse(
+        '200 OK',
+        [('Content-Type', 'text/plain')],
+        [b'Hello, world!']
+    )
+```
+
+You can also inject the WSGI environment into your view arguments:
+
+```python
+def debug_environ(environ: wsgi.WSGIEnviron):
+    return {
+        'environ': environ
+    }
+```
 
 ---
 
