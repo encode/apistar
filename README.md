@@ -203,33 +203,6 @@ explicit `Content-Type` header.
 
 ---
 
-# WSGI
-
-Because API views are so dynamic, they'll even let you drop right down to
-returning a WSGI response directly:
-
-```python
-from apistar import wsgi
-
-def hello_world() -> wsgi.WSGIResponse:
-    wsgi.WSGIResponse(
-        '200 OK',
-        [('Content-Type', 'text/plain')],
-        [b'Hello, world!']
-    )
-```
-
-You can also inject the WSGI environment into your view arguments:
-
-```python
-def debug_environ(environ: wsgi.WSGIEnviron):
-    return {
-        'environ': environ
-    }
-```
-
----
-
 # Testing
 
 API Star includes the `py.test` testing framework. You can run all tests in
@@ -330,6 +303,33 @@ Component              | Description
 `templating.Template`  | A single loaded template, as determined by the argument name.
 `wsgi.Environ`         | The WSGI environ of the incoming request.
 `wsgi.Response`        | A return type for directly returning a WSGI response.
+
+---
+
+# WSGI
+
+Because API views are so dynamic, they'll even let you drop right down to
+returning a WSGI response directly:
+
+```python
+from apistar import wsgi
+
+def hello_world() -> wsgi.WSGIResponse:
+    wsgi.WSGIResponse(
+        '200 OK',
+        [('Content-Type', 'text/plain')],
+        [b'Hello, world!']
+    )
+```
+
+You can also inject the WSGI environment into your view arguments:
+
+```python
+def debug_environ(environ: wsgi.WSGIEnviron):
+    return {
+        'environ': environ
+    }
+```
 
 ---
 
