@@ -8,7 +8,7 @@ python:
 
 env:
     - DB_URL=sqlite:///test.db
-    - DB_URL=postgresql://localhost/apistar
+    - DB_URL=postgresql://postgres:@localhost/apistar
 
 install:
     - pip install -r requirements.txt
