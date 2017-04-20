@@ -47,8 +47,7 @@ def get_class_id(cls, arg_name=None) -> str:
     return s2
 
 
-def run_pipeline(pipeline: Pipeline) -> dict:
-    state = {}  # type: Dict[str, Any]
+def run_pipeline(pipeline: Pipeline, state: Dict[str, Any]):
     for function, inputs, output, extra_kwargs in pipeline:
 
         kwargs = {}
@@ -57,12 +56,7 @@ def run_pipeline(pipeline: Pipeline) -> dict:
         if extra_kwargs is not None:
             kwargs.update(extra_kwargs)
 
-        if output is None:
-            function(**kwargs)
-        else:
-            state[output] = function(**kwargs)
-
-    return state
+        state[output] = function(**kwargs)
 
 
 def _build_step(function: Callable, arg_name=None, extra_annotations=None) -> Step:
@@ -70,8 +64,7 @@ def _build_step(function: Callable, arg_name=None, extra_annotations=None) -> St
     Given a function, return the single pipeline step that
     corresponds to calling that function.
     """
-    if extra_annotations is None:
-        extra_annotations = {}
+    extra_annotations = extra_annotations or {}
 
     signature = inspect.signature(function)
     extra_kwargs = {}
@@ -96,10 +89,7 @@ def _build_step(function: Callable, arg_name=None, extra_annotations=None) -> St
         if return_cls is empty:
             return_cls = getattr(function, '__self__', None)
 
-    if return_cls is None:
-        output = None
-    else:
-        output = get_class_id(return_cls, arg_name)
+    output = get_class_id(return_cls, arg_name)
 
     return Step(function, inputs, output, extra_kwargs)
 
@@ -110,10 +100,8 @@ def _build_pipeline(function: Callable, arg_name=None, seen=None, extra_annotati
     function and all its dependancies.
     """
     pipeline = Pipeline()
-    if seen is None:
-        seen = set()
-    if extra_annotations is None:
-        extra_annotations = {}
+    seen = seen or set()
+    extra_annotations = extra_annotations or {}
 
     signature = inspect.signature(function)
     for parameter in signature.parameters.values():

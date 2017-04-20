@@ -9,6 +9,7 @@ from werkzeug.urls import url_decode
 
 import ujson as json
 from apistar.pipelines import ArgName
+from apistar.schema import validate
 
 
 class WSGIEnviron(ImmutableDict):
@@ -63,7 +64,8 @@ class Path(str):
 class QueryString(str):
     @classmethod
     def build(cls, environ: WSGIEnviron):
-        return cls(environ['QUERY_STRING'])
+        query_string = environ.get('QUERY_STRING', '')
+        return cls(query_string)
 
 
 class URL(str):
@@ -99,6 +101,11 @@ class Body(bytes):
 
 
 class Headers(ImmutableHeadersMixin, WerkzeugHeaders):
+    def __init__(self, *args, **kwargs):
+        if len(args) == 1 and isinstance(args[0], dict):
+            args = [list(args[0].items())]
+        super().__init__(*args, **kwargs)
+
     @classmethod
     def build(cls, environ: WSGIEnviron):
         return cls(EnvironHeaders(environ))
@@ -113,7 +120,8 @@ class Header(str):
 class QueryParams(ImmutableMultiDict):
     @classmethod
     def build(cls, environ: WSGIEnviron):
-        return cls(url_decode(environ['QUERY_STRING']))
+        query_string = environ.get('QUERY_STRING', '')
+        return cls(url_decode(query_string))
 
 
 class QueryParam(str):
@@ -125,7 +133,7 @@ class QueryParam(str):
         if value is None or cls.schema is None:
             return value
         if not isinstance(value, cls.schema):
-            value = cls.schema(value)
+            value = validate(cls.schema, value)
         return value
 
 
@@ -143,8 +151,6 @@ class Request(object):
     __slots__ = ('method', 'url', 'headers')
 
     def __init__(self, method: str, url: str, headers: HeadersType=None) -> None:
-        if isinstance(headers, dict):
-            headers = list(headers.items())
         self.method = method
         self.url = url
         self.headers = Headers(headers)

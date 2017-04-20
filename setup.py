@@ -57,12 +57,13 @@ setup(
     packages=get_packages('apistar'),
     package_data=get_package_data('apistar'),
     install_requires=[
-        'coreapi',
-        'werkzeug',
-        'jinja2',
         'click',
+        'coreapi',
+        'jinja2',
         'pytest',
-        'ujson'
+        'requests',
+        'ujson',
+        'werkzeug'
     ],
     classifiers=[
         'Development Status :: 3 - Alpha',

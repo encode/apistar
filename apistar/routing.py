@@ -1,18 +1,18 @@
 import inspect
+import traceback
 from collections import namedtuple
-from typing import Callable, Dict, List, Tuple  # noqa
+from typing import Any, Callable, Dict, List, Tuple  # noqa
 
 import werkzeug
 from uritemplate import URITemplate
 from werkzeug.routing import Map, Rule
+from werkzeug.serving import is_running_from_reloader
 
-from apistar import app, http, pipelines, schema, wsgi
+from apistar import app, exceptions, http, pipelines, schema, wsgi
 from apistar.pipelines import ArgName, Pipeline
 
 # TODO: Path
-# TODO: 404
 # TODO: Redirects
-# TODO: Caching
 
 
 primitive_types = (
@@ -20,8 +20,7 @@ primitive_types = (
 )
 
 schema_types = (
-    schema.String, schema.Integer, schema.Number,
-    schema.Boolean, schema.Object
+    schema.String, schema.Integer, schema.Number, schema.Boolean
 )
 
 Route = namedtuple('Route', ['path', 'method', 'view'])
@@ -39,7 +38,10 @@ class URLPathArg(object):
     def build(cls, args: URLPathArgs, arg_name: ArgName):
         value = args.get(arg_name)
         if cls.schema is not None and not isinstance(value, cls.schema):
-            value = cls.schema(value)
+            try:
+                value = cls.schema(value)
+            except exceptions.SchemaError:
+                raise exceptions.NotFound()
         return value
 
 
@@ -47,19 +49,9 @@ RouterLookup = Tuple[Callable, Pipeline, URLPathArgs]
 
 
 class Router(object):
-    converters = {
-        str: 'string',
-        int: 'int',
-        float: 'float',
-        # path, any, uuid
-    }
-
     def __init__(self, routes: List[Route]) -> None:
-        self.not_found = None  # type: RouterLookup
-        self.method_not_allowed = None  # type: RouterLookup
-
         required_type = wsgi.WSGIResponse
-        initial_types = [app.App, wsgi.WSGIEnviron, URLPathArgs]
+        initial_types = [app.App, wsgi.WSGIEnviron, URLPathArgs, Exception]
 
         rules = []
         views = {}
@@ -80,11 +72,18 @@ class Router(object):
             werkzeug_path = path[:]
             for arg in uritemplate.variable_names:
                 param = view_signature.parameters[arg]
-                if param.annotation == inspect.Signature.empty:
-                    annotated_type = str
+                if param.annotation is inspect.Signature.empty:
+                    converter = 'string'
+                elif issubclass(param.annotation, (schema.String, str)):
+                    converter = 'string'
+                elif issubclass(param.annotation, (schema.Number, float)):
+                    converter = 'float'
+                elif issubclass(param.annotation, (schema.Integer, int)):
+                    converter = 'int'
                 else:
-                    annotated_type = param.annotation
-                converter = self.converters[annotated_type]
+                    msg = 'Invalid type for path parameter, %s.' % param.annotation
+                    raise exceptions.ConfigurationError(msg)
+
                 werkzeug_path = werkzeug_path.replace(
                     '{%s}' % arg,
                     '<%s:%s>' % (converter, arg)
@@ -120,15 +119,7 @@ class Router(object):
             pipeline = pipelines.build_pipeline(view, initial_types, required_type, extra_annotations)
             views[name] = Endpoint(view, pipeline)
 
-        # Add pipelines for 404 and 405 cases.
-        empty_url_args = URLPathArgs()
-        pipeline = pipelines.build_pipeline(view_404, initial_types, required_type, {})
-        self.not_found = (None, pipeline, empty_url_args)
-
-        empty_url_args = URLPathArgs()
-        pipeline = pipelines.build_pipeline(view_405, initial_types, required_type, {})
-        self.method_not_allowed = (None, pipeline, empty_url_args)
-
+        self.exception_pipeline = pipelines.build_pipeline(exception_handler, initial_types, required_type, {})
         self.routes = routes
         self.adapter = Map(rules).bind('example.com')
         self.views = views
@@ -137,16 +128,19 @@ class Router(object):
         try:
             (name, kwargs) = self.adapter.match(path, method)
         except werkzeug.exceptions.NotFound:
-            return self.not_found
+            raise exceptions.NotFound()
         except werkzeug.exceptions.MethodNotAllowed:
-            return self.method_not_allowed
+            raise exceptions.MethodNotAllowed()
         (view, pipeline) = self.views[name]
         return (view, pipeline, kwargs)
 
 
-def view_404() -> http.Response:
-    return http.Response({'message': 'Not found'}, 404)
+def exception_handler(environ: wsgi.WSGIEnviron, exc: Exception) -> http.Response:
+    if isinstance(exc, exceptions.APIException):
+        return http.Response({'message': exc.message}, exc.status_code)
 
+    if is_running_from_reloader() or environ.get('APISTAR_RAISE_500_EXC'):
+        raise
 
-def view_405() -> http.Response:
-    return http.Response({'message': 'Method not allowed'}, 405)
+    message = traceback.format_exc()
+    return http.Response(message, 500, {'Content-Type': 'text/plain; charset=utf-8'})

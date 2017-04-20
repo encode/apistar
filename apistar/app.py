@@ -1,9 +1,13 @@
+<<<<<<< HEAD
 import os
+=======
+import inspect
+>>>>>>> master
 from collections import OrderedDict
 
 import click
 
-from apistar import commands, routing
+from apistar import commands, pipelines, routing, schema
 
 
 class App(object):
@@ -31,10 +35,9 @@ class AppRoot(str):
         return os.getcwd()
 
 
-def get_wsgi_server(app):
+def get_wsgi_server(app, lookup_cache_size=10000):
     lookup = app.router.lookup
     lookup_cache = OrderedDict()  # FIFO Cache for URL lookups.
-    max_cache = 10000
 
     # Pre-fill the lookup cache for URLs without path arguments.
     for path, method, view in app.router.routes:
@@ -51,28 +54,32 @@ def get_wsgi_server(app):
             'app': app,
             'method': method,
             'path': path,
+            'exception': None,
+            'view': None,
+            'url_path_args': {}
         }
 
         try:
-            (state['view'], pipeline, state['url_path_args']) = lookup_cache[lookup_key]
-        except KeyError:
-            (state['view'], pipeline, state['url_path_args']) = lookup_cache[lookup_key] = lookup(path, method)
-            if len(lookup_cache) > max_cache:
-                lookup_cache.pop(next(iter(lookup_cache)))
+            try:
+                (state['view'], pipeline, state['url_path_args']) = lookup_cache[lookup_key]
+            except KeyError:
+                (state['view'], pipeline, state['url_path_args']) = lookup_cache[lookup_key] = lookup(path, method)
+                if len(lookup_cache) > lookup_cache_size:
+                    lookup_cache.pop(next(iter(lookup_cache)))
 
-        for function, inputs, output, extra_kwargs in pipeline:
-            # Determine the keyword arguments for each step in the pipeline.
-            kwargs = {}
-            for arg_name, state_key in inputs:
-                kwargs[arg_name] = state[state_key]
-            if extra_kwargs is not None:
-                kwargs.update(extra_kwargs)
+            for function, inputs, output, extra_kwargs in pipeline:
+                # Determine the keyword arguments for each step in the pipeline.
+                kwargs = {}
+                for arg_name, state_key in inputs:
+                    kwargs[arg_name] = state[state_key]
+                if extra_kwargs is not None:
+                    kwargs.update(extra_kwargs)
 
-            # Call the function for each step in the pipeline.
-            if output is None:
-                function(**kwargs)
-            else:
+                # Call the function for each step in the pipeline.
                 state[output] = function(**kwargs)
+        except Exception as exc:
+            state['exception'] = exc
+            pipelines.run_pipeline(app.router.exception_pipeline, state)
 
         wsgi_response = state['wsgi_response']
         start_response(wsgi_response.status, wsgi_response.headers)
@@ -96,6 +103,41 @@ def get_click_client(app):
             click.echo(ctx.get_help())
 
     for command in app.commands:
+
+        command_signature = inspect.signature(command)
+        for param in reversed(command_signature.parameters.values()):
+            name = param.name.replace('_', '-')
+            annotation = param.annotation
+            kwargs = {}
+            if hasattr(annotation, 'default'):
+                kwargs['default'] = annotation.default
+            if hasattr(annotation, 'description'):
+                kwargs['help'] = annotation.description
+
+            if issubclass(annotation, (bool, schema.Boolean)):
+                kwargs['is_flag'] = True
+                kwargs['default'] = False
+            elif hasattr(annotation, 'choices'):
+                kwargs['type'] = click.Choice(annotation.choices)
+            elif hasattr(annotation, 'native_type'):
+                kwargs['type'] = annotation.native_type
+            elif annotation is inspect.Signature.empty:
+                kwargs['type'] = str
+            else:
+                kwargs['type'] = annotation
+
+            if 'default' in kwargs:
+                name = '--%s' % param.name.replace('_', '-')
+                option = click.option(name, **kwargs)
+                command = option(command)
+            else:
+                kwargs.pop('help', None)
+                argument = click.argument(param.name, **kwargs)
+                command = argument(command)
+
+        cmd_wrapper = click.command(help=command.__doc__)
+        command = cmd_wrapper(command)
+
         client.add_command(command)
 
     return client

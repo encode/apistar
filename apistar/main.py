@@ -8,15 +8,19 @@ import sys
 import click
 
 from apistar import App
-from apistar.exceptions import ConfigurationError, NoCurrentApp
+from apistar.exceptions import ConfigurationError
 
 sys.dont_write_bytecode = True
 
 
+def get_app_path():
+    return os.path.join(os.getcwd(), 'app.py')
+
+
 def get_current_app():
-    app_path = os.path.join(os.getcwd(), 'app.py')
+    app_path = get_app_path()
     if not os.path.exists(app_path):
-        raise NoCurrentApp("No app.py module exists.")
+        raise ConfigurationError("No app.py module exists.")
 
     spec = importlib.util.spec_from_file_location("app", app_path)
     module = importlib.util.module_from_spec(spec)
@@ -35,14 +39,15 @@ def setup_pythonpath():
 
 def main():  # pragma: no cover
     setup_pythonpath()
-    try:
+    app_path = get_app_path()
+    if os.path.exists(app_path):
         app = get_current_app()
-    except NoCurrentApp:
+    else:
         app = App()
 
     try:
         app.click()
-    except (NoCurrentApp, ConfigurationError) as exc:
+    except ConfigurationError as exc:
         click.echo(str(exc))
         sys.exit(1)
 

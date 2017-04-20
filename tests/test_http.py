@@ -233,10 +233,33 @@ def data_response():
     return {'hello': 'world'}
 
 
+def unknown_status_code() -> http.Response:
+    data = {'hello': 'world'}
+    return http.Response(data, status=600)
+
+
+def dict_headers() -> http.Response:
+    data = {'hello': 'world'}
+    headers = {'Content-Language': 'de'}
+    return http.Response(data, headers=headers)
+
+
+def list_headers() -> http.Response:
+    data = {'hello': 'world'}
+    headers = [('Content-Language', 'de')]
+    return http.Response(data, headers=headers)
+
+
+def object_headers() -> http.Response:
+    data = {'hello': 'world'}
+    headers = http.Headers({'Content-Language': 'de'})
+    return http.Response(data, headers=headers)
+
+
 def test_binary_response():
     app = App(routes=[Route('/', 'GET', binary_response)])
     client = TestClient(app)
-    response = client.get('http://example.com/')
+    response = client.get('/')
     assert response.text == '<html><h1>Hello, world</h1></html>'
     assert response.headers['Content-Type'] == 'text/html; charset=utf-8'
 
@@ -244,7 +267,7 @@ def test_binary_response():
 def test_text_response():
     app = App(routes=[Route('/', 'GET', text_response)])
     client = TestClient(app)
-    response = client.get('http://example.com/')
+    response = client.get('/')
     assert response.text == '<html><h1>Hello, world</h1></html>'
     assert response.headers['Content-Type'] == 'text/html; charset=utf-8'
 
@@ -252,6 +275,36 @@ def test_text_response():
 def test_data_response():
     app = App(routes=[Route('/', 'GET', data_response)])
     client = TestClient(app)
-    response = client.get('http://example.com/')
+    response = client.get('/')
     assert response.json() == {'hello': 'world'}
     assert response.headers['Content-Type'] == 'application/json'
+
+
+def test_unknown_status_code():
+    app = App(routes=[Route('/', 'GET', unknown_status_code)])
+    client = TestClient(app)
+    response = client.get('/')
+    assert response.status_code == 600
+    assert response.json() == {'hello': 'world'}
+    assert response.headers['Content-Type'] == 'application/json'
+
+
+def test_dict_headers():
+    app = App(routes=[Route('/', 'GET', dict_headers)])
+    client = TestClient(app)
+    response = client.get('/')
+    assert response.headers['Content-Language'] == 'de'
+
+
+def test_list_headers():
+    app = App(routes=[Route('/', 'GET', list_headers)])
+    client = TestClient(app)
+    response = client.get('/')
+    assert response.headers['Content-Language'] == 'de'
+
+
+def test_object_headers():
+    app = App(routes=[Route('/', 'GET', object_headers)])
+    client = TestClient(app)
+    response = client.get('/')
+    assert response.headers['Content-Language'] == 'de'
