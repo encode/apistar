@@ -174,7 +174,7 @@ def hello(username: str, templates: Templates):
     return index.render(username=username)
 
 routes = [
-    Route('/', 'GET', index)
+    Route('/', 'GET', hello)
 ]
 
 settings = {
