@@ -1,3 +1,5 @@
+from os import environ
+
 import pytest
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
@@ -45,7 +47,7 @@ app = App(
     settings={
         "DATABASE": {
             "TYPE": "SQLALCHEMY",
-            "URL": 'sqlite:///test.db',
+            "URL": environ.get('DB_URL', 'sqlite:///test.db'),
             "METADATA": Base.metadata
         }
     }

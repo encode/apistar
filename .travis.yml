@@ -6,8 +6,18 @@ python:
     - "3.5"
     - "3.6"
 
+env:
+    - DB_URL=sqlite:///test.db
+    - DB_URL=postgresql://localhost/apistar
+
 install:
     - pip install -r requirements.txt
+
+services:
+  - postgresql
+
+before_script:
+  - psql -c 'create database apistar;' -U postgres
 
 script:
     - scripts/lint
