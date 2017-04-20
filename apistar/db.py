@@ -11,25 +11,25 @@ class DBBackend(object):
         self.metadata = metadata
 
     @classmethod
-    def build(cls, db_engine_config: Dict):
-        if db_engine_config and db_engine_config.get('TYPE') == "SQLALCHEMY":
-            if 'DB_URL' in db_engine_config:
+    def build(cls, db_config: Dict):
+        if db_config and db_config.get('TYPE') == "SQLALCHEMY":
+            if 'URL' in db_config:
 
                 from sqlalchemy import create_engine
                 from sqlalchemy.orm import sessionmaker
 
                 engine = create_engine(
-                    db_engine_config['DB_URL'],
+                    db_config['URL'],
                     echo=True,
                     echo_pool=True,
-                    pool_size=db_engine_config.get('DB_POOL_SIZE', 5)
+                    pool_size=db_config.get('POOL_SIZE', 5)
                 )
                 session_class = sessionmaker(bind=engine)
 
                 db_backend = cls(
                     engine=engine,
                     session_class=session_class,
-                    metadata=db_engine_config.get('METADATA')
+                    metadata=db_config.get('METADATA')
                 )
 
                 return db_backend

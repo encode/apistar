@@ -7,5 +7,5 @@ def create_tables():
     """
     from apistar.main import get_current_app
     app = get_current_app()
-    db_backend = DBBackend.build(db_engine_config=app.db_engine_config)
+    db_backend = DBBackend.build(db_config=app.settings.get('DATABASE', {}))
     db_backend.create_tables()
