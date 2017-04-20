@@ -203,6 +203,53 @@ explicit `Content-Type` header.
 
 ---
 
+# Settings
+
+Application settings are configured at the point of instantiating the app.
+
+
+```python
+routes = [...]
+
+settings = {
+    'TEMPLATES': {
+        'TEMPLATE_DIR': '/foo/bar'
+    }
+}
+
+app = App(routes=routes, settings=settings)
+```
+
+You can include the application settings in a view, by using the `Settings`
+type annotation:
+
+```python
+from apistar.settings import Settings
+
+
+def debug_settings(settings: Settings):
+    """
+    Return a JSON response containing the application settings dictionary.
+    """
+    return settings
+```
+
+Similarly you can include a single application setting:
+
+```python
+def debug_template_settings(TEMPLATES: Setting):
+    """
+    Return a JSON response containing the application settings dictionary.
+    """
+    return {'TEMPLATES': TEMPLATES}
+```
+
+More typically you'll want to include settings into the `build` method of
+custom components, so that you can control their initialization, based on the
+application settings.
+
+---
+
 # Testing
 
 API Star includes the `py.test` testing framework. You can run all tests in
@@ -299,6 +346,7 @@ Component              | Description
 `routing.URLPathArgs`  | A dictionary containing all the matched URL path arguments.
 `routing.URLPathArg`   | A single URL path argument, corresponding to the keyword argument name. Automatically used for data arguments with a matching URL path component.
 `settings.Settings`    | A dictionary containing the application settings.
+`settings.Setting`     | A single named setting, as determined by the argument name.
 `templating.Templates` | The template environment.
 `templating.Template`  | A single loaded template, as determined by the argument name.
 `wsgi.Environ`         | The WSGI environ of the incoming request.
