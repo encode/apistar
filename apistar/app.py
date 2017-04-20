@@ -1,6 +1,6 @@
 import inspect
-import os
 from collections import OrderedDict
+from typing import Any, Callable, Dict, List
 
 import click
 
@@ -14,22 +14,20 @@ class App(object):
         commands.test,
     )
 
-    def __init__(self, routes=None, commands=None):
+    def __init__(self,
+                 routes: List[routing.Route] = None,
+                 commands: List[Callable] = None,
+                 settings: Dict[str, Any] = None) -> None:
         routes = [] if (routes is None) else routes
         commands = [] if (commands is None) else commands
 
         self.routes = routes
         self.commands = list(self.built_in_commands) + commands
+        self.settings = settings or {}
 
         self.router = routing.Router(self.routes)
         self.wsgi = get_wsgi_server(app=self)
         self.click = get_click_client(app=self)
-
-
-class AppRoot(str):
-    @classmethod
-    def build(cls):
-        return os.getcwd()
 
 
 def get_wsgi_server(app, lookup_cache_size=10000):
