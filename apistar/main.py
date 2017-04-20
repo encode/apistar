@@ -7,7 +7,6 @@ import sys
 
 import click
 
-from apistar import App
 from apistar.exceptions import ConfigurationError
 
 sys.dont_write_bytecode = True
@@ -38,6 +37,8 @@ def setup_pythonpath():
 
 
 def main():  # pragma: no cover
+    from apistar import App
+
     setup_pythonpath()
     app_path = get_app_path()
     if os.path.exists(app_path):

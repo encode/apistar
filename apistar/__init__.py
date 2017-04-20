@@ -9,8 +9,10 @@ from apistar.app import App
 from apistar.http import Request, Response
 from apistar.routing import Route
 from apistar.templating import Template, Templates
+from apistar.test import TestClient
+
 
 __version__ = '0.1.9'
 __all__ = [
-    'App', 'Route', 'Request', 'Response', 'Template', 'Templates'
+    'App', 'Route', 'Request', 'Response', 'Template', 'Templates', 'TestClient'
 ]
