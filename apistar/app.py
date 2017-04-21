@@ -22,6 +22,7 @@ class App(object):
                  commands: List[Callable] = None,
                  settings: Dict[str, Any] = None) -> None:
         from apistar.settings import Settings
+        from apistar.templating import Templates
 
         routes = [] if (routes is None) else routes
         commands = [] if (commands is None) else commands
@@ -30,7 +31,15 @@ class App(object):
         self.commands = list(self.built_in_commands) + commands
         self.settings = Settings(settings or {})
 
-        self.router = routing.Router(self.routes)
+        initial_types = [App]  # type: List[type]
+        self.preloaded = {
+            'app': self
+        }
+        if 'TEMPLATES' in self.settings:
+            initial_types.append(Templates)
+            self.preloaded['templates'] = Templates.build(self.settings)
+
+        self.router = routing.Router(self.routes, initial_types)
         self.wsgi = get_wsgi_server(app=self)
         self.click = get_click_client(app=self)
 
@@ -42,6 +51,7 @@ def get_wsgi_server(app):
         ['ROUTING', 'LOOKUP_CACHE_SIZE'],
         DEFAULT_LOOKUP_CACHE_SIZE
     )
+    preloaded = app.preloaded
 
     # Pre-fill the lookup cache for URLs without path arguments.
     for path, method, view in app.router.routes:
@@ -55,13 +65,13 @@ def get_wsgi_server(app):
         lookup_key = method + ' ' + path
         state = {
             'wsgi_environ': environ,
-            'app': app,
             'method': method,
             'path': path,
             'exception': None,
             'view': None,
             'url_path_args': {}
         }
+        state.update(preloaded)
 
         try:
             try:

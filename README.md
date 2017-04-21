@@ -181,7 +181,7 @@ routes = [
 
 settings = {
     'TEMPLATES': {
-        'TEMPLATE_DIR': os.path.join(ROOT_DIR, 'templates')
+        'DIRS': [os.path.join(ROOT_DIR, 'templates')]
     }
 }
 
