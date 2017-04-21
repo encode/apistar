@@ -97,7 +97,8 @@ class URL(str):
 class Body(bytes):
     @classmethod
     def build(cls, environ: WSGIEnviron):
-        return environ['wsgi.input'].read()
+        content_length = int(environ.get('CONTENT_LENGTH', 0))
+        return environ['wsgi.input'].read(content_length)
 
 
 class Headers(ImmutableHeadersMixin, WerkzeugHeaders):
