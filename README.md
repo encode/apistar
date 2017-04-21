@@ -7,6 +7,8 @@ A smart Web API framework, designed for Python 3.
 [![Package version](https://badge.fury.io/py/apistar.svg)](https://pypi.python.org/pypi/apistar)
 [![Python versions](https://img.shields.io/pypi/pyversions/apistar.svg)](https://www.python.org/doc/versions/)
 
+**Community:** http://discuss.apistar.org/ 🤔 💭 🤓 💬 😎
+
 ---
 
 Install API Star:
@@ -24,9 +26,13 @@ Create a new project:
     def welcome():
         return {'message': 'Welcome to API Star!'}
 
-    app = App(routes=[
+
+    routes = [
         Route('/', 'GET', welcome)
-    ])
+    ]
+
+    app = App(routes=routes)
+
 
 Run the application:
 
@@ -179,7 +185,7 @@ routes = [
 
 settings = {
     'TEMPLATES': {
-        'TEMPLATE_DIR': os.path.join(ROOT_DIR, 'templates')
+        'DIRS': [os.path.join(ROOT_DIR, 'templates')]
     }
 }
 
