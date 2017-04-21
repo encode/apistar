@@ -26,6 +26,7 @@ class Kitten(Base):  # type: ignore
 def list_kittens(db_backend: DBBackend):
     session = db_backend.session_class()
     kittens = session.query(Kitten).all()
+    session.close()
     return {
         'kittens': [kitten.serialize() for kitten in kittens]
     }
@@ -36,7 +37,9 @@ def create_kitten(db_backend: DBBackend, name: http.QueryParam):
     add_kitten = Kitten(name=name)
     session.add(add_kitten)
     session.commit()
-    return add_kitten.serialize()
+    created_kitten = add_kitten.serialize()
+    session.close()
+    return created_kitten
 
 
 app = App(
