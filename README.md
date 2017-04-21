@@ -26,6 +26,7 @@ Create a new project:
     def welcome():
         return {'message': 'Welcome to API Star!'}
 
+
     routes = [
         Route('/', 'GET', welcome)
     ]
