@@ -91,5 +91,7 @@ def test_template_not_found():
             'DIRS': []
         }
     )
+    app = App(routes=routes, settings=settings)
+    client = TestClient(app)
     with pytest.raises(ConfigurationError):
-        app = App(routes=routes, settings=settings)
+        client.get('/render_template/?username=tom')

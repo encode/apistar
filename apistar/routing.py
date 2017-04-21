@@ -8,7 +8,7 @@ from uritemplate import URITemplate
 from werkzeug.routing import Map, Rule
 from werkzeug.serving import is_running_from_reloader
 
-from apistar import app, exceptions, http, pipelines, schema, wsgi
+from apistar import exceptions, http, pipelines, schema, wsgi
 from apistar.pipelines import ArgName, Pipeline
 
 # TODO: Path
@@ -49,9 +49,10 @@ RouterLookup = Tuple[Callable, Pipeline, URLPathArgs]
 
 
 class Router(object):
-    def __init__(self, routes: List[Route]) -> None:
+    def __init__(self, routes: List[Route], initial_types: List[type]=None) -> None:
         required_type = wsgi.WSGIResponse
-        initial_types = [app.App, wsgi.WSGIEnviron, URLPathArgs, Exception]
+        initial_types = initial_types or []
+        initial_types += [wsgi.WSGIEnviron, URLPathArgs, Exception]
 
         rules = []
         views = {}

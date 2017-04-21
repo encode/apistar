@@ -11,6 +11,7 @@ class Templates(jinja2.Environment):
     @classmethod
     def build(cls, settings: Settings):
         template_dirs = settings.get(['TEMPLATES', 'DIRS'])
+        loader = None  # type: jinja2.BaseLoader
         if len(template_dirs) == 1:
             loader = jinja2.FileSystemLoader(template_dirs[0])
         else:
