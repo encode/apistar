@@ -256,6 +256,79 @@ application settings.
 
 ---
 
+# SQLAlchemy Backend
+
+APIstar has support for SQLAlchemy. To use this you first need to install `sqlalchemy` and your chosen DBAPI (e.g. `psycopg2` for PostgreSQL).
+
+
+```bash
+$ pip install sqlalchemy
+$ pip install psycopg2
+```
+
+**Settings**
+
+You then need to add the database config to your settings passing in an SQLAlchemy [`Metadata`](http://docs.sqlalchemy.org/en/latest/core/metadata.html) instance into the config.
+
+```python
+    from sqlalchemy.ext.declarative import declarative_base
+
+    Base = declarative_base()
+
+    class Kitten(Base):
+        __tablename__ = "Kitten"
+        id = Column(Integer, primary_key=True)
+        name = Column(String)
+
+    # in app.py
+
+    routes = [...]
+
+    settings = {
+        "DATABASE": {
+            "TYPE": "SQLALCHEMY",
+            "URL": "postgresql://:@localhost/apistar",
+            "METADATA": Base.metadata
+        }
+    }
+
+    app = App(routes=routes, settings=settings)
+)
+```
+
+*Note: You do not have to use `declarative_base` and can instead use the standard `MetaData` class if you prefer.*
+
+
+**Creating the database tables**
+
+Before starting you app you will likely need to create the database tables declared in your MetaData which you can do with the following command:
+
+```bash
+$ apistar create_tables
+```
+
+
+**Accessing the database**
+
+To access the database in your view, or component, add the `db_backend` argument with a `DBBackend` class annotation. `db_backend` has the following attributes:
+
+- `engine` - The global [`Engine`](http://docs.sqlalchemy.org/en/latest/core/connections.html#sqlalchemy.engine.Engine) instance.
+- `metadata` - The [`MetaData`](http://docs.sqlalchemy.org/en/latest/core/metadata.html#sqlalchemy.schema.MetaData) object passed into the settings.
+- `session_class` - A bound [`sessionmaker`](http://docs.sqlalchemy.org/en/latest/orm/session_api.html#session-and-sessionmaker) factory.
+
+```python
+from apistar import DBBackend
+
+def create_kitten(db_backend: DBBackend):
+    session = db_backend.session_class()
+    add_kitten = Kitten(name='Grumpy Cat')
+    session.add(add_kitten)
+    session.commit()
+```
+
+
+---
+
 # Testing
 
 API Star includes the `py.test` testing framework. You can run all tests in
