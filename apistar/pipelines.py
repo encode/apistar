@@ -38,7 +38,8 @@ def parameterize_by_argument_name(cls: type) -> bool:
     return False
 
 
-def get_class_id(cls: type, arg_name: str=None) -> str:
+def get_class_id(cls: type,
+                 arg_name: str=None) -> str:
     # http://stackoverflow.com/questions/1175208/elegant-python-function-to-convert-camelcase-to-snake-case
     name = cls.__name__
     s1 = FIRST_CAP_RE.sub(r'\1_\2', name)
@@ -48,7 +49,8 @@ def get_class_id(cls: type, arg_name: str=None) -> str:
     return s2
 
 
-def run_pipeline(pipeline: Pipeline, state: Dict[str, Any]) -> None:
+def run_pipeline(pipeline: Pipeline,
+                 state: Dict[str, Any]) -> None:
     for function, inputs, output, extra_kwargs in pipeline:
 
         kwargs = {}
@@ -60,7 +62,9 @@ def run_pipeline(pipeline: Pipeline, state: Dict[str, Any]) -> None:
         state[output] = function(**kwargs)
 
 
-def _build_step(function: Callable, arg_name: str=None, extra_annotations: Dict[str, Any]=None) -> Step:
+def _build_step(function: Callable,
+                arg_name: str=None,
+                extra_annotations: Dict[str, Any]=None) -> Step:
     """
     Given a function, return the single pipeline step that
     corresponds to calling that function.
