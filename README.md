@@ -7,6 +7,8 @@ A smart Web API framework, designed for Python 3.
 [![Package version](https://badge.fury.io/py/apistar.svg)](https://pypi.python.org/pypi/apistar)
 [![Python versions](https://img.shields.io/pypi/pyversions/apistar.svg)](https://www.python.org/doc/versions/)
 
+Community: http://discuss.apistar.org/ 🤔 💭 🤓 💬 😎
+
 ---
 
 Install API Star:
