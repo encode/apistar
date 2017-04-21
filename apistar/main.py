@@ -7,16 +7,17 @@ import sys
 
 import click
 
+from apistar.app import App
 from apistar.exceptions import ConfigurationError
 
 sys.dont_write_bytecode = True
 
 
-def get_app_path():
+def get_app_path() -> str:
     return os.path.join(os.getcwd(), 'app.py')
 
 
-def get_current_app():
+def get_current_app() -> App:
     app_path = get_app_path()
     if not os.path.exists(app_path):
         raise ConfigurationError("No app.py module exists.")
@@ -27,18 +28,16 @@ def get_current_app():
     if not hasattr(module, 'app'):
         raise ConfigurationError("The app.py module did not contain an 'app' variable.")
 
-    app = module.app
+    app = module.app  # type: ignore
     return app
 
 
-def setup_pythonpath():
+def setup_pythonpath() -> None:
     cwd = os.getcwd()
     sys.path.insert(0, cwd)
 
 
-def main():  # pragma: no cover
-    from apistar import App
-
+def main() -> None:  # pragma: no cover
     setup_pythonpath()
     app_path = get_app_path()
     if os.path.exists(app_path):
