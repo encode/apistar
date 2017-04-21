@@ -25,10 +25,10 @@ def get_current_app() -> App:
     spec = importlib.util.spec_from_file_location("app", app_path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
-    if not hasattr(module, 'app'):
+    app = getattr(module, 'app', None)
+    if app is None:
         raise ConfigurationError("The app.py module did not contain an 'app' variable.")
 
-    app = module.app  # type: ignore
     return app
 
 
