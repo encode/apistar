@@ -7,7 +7,7 @@ from werkzeug.datastructures import (
 )
 from werkzeug.urls import url_decode
 
-import ujson as json
+from apistar.compat import json
 from apistar.pipelines import ArgName
 from apistar.schema import validate
 
