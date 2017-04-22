@@ -10,6 +10,7 @@ from werkzeug.serving import is_running_from_reloader
 
 from apistar import exceptions, http, pipelines, schema, wsgi
 from apistar.pipelines import ArgName, Pipeline
+from apistar.settings import Settings
 
 # TODO: Path
 # TODO: Redirects
