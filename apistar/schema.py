@@ -1,9 +1,6 @@
 import re
 from typing import Any, Dict, List, Tuple, Union  # noqa
 
-from apistar.exceptions import SchemaError, ValidationError
-
-
 # TODO: Validation errors
 # TODO: Error on unknown attributes
 # TODO: allow_blank?
@@ -20,6 +17,7 @@ from apistar.exceptions import SchemaError, ValidationError
 
 
 def validate(schema, value):
+    from apistar.exceptions import SchemaError, ValidationError
     try:
         return schema(value)
     except SchemaError as exc:
@@ -42,6 +40,8 @@ class String(str):
     trim_whitespace = True
 
     def __new__(cls, *args, **kwargs):
+        from apistar.exceptions import SchemaError
+
         assert len(args) == 1 and not kwargs
         value = str.__new__(cls, *args)
 
@@ -86,6 +86,7 @@ class _NumericType(object):
     multiple_of = None  # type: Union[float, int]
 
     def __new__(cls, *args, **kwargs):
+        from apistar.exceptions import SchemaError
         assert len(args) == 1 and not kwargs
         value = args[0]
         try:
@@ -135,6 +136,8 @@ class Boolean(object):
     }
 
     def __new__(self, *args, **kwargs):
+        from apistar.exceptions import SchemaError
+
         assert len(args) == 1 and not kwargs
         value = args[0]
 
