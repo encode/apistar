@@ -89,6 +89,14 @@ def test_405():
     }
 
 
+def test_found_no_slash():
+    response = client.get('/found')
+    assert response.status_code == 200
+    assert response.json() == {
+        'message': 'Found'
+    }
+
+
 def test_path_params():
     response = client.get('/path_params/1/')
     assert response.json() == {

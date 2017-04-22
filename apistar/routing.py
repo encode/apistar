@@ -132,6 +132,8 @@ class Router(object):
             raise exceptions.NotFound()
         except werkzeug.exceptions.MethodNotAllowed:
             raise exceptions.MethodNotAllowed()
+        except werkzeug.routing.RequestRedirect:
+            (name, kwargs) = self.adapter.match("{}/".format(path), method)
         (view, pipeline) = self.views[name]
         return (view, pipeline, kwargs)
 
