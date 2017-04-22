@@ -7,6 +7,10 @@ requests
 ujson
 werkzeug
 
+# Optional
+psycopg2
+sqlalchemy
+
 # Testing requirements
 codecov
 flake8
