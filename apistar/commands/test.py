@@ -6,7 +6,7 @@ import pytest
 from apistar.exceptions import ConfigurationError
 
 
-def test():
+def test() -> None:
     """
     Run the test suite.
     """

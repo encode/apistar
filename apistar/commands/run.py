@@ -14,7 +14,7 @@ class Port(schema.Integer):
     default = 8080
 
 
-def run(host: Host, port: Port):  # pragma: nocover
+def run(host: Host, port: Port) -> None:  # pragma: nocover
     """
     Run the current app.
     """
