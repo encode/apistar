@@ -355,8 +355,8 @@ Component              | Description
 `settings.Setting`     | A single named setting, as determined by the argument name.
 `templating.Templates` | The template environment.
 `templating.Template`  | A single loaded template, as determined by the argument name.
-`wsgi.Environ`         | The WSGI environ of the incoming request.
-`wsgi.Response`        | A return type for directly returning a WSGI response.
+`wsgi.WSGIEnviron`     | The WSGI environ of the incoming request.
+`wsgi.WSGIResponse`    | A return type for directly returning a WSGI response.
 
 ---
 
