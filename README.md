@@ -419,6 +419,36 @@ The recommended production deployment is GUnicorn, using the Meinheld worker.
 
 Typically you'll want to run as many workers as you have CPU cores on the server.
 
+## "Serverless" deployments
+
+API Star can also be deployed on so called "serverless" platforms.
+A good option for using API Star with this style of deployment is [Zappa](https://github.com/Miserlou/Zappa), which allows you to deploy
+any Python WSGI server onto AWS Lambda.
+
+In order to use `zappa`, you'll need to expose the app.wsgi property
+to the top level of the `app.py` module.
+
+```python
+app = App(...)
+
+wsgi_app = app.wsgi
+```
+
+You should then follow [Zappa's installation instructions](https://github.com/Miserlou/Zappa#installation-and-configuration).
+
+Your `zappa_settings.json` configuration file should look something like this:
+
+```
+{
+    "dev": {
+        "app_function": "app.wsgi_app",
+        "aws_region": "us-east-1",
+        "profile_name": "default",
+        "s3_bucket": "<a-unique-s3-bucket-name>",
+    }
+}
+```
+
 ---
 
 # Development
