@@ -17,7 +17,7 @@ Install API Star:
 
 Create a new project:
 
-    $ apistar new --layout minimal .
+    $ apistar new . --layout minimal
     app.py
     tests.py
     $ cat app.py
