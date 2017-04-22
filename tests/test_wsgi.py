@@ -39,7 +39,7 @@ def test_wsgi_environ():
         'SCRIPT_NAME': '',
         'wsgi.input': None,
         'wsgi.url_scheme': 'http',
-        'APISTAR_RAISE_500_EXC':  True
+        'APISTAR_RAISE_500_EXC': True
     }}
 
 

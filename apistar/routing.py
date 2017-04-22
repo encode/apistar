@@ -51,6 +51,7 @@ RouterLookup = Tuple[Callable, Pipeline, URLPathArgs]
 class Router(object):
     def __init__(self, routes: List[Route], initial_types: List[type]=None) -> None:
         required_type = wsgi.WSGIResponse
+
         initial_types = initial_types or []
         initial_types += [wsgi.WSGIEnviron, URLPathArgs, Exception]
 

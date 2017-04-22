@@ -8,3 +8,4 @@ __pycache__
 /venv
 /build
 coverage.xml
+test.db
