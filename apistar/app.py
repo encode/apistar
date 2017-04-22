@@ -4,7 +4,7 @@ from typing import Any, Callable, Dict, List
 
 import click
 
-from apistar import commands, pipelines, routing, schema
+from apistar import commands, pipelines, schema
 
 
 DEFAULT_LOOKUP_CACHE_SIZE = 10000
@@ -18,11 +18,12 @@ class App(object):
     )
 
     def __init__(self,
-                 routes: List[routing.Route] = None,
+                 routes: List = None,
                  commands: List[Callable] = None,
                  settings: Dict[str, Any] = None) -> None:
         from apistar.settings import Settings
         from apistar.templating import Templates
+        from apistar.routing import Router
 
         routes = [] if (routes is None) else routes
         commands = [] if (commands is None) else commands
@@ -39,7 +40,7 @@ class App(object):
             initial_types.append(Templates)
             self.preloaded['templates'] = Templates.build(self.settings)
 
-        self.router = routing.Router(self.routes, initial_types)
+        self.router = Router(self.routes, initial_types)
         self.wsgi = get_wsgi_server(app=self)
         self.click = get_click_client(app=self)
 
