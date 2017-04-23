@@ -5,7 +5,8 @@ from sqlalchemy import Column, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
 
 import apistar
-from apistar import App, DBBackend, http, routing, test
+from apistar import App, http, routing, test
+from apistar.backends import SQLAlchemy
 from apistar.test import CommandLineRunner
 
 Base = declarative_base()
@@ -23,8 +24,8 @@ class Kitten(Base):  # type: ignore
         }
 
 
-def list_kittens(db_backend: DBBackend):
-    session = db_backend.session_class()
+def list_kittens(db: SQLAlchemy):
+    session = db.session_class()
     kittens = session.query(Kitten).all()
     session.close()
     return {
@@ -32,8 +33,8 @@ def list_kittens(db_backend: DBBackend):
     }
 
 
-def create_kitten(db_backend: DBBackend, name: http.QueryParam):
-    session = db_backend.session_class()
+def create_kitten(db: SQLAlchemy, name: http.QueryParam):
+    session = db.session_class()
     add_kitten = Kitten(name=name)
     session.add(add_kitten)
     session.commit()
@@ -49,7 +50,6 @@ app = App(
     ],
     settings={
         "DATABASE": {
-            "TYPE": "SQLALCHEMY",
             "URL": environ.get('DB_URL', 'sqlite:///test.db'),
             "METADATA": Base.metadata
         }
@@ -64,7 +64,7 @@ runner = CommandLineRunner(app)
 @pytest.fixture
 def clear_db(scope="function"):
     yield
-    db_backend = DBBackend.build(db_config=app.settings['DATABASE'])
+    db_backend = SQLAlchemy.build(settings=app.settings)
     db_backend.drop_tables()
 
 
@@ -86,14 +86,3 @@ def test_list_create(monkeypatch, clear_db):
     response = client.get('http://example.com/kittens/')
     assert response.status_code == 200
     assert response.json() == {'kittens': [created_kitten]}
-
-
-def test_bad_db_component_config():
-    bad_config = {
-        "DATABASE": {
-            "TYPE": "SQLALCHEMY",
-        }
-    }
-
-    db_backend = DBBackend.build(db_config=bad_config)
-    assert db_backend is None

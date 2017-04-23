@@ -9,7 +9,6 @@ from werkzeug.routing import Map, Rule
 from werkzeug.serving import is_running_from_reloader
 
 from apistar import exceptions, http, pipelines, schema, wsgi
-from apistar.db import DBBackend
 from apistar.pipelines import ArgName, Pipeline
 
 # TODO: Path
@@ -54,7 +53,7 @@ class Router(object):
         required_type = wsgi.WSGIResponse
 
         initial_types = initial_types or []
-        initial_types += [DBBackend, wsgi.WSGIEnviron, URLPathArgs, Exception]
+        initial_types += [wsgi.WSGIEnviron, URLPathArgs, Exception]
 
         rules = []
         views = {}

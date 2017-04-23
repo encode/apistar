@@ -286,7 +286,6 @@ You then need to add the database config to your settings passing in an SQLAlche
 
     settings = {
         "DATABASE": {
-            "TYPE": "SQLALCHEMY",
             "URL": "postgresql://:@localhost/apistar",
             "METADATA": Base.metadata
         }

@@ -4,15 +4,16 @@ coreapi
 jinja2
 pytest
 requests
-SQLAlchemy
 ujson
 werkzeug
+
+# Optional
+psycopg2
+sqlalchemy
 
 # Testing requirements
 codecov
 flake8
 isort
 mypy
-psycopg2
 pytest-cov
-SQLAlchemy
