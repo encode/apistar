@@ -20,7 +20,8 @@ primitive_types = (
 )
 
 schema_types = (
-    schema.String, schema.Integer, schema.Number, schema.Boolean
+    schema.String, schema.Integer, schema.Number, schema.Boolean,
+    schema.Object
 )
 
 Route = namedtuple('Route', ['path', 'method', 'view'])
@@ -109,6 +110,10 @@ class Router(object):
                     class TypedURLPathArg(URLPathArg):
                         schema = annotated_type
                     extra_annotations[param.name] = TypedURLPathArg
+                elif issubclass(annotated_type, schema.Object):
+                    class TypedDataParam(http.RequestData):
+                        schema = annotated_type
+                    extra_annotations[param.name] = TypedDataParam
                 elif (annotated_type in primitive_types) or issubclass(annotated_type, schema_types):
                     class TypedQueryParam(http.QueryParam):
                         schema = annotated_type
@@ -139,7 +144,11 @@ class Router(object):
 
 def exception_handler(environ: wsgi.WSGIEnviron, exc: Exception) -> http.Response:
     if isinstance(exc, exceptions.APIException):
-        return http.Response({'message': exc.message}, exc.status_code)
+        if isinstance(exc.message, str):
+            content = {'message': exc.message}
+        else:
+            content = exc.message
+        return http.Response(content, exc.status_code)
 
     if is_running_from_reloader() or environ.get('APISTAR_RAISE_500_EXC'):
         raise
