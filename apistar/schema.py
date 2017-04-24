@@ -189,7 +189,10 @@ class Object(dict):
         return dict.__new__(cls, *args)
 
     def __init__(self, value):
-        value = dict(value)
+        try:
+            value = dict(value)
+        except TypeError:
+            raise SchemaError(error_message(self, 'type'))
 
         # Ensure all property keys are strings.
         errors = {}
