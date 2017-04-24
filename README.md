@@ -256,10 +256,10 @@ application settings.
 
 ---
 
-# SQLAlchemy Backend
+# SQLAlchemy
 
-APIstar has optional support for SQLAlchemy. To use this you first need to
-install `sqlalchemy` and your chosen DBAPI (e.g. `psycopg2` for PostgreSQL).
+API Star has optional support for [SQLAlchemy](https://www.sqlalchemy.org/).
+To use this you first need to install `sqlalchemy` and your chosen [database driver](http://docs.sqlalchemy.org/en/latest/core/engines.html#database-urls).
 
 
 ```bash
@@ -269,10 +269,14 @@ $ pip install psycopg2
 
 **Settings**
 
-You then need to add the database config to your settings passing in an SQLAlchemy [`Metadata`](http://docs.sqlalchemy.org/en/latest/core/metadata.html) instance into the config.
+You then need to add the database config to your settings:
+
+* `URL` - The [Database URL](http://docs.sqlalchemy.org/en/latest/core/engines.html#database-urls).
+* `METADATA` - The SQLAlchemy [`Metadata`](http://docs.sqlalchemy.org/en/latest/core/metadata.html) instance, typically from the `declarative_base`.
 
 ```python
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Column, Integer, String
 
 Base = declarative_base()
 
@@ -293,7 +297,13 @@ settings = {
 app = App(routes=routes, settings=settings)
 ```
 
-*Note: You do not have to use `declarative_base` and can instead use the standard `MetaData` class if you prefer.*
+A few common configurations are listed below.
+
+Database   | Driver                      | URL format
+---------- | --------------------------- | ----------------
+PostgreSQL | `psycopg2`                  | 'postgresql://<username>:<password>@localhost/example'
+MySQL      | `mysql-python`              | 'mysql://<username>:<password>@localhost/example'
+SQLite     | `sqlite3` (Python built-in) | 'sqlite:///example.db'
 
 **Creating the database tables**
 
