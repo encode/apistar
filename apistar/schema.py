@@ -4,11 +4,9 @@ from typing import Any, Dict, List, Tuple, Union  # noqa
 from apistar.exceptions import SchemaError, ValidationError
 
 
-# TODO: Validation errors
 # TODO: Error on unknown attributes
 # TODO: allow_blank?
 # TODO: format (check type at start and allow, coerce, .native)
-# TODO: Enum
 # TODO: Array
 # TODO: default=empty
 # TODO: check 'required' exists in 'properties'
@@ -165,6 +163,28 @@ class Boolean(object):
             except KeyError:
                 raise SchemaError(error_message(cls, 'type'))
         return bool(value)
+
+
+class Enum(str):
+    errors = {
+        'enum': 'Must be a valid choice.',
+        'exact': 'Must be {exact}.'
+    }
+    enum = []  # type: List[str]
+
+    def __new__(cls, *args, **kwargs):
+        if kwargs:
+            assert not args
+            return type(cls.__name__, (cls,), kwargs)
+
+        assert len(args) == 1
+        value = args[0]
+
+        if value not in cls.enum:
+            if len(cls.enum) == 1:
+                raise SchemaError(error_message(cls, 'exact'))
+            raise SchemaError(error_message(cls, 'enum'))
+        return value
 
 
 class Object(dict):
