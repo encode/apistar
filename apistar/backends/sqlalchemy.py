@@ -16,7 +16,7 @@ class SQLAlchemy(object):
         metadata = config.get('METADATA')
 
         kwargs = {}
-        if url.startswith('postgresql:'):  # pragma: no cover
+        if url.startswith('postgresql'):  # pragma: no cover
             kwargs['pool_size'] = config.get('POOL_SIZE', 5)
 
         from sqlalchemy import create_engine

@@ -64,7 +64,7 @@ runner = CommandLineRunner(app)
 @pytest.fixture
 def clear_db(scope="function"):
     yield
-    db_backend = SQLAlchemy.build(settings=app.settings)
+    db_backend = SQLAlchemy.build(app.settings)
     db_backend.drop_tables()
 
 
