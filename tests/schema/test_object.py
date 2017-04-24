@@ -16,6 +16,7 @@ class HighScore(schema.Object):
         'name': schema.String(max_length=100),
         'score': schema.Integer(minimum=0, maximum=100),
         'completed': schema.Boolean,
+        'difficulty': schema.Enum(enum=['easy', 'medium', 'hard']),
         'location': Location(default={'latitude': 0.0, 'longitude': 0.0})
     }
     required = ['name']
@@ -58,10 +59,12 @@ def test_valid_object():
 def test_invalid_object():
     response = client.post('/basic_object/', json={
         'score': 105,
+        'difficulty': 'foo'
     })
     assert response.status_code == 400
     assert response.json() == {
         'name': 'This field is required.',
+        'difficulty': 'Must be a valid choice.',
         'score': 'Must be less than or equal to 100.'
     }
 

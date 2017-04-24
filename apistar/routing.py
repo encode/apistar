@@ -21,7 +21,7 @@ primitive_types = (
 
 schema_types = (
     schema.String, schema.Integer, schema.Number, schema.Boolean,
-    schema.Object
+    schema.Enum, schema.Object
 )
 
 Route = namedtuple('Route', ['path', 'method', 'view'])
@@ -131,7 +131,7 @@ class Router(object):
         self.adapter = Map(rules).bind('example.com')
         self.views = views
 
-    def lookup(self, path, method) -> RouterLookup:
+    def lookup(self, path: str, method: str) -> RouterLookup:
         try:
             (name, kwargs) = self.adapter.match(path, method)
         except werkzeug.exceptions.NotFound:
