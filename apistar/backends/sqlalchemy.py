@@ -13,7 +13,7 @@ class SQLAlchemy(object):
     def build(cls, settings: Settings):
         config = settings['DATABASE']
         url = config['URL']
-        metadata = config.get('METADATA')
+        metadata = config['METADATA']
 
         kwargs = {}
         if url.startswith('postgresql'):  # pragma: no cover
