@@ -6,7 +6,7 @@ from apistar.test import TestClient
 
 
 def handled_exception():
-    raise APIException(message='error', status_code=400)
+    raise APIException(detail='error', status_code=400)
 
 
 def unhandled_exception():

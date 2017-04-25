@@ -144,10 +144,10 @@ class Router(object):
 
 def exception_handler(environ: wsgi.WSGIEnviron, exc: Exception) -> http.Response:
     if isinstance(exc, exceptions.APIException):
-        if isinstance(exc.message, str):
-            content = {'message': exc.message}
+        if isinstance(exc.detail, str):
+            content = {'message': exc.detail}
         else:
-            content = exc.message
+            content = exc.detail
         return http.Response(content, exc.status_code)
 
     if is_running_from_reloader() or environ.get('APISTAR_RAISE_500_EXC'):
