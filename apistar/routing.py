@@ -20,7 +20,8 @@ primitive_types = (
 )
 
 schema_types = (
-    schema.String, schema.Integer, schema.Number, schema.Boolean
+    schema.String, schema.Integer, schema.Number, schema.Boolean,
+    schema.Enum, schema.Object
 )
 
 Route = namedtuple('Route', ['path', 'method', 'view'])
@@ -51,6 +52,7 @@ RouterLookup = Tuple[Callable, Pipeline, URLPathArgs]
 class Router(object):
     def __init__(self, routes: List[Route], initial_types: List[type]=None) -> None:
         required_type = wsgi.WSGIResponse
+
         initial_types = initial_types or []
         initial_types += [wsgi.WSGIEnviron, URLPathArgs, Exception]
 
@@ -108,6 +110,10 @@ class Router(object):
                     class TypedURLPathArg(URLPathArg):
                         schema = annotated_type
                     extra_annotations[param.name] = TypedURLPathArg
+                elif issubclass(annotated_type, schema.Object):
+                    class TypedDataParam(http.RequestData):
+                        schema = annotated_type
+                    extra_annotations[param.name] = TypedDataParam
                 elif (annotated_type in primitive_types) or issubclass(annotated_type, schema_types):
                     class TypedQueryParam(http.QueryParam):
                         schema = annotated_type
@@ -125,7 +131,7 @@ class Router(object):
         self.adapter = Map(rules).bind('example.com')
         self.views = views
 
-    def lookup(self, path, method) -> RouterLookup:
+    def lookup(self, path: str, method: str) -> RouterLookup:
         try:
             (name, kwargs) = self.adapter.match(path, method)
         except werkzeug.exceptions.NotFound:
@@ -144,7 +150,11 @@ def exception_handler(environ: wsgi.WSGIEnviron, exc: Exception) -> http.Respons
         return http.Response({}, exc.status_code, {'Location': exc.location})
 
     if isinstance(exc, exceptions.APIException):
-        return http.Response({'message': exc.message}, exc.status_code)
+        if isinstance(exc.detail, str):
+            content = {'message': exc.detail}
+        else:
+            content = exc.detail
+        return http.Response(content, exc.status_code)
 
     if is_running_from_reloader() or environ.get('APISTAR_RAISE_500_EXC'):
         raise

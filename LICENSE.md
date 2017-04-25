@@ -1,6 +1,4 @@
-BSD 3-Clause License
-
-Copyright (c) 2017, Tom Christie
+Copyright © 2017, [Encode OSS Ltd](http://www.encode.io/).
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without

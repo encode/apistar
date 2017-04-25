@@ -1,4 +1,6 @@
-from apistar import app, routing, schema, test
+import pytest
+
+from apistar import app, exceptions, routing, schema, test
 
 
 def get_boolean(value: schema.Boolean):
@@ -38,3 +40,10 @@ def test_invalid_boolean():
     response = client.get('/boolean/?value=a')
     assert response.status_code == 400
     assert response.json() == {'message': 'Must be a valid boolean.'}
+
+
+def test_boolean_kwargs():
+    CustomBool = schema.Boolean(errors={'type': 'Must be true or false.'})
+    with pytest.raises(exceptions.SchemaError) as exc:
+        CustomBool('invalid')
+    assert str(exc.value) == 'Must be true or false.'

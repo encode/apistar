@@ -4,11 +4,9 @@ from typing import Any, Dict, List, Tuple, Union  # noqa
 from apistar.exceptions import SchemaError, ValidationError
 
 
-# TODO: Validation errors
 # TODO: Error on unknown attributes
 # TODO: allow_blank?
 # TODO: format (check type at start and allow, coerce, .native)
-# TODO: Enum
 # TODO: Array
 # TODO: default=empty
 # TODO: check 'required' exists in 'properties'
@@ -19,11 +17,15 @@ from apistar.exceptions import SchemaError, ValidationError
 # TODO: Blank booleans as False?
 
 
-def validate(schema, value):
+def validate(schema: type, value: Any):
     try:
         return schema(value)
     except SchemaError as exc:
-        raise ValidationError(message=str(exc))
+        raise ValidationError(detail=exc.detail)
+
+
+def error_message(schema, code):
+    return schema.errors[code].format(**schema.__dict__)
 
 
 class String(str):
@@ -42,7 +44,11 @@ class String(str):
     trim_whitespace = True
 
     def __new__(cls, *args, **kwargs):
-        assert len(args) == 1 and not kwargs
+        if kwargs:
+            assert not args
+            return type(cls.__name__, (cls,), kwargs)
+
+        assert len(args) == 1
         value = str.__new__(cls, *args)
 
         if cls.trim_whitespace:
@@ -51,17 +57,17 @@ class String(str):
         if cls.min_length is not None:
             if len(value) < cls.min_length:
                 if cls.min_length == 1:
-                    raise SchemaError(cls, 'blank')
+                    raise SchemaError(error_message(cls, 'blank'))
                 else:
-                    raise SchemaError(cls, 'min_length')
+                    raise SchemaError(error_message(cls, 'min_length'))
 
         if cls.max_length is not None:
             if len(value) > cls.max_length:
-                raise SchemaError(cls, 'max_length')
+                raise SchemaError(error_message(cls, 'max_length'))
 
         if cls.pattern is not None:
             if not re.search(cls.pattern, value):
-                raise SchemaError(cls, 'pattern')
+                raise SchemaError(error_message(cls, 'pattern'))
 
         return value
 
@@ -86,28 +92,32 @@ class _NumericType(object):
     multiple_of = None  # type: Union[float, int]
 
     def __new__(cls, *args, **kwargs):
-        assert len(args) == 1 and not kwargs
+        if kwargs:
+            assert not args
+            return type(cls.__name__, (cls,), kwargs)
+
+        assert len(args) == 1
         value = args[0]
         try:
             value = cls.native_type.__new__(cls, value)
         except (TypeError, ValueError):
-            raise SchemaError(cls, 'type')
+            raise SchemaError(error_message(cls, 'type'))
 
         if cls.minimum is not None:
             if cls.exclusive_minimum:
                 if value <= cls.minimum:
-                    raise SchemaError(cls, 'exclusive_minimum')
+                    raise SchemaError(error_message(cls, 'exclusive_minimum'))
             else:
                 if value < cls.minimum:
-                    raise SchemaError(cls, 'minimum')
+                    raise SchemaError(error_message(cls, 'minimum'))
 
         if cls.maximum is not None:
             if cls.exclusive_maximum:
                 if value >= cls.maximum:
-                    raise SchemaError(cls, 'exclusive_maximum')
+                    raise SchemaError(error_message(cls, 'exclusive_maximum'))
             else:
                 if value > cls.maximum:
-                    raise SchemaError(cls, 'maximum')
+                    raise SchemaError(error_message(cls, 'maximum'))
 
         if cls.multiple_of is not None:
             if isinstance(cls.multiple_of, float):
@@ -115,7 +125,7 @@ class _NumericType(object):
             else:
                 failed = value % cls.multiple_of
             if failed:
-                raise SchemaError(cls, 'multiple_of')
+                raise SchemaError(error_message(cls, 'multiple_of'))
 
         return value
 
@@ -134,8 +144,12 @@ class Boolean(object):
         'type': 'Must be a valid boolean.'
     }
 
-    def __new__(self, *args, **kwargs):
-        assert len(args) == 1 and not kwargs
+    def __new__(cls, *args, **kwargs):
+        if kwargs:
+            assert not args
+            return type(cls.__name__, (cls,), kwargs)
+
+        assert len(args) == 1
         value = args[0]
 
         if isinstance(value, str):
@@ -147,5 +161,88 @@ class Boolean(object):
                     '0': False
                 }[value.lower()]
             except KeyError:
-                raise SchemaError(self, 'type')
+                raise SchemaError(error_message(cls, 'type'))
         return bool(value)
+
+
+class Enum(str):
+    errors = {
+        'enum': 'Must be a valid choice.',
+        'exact': 'Must be {exact}.'
+    }
+    enum = []  # type: List[str]
+
+    def __new__(cls, *args, **kwargs):
+        if kwargs:
+            assert not args
+            return type(cls.__name__, (cls,), kwargs)
+
+        assert len(args) == 1
+        value = args[0]
+
+        if value not in cls.enum:
+            if len(cls.enum) == 1:
+                raise SchemaError(error_message(cls, 'exact'))
+            raise SchemaError(error_message(cls, 'enum'))
+        return value
+
+
+class Object(dict):
+    errors = {
+        'type': 'Must be an object.',
+        'invalid_key': 'Object keys must be strings.',
+        'empty': 'Must not be empty.',
+        'required': 'This field is required.',
+        'max_properties': 'Must have no more than {max_properties} properties.',
+        'min_properties': 'Must have at least {min_properties} properties.',
+        'invalid_property': 'Invalid property.'
+    }
+    properties = None  # type: Dict[str, type]
+    required = None  # type: List[str]
+
+    def __new__(cls, *args, **kwargs):
+        if kwargs:
+            assert not args
+            return type(cls.__name__, (cls,), kwargs)
+
+        assert len(args) == 1
+        return dict.__new__(cls, *args)
+
+    def __init__(self, value):
+        try:
+            value = dict(value)
+        except TypeError:
+            raise SchemaError(error_message(self, 'type'))
+
+        # Ensure all property keys are strings.
+        errors = {}
+        if any(not isinstance(key, str) for key in value.keys()):
+            raise SchemaError(error_message(self, 'invalid_key'))
+
+        # Enforce any required properties.
+        if self.required is not None:
+            for key in self.required:
+                if key not in value:
+                    errors[key] = error_message(self, 'required')
+
+        # Properties
+        if self.properties is not None:
+            for key, child_schema in self.properties.items():
+                try:
+                    item = value.pop(key)
+                except KeyError:
+                    if hasattr(child_schema, 'default'):
+                        # If a key is missing but has a default, then use that.
+                        self[key] = child_schema.default
+                else:
+                    # Coerce value into the given schema type if needed.
+                    if isinstance(item, child_schema):
+                        self[key] = item
+                    else:
+                        try:
+                            self[key] = child_schema(item)
+                        except SchemaError as exc:
+                            errors[key] = exc.detail
+
+        if errors:
+            raise SchemaError(errors)

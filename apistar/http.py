@@ -7,7 +7,7 @@ from werkzeug.datastructures import (
 )
 from werkzeug.urls import url_decode
 
-import ujson as json
+from apistar.compat import json
 from apistar.pipelines import ArgName
 from apistar.schema import validate
 
@@ -146,6 +146,19 @@ HeadersType = Union[
 
 
 ResponseData = TypeVar('ResponseData')
+
+
+class RequestData(dict):
+    schema = None  # type: type
+
+    @classmethod
+    def build(cls, body: Body):
+        value = json.loads(body.decode('utf-8'))
+        if value is None or cls.schema is None:
+            return value
+        if not isinstance(value, cls.schema):
+            value = validate(cls.schema, value)
+        return value
 
 
 class Request(object):

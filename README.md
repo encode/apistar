@@ -219,7 +219,7 @@ routes = [...]
 
 settings = {
     'TEMPLATES': {
-        'TEMPLATE_DIR': '/foo/bar'
+        'DIRS': ['templates']
     }
 }
 
@@ -253,6 +253,86 @@ def debug_template_settings(TEMPLATES: Setting):
 More typically you'll want to include settings into the `build` method of
 custom components, so that you can control their initialization, based on the
 application settings.
+
+---
+
+# SQLAlchemy
+
+API Star has optional support for [SQLAlchemy](https://www.sqlalchemy.org/).
+To use this you first need to install `sqlalchemy` and your chosen [database driver](http://docs.sqlalchemy.org/en/latest/core/engines.html#database-urls).
+
+
+```bash
+$ pip install sqlalchemy
+$ pip install psycopg2
+```
+
+**Settings**
+
+You then need to add the database config to your settings:
+
+* `URL` - The [Database URL](http://docs.sqlalchemy.org/en/latest/core/engines.html#database-urls).
+* `METADATA` - The SQLAlchemy [`Metadata`](http://docs.sqlalchemy.org/en/latest/core/metadata.html) instance, typically from the `declarative_base`.
+
+```python
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Column, Integer, String
+
+Base = declarative_base()
+
+class Customer(Base):
+    __tablename__ = "Customer"
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+
+routes = [...]
+
+settings = {
+    "DATABASE": {
+        "URL": "postgresql://:@localhost/apistar",
+        "METADATA": Base.metadata
+    }
+}
+
+app = App(routes=routes, settings=settings)
+```
+
+A few common configurations are listed below.
+
+Database   | Driver                      | URL format
+---------- | --------------------------- | ----------------
+PostgreSQL | `psycopg2`                  | `postgresql://<username>:<password>@localhost/example`
+MySQL      | `mysql-python`              | `mysql://<username>:<password>@localhost/example`
+SQLite     | `sqlite3` (Python built-in) | `sqlite:///example.db`
+
+**Creating the database tables**
+
+Before starting you app you will likely need to create the database tables declared in your MetaData which you can do with the following command:
+
+```bash
+$ apistar create_tables
+```
+
+**Accessing the database**
+
+To access the database in your view, include the `SQLAlchemy` component.
+This has the following attributes:
+
+- `engine` - The global [`Engine`](http://docs.sqlalchemy.org/en/latest/core/connections.html#sqlalchemy.engine.Engine) instance.
+- `metadata` - The [`MetaData`](http://docs.sqlalchemy.org/en/latest/core/metadata.html#sqlalchemy.schema.MetaData) object passed into the settings.
+- `session_class` - A bound [`sessionmaker`](http://docs.sqlalchemy.org/en/latest/orm/session_api.html#session-and-sessionmaker) factory.
+
+```python
+from apistar.backends import SQLAlchemy
+
+def create_customer(db: SQLAlchemy, name: str):
+    session = db.session_class()
+    customer = Customer(name=name)
+    session.add(customer)
+    session.commit()
+    return {'name': name}
+```
+
 
 ---
 
@@ -418,6 +498,36 @@ The recommended production deployment is GUnicorn, using the Meinheld worker.
     $ gunicorn app:app.wsgi --workers=4 --bind=0.0.0.0:5000 --pid=pid --worker-class=meinheld.gmeinheld.MeinheldWorker
 
 Typically you'll want to run as many workers as you have CPU cores on the server.
+
+## "Serverless" deployments
+
+API Star can also be deployed on so called "serverless" platforms.
+A good option for using API Star with this style of deployment is [Zappa](https://github.com/Miserlou/Zappa), which allows you to deploy
+any Python WSGI server onto AWS Lambda.
+
+In order to use `zappa`, you'll need to expose the app.wsgi property
+to the top level of the `app.py` module.
+
+```python
+app = App(...)
+
+wsgi_app = app.wsgi
+```
+
+You should then follow [Zappa's installation instructions](https://github.com/Miserlou/Zappa#installation-and-configuration).
+
+Your `zappa_settings.json` configuration file should look something like this:
+
+```
+{
+    "dev": {
+        "app_function": "app.wsgi_app",
+        "aws_region": "us-east-1",
+        "profile_name": "default",
+        "s3_bucket": "<a-unique-s3-bucket-name>",
+    }
+}
+```
 
 ---
 

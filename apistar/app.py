@@ -4,17 +4,17 @@ from typing import Any, Callable, Dict, List
 
 import click
 
-from apistar import commands, pipelines, routing, schema
-
+from apistar import commands as cmd
+from apistar import pipelines, routing, schema
 
 DEFAULT_LOOKUP_CACHE_SIZE = 10000
 
 
 class App(object):
     built_in_commands = (
-        commands.new,
-        commands.run,
-        commands.test,
+        cmd.new,
+        cmd.run,
+        cmd.test,
     )
 
     def __init__(self,
@@ -23,6 +23,7 @@ class App(object):
                  settings: Dict[str, Any] = None) -> None:
         from apistar.settings import Settings
         from apistar.templating import Templates
+        from apistar.backends.sqlalchemy import SQLAlchemy
 
         routes = [] if (routes is None) else routes
         commands = [] if (commands is None) else commands
@@ -38,6 +39,10 @@ class App(object):
         if 'TEMPLATES' in self.settings:
             initial_types.append(Templates)
             self.preloaded['templates'] = Templates.build(self.settings)
+        if 'DATABASE' in self.settings:
+            initial_types.append(SQLAlchemy)
+            self.preloaded['sql_alchemy'] = SQLAlchemy.build(self.settings)
+            self.commands += [cmd.create_tables]
 
         self.router = routing.Router(self.routes, initial_types)
         self.wsgi = get_wsgi_server(app=self)
@@ -69,7 +74,7 @@ def get_wsgi_server(app):
             'path': path,
             'exception': None,
             'view': None,
-            'url_path_args': {}
+            'url_path_args': {},
         }
         state.update(preloaded)
 

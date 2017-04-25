@@ -50,6 +50,10 @@ def get_body(body: http.Body) -> http.Response:
     return http.Response({'body': body.decode('utf-8')})
 
 
+def get_data(data: http.RequestData) -> http.Response:
+    return http.Response({'data': data})
+
+
 def get_headers(headers: http.Headers) -> http.Response:
     return http.Response({'headers': dict(headers)})
 
@@ -80,6 +84,7 @@ app = App(routes=[
     Route('/page_query_param/', 'get', get_page_query_param),
     Route('/url/', 'get', get_url),
     Route('/body/', 'post', get_body),
+    Route('/data/', 'post', get_data),
     Route('/headers/', 'get', get_headers),
     Route('/accept_header/', 'get', get_accept_header),
     Route('/request/', 'get', get_request),
@@ -173,8 +178,13 @@ def test_url():
 
 
 def test_body():
-    response = client.post('http://example.com/body/', data='{"hello": 123}')
-    assert response.json() == {'body': '{"hello": 123}'}
+    response = client.post('http://example.com/body/', data="content")
+    assert response.json() == {'body': 'content'}
+
+
+def test_data():
+    response = client.post('http://example.com/data/', json={"hello": 123})
+    assert response.json() == {'data': {"hello": 123}}
 
 
 def test_headers():
