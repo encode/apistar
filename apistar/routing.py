@@ -133,12 +133,16 @@ class Router(object):
         except werkzeug.exceptions.MethodNotAllowed:
             raise exceptions.MethodNotAllowed()
         except werkzeug.routing.RequestRedirect:
-            (name, kwargs) = self.adapter.match("{}/".format(path), method)
+            raise exceptions.Found(path + '/')
+
         (view, pipeline) = self.views[name]
         return (view, pipeline, kwargs)
 
 
 def exception_handler(environ: wsgi.WSGIEnviron, exc: Exception) -> http.Response:
+    if isinstance(exc, exceptions.Found):
+        return http.Response({}, exc.status_code, {'Location': exc.location})
+
     if isinstance(exc, exceptions.APIException):
         return http.Response({'message': exc.message}, exc.status_code)
 

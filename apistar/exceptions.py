@@ -34,3 +34,12 @@ class NotFound(APIException):
 class MethodNotAllowed(APIException):
     default_status_code = 405
     default_message = 'Method not allowed'
+
+
+class Found(APIException):
+    default_status_code = 302
+    default_message = 'Found'
+
+    def __init__(self, location):
+        self.location = location
+        super().__init__()
