@@ -231,9 +231,7 @@ class Object(dict):
                 try:
                     item = value.pop(key)
                 except KeyError:
-                    if hasattr(child_schema, 'default'):
-                        # If a key is missing but has a default, then use that.
-                        self[key] = child_schema.default
+                    self[key] = getattr(child_schema, 'default', None)
                 else:
                     # Coerce value into the given schema type if needed.
                     if isinstance(item, child_schema):

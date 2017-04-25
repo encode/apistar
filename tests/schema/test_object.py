@@ -52,7 +52,8 @@ def test_valid_object():
         'location': {
             'latitude': 51.477,
             'longitude': 0.0
-        }
+        },
+        'difficulty': None
     }
 
 
