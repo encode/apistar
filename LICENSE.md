@@ -1,5 +1,3 @@
-BSD 3-Clause License
-
 Copyright © 2017, [Encode OSS Ltd](http://www.encode.io/).
 All rights reserved.
 
