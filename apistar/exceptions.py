@@ -3,7 +3,7 @@ class ConfigurationError(Exception):
 
 
 class SchemaError(Exception):
-    def __init__(self, detail):
+    def __init__(self, detail: str) -> None:
         self.detail = detail
         super().__init__(detail)
 
@@ -14,7 +14,7 @@ class APIException(Exception):
     default_status_code = 500
     default_message = 'Server error'
 
-    def __init__(self, message=None, status_code=None):
+    def __init__(self, message: str=None, status_code: int=None) -> None:
         self.message = self.default_message if (message is None) else message
         self.status_code = self.default_status_code if (status_code is None) else status_code
 
