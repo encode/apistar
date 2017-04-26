@@ -89,6 +89,11 @@ def test_405():
     }
 
 
+def test_found_no_slash():
+    response = client.get('/found', allow_redirects=False)
+    assert response.status_code == 302
+
+
 def test_path_params():
     response = client.get('/path_params/1/')
     assert response.json() == {
