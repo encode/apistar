@@ -234,6 +234,9 @@ class Object(dict):
                     if hasattr(child_schema, 'default'):
                         # If a key is missing but has a default, then use that.
                         self[key] = child_schema.default
+                    else:
+                        errors[key] = error_message(self, 'required')
+
                 else:
                     # Coerce value into the given schema type if needed.
                     if isinstance(item, child_schema):
