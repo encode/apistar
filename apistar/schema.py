@@ -1,5 +1,5 @@
 import re
-from typing import Any, Dict, List, Tuple, Type, Union  # noqa
+from typing import Any, Dict, List, Tuple, Union  # noqa
 
 from apistar.exceptions import SchemaError, ValidationError
 
