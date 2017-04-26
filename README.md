@@ -209,7 +209,9 @@ explicit `Content-Type` header.
 
 ---
 
-# Settings
+# Settings & Environment
+
+## Application settings
 
 Application settings are configured at the point of instantiating the app.
 
@@ -253,6 +255,40 @@ def debug_template_settings(TEMPLATES: Setting):
 More typically you'll want to include settings into the `build` method of
 custom components, so that you can control their initialization, based on the
 application settings.
+
+## Environment
+
+Typically you'll want to follow the "twelve-factor app" pattern and [store
+configuration variables in the environment](https://12factor.net/config), rather
+than keeping them under source control.
+
+API Star provides an `Environment` class that allows you to load the environment,
+and ensure that it is correctly configured.
+
+```python
+from apistar import environment, schema
+
+
+class Env(environment.Environment):
+    properties = {
+        'DEBUG': schema.Boolean(default=False)
+        'DATABASE_URL': schema.String(default='sqlite://')
+    }
+
+env = Env()
+```
+
+Once you have an `Environment` instance, you can use it when creating
+the application settings.
+
+
+```python
+settings = {
+    'DATABASE': {
+        'URL': env['DATABASE_URL']
+    }
+}
+```
 
 ---
 
@@ -332,7 +368,6 @@ def create_customer(db: SQLAlchemy, name: str):
     session.commit()
     return {'name': name}
 ```
-
 
 ---
 
