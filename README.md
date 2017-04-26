@@ -526,7 +526,7 @@ A development server is available, using the `run` command:
 
     $ apistar run
 
-The recommended production deployment is GUnicorn, using the Meinheld worker.
+The recommended production deployment is Gunicorn, using the Meinheld worker.
 
     $ pip install gunicorn
     $ pip install meinheld
