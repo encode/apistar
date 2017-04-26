@@ -37,6 +37,11 @@ class MethodNotAllowed(APIException):
     default_detail = 'Method not allowed'
 
 
+class UnsupportedMediaType(APIException):
+    default_status_code = 415
+    default_detail = 'Unsupported media type in request'
+
+    
 class Found(APIException):
     default_status_code = 302
     default_detail = 'Found'
