@@ -1,4 +1,3 @@
-import os
 import pytest
 
 from apistar import environment, exceptions, schema
@@ -30,7 +29,9 @@ def test_env_missing_optional():
 
 def test_env_missing_required():
     with pytest.raises(exceptions.ConfigurationError):
-        env = Env({})
+        Env({
+            'DEBUG': 'False'
+        })
 
 
 def test_os_environ():

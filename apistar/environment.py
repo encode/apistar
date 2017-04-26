@@ -1,11 +1,11 @@
 import os
-from typing import Dict, List  # noqa
+from typing import Any, Dict  # noqa
 
 from apistar import exceptions, schema
 
 
 class Environment(schema.Object):
-    properties = {}  # type: Dict[str, type]
+    properties = {}  # type: Dict[str, Any]
     _os_environ = os.environ
 
     def __new__(cls, *args):
