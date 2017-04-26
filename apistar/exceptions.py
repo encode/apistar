@@ -44,3 +44,8 @@ class Found(APIException):
     def __init__(self, location):
         self.location = location
         super().__init__()
+
+
+class UnsupportedMediaType(APIException):
+    default_status_code = 415
+    default_detail = 'Unsupported media type in request'

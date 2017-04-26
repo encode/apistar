@@ -15,7 +15,7 @@ class HighScore(schema.Object):
     properties = {
         'name': schema.String(max_length=100),
         'score': schema.Integer(minimum=0, maximum=100),
-        'completed': schema.Boolean,
+        'completed': schema.Boolean(default=False),
         'difficulty': schema.Enum(enum=['easy', 'medium', 'hard']),
         'location': Location(default={'latitude': 0.0, 'longitude': 0.0})
     }
@@ -38,6 +38,7 @@ def test_valid_object():
     response = client.post('/basic_object/', json={
         'name': 'tom',
         'score': 87,
+        'difficulty': 'easy',
         'completed': True,
         'location': {
             'latitude': 51.477,
@@ -48,6 +49,7 @@ def test_valid_object():
     assert response.json() == {
         'name': 'tom',
         'score': 87,
+        'difficulty': 'easy',
         'completed': True,
         'location': {
             'latitude': 51.477,
@@ -71,13 +73,26 @@ def test_invalid_object():
 
 class test_object_instantiation():
     location = Location({'latitude': 51.477, 'longitude': 0.0})
-    value = HighScore({'name': 'tom', 'location': location})
+    value = HighScore({
+        'name': 'tom',
+        'score': 99.0,
+        'difficulty': 'easy',
+        'completed': 'True',
+        'location': location
+    })
     assert value['name'] == 'tom'
+    assert value['score'] == 99
+    assert value['completed'] is True
     assert value['location'] == location
 
 
 class test_object_default():
-    value = HighScore({'name': 'tom'})
+    value = HighScore({
+        'name': 'tom',
+        'score': 99,
+        'difficulty': 'easy',
+        'completed': True
+    })
     assert value['location'] == {'latitude': 0.0, 'longitude': 0.0}
 
 
