@@ -41,7 +41,7 @@ def parameterize_by_argument_name(cls: type) -> bool:
 def get_class_id(cls: type,
                  arg_name: str=None) -> str:
     # http://stackoverflow.com/questions/1175208/elegant-python-function-to-convert-camelcase-to-snake-case
-    name = cls.__name__
+    name = cls if type(cls) is str else cls.__name__
     s1 = FIRST_CAP_RE.sub(r'\1_\2', name)
     s2 = ALL_CAP_RE.sub(r'\1_\2', s1).lower()
     if parameterize_by_argument_name(cls):
