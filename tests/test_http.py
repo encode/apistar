@@ -186,6 +186,19 @@ def test_data():
     response = client.post('http://example.com/data/', json={"hello": 123})
     assert response.json() == {'data': {"hello": 123}}
 
+    response = client.post('http://example.com/data/')
+    assert response.json() == {'data': None}
+
+    response = client.post('http://example.com/data/', data={'abc': 123})
+    assert response.json() == {'data': {'abc': ['123']}}
+
+    files = {'file': ('report.csv', '1,2,3\n4,5,6\n')}
+    response = client.post('http://example.com/data/', files=files)
+    assert response.json() == {'data': {'file': [['1,2,3\n', '4,5,6\n']]}}
+
+    response = client.post('http://example.com/data/', headers={'content-type': 'unknown'})
+    assert response.status_code == 415
+
 
 def test_headers():
     response = client.get('http://example.com/headers/')

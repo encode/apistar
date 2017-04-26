@@ -5,8 +5,12 @@ from werkzeug.datastructures import Headers as WerkzeugHeaders
 from werkzeug.datastructures import (
     EnvironHeaders, ImmutableDict, ImmutableHeadersMixin, ImmutableMultiDict
 )
+from werkzeug.formparser import parse_form_data
+from werkzeug.http import parse_options_header
 from werkzeug.urls import url_decode
+from werkzeug.wsgi import get_input_stream
 
+from apistar import exceptions
 from apistar.compat import json
 from apistar.pipelines import ArgName
 from apistar.schema import validate
@@ -97,8 +101,7 @@ class URL(str):
 class Body(bytes):
     @classmethod
     def build(cls, environ: WSGIEnviron):
-        content_length = int(environ.get('CONTENT_LENGTH', 0))
-        return environ['wsgi.input'].read(content_length)
+        return get_input_stream(environ).read()
 
 
 class Headers(ImmutableHeadersMixin, WerkzeugHeaders):
@@ -152,9 +155,24 @@ class RequestData(dict):
     schema = None  # type: type
 
     @classmethod
-    def build(cls, body: Body):
-        value = json.loads(body.decode('utf-8'))
-        if value is None or cls.schema is None:
+    def build(cls, environ: WSGIEnviron):
+        if not bool(environ.get('CONTENT_TYPE')):
+            mimetype = None
+        else:
+            mimetype, _ = parse_options_header(environ['CONTENT_TYPE'])
+
+        if mimetype is None:
+            value = None
+        elif mimetype == 'application/json':
+            body = get_input_stream(environ).read()
+            value = json.loads(body.decode('utf-8'))
+        elif mimetype in ('multipart/form-data', 'application/x-www-form-urlencoded'):
+            stream, form, files = parse_form_data(environ)
+            value = ImmutableMultiDict(list(form.items()) + list(files.items()))
+        else:
+            raise exceptions.UnsupportedMediaType()
+
+        if cls.schema is None:
             return value
         if not isinstance(value, cls.schema):
             value = validate(cls.schema, value)
