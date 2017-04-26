@@ -195,7 +195,7 @@ class Request(object):
 class Response(object):
     __slots__ = ('data', 'content', 'status', 'headers')
 
-    def __init__(self, data: Any, status: int=200, headers: HeadersType=None) -> None:
+    def __init__(self, data: Any, status: int=None, headers: HeadersType=None) -> None:
         if headers is None:
             headers_dict = {}  # type: Union[Dict[str, str], Headers]
             headers_list = []  # type: List[Tuple[str, str]]
@@ -211,18 +211,27 @@ class Response(object):
 
         if isinstance(data, str):
             content = data.encode('utf-8')
-            content_type = 'text/html; charset=utf-8'
+            if content:
+                content_type = 'text/html; charset=utf-8'
+            else:
+                content_type = None
         elif isinstance(data, bytes):
             content = data
-            content_type = 'text/html; charset=utf-8'
+            if content:
+                content_type = 'text/html; charset=utf-8'
+            else:
+                content_type = None
         else:
             content = json.dumps(data).encode('utf-8')
             content_type = 'application/json'
 
         if 'Content-Length' not in headers_dict:
             headers_list += [('Content-Length', str(len(content)))]
-        if 'Content-Type' not in headers_dict:
+        if content_type and 'Content-Type' not in headers_dict:
             headers_list += [('Content-Type', content_type)]
+
+        if status is None:
+            status = 200 if content_type else 204
 
         self.data = data
         self.content = content

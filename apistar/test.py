@@ -80,7 +80,7 @@ class WSGIAdapter(requests.adapters.HTTPAdapter):
 
 
 class _TestClient(requests.Session):
-    def __init__(self, app=None, root_path=None, raise_500_exc=True):
+    def __init__(self, app=None, root_path=None, raise_500_exc=True, hostname='testserver'):
         super(_TestClient, self).__init__()
         if app is None:
             app = get_current_app()
@@ -89,6 +89,7 @@ class _TestClient(requests.Session):
         self.mount('http://', adapter)
         self.mount('https://', adapter)
         self.headers.update({'User-Agent': 'requests_client'})
+        self.hostname = hostname
 
     def request(self, method, url, **kwargs):
         if not (url.startswith('http:') or url.startswith('https:')):
@@ -97,7 +98,7 @@ class _TestClient(requests.Session):
                 "an absolute URL starting 'http:' / 'https:', "
                 "or a relative URL starting with '/'. URL was '%s'." % url
             )
-            url = 'http://example.com' + url
+            url = 'http://' + self.hostname + url
         return super().request(method, url, **kwargs)
 
 

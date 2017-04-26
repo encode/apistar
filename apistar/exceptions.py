@@ -22,6 +22,15 @@ class APIException(Exception):
         self.status_code = self.default_status_code if (status_code is None) else status_code
 
 
+class Found(APIException):
+    default_status_code = 302
+    default_detail = ''
+
+    def __init__(self, location, *args, **kwargs):
+        self.location = location
+        super().__init__(*args, **kwargs)
+
+
 class ValidationError(APIException):
     default_status_code = 400
     default_detail = 'Invalid request'
@@ -35,15 +44,6 @@ class NotFound(APIException):
 class MethodNotAllowed(APIException):
     default_status_code = 405
     default_detail = 'Method not allowed'
-
-
-class Found(APIException):
-    default_status_code = 302
-    default_detail = 'Found'
-
-    def __init__(self, location):
-        self.location = location
-        super().__init__()
 
 
 class UnsupportedMediaType(APIException):

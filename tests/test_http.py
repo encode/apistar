@@ -256,6 +256,10 @@ def data_response():
     return {'hello': 'world'}
 
 
+def empty_response():
+    return b''
+
+
 def unknown_status_code() -> http.Response:
     data = {'hello': 'world'}
     return http.Response(data, status=600)
@@ -301,6 +305,15 @@ def test_data_response():
     response = client.get('/')
     assert response.json() == {'hello': 'world'}
     assert response.headers['Content-Type'] == 'application/json'
+
+
+def test_empty_response():
+    app = App(routes=[Route('/', 'GET', empty_response)])
+    client = TestClient(app)
+    response = client.get('/')
+    assert response.status_code == 204
+    assert response.text == ''
+    assert 'Content-Type' not in response.headers
 
 
 def test_unknown_status_code():
