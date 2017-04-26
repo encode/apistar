@@ -2,6 +2,7 @@ import inspect
 import traceback
 from collections import namedtuple
 from typing import Any, Callable, Dict, List, Tuple  # noqa
+from urllib.parse import urlparse
 
 import werkzeug
 from uritemplate import URITemplate
@@ -138,8 +139,9 @@ class Router(object):
             raise exceptions.NotFound()
         except werkzeug.exceptions.MethodNotAllowed:
             raise exceptions.MethodNotAllowed()
-        except werkzeug.routing.RequestRedirect as e:
-            raise exceptions.Found(e.new_url)
+        except werkzeug.routing.RequestRedirect as exc:
+            path = urlparse(exc.new_url).path
+            raise exceptions.Found(path)
 
         (view, pipeline) = self.views[name]
         return (view, pipeline, kwargs)
@@ -147,7 +149,7 @@ class Router(object):
 
 def exception_handler(environ: wsgi.WSGIEnviron, exc: Exception) -> http.Response:
     if isinstance(exc, exceptions.Found):
-        return http.Response({}, exc.status_code, {'Location': exc.location})
+        return http.Response('', exc.status_code, {'Location': exc.location})
 
     if isinstance(exc, exceptions.APIException):
         if isinstance(exc.detail, str):
