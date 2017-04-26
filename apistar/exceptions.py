@@ -35,3 +35,8 @@ class NotFound(APIException):
 class MethodNotAllowed(APIException):
     default_status_code = 405
     default_detail = 'Method not allowed'
+
+
+class UnsupportedMediaType(APIException):
+    default_status_code = 415
+    default_detail = 'Unsupported media type in request'
