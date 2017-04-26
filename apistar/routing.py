@@ -138,8 +138,8 @@ class Router(object):
             raise exceptions.NotFound()
         except werkzeug.exceptions.MethodNotAllowed:
             raise exceptions.MethodNotAllowed()
-        except werkzeug.routing.RequestRedirect:
-            raise exceptions.Found(path + '/')
+        except werkzeug.routing.RequestRedirect as e:
+            raise exceptions.Found(e.new_url)
 
         (view, pipeline) = self.views[name]
         return (view, pipeline, kwargs)
