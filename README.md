@@ -24,6 +24,7 @@ A smart Web API framework, designed for Python 3.
 - [Testing](#testing)
 - [Components](#components)
 - [WSGI](#wsgi)
+- [Performance](#performance)
 - [Deployment](#deployment)
     - ["Serverless" deployments](#serverless-deployments)
 - [Development](#development)
