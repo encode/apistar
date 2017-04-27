@@ -178,9 +178,9 @@ app = App(routes=[
 # Schemas
 
 API Star comes with a type system that allows you to express constraints on the
-expected inputs and outputs of your API.
+expected inputs and outputs of your interface.
 
-Here’s an example of what the schema type system in API Star looks like:
+Here’s a quick example of what the schema type system in API Star looks like:
 
 ```python
 class Rating(schema.Integer):
