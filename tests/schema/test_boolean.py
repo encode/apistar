@@ -39,7 +39,7 @@ def test_valid_boolean():
 def test_invalid_boolean():
     response = client.get('/boolean/?value=a')
     assert response.status_code == 400
-    assert response.json() == {'message': 'Must be a valid boolean.'}
+    assert response.json() == {'value': 'Must be a valid boolean.'}
 
 
 def test_boolean_kwargs():

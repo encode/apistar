@@ -30,7 +30,7 @@ client = test.TestClient(app)
 def test_invalid_integer():
     response = client.get('/min_max/?value=a')
     assert response.status_code == 400
-    assert response.json() == {'message': 'Must be a valid number.'}
+    assert response.json() == {'value': 'Must be a valid number.'}
 
 
 def test_valid_min_max():
@@ -46,11 +46,11 @@ def test_valid_min_max():
 def test_invalid_min_max():
     response = client.get('/min_max/?value=4')
     assert response.status_code == 400
-    assert response.json() == {'message': 'Must be less than or equal to 3.'}
+    assert response.json() == {'value': 'Must be less than or equal to 3.'}
 
     response = client.get('/min_max/?value=-4')
     assert response.status_code == 400
-    assert response.json() == {'message': 'Must be greater than or equal to -3.'}
+    assert response.json() == {'value': 'Must be greater than or equal to -3.'}
 
 
 def test_valid_multiple():
@@ -62,4 +62,4 @@ def test_valid_multiple():
 def test_invalid_multiple():
     response = client.get('/multiple/?value=55')
     assert response.status_code == 400
-    assert response.json() == {'message': 'Must be a multiple of 10.'}
+    assert response.json() == {'value': 'Must be a multiple of 10.'}

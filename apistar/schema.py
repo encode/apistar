@@ -17,11 +17,15 @@ from apistar.exceptions import SchemaError, ValidationError
 # TODO: Blank booleans as False?
 
 
-def validate(schema: type, value: Any):
+def validate(schema: type, value: Any, key=None):
     try:
         return schema(value)
     except SchemaError as exc:
-        raise ValidationError(detail=exc.detail)
+        if key is None:
+            detail = exc.detail
+        else:
+            detail = {key: exc.detail}
+        raise ValidationError(detail=detail)
 
 
 def error_message(schema, code):

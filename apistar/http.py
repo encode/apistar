@@ -137,7 +137,7 @@ class QueryParam(str):
         if value is None or cls.schema is None:
             return value
         if not isinstance(value, cls.schema):
-            value = validate(cls.schema, value)
+            value = validate(cls.schema, value, key=arg_name)
         return value
 
 
@@ -183,8 +183,14 @@ class RequestField(object):
     schema = None  # type: type
 
     @classmethod
-    def build(cls, arg_name: ArgName, data: RequestData):
-        return data[arg_name]  # type: ignore
+    def build(cls, data: RequestData, arg_name: ArgName):
+        value = data[arg_name]  # type: ignore
+
+        if value is None or cls.schema is None:
+            return value
+        if not isinstance(value, cls.schema):
+            value = validate(cls.schema, value, key=arg_name)
+        return value
 
 
 class Request(object):

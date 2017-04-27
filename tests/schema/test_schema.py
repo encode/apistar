@@ -63,6 +63,7 @@ client = TestClient(app)
 
 def test_list_kittens():
     response = client.get('/list_favorite_kittens/?color=white')
+    assert response.status_code == 200
     assert response.json() == [
         {'name': 'fluffums', 'color': 'white', 'cuteness': 9.8},
         {'name': 'meowster', 'color': 'white', 'cuteness': 7.8}
@@ -71,6 +72,15 @@ def test_list_kittens():
 
 def test_add_kitten():
     response = client.post('/add_favorite_kitten/', data={'name': 'charlie'})
+    assert response.status_code == 200
     assert response.json() == {
         'name': 'charlie', 'color': 'black', 'cuteness': 0.0
+    }
+
+
+def test_invalid_list_kittens():
+    response = client.get('/list_favorite_kittens/?color=invalid')
+    assert response.status_code == 400
+    assert response.json() == {
+        'color': 'Must be a valid choice.'
     }

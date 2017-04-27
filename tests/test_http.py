@@ -54,6 +54,10 @@ def get_data(data: http.RequestData) -> http.Response:
     return http.Response({'data': data})
 
 
+def get_field(field: http.RequestField) -> http.Response:
+    return http.Response({'field': field})
+
+
 def get_headers(headers: http.Headers) -> http.Response:
     return http.Response({'headers': dict(headers)})
 
@@ -85,6 +89,7 @@ app = App(routes=[
     Route('/url/', 'GET', get_url),
     Route('/body/', 'POST', get_body),
     Route('/data/', 'POST', get_data),
+    Route('/field/', 'POST', get_field),
     Route('/headers/', 'GET', get_headers),
     Route('/accept_header/', 'GET', get_accept_header),
     Route('/request/', 'GET', get_request),
@@ -192,12 +197,24 @@ def test_data():
     response = client.post('http://example.com/data/', data={'abc': 123})
     assert response.json() == {'data': {'abc': ['123']}}
 
-    files = {'file': ('report.csv', '1,2,3\n4,5,6\n')}
-    response = client.post('http://example.com/data/', files=files)
+    csv_file = ('report.csv', '1,2,3\n4,5,6\n')
+    response = client.post('http://example.com/data/', files={'file': csv_file})
     assert response.json() == {'data': {'file': [['1,2,3\n', '4,5,6\n']]}}
 
     response = client.post('http://example.com/data/', headers={'content-type': 'unknown'})
     assert response.status_code == 415
+
+
+def test_field():
+    response = client.post('http://example.com/field/', json={"field": 123})
+    assert response.json() == {'field': 123}
+
+    response = client.post('http://example.com/field/', data={'field': 123})
+    assert response.json() == {'field': '123'}
+
+    csv_file = ('report.csv', '1,2,3\n4,5,6\n')
+    response = client.post('http://example.com/field/', files={'field': csv_file})
+    assert response.json() == {'field': ['1,2,3\n', '4,5,6\n']}
 
 
 def test_headers():
