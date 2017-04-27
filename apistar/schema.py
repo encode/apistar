@@ -198,7 +198,6 @@ class Object(dict):
         'invalid_property': 'Invalid property.'
     }
     properties = None  # type: Dict[str, type]
-    required = None  # type: List[str]
 
     def __new__(cls, *args, **kwargs):
         if kwargs:
@@ -218,12 +217,6 @@ class Object(dict):
         errors = {}
         if any(not isinstance(key, str) for key in value.keys()):
             raise SchemaError(error_message(self, 'invalid_key'))
-
-        # Enforce any required properties.
-        if self.required is not None:
-            for key in self.required:
-                if key not in value:
-                    errors[key] = error_message(self, 'required')
 
         # Properties
         if self.properties is not None:

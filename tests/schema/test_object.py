@@ -8,7 +8,6 @@ class Location(schema.Object):
         'latitude': schema.Number(minimum=-90.0, maximum=90.0),
         'longitude': schema.Number(minimum=-180.0, maximum=180.0)
     }
-    required = ['latitude', 'longitude']
 
 
 class HighScore(schema.Object):
@@ -19,7 +18,6 @@ class HighScore(schema.Object):
         'difficulty': schema.Enum(enum=['easy', 'medium', 'hard']),
         'location': Location(default={'latitude': 0.0, 'longitude': 0.0})
     }
-    required = ['name']
 
 
 def basic_object(score: HighScore):
