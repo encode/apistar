@@ -43,10 +43,10 @@ def test_valid_literal():
 def test_invalid_enum():
     response = client.get('/color/?value=foo')
     assert response.status_code == 400
-    assert response.json() == {'message': 'Must be a valid color.'}
+    assert response.json() == {'value': 'Must be a valid color.'}
 
 
 def test_invalid_literal():
     response = client.get('/terms/?value=foo')
     assert response.status_code == 400
-    assert response.json() == {'message': 'You must agree to the terms and conditions to proceed.'}
+    assert response.json() == {'value': 'You must agree to the terms and conditions to proceed.'}

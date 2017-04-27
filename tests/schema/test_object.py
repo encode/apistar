@@ -94,6 +94,19 @@ class test_object_default():
     assert value['location'] == {'latitude': 0.0, 'longitude': 0.0}
 
 
+class test_raw_instance():
+    class LocationRecord(object):
+        def __init__(self, latitude, longitude):
+            self.latitude = latitude
+            self.longitude = longitude
+
+    record = LocationRecord(latitude=0.0, longitude=90.0)
+    assert Location(record) == {
+        'latitude': 0.0,
+        'longitude': 90.0
+    }
+
+
 class test_object_invalid_key():
     with pytest.raises(exceptions.SchemaError) as exc:
         HighScore({1: 'invalid'})

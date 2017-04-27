@@ -49,11 +49,11 @@ def test_valid_length():
 def test_invalid_length():
     response = client.get('/length/?value=abcd')
     assert response.status_code == 400
-    assert response.json() == {'message': 'Must have at least 5 characters.'}
+    assert response.json() == {'value': 'Must have at least 5 characters.'}
 
     response = client.get('/length/?value=abcdefghijk')
     assert response.status_code == 400
-    assert response.json() == {'message': 'Must have no more than 10 characters.'}
+    assert response.json() == {'value': 'Must have no more than 10 characters.'}
 
 
 def test_valid_not_blank():
@@ -65,7 +65,7 @@ def test_valid_not_blank():
 def test_invalid_not_blank():
     response = client.get('/not_blank/?value=')
     assert response.status_code == 400
-    assert response.json() == {'message': 'Must not be blank.'}
+    assert response.json() == {'value': 'Must not be blank.'}
 
 
 def test_valid_pattern():
@@ -77,8 +77,8 @@ def test_valid_pattern():
 def test_invalid_pattern():
     response = client.get('/pattern/?value=aA@0')
     assert response.status_code == 400
-    assert response.json() == {'message': 'Must match the pattern /^[A-Za-z0-9_]+$/.'}
+    assert response.json() == {'value': 'Must match the pattern /^[A-Za-z0-9_]+$/.'}
 
     response = client.get('/pattern/?value=')
     assert response.status_code == 400
-    assert response.json() == {'message': 'Must match the pattern /^[A-Za-z0-9_]+$/.'}
+    assert response.json() == {'value': 'Must match the pattern /^[A-Za-z0-9_]+$/.'}

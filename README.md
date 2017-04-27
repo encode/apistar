@@ -18,6 +18,9 @@ A smart Web API framework, designed for Python 3.
     - [Requests](#requests)
     - [Responses](#responses)
     - [URL Routing](#url-routing)
+- [Schemas](#schemas)
+    - [Data Validation](#data-validation)
+    - [Serialization](#serialization)
 - [Templates](#templates)
 - [Settings & Environment](#settings--environment)
     - [Application settings](#application-settings)
@@ -173,6 +176,116 @@ app = App(routes=[
     Route('/hello/', 'GET', echo_username)
 ])
 ```
+
+---
+
+# Schemas
+
+API Star comes with a type system that allows you to express constraints on the
+expected inputs and outputs of your interface.
+
+Here’s a quick example of what the schema type system in API Star looks like:
+
+```python
+class Rating(schema.Integer):
+    minimum = 1
+    maximum = 5
+
+
+class ProductSize(schema.Enum):
+    enum = ['small', 'medium', 'large']
+
+
+class Product(schema.Object):
+    name = schema.String(max_length=100),
+    rating = schema.Integer(minimum=1, maximum=5)
+    in_stock = schema.Boolean
+    size = ProductSize
+```
+
+## Data Validation
+
+The main benefit of expressing our data constraints in a type system is that we
+can then use those types as annotations on our handler functions.
+
+```python
+def create_product(product: Product):
+    ...
+
+routes = [
+    Route('/create_product/', 'POST', create_product)
+]
+```
+
+## Serialization
+
+In addition to using the schema types for input validation, you can also use
+them to serialize the return values of your handler functions.
+
+```python
+def list_products() -> List[Product]
+    ...
+    return [Product(...) for record in records]
+```
+
+## API Reference
+
+The following schema types are currently supported:
+
+### String
+
+Validates string data. A subclass of `str`.
+
+* `default` - A default to be used if a field using this schema is missing from a parent `Object`.
+* `max_length` - A maximum valid length for the data.
+* `min_length` - A minimum valid length for the data.
+* `pattern` - A string or compiled regex that the data must match.
+* `format` - An identifier indicating a complex datatype with a string representation. For example `"date"`, to represent an ISO 8601 formatted date string.
+* `trim_whitespace` - `True ` if leading and trailing whitespace should be stripped from the data. Defaults to `True`.
+
+### Number
+
+Validates numeric data. A subclass of `float`.
+
+* `default` - A default to be used if a field using this schema is missing from a parent `Object`.
+* `maximum` - A float representing the maximum valid value for the data.
+* `minimum` - A float representing the minimum valid value for the data.
+* `exclusive_maximum` - `True` for an exclusive maximum limit. Defaults to `False`.
+* `exclusive_minimum` - `True` for an exclusive minimum limit. Defaults to `False`.
+* `multiple_of` - A float that the data must be strictly divisible by, in order to be valid.
+
+### Integer
+
+Validates integer data. A subclass of `int`.
+
+* `default` - A default to be used if a field using this schema is missing from a parent `Object`.
+* `maximum` - An int representing the maximum valid value for the data.
+* `minimum` - An int representing the minimum valid value for the data.
+* `exclusive_maximum` - `True` for an exclusive maximum limit. Defaults to `False`.
+* `exclusive_minimum` - `True` for an exclusive minimum limit. Defaults to `False`.
+* `multiple_of` - An integer that the data must be strictly divisible by, in order to be valid.
+
+### Boolean
+
+Validates boolean input. Returns either `True` or `False`.
+
+* `default` - A default to be used if a field using this schema is missing from a parent `Object`.
+
+### Enum
+
+Validates string input, against a list of valid choices. A subclass of `str`.
+
+* `default` - A default to be used if a field using this schema is missing from a parent `Object`.
+* `enum` - A list of valid string values for the data.
+
+### Object
+
+Validates dictionary or object input. A subclass of `dict`.
+
+* `default` - A default to be used if a field using this schema is missing from a parent `Object`.
+* `properties` - A dictionary mapping string key names to schema or type values.
+
+Note that child properties are considered to be required if they do not have a `default` value.
 
 ---
 
