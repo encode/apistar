@@ -11,6 +11,27 @@ A smart Web API framework, designed for Python 3.
 
 ---
 
+- [Quickstart](#quickstart)
+- [HTTP](#http)
+    - [Requests](#requests)
+    - [Responses](#responses)
+    - [URL Routing](#url-routing)
+- [Templates](#templates)
+- [Settings & Environment](#settings--environment)
+    - [Application settings](#application-settings)
+    - [Environment](#environment)
+- [SQLAlchemy](#sqlalchemy)
+- [Testing](#testing)
+- [Components](#components)
+- [WSGI](#wsgi)
+- [Deployment](#deployment)
+    - ["Serverless" deployments](#serverless-deployments)
+- [Development](#development)
+
+---
+
+# Quickstart
+
 Install API Star:
 
     $ pip3 install apistar
@@ -47,7 +68,9 @@ Run the tests:
 
 ---
 
-# Requests
+# HTTP
+
+## Requests
 
 API Star allows you to dynamically inject various information about the
 incoming request into your views using type annotation.
@@ -84,9 +107,7 @@ Some of the components you might use most often:
 | `QueryParam`  | Lookup a single query parameter, corresponding to the argument name.<br/>Returns a string or `None`. |
 | `Body`        | The request body. Returns a bytestring. |
 
----
-
-# Responses
+## Responses
 
 By default API star expects view to return plain data, and will return
 `200 OK` responses.
@@ -106,9 +127,7 @@ def create_project() -> Response:
     return Response(data, status=201, headers=headers)
 ```
 
----
-
-# URL Routing
+## URL Routing
 
 Use `{curly_braces}` in your URL conf to include a URL path parameter.
 
