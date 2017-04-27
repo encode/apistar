@@ -195,13 +195,9 @@ class Object(dict):
     errors = {
         'type': 'Must be an object.',
         'invalid_key': 'Object keys must be strings.',
-        'empty': 'Must not be empty.',
         'required': 'This field is required.',
-        'max_properties': 'Must have no more than {max_properties} properties.',
-        'min_properties': 'Must have at least {min_properties} properties.',
-        'invalid_property': 'Invalid property.'
     }
-    properties = None  # type: Dict[str, type]
+    properties = {}  # type: Dict[str, type]
 
     def __new__(cls, *args, **kwargs):
         if kwargs:
@@ -215,7 +211,10 @@ class Object(dict):
         try:
             value = dict(value)
         except TypeError:
-            raise SchemaError(error_message(self, 'type'))
+            if hasattr(value, '__dict__'):
+                value = dict(value.__dict__)
+            else:
+                raise SchemaError(error_message(self, 'type'))
 
         # Ensure all property keys are strings.
         errors = {}
@@ -223,26 +222,24 @@ class Object(dict):
             raise SchemaError(error_message(self, 'invalid_key'))
 
         # Properties
-        if self.properties is not None:
-            for key, child_schema in self.properties.items():
-                try:
-                    item = value.pop(key)
-                except KeyError:
-                    if hasattr(child_schema, 'default'):
-                        # If a key is missing but has a default, then use that.
-                        self[key] = child_schema.default
-                    else:
-                        errors[key] = error_message(self, 'required')
-
+        for key, child_schema in self.properties.items():
+            try:
+                item = value[key]
+            except KeyError:
+                if hasattr(child_schema, 'default'):
+                    # If a key is missing but has a default, then use that.
+                    self[key] = child_schema.default
                 else:
-                    # Coerce value into the given schema type if needed.
-                    if isinstance(item, child_schema):
-                        self[key] = item
-                    else:
-                        try:
-                            self[key] = child_schema(item)
-                        except SchemaError as exc:
-                            errors[key] = exc.detail
+                    errors[key] = error_message(self, 'required')
+            else:
+                # Coerce value into the given schema type if needed.
+                if isinstance(item, child_schema):
+                    self[key] = item
+                else:
+                    try:
+                        self[key] = child_schema(item)
+                    except SchemaError as exc:
+                        errors[key] = exc.detail
 
         if errors:
             raise SchemaError(errors)

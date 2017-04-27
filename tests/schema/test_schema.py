@@ -1,4 +1,4 @@
-# from typing import List
+from typing import List
 
 from apistar import App, Route, TestClient, schema
 
@@ -29,7 +29,7 @@ class Kitten(schema.Object):
     }
 
 
-def list_favorite_kittens(color: KittenColor):
+def list_favorite_kittens(color: KittenColor) -> List[Kitten]:
     """
     List your favorite kittens, optionally filtered by color.
     """
@@ -45,7 +45,7 @@ def list_favorite_kittens(color: KittenColor):
     ]
 
 
-def add_favorite_kitten(name: KittenName):
+def add_favorite_kitten(name: KittenName) -> Kitten:
     """
     Add a kitten to your favorites list.
     """

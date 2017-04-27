@@ -12,9 +12,6 @@ from werkzeug.serving import is_running_from_reloader
 from apistar import exceptions, http, pipelines, schema, wsgi
 from apistar.pipelines import ArgName, Pipeline
 
-# TODO: Path
-# TODO: Redirects
-
 
 primitive_types = (
     str, int, float, bool, list, dict
@@ -24,6 +21,11 @@ schema_types = (
     schema.String, schema.Integer, schema.Number, schema.Boolean,
     schema.Enum, schema.Object
 )
+
+typing_types = (
+    List,
+)
+
 
 Route = namedtuple('Route', ['path', 'method', 'view'])
 Endpoint = namedtuple('Endpoint', ['view', 'pipeline'])
@@ -102,7 +104,7 @@ class Router(object):
             extra_annotations = {}  # type: Dict[str, type]
             for param in view_signature.parameters.values():
 
-                if param.annotation == inspect.Signature.empty:
+                if param.annotation is inspect.Signature.empty:
                     annotated_type = str
                 else:
                     annotated_type = param.annotation
@@ -126,7 +128,10 @@ class Router(object):
                             schema = annotated_type
                         extra_annotations[param.name] = TypedQueryParam
 
-            if 'return' not in view.__annotations__:
+            return_annotation = view_signature.return_annotation
+            if return_annotation is inspect.Signature.empty:
+                extra_annotations['return'] = http.ResponseData
+            elif issubclass(return_annotation, (schema_types, primitive_types, typing_types)):  # type: ignore
                 extra_annotations['return'] = http.ResponseData
 
             # Determine the pipeline for the view.
