@@ -111,14 +111,20 @@ class Router(object):
                     class TypedURLPathArg(URLPathArg):
                         schema = annotated_type
                     extra_annotations[param.name] = TypedURLPathArg
-                elif issubclass(annotated_type, schema.Object):
-                    class TypedDataParam(http.RequestData):
-                        schema = annotated_type
-                    extra_annotations[param.name] = TypedDataParam
                 elif (annotated_type in primitive_types) or issubclass(annotated_type, schema_types):
-                    class TypedQueryParam(http.QueryParam):
-                        schema = annotated_type
-                    extra_annotations[param.name] = TypedQueryParam
+                    if method in ('POST', 'PUT', 'PATCH'):
+                        if issubclass(annotated_type, schema.Object):
+                            class TypedDataParam(http.RequestData):
+                                schema = annotated_type
+                            extra_annotations[param.name] = TypedDataParam
+                        else:
+                            class TypedFieldParam(http.RequestField):
+                                schema = annotated_type
+                            extra_annotations[param.name] = TypedFieldParam
+                    else:
+                        class TypedQueryParam(http.QueryParam):
+                            schema = annotated_type
+                        extra_annotations[param.name] = TypedQueryParam
 
             if 'return' not in view.__annotations__:
                 extra_annotations['return'] = http.ResponseData

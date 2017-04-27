@@ -151,7 +151,7 @@ HeadersType = Union[
 ResponseData = TypeVar('ResponseData')
 
 
-class RequestData(dict):
+class RequestData(object):
     schema = None  # type: type
 
     @classmethod
@@ -177,6 +177,14 @@ class RequestData(dict):
         if not isinstance(value, cls.schema):
             value = validate(cls.schema, value)
         return value
+
+
+class RequestField(object):
+    schema = None  # type: type
+
+    @classmethod
+    def build(cls, arg_name: ArgName, data: RequestData):
+        return data[arg_name]  # type: ignore
 
 
 class Request(object):
