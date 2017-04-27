@@ -11,6 +11,8 @@ A smart Web API framework, designed for Python 3.
 
 ---
 
+# Table of Contents
+
 - [Quickstart](#quickstart)
 - [HTTP](#http)
     - [Requests](#requests)
@@ -29,7 +31,9 @@ A smart Web API framework, designed for Python 3.
 - [WSGI](#wsgi)
 - [Performance](#performance)
 - [Deployment](#deployment)
-    - ["Serverless" deployments](#serverless-deployments)
+    - [The Development Server](#the-development-server)
+    - [Running in Production](#running-in-production)
+    - ["Serverless" Deployments](#serverless-deployments)
 - [Development](#development)
 
 ---
@@ -632,9 +636,13 @@ plan to be adding more realistic & useful test types, such as database query per
 
 # Deployment
 
+## The Development Server
+
 A development server is available, using the `run` command:
 
     $ apistar run
+
+## Running in Production
 
 The recommended production deployment is Gunicorn, using the Meinheld worker.
 
