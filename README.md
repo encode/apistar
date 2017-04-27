@@ -16,6 +16,9 @@ A smart Web API framework, designed for Python 3.
     - [Requests](#requests)
     - [Responses](#responses)
     - [URL Routing](#url-routing)
+- [Schemas](#schemas)
+    - [Data Validation](#data-validation)
+    - [Serialization](#serialization)
 - [Templates](#templates)
 - [Settings & Environment](#settings--environment)
     - [Application settings](#application-settings)
@@ -169,6 +172,93 @@ app = App(routes=[
     Route('/hello/', 'GET', echo_username)
 ])
 ```
+
+---
+
+# Schemas
+
+API Star comes with a type system that allows you to express constraints on the
+expected inputs and outputs of your API.
+
+Here’s an example of what the schema type system in API Star looks like:
+
+```python
+class Rating(schema.Integer):
+    minimum = 1
+    maximum = 5
+
+
+class ProductSize(schema.Enum):
+    enum = ['small', 'medium', 'large']
+
+
+class Product(schema.Object):
+    name = schema.String(max_length=100),
+    rating = schema.Integer(minimum=1, maximum=5)
+    in_stock = schema.Boolean
+    size = ProductSize
+```
+
+## Data Validation
+
+The main benefit of expressing our data constraints in a type system is that we
+can then use those types as annotations on our handler functions.
+
+```python
+def create_product(product: Product):
+    ...
+
+routes = [
+    Route('/create_product/', 'POST', create_product)
+]
+```
+
+## Serialization
+
+In addition to using the schema types for input validation, you can also use
+them to serialize the return values of your handler functions.
+
+```python
+def list_products() -> List[Product]
+    ...
+    return [Product(...) for record in records]
+```
+
+## API Reference
+
+### String
+
+* `max_length`
+* `min_length`
+* `pattern`
+* `format`
+* `trim_whitespace`
+
+### Number
+
+* `minimum`
+* `maximum`
+* `exclusive_minimum`
+* `exclusive_maximum`
+* `multiple_of`
+
+### Integer
+
+* `minimum`
+* `maximum`
+* `exclusive_minimum`
+* `exclusive_maximum`
+* `multiple_of`
+
+### Boolean
+
+### Enum
+
+* `enum`
+
+### Object
+
+* `properties`
 
 ---
 
