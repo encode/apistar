@@ -230,39 +230,62 @@ def list_products() -> List[Product]
 
 ## API Reference
 
+The following schema types are currently supported:
+
 ### String
 
-* `max_length`
-* `min_length`
-* `pattern`
-* `format`
-* `trim_whitespace`
+Validates string data. A subclass of `str`.
+
+* `default` - A default to be used if a field using this schema is missing from a parent `Object`.
+* `max_length` - A maximum valid length for the data.
+* `min_length` - A minimum valid length for the data.
+* `pattern` - A string or compiled regex that the data must match.
+* `format` - An identifier indicating a complex datatype with a string representation. For example `"date"`, to represent an ISO 8601 formatted date string.
+* `trim_whitespace` - `True ` if leading and trailing whitespace should be stripped from the data. Defaults to `True`.
 
 ### Number
 
-* `minimum`
-* `maximum`
-* `exclusive_minimum`
-* `exclusive_maximum`
-* `multiple_of`
+Validates numeric data. A subclass of `float`.
+
+* `default` - A default to be used if a field using this schema is missing from a parent `Object`.
+* `maximum` - A float representing the maximum valid value for the data.
+* `minimum` - A float representing the minimum valid value for the data.
+* `exclusive_maximum` - `True` for an exclusive maximum limit. Defaults to `False`.
+* `exclusive_minimum` - `True` for an exclusive minimum limit. Defaults to `False`.
+* `multiple_of` - A float that the data must be strictly divisible by, in order to be valid.
 
 ### Integer
 
-* `minimum`
-* `maximum`
-* `exclusive_minimum`
-* `exclusive_maximum`
-* `multiple_of`
+Validates integer data. A subclass of `int`.
+
+* `default` - A default to be used if a field using this schema is missing from a parent `Object`.
+* `maximum` - An int representing the maximum valid value for the data.
+* `minimum` - An int representing the minimum valid value for the data.
+* `exclusive_maximum` - `True` for an exclusive maximum limit. Defaults to `False`.
+* `exclusive_minimum` - `True` for an exclusive minimum limit. Defaults to `False`.
+* `multiple_of` - An integer that the data must be strictly divisible by, in order to be valid.
 
 ### Boolean
 
+Validates boolean input. Returns either `True` or `False`.
+
+* `default` - A default to be used if a field using this schema is missing from a parent `Object`.
+
 ### Enum
 
-* `enum`
+Validates string input, against a list of valid choices. A subclass of `str`.
+
+* `default` - A default to be used if a field using this schema is missing from a parent `Object`.
+* `enum` - A list of valid string values for the data.
 
 ### Object
 
-* `properties`
+Validates dictionary or object input. A subclass of `dict`.
+
+* `default` - A default to be used if a field using this schema is missing from a parent `Object`.
+* `properties` - A dictionary mapping string key names to schema or type values.
+
+Note that child properties are considered to be required if they do not have a `default` value.
 
 ---
 
