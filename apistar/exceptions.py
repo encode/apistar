@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Union, Any
 
 
 class ConfigurationError(Exception):
@@ -26,7 +26,7 @@ class Found(APIException):
     default_status_code = 302
     default_detail = ''
 
-    def __init__(self, location, *args, **kwargs):
+    def __init__(self, location: str, *args: Any, **kwargs: Any) -> None:
         self.location = location
         super().__init__(*args, **kwargs)
 
