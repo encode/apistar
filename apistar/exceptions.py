@@ -26,9 +26,9 @@ class Found(APIException):
     default_status_code = 302
     default_detail = ''
 
-    def __init__(self, location, *args, **kwargs):
+    def __init__(self, location: str, detail: Union[str, dict]=None, status_code: int=None) -> None:
         self.location = location
-        super().__init__(*args, **kwargs)
+        super().__init__(detail, status_code)
 
 
 class ValidationError(APIException):
