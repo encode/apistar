@@ -4,10 +4,13 @@ from apistar.pipelines import ArgName
 
 class Settings(dict):
     @classmethod
-    def build(cls, app: app.App):
+    def build(cls,
+              app: app.App):
         return cls(app.settings)
 
-    def get(self, indexes, default=None):
+    def get(self,
+            indexes,
+            default=None):
         if isinstance(indexes, str):
             return super().get(indexes, default)
 
@@ -25,5 +28,7 @@ class Setting(object):
         return args[0]
 
     @classmethod
-    def build(cls, arg_name: ArgName, settings: Settings):
+    def build(cls,
+              arg_name: ArgName,
+              settings: Settings):
         return settings.get(arg_name)
