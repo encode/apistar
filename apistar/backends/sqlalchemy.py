@@ -10,7 +10,8 @@ class SQLAlchemy(object):
         self.metadata = metadata
 
     @classmethod
-    def build(cls, settings: Settings):
+    def build(cls,
+              settings: Settings):
         config = settings['DATABASE']
         url = config['URL']
         metadata = config['METADATA']
