@@ -19,13 +19,17 @@ WSGIEnviron = http.WSGIEnviron
 class WSGIResponse(object):
     __slots__ = ('status', 'headers', 'iterator')
 
-    def __init__(self, status: str, headers: List[Tuple[str, str]], iterator: Iterable[bytes]) -> None:
+    def __init__(self,
+                 status: str,
+                 headers: List[Tuple[str, str]],
+                 iterator: Iterable[bytes]) -> None:
         self.status = status
         self.headers = headers
         self.iterator = iterator
 
     @classmethod
-    def build(cls, response: http.Response):
+    def build(cls,
+              response: http.Response):
         try:
             status_text = STATUS_CODES[response.status]
         except KeyError:
