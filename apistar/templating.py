@@ -9,7 +9,8 @@ from apistar.settings import Settings
 
 class Templates(jinja2.Environment):
     @classmethod
-    def build(cls, settings: Settings):
+    def build(cls,
+              settings: Settings):
         template_dirs = settings.get(['TEMPLATES', 'DIRS'])
         loader = None  # type: jinja2.BaseLoader
         if len(template_dirs) == 1:
@@ -29,7 +30,9 @@ class Template(jinja2.Template):
     path_delimiter = '__'
 
     @classmethod
-    def build(cls, arg_name: ArgName, templates: Templates):
+    def build(cls,
+              arg_name: ArgName,
+              templates: Templates):
         paths = arg_name.split(cls.path_delimiter)
         path = os.path.join(cls.prefix, *paths)
         for suffix in cls.suffixes:
