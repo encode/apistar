@@ -11,7 +11,8 @@ from apistar.templating import Template, Templates
 from apistar.test import TestClient
 
 
-def get_and_render_template(username: str, templates: Templates):
+def get_and_render_template(username: str,
+                            templates: Templates):
     index = templates.get_template('index.html')
     return index.render(username=username)
 
