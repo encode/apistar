@@ -1,3 +1,5 @@
+from typing import Any, List, Union
+
 from apistar import app
 from apistar.pipelines import ArgName
 
@@ -9,8 +11,8 @@ class Settings(dict):
         return cls(app.settings)
 
     def get(self,
-            indexes,
-            default=None):
+            indexes: Union[str, List[str]],
+            default: Any=None) -> Any:
         if isinstance(indexes, str):
             return super().get(indexes, default)
 
