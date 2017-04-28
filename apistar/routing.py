@@ -39,7 +39,9 @@ class URLPathArg(object):
     schema = None  # type: type
 
     @classmethod
-    def build(cls, args: URLPathArgs, arg_name: ArgName):
+    def build(cls,
+              args: URLPathArgs,
+              arg_name: ArgName):
         value = args.get(arg_name)
         if cls.schema is not None and not isinstance(value, cls.schema):
             try:
@@ -53,7 +55,9 @@ RouterLookup = Tuple[Callable, Pipeline, URLPathArgs]
 
 
 class Router(object):
-    def __init__(self, routes: List[Route], initial_types: List[type]=None) -> None:
+    def __init__(self,
+                 routes: List[Route],
+                 initial_types: List[type]=None) -> None:
         required_type = wsgi.WSGIResponse
 
         initial_types = initial_types or []
@@ -143,7 +147,9 @@ class Router(object):
         self.adapter = Map(rules).bind('example.com')
         self.views = views
 
-    def lookup(self, path: str, method: str) -> RouterLookup:
+    def lookup(self,
+               path: str,
+               method: str) -> RouterLookup:
         try:
             (name, kwargs) = self.adapter.match(path, method)
         except werkzeug.exceptions.NotFound:
@@ -158,7 +164,8 @@ class Router(object):
         return (view, pipeline, kwargs)
 
 
-def exception_handler(environ: wsgi.WSGIEnviron, exc: Exception) -> http.Response:
+def exception_handler(environ: wsgi.WSGIEnviron,
+                      exc: Exception) -> http.Response:
     if isinstance(exc, exceptions.Found):
         return http.Response('', exc.status_code, {'Location': exc.location})
 
