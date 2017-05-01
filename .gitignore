@@ -9,3 +9,4 @@ __pycache__
 /build
 coverage.xml
 test.db
+dist/
