@@ -1,8 +1,8 @@
 from coreapi import Field, Link
 
 from apistar import schema
-from apistar.app import App
 from apistar.apischema import APISchema
+from apistar.app import App
 from apistar.routing import Route
 
 

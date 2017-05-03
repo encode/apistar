@@ -1,11 +1,11 @@
 import inspect
 
+from coreapi import Document, Field, Link
 from uritemplate import URITemplate
 
-from apistar import http, schema
+from apistar import schema
 from apistar.app import App
 from apistar.routing import primitive_types, schema_types
-from coreapi import Document, Field, Link
 
 
 class APISchema(Document):
