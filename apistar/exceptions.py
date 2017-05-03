@@ -17,7 +17,9 @@ class APIException(Exception):
     default_status_code = 500
     default_detail = 'Server error'
 
-    def __init__(self, detail: Union[str, dict]=None, status_code: int=None) -> None:
+    def __init__(self,
+                 detail: Union[str, dict]=None,
+                 status_code: int=None) -> None:
         self.detail = self.default_detail if (detail is None) else detail
         self.status_code = self.default_status_code if (status_code is None) else status_code
 
@@ -26,7 +28,10 @@ class Found(APIException):
     default_status_code = 302
     default_detail = ''
 
-    def __init__(self, location: str, detail: Union[str, dict]=None, status_code: int=None) -> None:
+    def __init__(self,
+                 location: str,
+                 detail: Union[str, dict]=None,
+                 status_code: int=None) -> None:
         self.location = location
         super().__init__(detail, status_code)
 

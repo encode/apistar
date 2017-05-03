@@ -202,14 +202,20 @@ class Request(object):
         self.headers = Headers(headers)
 
     @classmethod
-    def build(cls, method: Method, url: URL, headers: Headers):
+    def build(cls,
+              method: Method,
+              url: URL,
+              headers: Headers):
         return cls(method=method, url=url, headers=headers)
 
 
 class Response(object):
     __slots__ = ('data', 'content', 'status', 'headers')
 
-    def __init__(self, data: Any, status: int=None, headers: HeadersType=None) -> None:
+    def __init__(self,
+                 data: Any,
+                 status: int=None,
+                 headers: HeadersType=None) -> None:
         if headers is None:
             headers_dict = {}  # type: Union[Dict[str, str], Headers]
             headers_list = []  # type: List[Tuple[str, str]]

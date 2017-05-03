@@ -53,7 +53,9 @@ RouterLookup = Tuple[Callable, Pipeline, URLPathArgs]
 
 
 class Router(object):
-    def __init__(self, routes: List[Route], initial_types: List[type]=None) -> None:
+    def __init__(self,
+                 routes: List[Route],
+                 initial_types: List[type]=None) -> None:
         required_type = wsgi.WSGIResponse
 
         initial_types = initial_types or []
@@ -158,7 +160,8 @@ class Router(object):
         return (view, pipeline, kwargs)
 
 
-def exception_handler(environ: wsgi.WSGIEnviron, exc: Exception) -> http.Response:
+def exception_handler(environ: wsgi.WSGIEnviron,
+                      exc: Exception) -> http.Response:
     if isinstance(exc, exceptions.Found):
         return http.Response('', exc.status_code, {'Location': exc.location})
 
