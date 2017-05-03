@@ -292,7 +292,8 @@ Note that child properties are considered to be required if they do not have a `
 
 API Star is designed to be able to map well onto API description formats, known as "API Schemas".
 
-There is currently provisional support for writing Swagger, RAML, or CoreJSON schemas.
+There is currently *provisional* support for writing Swagger, RAML, or CoreJSON schemas.
+See [#69](https://github.com/tomchristie/apistar/issues/69) for more details on work still to be done here.
 
 The default output format is the built-in CoreJSON support:
 
