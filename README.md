@@ -655,6 +655,8 @@ A pull request [has been issued](https://github.com/TechEmpower/FrameworkBenchma
 to add API Star to future rounds of the TechEmpower benchmarks. In the future we
 plan to be adding more realistic & useful test types, such as database query performance.
 
+API Star optionally supports the `ujson` package for improvements in serialization performance. Currently `ujson` will automatically be used if the package is installed.
+
 ---
 
 # Deployment
