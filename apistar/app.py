@@ -14,6 +14,7 @@ class App(object):
     built_in_commands = (
         cmd.new,
         cmd.run,
+        cmd.schema,
         cmd.test,
     )
 

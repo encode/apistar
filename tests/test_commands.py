@@ -133,3 +133,11 @@ def test_misconfigured_app_module():
         result = runner.invoke(['run'])
         assert isinstance(result.exception, exceptions.ConfigurationError)
         assert result.exit_code != 0
+
+
+def test_schema():
+    with runner.isolated_filesystem():
+        runner.invoke(['new', '.', '--layout', 'minimal'])
+        result = runner.invoke(['schema'])
+        assert result.exit_code == 0
+        assert result.output == '{"_type":"document","welcome":{"_type":"link","url":"/","action":"GET"}}\n'
