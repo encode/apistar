@@ -8,7 +8,7 @@ from apistar.routing import Route
 
 class ToDoNote(schema.Object):
     properties = {
-        'id': schema.Integer(min_value=0),
+        'id': schema.Integer(minimum=0),
         'text': schema.String(max_length=100),
         'complete': schema.Boolean
     }

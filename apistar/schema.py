@@ -1,5 +1,5 @@
 import re
-from typing import Any, Dict, List, Tuple, Union  # noqa
+from typing import Any, Dict, List, Tuple, Union, overload  # noqa
 
 from apistar.exceptions import SchemaError, ValidationError
 
@@ -53,7 +53,7 @@ class String(str):
             return type(cls.__name__, (cls,), kwargs)
 
         assert len(args) == 1
-        value = str.__new__(cls, *args)
+        value = super().__new__(cls, *args)
 
         if cls.trim_whitespace:
             value = value.strip()
@@ -74,6 +74,13 @@ class String(str):
                 raise SchemaError(error_message(cls, 'pattern'))
 
         return value
+
+    # The following is currently required in order to keep mypy happy
+    # with our atypical usage of `__new__`...
+    # See: https://github.com/python/mypy/issues/3307
+
+    def __init__(self, *args, **kwargs):  # pragma: nocover
+        super().__init__()
 
 
 class _NumericType(object):
@@ -132,6 +139,13 @@ class _NumericType(object):
                 raise SchemaError(error_message(cls, 'multiple_of'))
 
         return value
+
+    # The following is currently required in order to keep mypy happy
+    # with our atypical usage of `__new__`...
+    # See: https://github.com/python/mypy/issues/3307
+
+    def __init__(self, *args, **kwargs):
+        super().__init__()
 
 
 class Number(_NumericType, float):
@@ -197,7 +211,7 @@ class Object(dict):
         'invalid_key': 'Object keys must be strings.',
         'required': 'This field is required.',
     }
-    properties = {}  # type: Dict[str, type]
+    properties = {}  # type: Dict[str, Any]
 
     def __new__(cls, *args, **kwargs):
         if kwargs:
