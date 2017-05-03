@@ -12,7 +12,6 @@ from werkzeug.serving import is_running_from_reloader
 from apistar import exceptions, http, pipelines, schema, wsgi
 from apistar.pipelines import ArgName, Pipeline
 
-
 primitive_types = (
     str, int, float, bool, list, dict
 )

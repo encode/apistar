@@ -21,6 +21,7 @@ A smart Web API framework, designed for Python 3.
 - [Schemas](#schemas)
     - [Data Validation](#data-validation)
     - [Serialization](#serialization)
+    - [Generating API Schemas](#generating-api-schemas)
 - [Templates](#templates)
 - [Settings & Environment](#settings--environment)
     - [Application settings](#application-settings)
@@ -286,6 +287,38 @@ Validates dictionary or object input. A subclass of `dict`.
 * `properties` - A dictionary mapping string key names to schema or type values.
 
 Note that child properties are considered to be required if they do not have a `default` value.
+
+## Generating API Schemas
+
+API Star is designed to be able to map well onto API description formats, known as "API Schemas".
+
+There is currently provisional support for writing Swagger, RAML, or CoreJSON schemas.
+
+The default output format is the built-in CoreJSON support:
+
+```shell
+$ apistar schema
+{"_type":"document", ...}
+```
+
+The OpenAPI (Swagger) and RAML codecs are optional, and require installation of additional packages:
+
+#### Swagger
+
+```shell
+$ pip install openapi-codec
+$ apistar schema --format openapi
+{"swagger": "2.0", "info": ...}
+```
+
+#### RAML
+
+```shell
+$ pip install raml-codec
+$ apistar schema --format raml
+#%RAML 0.8
+...
+```
 
 ---
 
