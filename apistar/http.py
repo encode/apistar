@@ -22,29 +22,25 @@ class WSGIEnviron(ImmutableDict):
 
 class Method(str):
     @classmethod
-    def build(cls,
-              environ: WSGIEnviron):
+    def build(cls, environ: WSGIEnviron):
         return cls(environ['REQUEST_METHOD'])
 
 
 class Scheme(str):
     @classmethod
-    def build(cls,
-              environ: WSGIEnviron):
+    def build(cls, environ: WSGIEnviron):
         return cls(environ['wsgi.url_scheme'])
 
 
 class Host(str):
     @classmethod
-    def build(cls,
-              environ: WSGIEnviron):
+    def build(cls, environ: WSGIEnviron):
         return cls(environ.get('HTTP_HOST') or environ['SERVER_NAME'])
 
 
 class Port(int):
     @classmethod
-    def build(cls,
-              environ: WSGIEnviron):
+    def build(cls, environ: WSGIEnviron):
         if environ['wsgi.url_scheme'] == 'https':
             return cls(environ.get('SERVER_PORT') or 443)
         return cls(environ.get('SERVER_PORT') or 80)
@@ -52,38 +48,33 @@ class Port(int):
 
 class MountPath(str):
     @classmethod
-    def build(cls,
-              environ: WSGIEnviron):
+    def build(cls, environ: WSGIEnviron):
         return cls(quote(environ.get('SCRIPT_NAME', '')))
 
 
 class RelativePath(str):
     @classmethod
-    def build(cls,
-              environ: WSGIEnviron):
+    def build(cls, environ: WSGIEnviron):
         return cls(quote(environ.get('PATH_INFO', '')))
 
 
 class Path(str):
     @classmethod
-    def build(cls,
-              environ: WSGIEnviron):
+    def build(cls, environ: WSGIEnviron):
         path = environ.get('SCRIPT_NAME', '') + environ.get('PATH_INFO', '')
         return cls(quote(path))
 
 
 class QueryString(str):
     @classmethod
-    def build(cls,
-              environ: WSGIEnviron):
+    def build(cls, environ: WSGIEnviron):
         query_string = environ.get('QUERY_STRING', '')
         return cls(query_string)
 
 
 class URL(str):
     @classmethod
-    def build(cls,
-              environ: WSGIEnviron):
+    def build(cls, environ: WSGIEnviron):
         # https://www.python.org/dev/peps/pep-0333/#url-reconstruction
         url = environ['wsgi.url_scheme'] + '://'
 
@@ -109,8 +100,7 @@ class URL(str):
 
 class Body(bytes):
     @classmethod
-    def build(cls,
-              environ: WSGIEnviron):
+    def build(cls, environ: WSGIEnviron):
         return get_input_stream(environ).read()
 
 
@@ -121,23 +111,19 @@ class Headers(ImmutableHeadersMixin, WerkzeugHeaders):
         super().__init__(*args, **kwargs)
 
     @classmethod
-    def build(cls,
-              environ: WSGIEnviron):
+    def build(cls, environ: WSGIEnviron):
         return cls(EnvironHeaders(environ))
 
 
 class Header(str):
     @classmethod
-    def build(cls,
-              headers: Headers,
-              arg_name: ArgName):
+    def build(cls, headers: Headers, arg_name: ArgName):
         return headers.get(arg_name.replace('_', '-'))
 
 
 class QueryParams(ImmutableMultiDict):
     @classmethod
-    def build(cls,
-              environ: WSGIEnviron):
+    def build(cls, environ: WSGIEnviron):
         query_string = environ.get('QUERY_STRING', '')
         return cls(url_decode(query_string))
 
@@ -146,9 +132,7 @@ class QueryParam(str):
     schema = None  # type: type
 
     @classmethod
-    def build(cls,
-              params: QueryParams,
-              arg_name: ArgName):
+    def build(cls, params: QueryParams, arg_name: ArgName):
         value = params.get(arg_name)
         if value is None or cls.schema is None:
             return value
@@ -171,8 +155,7 @@ class RequestData(object):
     schema = None  # type: type
 
     @classmethod
-    def build(cls,
-              environ: WSGIEnviron):
+    def build(cls, environ: WSGIEnviron):
         if not bool(environ.get('CONTENT_TYPE')):
             mimetype = None
         else:
@@ -200,9 +183,7 @@ class RequestField(object):
     schema = None  # type: type
 
     @classmethod
-    def build(cls,
-              data: RequestData,
-              arg_name: ArgName):
+    def build(cls, data: RequestData, arg_name: ArgName):
         value = data[arg_name]  # type: ignore
 
         if value is None or cls.schema is None:
@@ -215,10 +196,7 @@ class RequestField(object):
 class Request(object):
     __slots__ = ('method', 'url', 'headers')
 
-    def __init__(self,
-                 method: str,
-                 url: str,
-                 headers: HeadersType=None) -> None:
+    def __init__(self, method: str, url: str, headers: HeadersType=None) -> None:
         self.method = method
         self.url = url
         self.headers = Headers(headers)
@@ -281,6 +259,5 @@ class Response(object):
         self.headers = Headers(headers_list)
 
     @classmethod
-    def build(cls,
-              data: ResponseData):
+    def build(cls, data: ResponseData):
         return cls(data=data)

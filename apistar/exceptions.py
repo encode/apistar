@@ -6,8 +6,7 @@ class ConfigurationError(Exception):
 
 
 class SchemaError(Exception):
-    def __init__(self,
-                 detail: Union[str, dict]) -> None:
+    def __init__(self, detail: Union[str, dict]) -> None:
         self.detail = detail
         super().__init__(detail)
 

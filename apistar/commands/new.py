@@ -27,9 +27,7 @@ class Force(schema.Boolean):
     default = False
 
 
-def new(target_dir: TargetDir,
-        layout: Layout,
-        force: Force) -> None:
+def new(target_dir: TargetDir, layout: Layout, force: Force) -> None:
     """
     Create a new project in TARGET_DIR.
     """

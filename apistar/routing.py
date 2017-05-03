@@ -39,9 +39,7 @@ class URLPathArg(object):
     schema = None  # type: type
 
     @classmethod
-    def build(cls,
-              args: URLPathArgs,
-              arg_name: ArgName):
+    def build(cls, args: URLPathArgs, arg_name: ArgName):
         value = args.get(arg_name)
         if cls.schema is not None and not isinstance(value, cls.schema):
             try:
@@ -147,9 +145,7 @@ class Router(object):
         self.adapter = Map(rules).bind('example.com')
         self.views = views
 
-    def lookup(self,
-               path: str,
-               method: str) -> RouterLookup:
+    def lookup(self, path: str, method: str) -> RouterLookup:
         try:
             (name, kwargs) = self.adapter.match(path, method)
         except werkzeug.exceptions.NotFound:
