@@ -2,6 +2,21 @@ from apistar import App, Route, http
 from apistar.test import TestClient
 
 
+def to_native(obj):  # pragma: nocover  (Some cases only included for completeness)
+    if isinstance(obj, dict):
+        return {key: to_native(value) for key, value in obj.items()}
+    elif isinstance(obj, list):
+        return [to_native(value) for value in obj]
+    elif hasattr(obj, 'read'):
+        content = obj.read()
+        if isinstance(content, bytes):
+            content = content.decode('utf-8')
+        return content
+    elif hasattr(obj, '__dict__'):
+        return str(obj)
+    return obj
+
+
 def get_method(method: http.Method) -> http.Response:
     return http.Response({'method': method})
 
@@ -51,11 +66,11 @@ def get_body(body: http.Body) -> http.Response:
 
 
 def get_data(data: http.RequestData) -> http.Response:
-    return http.Response({'data': data})
+    return http.Response({'data': to_native(data)})
 
 
 def get_field(field: http.RequestField) -> http.Response:
-    return http.Response({'field': field})
+    return http.Response({'field': to_native(field)})
 
 
 def get_headers(headers: http.Headers) -> http.Response:
@@ -189,17 +204,17 @@ def test_body():
 
 def test_data():
     response = client.post('http://example.com/data/', json={"hello": 123})
-    assert response.json() == {'data': {"hello": 123}}
+    assert response.json() == {'data': {'hello': 123}}
 
     response = client.post('http://example.com/data/')
     assert response.json() == {'data': None}
 
     response = client.post('http://example.com/data/', data={'abc': 123})
-    assert response.json() == {'data': {'abc': ['123']}}
+    assert response.json() == {'data': {'abc': '123'}}
 
     csv_file = ('report.csv', '1,2,3\n4,5,6\n')
     response = client.post('http://example.com/data/', files={'file': csv_file})
-    assert response.json() == {'data': {'file': [['1,2,3\n', '4,5,6\n']]}}
+    assert response.json() == {'data': {'file': '1,2,3\n4,5,6\n'}}
 
     response = client.post('http://example.com/data/', headers={'content-type': 'unknown'})
     assert response.status_code == 415
@@ -214,7 +229,7 @@ def test_field():
 
     csv_file = ('report.csv', '1,2,3\n4,5,6\n')
     response = client.post('http://example.com/field/', files={'field': csv_file})
-    assert response.json() == {'field': ['1,2,3\n', '4,5,6\n']}
+    assert response.json() == {'field': '1,2,3\n4,5,6\n'}
 
 
 def test_headers():

@@ -169,7 +169,7 @@ def test_invalid_integer():
 
 
 def test_misconfigured_route():
-    def set_type(var: set):  # pragma: nocover
+    def set_type(var: set):  # pragma: nocover  (We never actually call this handler)
         pass
 
     with pytest.raises(exceptions.ConfigurationError):

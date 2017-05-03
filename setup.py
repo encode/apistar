@@ -62,7 +62,6 @@ setup(
         'jinja2',
         'pytest',
         'requests',
-        'ujson',
         'werkzeug'
     ],
     classifiers=[
