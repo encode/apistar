@@ -1,7 +1,8 @@
+from wsgiref.util import FileWrapper
+
 from apistar import exceptions, schema, wsgi
 from apistar.compat import whitenoise
 from apistar.settings import Settings
-from wsgiref.util import FileWrapper
 
 
 class Statics(object):
