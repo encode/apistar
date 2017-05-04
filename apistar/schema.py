@@ -257,3 +257,7 @@ class Object(dict):
 
         if errors:
             raise SchemaError(errors)
+
+
+class Path(String):
+    format = 'path'

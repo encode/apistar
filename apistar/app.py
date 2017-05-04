@@ -23,6 +23,7 @@ class App(object):
                  commands: List[Callable] = None,
                  settings: Dict[str, Any] = None) -> None:
         from apistar.settings import Settings
+        from apistar.statics import Statics
         from apistar.templating import Templates
         from apistar.backends.sqlalchemy import SQLAlchemy
 
@@ -44,6 +45,9 @@ class App(object):
             initial_types.append(SQLAlchemy)
             self.preloaded['sql_alchemy'] = SQLAlchemy.build(self.settings)
             self.commands += [cmd.create_tables]
+        if 'STATICS' in self.settings:
+            initial_types.append(Statics)
+            self.preloaded['statics'] = Statics.build(self.settings)
 
         self.router = routing.Router(self.routes, initial_types)
         self.wsgi = get_wsgi_server(app=self)

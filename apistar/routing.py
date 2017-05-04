@@ -82,7 +82,10 @@ class Router(object):
                 if param.annotation is inspect.Signature.empty:
                     converter = 'string'
                 elif issubclass(param.annotation, (schema.String, str)):
-                    converter = 'string'
+                    if getattr(param.annotation, 'format', None) == 'path':
+                        converter = 'path'
+                    else:
+                        converter = 'string'
                 elif issubclass(param.annotation, (schema.Number, float)):
                     converter = 'float'
                 elif issubclass(param.annotation, (schema.Integer, int)):
