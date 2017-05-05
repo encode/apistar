@@ -14,7 +14,7 @@ class Statics(object):
 
     @classmethod
     def build(cls, settings: Settings):
-        root_dir = settings.get(['STATICS', 'ROOT_DIR'])
+        root_dir = settings.get(['STATICS', 'DIR'])
         return cls(root_dir)
 
 
@@ -32,5 +32,6 @@ def serve_static(path: Path, statics: Statics, environ: wsgi.WSGIEnviron) -> wsg
         file_wrapper = environ.get('wsgi.file_wrapper', FileWrapper)
         content = file_wrapper(response.file)
     else:
+        # We hit this branch for HEAD requests
         content = []
     return wsgi.WSGIResponse(status_line, headers, content)
