@@ -1,7 +1,7 @@
 import pytest
 
 from apistar import App, Route, exceptions, http, schema
-from apistar.routing import URLPathArgs
+from apistar.routing import Path, URLPathArgs
 from apistar.test import TestClient
 
 
@@ -33,6 +33,12 @@ def path_param_with_int(var: int):
     }
 
 
+def path_param_with_full_path(var: Path):
+    return {
+        'var': var
+    }
+
+
 def path_param_with_max_length(var: MaxLength):
     return {
         'var': var
@@ -56,6 +62,7 @@ app = App(routes=[
     Route('/path_params/{var}/', 'GET', path_params),
     Route('/path_param/{var}/', 'GET', path_param),
     Route('/int/{var}/', 'GET', path_param_with_int),
+    Route('/full_path/{var}', 'GET', path_param_with_full_path),
     Route('/max_length/{var}/', 'GET', path_param_with_max_length),
     Route('/number/{var}/', 'GET', path_param_with_number),
     Route('/integer/{var}/', 'GET', path_param_with_integer),
@@ -117,6 +124,13 @@ def test_int_path_param():
     response = client.get('/int/1/')
     assert response.json() == {
         'var': 1
+    }
+
+
+def test_full_path_param():
+    response = client.get('/full_path/abc/def/ghi/')
+    assert response.json() == {
+        'var': 'abc/def/ghi/'
     }
 
 

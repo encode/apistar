@@ -1,9 +1,7 @@
 import click
-
 from coreapi.utils import get_installed_codecs
 
 from apistar import schema
-
 
 codecs = {
     name: codec for name, codec in get_installed_codecs().items()
