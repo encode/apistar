@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+	    <title>Testing</title>
+
+        <link href="{{ static('apistar/css/bootstrap.min.css') }}" rel="stylesheet">
+        <link href="{{ static('apistar/css/bootstrap-theme.min.css') }}" rel="stylesheet">
+        <link href="{{ static('apistar/css/font-awesome-4.0.3.css') }}" rel="stylesheet">
+        <link href="{{ static('apistar/css/base.css') }}" rel="stylesheet">
+        <link href="{{ static('apistar/css/jquery.json-view.min.css') }}" rel="stylesheet">
+
+        <link href="{{ static('apistar/img/favicon.ico') }}" rel="shortcut icon">
+
+        {#<!--{% if code_style %}<style>{{ code_style }}</style>{% endif %}-->#}
+        <script src="{{ static('apistar/js/coreapi-0.1.0.js') }}"></script>
+        {#<!--<script src="{% url 'api-docs:schema-js' %}"></script>-->#}
+
+    </head>
+
+    <body data-spy="scroll" data-target="#sidebar-nav" data-offset="50">
+
+        {% include 'apistar/sidebar.html' %}
+
+        <div class="container" id="main">
+            <div class="row">
+                <div class="col-md-12 main-container">
+                    {% include "apistar/document.html" %}
+                </div>
+            </div>
+        </div>
+
+        {#<!--{% include "rest_framework/docs/auth/token.html" %}
+        {% include "rest_framework/docs/auth/basic.html" %}
+        {% include "rest_framework/docs/auth/session.html" %}-->#}
+
+        <script src="{{ static('apistar/js/jquery-1.10.2.min.js') }}"></script>
+        <script src="{{ static('apistar/js/bootstrap.min.js') }}"></script>
+        <script src="{{ static('apistar/js/jquery.json-view.min.js') }}"></script>
+        <script src="{{ static('apistar/js/api.js') }}"></script>
+    </body>
+</html>

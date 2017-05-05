@@ -1,4 +1,5 @@
 import os
+from typing import List  # noqa
 
 import jinja2
 
@@ -11,15 +12,16 @@ class Templates(jinja2.Environment):
     @classmethod
     def build(cls, settings: Settings):
         template_dirs = settings.get(['TEMPLATES', 'DIRS'])
-        loader = None  # type: jinja2.BaseLoader
-        if len(template_dirs) == 1:
-            loader = jinja2.FileSystemLoader(template_dirs[0])
-        else:
-            loader = jinja2.ChoiceLoader([
-                jinja2.FileSystemLoader(template_dir)
-                for template_dir in template_dirs
-            ])
-
+        package_loaders = [
+            jinja2.PrefixLoader({
+                'apistar': jinja2.PackageLoader('apistar', 'templates')
+            })
+        ]  # type: List[jinja2.BaseLoader]
+        filesystem_loaders = [
+            jinja2.FileSystemLoader(template_dir)
+            for template_dir in template_dirs
+        ]  # type: List[jinja2.BaseLoader]
+        loader = jinja2.ChoiceLoader(package_loaders + filesystem_loaders)
         return Templates(loader=loader)
 
 
