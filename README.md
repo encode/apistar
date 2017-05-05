@@ -403,7 +403,7 @@ from apistar.statics import serve_static
 
 routes = [
     # ...
-    Route('/statics/{path}', 'GET', serve_static)
+    Route('/static/{path}', 'GET', serve_static)
 ]
 ```
 
