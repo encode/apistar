@@ -9,6 +9,7 @@ werkzeug
 # Optional
 psycopg2
 sqlalchemy
+whitenoise
 
 # Testing requirements
 codecov
