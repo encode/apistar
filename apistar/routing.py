@@ -30,6 +30,10 @@ Route = namedtuple('Route', ['path', 'method', 'view'])
 Endpoint = namedtuple('Endpoint', ['view', 'pipeline'])
 
 
+class Path(schema.String):
+    format = 'path'
+
+
 class URLPathArgs(dict):
     pass
 

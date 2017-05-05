@@ -1,7 +1,8 @@
 from wsgiref.util import FileWrapper
 
-from apistar import exceptions, schema, wsgi
+from apistar import exceptions, wsgi
 from apistar.compat import whitenoise
+from apistar.routing import Path
 from apistar.settings import Settings
 
 
@@ -17,8 +18,9 @@ class Statics(object):
         return cls(root_dir)
 
 
-def serve_static(path: schema.Path, statics: Statics, environ: wsgi.WSGIEnviron) -> wsgi.WSGIResponse:
-    path = '/' + path.lstrip('/')
+def serve_static(path: Path, statics: Statics, environ: wsgi.WSGIEnviron) -> wsgi.WSGIResponse:
+    if not path.startswith('/'):
+        path = Path('/' + path)
     static_file = statics.whitenoise.files.get(path)
     if static_file is None:
         raise exceptions.NotFound()
