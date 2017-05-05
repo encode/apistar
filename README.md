@@ -384,7 +384,7 @@ Returning a string response from a view will default to using the `text/html`
 content type. You can override this by returning a `Response`, including an
 explicit `Content-Type` header.
 
-## Statics
+## Static Files
 
 For serving static files, API Star uses [whitenoise](http://whitenoise.evans.io/en/stable/).
 
