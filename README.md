@@ -22,7 +22,9 @@ A smart Web API framework, designed for Python 3.
     - [Data Validation](#data-validation)
     - [Serialization](#serialization)
     - [Generating API Schemas](#generating-api-schemas)
-- [Templates](#templates)
+- [Building Websites](#building-websites)
+    - [Templates](#templates)
+    - [Static Files](#static-files)
 - [Settings & Environment](#settings--environment)
     - [Application settings](#application-settings)
     - [Environment](#environment)
@@ -323,10 +325,16 @@ $ apistar schema --format raml
 
 ---
 
-# Templates
+# Building Websites
+
+Although API Star is designed primarily with Web APIs in mind, it is a
+general purpose framework, and does also give you the tools you need
+to build regular websites.
+
+## Templates
 
 API Star includes a templating component, that allows you to return templated
-responses, using Jinja2.
+responses, using [Jinja2](http://jinja.pocoo.org/).
 
 **templates/index.html:**
 
@@ -344,8 +352,6 @@ responses, using Jinja2.
 from apistar import App, Route, Templates
 import os
 
-ROOT_DIR = os.path.dirname(__file__)
-
 def hello(username: str, templates: Templates):
     index = templates.get_template('index.html')
     return index.render(username=username)
@@ -356,7 +362,7 @@ routes = [
 
 settings = {
     'TEMPLATES': {
-        'DIRS': [os.path.join(ROOT_DIR, 'templates')]
+        'DIRS': ['templates']
     }
 }
 
@@ -378,6 +384,42 @@ Returning a string response from a view will default to using the `text/html`
 content type. You can override this by returning a `Response`, including an
 explicit `Content-Type` header.
 
+## Statics
+
+For serving static files, API Star uses [whitenoise](http://whitenoise.evans.io/en/stable/).
+
+First make sure to install the `whitenoise` package.
+
+```
+$ pip install whitenoise
+```
+
+Next, you'll then need to include the `serve_static` handler in your routes.
+This function expects to take a single URL argument, named `path`.
+
+```python
+from apistar.routing import Route
+from apistar.statics import serve_static
+
+routes = [
+    # ...
+    Route('/statics/{path}', 'GET', serve_static)
+]
+```
+
+Finally, include the directory that you'd like to serve static files from
+in your settings, like so:
+
+```python
+settings = {
+    'STATICS': {
+        'DIR': 'statics'
+    }
+}
+
+app = App(routes=routes, settings=settings)
+```
+
 ---
 
 # Settings & Environment
@@ -388,7 +430,9 @@ Application settings are configured at the point of instantiating the app.
 
 
 ```python
-routes = [...]
+routes = [
+    # ...
+]
 
 settings = {
     'TEMPLATES': {
@@ -492,7 +536,9 @@ class Customer(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String)
 
-routes = [...]
+routes = [
+    # ...
+]
 
 settings = {
     "DATABASE": {
