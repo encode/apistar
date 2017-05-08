@@ -109,7 +109,7 @@ def serve_schema_js(schema: APISchema, templates: Templates) -> http.Response:
 
 @exclude_from_schema
 def serve_docs(schema: APISchema, templates: Templates):
-    index = templates.get_template('apistar/index.html')
+    index = templates.get_template('apistar/docs/index.html')
     langs = ['python', 'javascript', 'shell']
 
     def static(path):

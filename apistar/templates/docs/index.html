@@ -22,18 +22,18 @@
 
     <body data-spy="scroll" data-target="#sidebar-nav" data-offset="50">
 
-        {% include 'apistar/sidebar.html' %}
+        {% include 'apistar/docs/layout/sidebar.html' %}
 
         <div class="container" id="main">
             <div class="row">
                 <div class="col-md-12 main-container">
-                    {% include 'apistar/document.html' %}
+                    {% include 'apistar/docs/layout/content.html' %}
                 </div>
             </div>
         </div>
 
-        {% include 'apistar/auth/token.html' %}
-        {% include 'apistar/auth/basic.html' %}
+        {% include 'apistar/docs/auth/token.html' %}
+        {% include 'apistar/docs/auth/basic.html' %}
 
         <script src="{{ static('apistar/js/jquery-1.10.2.min.js') }}"></script>
         <script src="{{ static('apistar/js/bootstrap.min.js') }}"></script>
