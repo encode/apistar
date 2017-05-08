@@ -167,7 +167,8 @@ app = App(routes=[
 ```
 
 Parameters which do not correspond to a URL path parameter will be treated as
-query parameters.
+query parameters for `GET` and `DELETE` requests, or part of the request body
+for `POST`, `PUT`, and `PATCH` requests.
 
 ```python
 def echo_username(username):
