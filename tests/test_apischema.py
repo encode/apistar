@@ -2,7 +2,7 @@ from coreapi import Field, Link
 from coreapi.codecs import CoreJSONCodec
 
 from apistar import schema
-from apistar.apischema import APISchema, serve_schema
+from apistar.apischema import APISchema, serve_docs, serve_schema
 from apistar.app import App
 from apistar.routing import Route
 from apistar.test import TestClient
@@ -37,14 +37,15 @@ routes = [
     Route('/todo/', 'POST', add_todo),
     Route('/todo/{ident}/', 'GET', show_todo),
     Route('/todo/{ident}/', 'PUT', set_complete),
-    Route('/schema/', 'GET', serve_schema)
+    Route('/schema/', 'GET', serve_schema),
+    Route('/docs/', 'GET', serve_docs)
 ]
 
 app = App(routes=routes)
 
 client = TestClient(app)
 
-expected = APISchema(content={
+expected = APISchema(url='/schema/', content={
     'list_todo': Link(
         url='/todo/',
         action='GET',
@@ -80,4 +81,14 @@ def test_serve_schema():
     response = client.get('/schema/')
     codec = CoreJSONCodec()
     document = codec.decode(response.content)
-    assert document == expected
+    assert document.url == 'http://testserver/schema/'
+    for name, link in expected.links.items():
+        assert name in document
+        assert link.action == document[name].action
+        assert link.fields == document[name].fields
+
+
+def test_serve_docs():
+    response = client.get('/docs/')
+    assert response.status_code == 200
+    assert response.headers['Content-Type'] == 'text/html; charset=utf-8'

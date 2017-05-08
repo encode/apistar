@@ -12,15 +12,21 @@ class Templates(jinja2.Environment):
     @classmethod
     def build(cls, settings: Settings):
         template_dirs = settings.get(['TEMPLATES', 'DIRS'])
+
         package_loaders = [
             jinja2.PrefixLoader({
                 'apistar': jinja2.PackageLoader('apistar', 'templates')
             })
         ]  # type: List[jinja2.BaseLoader]
-        filesystem_loaders = [
-            jinja2.FileSystemLoader(template_dir)
-            for template_dir in template_dirs
-        ]  # type: List[jinja2.BaseLoader]
+
+        if template_dirs is None:
+            filesystem_loaders = []  # type: List[jinja2.BaseLoader]
+        else:
+            filesystem_loaders = [
+                jinja2.FileSystemLoader(template_dir)
+                for template_dir in template_dirs
+            ]
+
         loader = jinja2.ChoiceLoader(package_loaders + filesystem_loaders)
         return Templates(loader=loader)
 
