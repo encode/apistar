@@ -2,14 +2,43 @@ import inspect
 from typing import Dict, List
 
 from coreapi import Document, Field, Link
+from coreapi.codecs import CoreJSONCodec
 from uritemplate import URITemplate
 
-from apistar import schema
+from apistar import http, schema
 from apistar.app import App
+from apistar.decorators import exclude_from_schema
 from apistar.routing import Route, primitive_types, schema_types
 
 
+class APISchema(Document):
+    @classmethod
+    def build(cls, app: App):
+        content = get_content(app.routes)
+        return cls(content=content)
+
+
+def get_content(routes: List[Route]) -> Dict[str, Route]:
+    """
+    Given the application routes, return a dictionary containing all the
+    Links that the service exposes.
+    """
+    content = {}
+    for route in routes:
+        view = route.view
+        if getattr(view, 'exclude_from_schema', False):
+            continue
+        name = view.__name__
+        link = get_link(route)
+        content[name] = link
+    return content
+
+
 def get_link(route: Route) -> Link:
+    """
+    Given a single route, return a Link instance containing all the information
+    needed to expose that route in an API Schema.
+    """
     path, method, view = route
 
     view_signature = inspect.signature(view)
@@ -45,20 +74,9 @@ def get_link(route: Route) -> Link:
     return Link(url=path, action=method, fields=fields)
 
 
-def get_content(routes: List[Route]) -> Dict[str, Route]:
-    content = {}
-    for route in routes:
-        view = route.view
-        if getattr(view, 'exclude_from_schema', False):
-            continue
-        name = view.__name__
-        link = get_link(route)
-        content[name] = link
-    return content
-
-
-class APISchema(Document):
-    @classmethod
-    def build(cls, app: App):
-        content = get_content(app.routes)
-        return cls(content=content)
+@exclude_from_schema
+def serve_schema(schema: APISchema) -> http.Response:
+    codec = CoreJSONCodec()
+    content = codec.encode(schema)
+    headers = {'Content-Type': codec.media_type}
+    return http.Response(content, headers=headers)

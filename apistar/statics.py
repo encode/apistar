@@ -4,6 +4,7 @@ from wsgiref.util import FileWrapper
 import apistar
 from apistar import exceptions, wsgi
 from apistar.compat import whitenoise
+from apistar.decorators import exclude_from_schema
 from apistar.routing import Path
 from apistar.settings import Settings
 
@@ -24,6 +25,7 @@ class Statics(object):
         return cls(root_dir)
 
 
+@exclude_from_schema
 def serve_static(path: Path, statics: Statics, environ: wsgi.WSGIEnviron) -> wsgi.WSGIResponse:
     if not path.startswith('/'):
         path = Path('/' + path)
@@ -41,6 +43,3 @@ def serve_static(path: Path, statics: Statics, environ: wsgi.WSGIEnviron) -> wsg
         # We hit this branch for HEAD requests
         content = []
     return wsgi.WSGIResponse(status_line, headers, content)
-
-
-serve_static.exclude_from_schema = True  # type: ignore
