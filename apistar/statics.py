@@ -41,3 +41,6 @@ def serve_static(path: Path, statics: Statics, environ: wsgi.WSGIEnviron) -> wsg
         # We hit this branch for HEAD requests
         content = []
     return wsgi.WSGIResponse(status_line, headers, content)
+
+
+serve_static.exclude_from_schema = True  # type: ignore

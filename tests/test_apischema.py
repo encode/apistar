@@ -4,6 +4,7 @@ from apistar import schema
 from apistar.apischema import APISchema
 from apistar.app import App
 from apistar.routing import Route
+from apistar.statics import serve_static
 
 
 class ToDoNote(schema.Object):
@@ -35,6 +36,7 @@ routes = [
     Route('/todo/', 'POST', add_todo),
     Route('/todo/{ident}/', 'GET', show_todo),
     Route('/todo/{ident}/', 'PUT', set_complete),
+    Route('/static/{path}', 'GET', serve_static)  # Should be excluded from the schema
 ]
 
 app = App(routes=routes)

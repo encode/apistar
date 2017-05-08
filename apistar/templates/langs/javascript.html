@@ -1,5 +1,4 @@
-{% load rest_framework %}
-<pre class="highlight javascript hide" data-language="javascript"><code>{% code javascript %}var coreapi = window.coreapi  // Loaded by `coreapi.js`
+<pre class="highlight javascript hide" data-language="javascript"><code>var coreapi = window.coreapi  // Loaded by `coreapi.js`
 var schema = window.schema    // Loaded by `schema.js`
 
 // Initialize a client
@@ -12,4 +11,4 @@ var action = [{% if section_key %}"{{ section_key }}", {% endif %}"{{ link_key }
 {% endfor %}}
 {% endif %}client.action(schema, action{% if link.fields %}, params{% endif %}).then(function(result) {
     // Return value is in 'result'
-}){% endcode %}</code></pre>
+})</code></pre>
