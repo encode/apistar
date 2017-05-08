@@ -1,3 +1,4 @@
+import base64
 import inspect
 from typing import Dict, List, Optional
 from urllib.parse import urljoin
@@ -97,6 +98,16 @@ def serve_schema(schema: APISchema) -> http.Response:
 
 
 @exclude_from_schema
+def serve_schema_js(schema: APISchema, templates: Templates) -> http.Response:
+    codec = CoreJSONCodec()
+    base64_schema = base64.b64encode(codec.encode(schema)).decode('latin1')
+    template = templates.get_template('apistar/schema.js')
+    content = template.render(base64_schema=base64_schema)
+    headers = {'Content-Type': 'application/javascript'}
+    return http.Response(content, headers=headers)
+
+
+@exclude_from_schema
 def serve_docs(schema: APISchema, templates: Templates):
     index = templates.get_template('apistar/index.html')
     langs = ['python', 'javascript', 'shell']
@@ -104,4 +115,15 @@ def serve_docs(schema: APISchema, templates: Templates):
     def static(path):
         return '/static/' + path
 
-    return index.render(document=schema, static=static, langs=langs)
+    def get_fields(link, location):
+        return [
+            field for field in link.fields
+            if field.location == location
+        ]
+
+    return index.render(
+        document=schema,
+        static=static,
+        langs=langs,
+        get_fields=get_fields
+    )

@@ -19,8 +19,7 @@
 
     <p>{{ link.description }}</p>
 
-{#
-{% if link.fields|with_location:'path' %}
+{% if get_fields(link, 'path') %}
     <h4>Path Parameters</h4>
     <p>The following parameters should be included in the URL path.</p>
     <table class="parameters table table-bordered table-striped">
@@ -28,13 +27,13 @@
             <tr><th>Parameter</th><th>Description</th></tr>
         </thead>
         <tbody>
-            {% for field in link.fields|with_location:'path' %}
+            {% for field in get_fields(link, 'path') %}
             <tr><td class="parameter-name"><code>{{ field.name }}</code>{% if field.required %} <span class="label label-warning">required</span>{% endif %}</td><td>{% if field.schema.description %}{{ field.schema.description }}{% endif %}</td></tr>
             {% endfor %}
         </tbody>
     </table>
 {% endif %}
-{% if link.fields|with_location:'query' %}
+{% if get_fields(link, 'query') %}
     <h4>Query Parameters</h4>
     <p>The following parameters should be included as part of a URL query string.</p>
     <table class="parameters table table-bordered table-striped">
@@ -42,13 +41,13 @@
             <tr><th>Parameter</th><th>Description</th></tr>
         </thead>
         <tbody>
-            {% for field in link.fields|with_location:'query' %}
+            {% for field in get_fields(link, 'query') %}
             <tr><td class="parameter-name"><code>{{ field.name }}</code>{% if field.required %} <span class="label label-warning">required</span>{% endif %}</td><td>{% if field.schema.description %}{{ field.schema.description }}{% endif %}</td></tr>
             {% endfor %}
         </tbody>
     </table>
 {% endif %}
-{% if link.fields|with_location:'header' %}
+{% if get_fields(link, 'header') %}
     <h4>Header Parameters</h4>
     <p>The following parameters should be included as HTTP headers.</p>
     <table class="parameters table table-bordered table-striped">
@@ -56,13 +55,13 @@
             <tr><th>Parameter</th><th>Description</th></tr>
         </thead>
         <tbody>
-            {% for field in link.fields|with_location:'header' %}
+            {% for field in get_fields(link, 'header') %}
             <tr><td class="parameter-name"><code>{{ field.name }}</code>{% if field.required %} <span class="label label-warning">required</span>{% endif %}</td><td>{% if field.schema.description %}{{ field.schema.description }}{% endif %}</td></tr>
             {% endfor %}
         </tbody>
     </table>
 {% endif %}
-{% if link.fields|with_location:'body' %}
+{% if get_fields(link, 'body') %}
     <h4>Request Body</h4>
     <p>The request body should be <code>"{{ link.encoding }}"</code> encoded, and should contain a single item.</p>
     <table class="parameters table table-bordered table-striped">
@@ -70,12 +69,12 @@
             <tr><th>Parameter</th><th>Description</th></tr>
         </thead>
         <tbody>
-            {% for field in link.fields|with_location:'body' %}
+            {% for field in get_fields(link, 'body') %}
             <tr><td class="parameter-name"><code>{{ field.name }}</code>{% if field.required %} <span class="label label-warning">required</span>{% endif %}</td><td>{% if field.schema.description %}{{ field.schema.description }}{% endif %}</td></tr>
             {% endfor %}
         </tbody>
     </table>
-{% elif link.fields|with_location:'form' %}
+{% elif get_fields(link, 'form') %}
     <h4>Request Body</h4>
     <p>The request body should be a <code>"{{ link.encoding }}"</code> encoded object, containing the following&nbsp;items.</p>
     <table class="parameters table table-bordered table-striped">
@@ -83,13 +82,12 @@
             <tr><th>Parameter</th><th>Description</th></tr>
         </thead>
         <tbody>
-            {% for field in link.fields|with_location:'form' %}
+            {% for field in get_fields(link, 'form') %}
             <tr><td class="parameter-name"><code>{{ field.name }}</code>{% if field.required %} <span class="label label-warning">required</span>{% endif %}</td><td>{% if field.schema.description %}{{ field.schema.description }}{% endif %}</td></tr>
             {% endfor %}
         </tbody>
     </table>
 {% endif %}
-#}
 
 </div>
 

@@ -2,7 +2,9 @@ from coreapi import Field, Link
 from coreapi.codecs import CoreJSONCodec
 
 from apistar import schema
-from apistar.apischema import APISchema, serve_docs, serve_schema
+from apistar.apischema import (
+    APISchema, serve_docs, serve_schema, serve_schema_js
+)
 from apistar.app import App
 from apistar.routing import Route
 from apistar.test import TestClient
@@ -38,7 +40,8 @@ routes = [
     Route('/todo/{ident}/', 'GET', show_todo),
     Route('/todo/{ident}/', 'PUT', set_complete),
     Route('/schema/', 'GET', serve_schema),
-    Route('/docs/', 'GET', serve_docs)
+    Route('/docs/', 'GET', serve_docs),
+    Route('/schema.js', 'GET', serve_schema_js)
 ]
 
 app = App(routes=routes)
@@ -86,6 +89,12 @@ def test_serve_schema():
         assert name in document
         assert link.action == document[name].action
         assert link.fields == document[name].fields
+
+
+def test_serve_schema_js():
+    response = client.get('/schema.js')
+    assert response.status_code == 200
+    assert response.headers['Content-Type'] == 'application/javascript'
 
 
 def test_serve_docs():
