@@ -5,7 +5,7 @@ from typing import Any, Callable, Dict, List
 import click
 
 from apistar import commands as cmd
-from apistar import pipelines, routing, schema, backends
+from apistar import backends, pipelines, routing, schema
 # from apistar.backends.utils import db_backend_loader
 
 DEFAULT_LOOKUP_CACHE_SIZE = 10000
@@ -42,7 +42,7 @@ class App(object):
             initial_types.append(Templates)
             self.preloaded['templates'] = Templates.build(self.settings)
         if 'DATABASE' in self.settings:
-            Backend = backends.utils.db_backend_loader(self.settings)
+            Backend = backends.db_backend_loader(self.settings)
             initial_types.append(Backend)
             self.preloaded[Backend.preload_key] = Backend.build(self.settings)
             self.commands += Backend.commands
