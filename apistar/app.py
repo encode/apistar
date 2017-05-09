@@ -5,7 +5,8 @@ from typing import Any, Callable, Dict, List
 import click
 
 from apistar import commands as cmd
-from apistar import pipelines, routing, schema
+from apistar import pipelines, routing, schema, backends
+# from apistar.backends.utils import db_backend_loader
 
 DEFAULT_LOOKUP_CACHE_SIZE = 10000
 
@@ -25,7 +26,6 @@ class App(object):
         from apistar.settings import Settings
         from apistar.statics import Statics
         from apistar.templating import Templates
-        from apistar.backends.sqlalchemy import SQLAlchemy
 
         routes = [] if (routes is None) else routes
         commands = [] if (commands is None) else commands
@@ -42,9 +42,10 @@ class App(object):
             initial_types.append(Templates)
             self.preloaded['templates'] = Templates.build(self.settings)
         if 'DATABASE' in self.settings:
-            initial_types.append(SQLAlchemy)
-            self.preloaded['sql_alchemy'] = SQLAlchemy.build(self.settings)
-            self.commands += [cmd.create_tables]
+            Backend = backends.utils.db_backend_loader(self.settings)
+            initial_types.append(Backend)
+            self.preloaded[Backend.preload_key] = Backend.build(self.settings)
+            self.commands += Backend.commands
         if 'STATICS' in self.settings:
             initial_types.append(Statics)
             self.preloaded['statics'] = Statics.build(self.settings)

@@ -1,8 +1,13 @@
-from apistar.settings import Settings
+# from apistar.settings import Settings
+from apistar import commands
+from apistar.backends.base import BaseDatabaseBackend
 
 
-class SQLAlchemy(object):
-    __slots__ = ('engine', 'session_class', 'metadata')
+class SQLAlchemy(BaseDatabaseBackend):
+    __slots__ = ('engine', 'session_class', 'metadata', )
+
+    preload_key = 'sql_alchemy'
+    commands = [commands.create_tables, ]
 
     def __init__(self, engine, session_class, metadata=None):
         self.engine = engine
@@ -10,7 +15,7 @@ class SQLAlchemy(object):
         self.metadata = metadata
 
     @classmethod
-    def build(cls, settings: Settings):
+    def build(cls, settings):
         config = settings['DATABASE']
         url = config['URL']
         metadata = config['METADATA']
