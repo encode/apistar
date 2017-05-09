@@ -1,3 +1,4 @@
+import coreschema
 from coreapi import Field, Link
 from coreapi.codecs import CoreJSONCodec
 
@@ -52,24 +53,24 @@ expected = APISchema(url='/schema/', content={
     'list_todo': Link(
         url='/todo/',
         action='GET',
-        fields=[Field(name='search', location='query', required=False)]
+        fields=[Field(name='search', location='query', required=False, schema=coreschema.String())]
     ),
     'add_todo': Link(
         url='/todo/',
         action='POST',
-        fields=[Field(name='note', location='body', required=True)]
+        fields=[Field(name='note', location='body', required=True, schema=coreschema.String())]
     ),
     'show_todo': Link(
         url='/todo/{ident}/',
         action='GET',
-        fields=[Field(name='ident', location='path', required=True)]
+        fields=[Field(name='ident', location='path', required=True, schema=coreschema.String())]
     ),
     'set_complete': Link(
         url='/todo/{ident}/',
         action='PUT',
         fields=[
-            Field(name='ident', location='path', required=True),
-            Field(name='complete', location='form', required=False)
+            Field(name='ident', location='path', required=True, schema=coreschema.String()),
+            Field(name='complete', location='form', required=False, schema=coreschema.String())
         ]
     )
 })

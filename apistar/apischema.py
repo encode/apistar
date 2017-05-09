@@ -3,6 +3,7 @@ import inspect
 from typing import Dict, List, Optional
 from urllib.parse import urljoin
 
+import coreschema
 from coreapi import Document, Field, Link
 from coreapi.codecs import CoreJSONCodec
 from uritemplate import URITemplate
@@ -69,6 +70,7 @@ def get_link(route: Route) -> Link:
 
         location = None
         required = False
+        param_schema = coreschema.String()
         if param.name in uritemplate.variable_names:
             location = 'path'
             required = True
@@ -83,10 +85,20 @@ def get_link(route: Route) -> Link:
                 location = 'query'
 
         if location is not None:
-            field = Field(name=param.name, location=location, required=required)
+            field = Field(name=param.name, location=location, required=required, schema=param_schema)
             fields.append(field)
 
     return Link(url=path, action=method, fields=fields)
+
+
+def render_form(link):
+    properties = dict([
+        (field.name, field.schema or coreschema.String())
+        for field in link.fields
+    ])
+    required = []
+    schema = coreschema.Object(properties=properties, required=required)
+    return coreschema.render_to_form(schema)
 
 
 @exclude_from_schema
@@ -125,5 +137,6 @@ def serve_docs(schema: APISchema, templates: Templates):
         document=schema,
         static=static,
         langs=langs,
-        get_fields=get_fields
+        get_fields=get_fields,
+        render_form=render_form,
     )

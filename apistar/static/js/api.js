@@ -23,7 +23,8 @@ function formEntries (form) {
   // Polyfill for new FormData(form).entries()
   var formData = new FormData(form)
   if (formData.entries !== undefined) {
-    return formData.entries()
+    // Array.from is supported in all browsers that have formData.entries
+    return Array.from(formData.entries())
   }
 
   var entries = []

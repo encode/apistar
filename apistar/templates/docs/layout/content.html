@@ -1,6 +1,6 @@
 <div class="row intro">
 <div class="col-md-6 intro-title">
-    <h1>Example API</h1>
+    <h1>{{ document.title|default('API Star', True) }}</h1>
     {% if document.description %}
     <p>{{ document.description }}</p>
     {% endif %}
