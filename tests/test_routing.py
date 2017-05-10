@@ -1,6 +1,6 @@
 import pytest
 
-from apistar import App, Route, exceptions, http, schema
+from apistar import App, Include, Route, exceptions, http, schema
 from apistar.routing import Path, URLPathArgs
 from apistar.test import TestClient
 
@@ -57,6 +57,12 @@ def path_param_with_integer(var: schema.Integer):
     }
 
 
+def subpath(var: schema.Integer):
+    return {
+        'var': var
+    }
+
+
 app = App(routes=[
     Route('/found/', 'GET', found),
     Route('/path_params/{var}/', 'GET', path_params),
@@ -66,6 +72,9 @@ app = App(routes=[
     Route('/max_length/{var}/', 'GET', path_param_with_max_length),
     Route('/number/{var}/', 'GET', path_param_with_number),
     Route('/integer/{var}/', 'GET', path_param_with_integer),
+    Include('/subpath', [
+        Route('/{var}/', 'GET', subpath),
+    ]),
 ])
 
 
@@ -124,6 +133,13 @@ def test_int_path_param():
     response = client.get('/int/1/')
     assert response.json() == {
         'var': 1
+    }
+
+
+def test_subpath():
+    response = client.get('/subpath/123/')
+    assert response.json() == {
+        'var': 123
     }
 
 

@@ -19,7 +19,7 @@ class App(object):
     )
 
     def __init__(self,
-                 routes: List[routing.Route] = None,
+                 routes: Any = None,
                  commands: List[Callable] = None,
                  settings: Dict[str, Any] = None) -> None:
         from apistar.settings import Settings
@@ -54,7 +54,7 @@ def get_wsgi_server(app):
     preloaded = app.preloaded
 
     # Pre-fill the lookup cache for URLs without path arguments.
-    for path, method, view in app.router.routes:
+    for path, method, view in routing.walk(app.routes):
         if '{' not in path:
             key = method.upper() + ' ' + path
             lookup_cache[key] = lookup(path, method)
@@ -157,7 +157,7 @@ def get_click_client(app):
     return client
 
 
-def preload_state(state: Dict[str, Any], routes: List[routing.Route]) -> None:
+def preload_state(state: Dict[str, Any], routes: routing.RoutesConfig) -> None:
     components = get_preloaded_components(routes)
     for component in components:
         builder = getattr(component, 'build')
@@ -168,10 +168,10 @@ def preload_state(state: Dict[str, Any], routes: List[routing.Route]) -> None:
         pipelines.run_pipeline(pipeline, state)
 
 
-def get_preloaded_components(routes: List[routing.Route]) -> Set[type]:
+def get_preloaded_components(routes: routing.RoutesConfig) -> Set[type]:
     preloaded_components = set()
 
-    for path, method, view in routes:
+    for path, method, view in routing.walk(routes):
         view_signature = inspect.signature(view)
         for param in view_signature.parameters.values():
             if getattr(param.annotation, 'preload', False):

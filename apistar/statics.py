@@ -5,7 +5,7 @@ import apistar
 from apistar import exceptions, wsgi
 from apistar.compat import whitenoise
 from apistar.decorators import exclude_from_schema
-from apistar.routing import Path
+from apistar.routing import Path, Route
 from apistar.settings import Settings
 
 PACKAGE_DIR = os.path.dirname(apistar.__file__)
@@ -45,3 +45,8 @@ def serve_static(path: Path, statics: Statics, environ: wsgi.WSGIEnviron) -> wsg
         # We hit this branch for HEAD requests
         content = []
     return wsgi.WSGIResponse(status_line, headers, content)
+
+
+static_routes = [
+    Route('/{path}', 'GET', serve_static)
+]

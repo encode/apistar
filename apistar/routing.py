@@ -1,7 +1,7 @@
 import inspect
 import traceback
 from collections import namedtuple
-from typing import Any, Callable, Dict, List, Tuple  # noqa
+from typing import Any, Callable, Dict, Iterator, List, Tuple, Union  # noqa
 from urllib.parse import urlparse
 
 import werkzeug
@@ -27,7 +27,9 @@ typing_types = (
 
 
 Route = namedtuple('Route', ['path', 'method', 'view'])
+Include = namedtuple('Include', ['path', 'routes'])
 Endpoint = namedtuple('Endpoint', ['view', 'pipeline'])
+RoutesConfig = List[Union[Route, Include]]
 
 
 class Path(schema.String):
@@ -57,7 +59,7 @@ RouterLookup = Tuple[Callable, Pipeline, URLPathArgs]
 
 class Router(object):
     def __init__(self,
-                 routes: List[Route],
+                 routes: RoutesConfig,
                  initial_types: List[type]=None) -> None:
         required_type = wsgi.WSGIResponse
 
@@ -67,7 +69,7 @@ class Router(object):
         rules = []
         views = {}
 
-        for (path, method, view) in routes:
+        for (path, method, view) in walk(routes):
             view_signature = inspect.signature(view)
             uritemplate = URITemplate(path)
 
@@ -183,3 +185,13 @@ def exception_handler(environ: wsgi.WSGIEnviron,
 
     message = traceback.format_exc()
     return http.Response(message, 500, {'Content-Type': 'text/plain; charset=utf-8'})
+
+
+def walk(routes: RoutesConfig, prefix='') -> Iterator[Route]:
+    for entry in routes:
+        if isinstance(entry, Include):
+            yield from walk(entry.routes, prefix + entry.path)
+        elif prefix:
+            yield Route(prefix + entry.path, entry.method, entry.view)
+        else:
+            yield entry
