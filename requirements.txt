@@ -9,7 +9,6 @@ werkzeug
 # Optional
 psycopg2
 sqlalchemy
-twine
 whitenoise
 
 # Testing requirements
