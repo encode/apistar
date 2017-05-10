@@ -13,7 +13,9 @@ PACKAGE_STATICS = os.path.join(PACKAGE_DIR, 'static')
 
 
 class Statics(object):
-    def __init__(self, root_dir):
+    preload = True
+
+    def __init__(self, root_dir=None):
         assert whitenoise is not None, 'whitenoise must be installed.'
         from whitenoise import WhiteNoise
         self.whitenoise = WhiteNoise(application=None, root=root_dir)

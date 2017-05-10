@@ -23,9 +23,6 @@ class App(object):
                  commands: List[Callable] = None,
                  settings: Dict[str, Any] = None) -> None:
         from apistar.settings import Settings
-        from apistar.statics import Statics
-        from apistar.templating import Templates
-        from apistar.backends.sqlalchemy import SQLAlchemy
 
         routes = [] if (routes is None) else routes
         commands = [] if (commands is None) else commands
@@ -38,19 +35,9 @@ class App(object):
         self.preloaded = {
             'app': self
         }
-        # preload_state(self.preloaded, self.routes)
-        print(self.preloaded)
-
-        if 'TEMPLATES' in self.settings:
-            initial_types.append(Templates)
-            self.preloaded['templates'] = Templates.build(self.settings)
-        if 'DATABASE' in self.settings:
-            initial_types.append(SQLAlchemy)
-            self.preloaded['sql_alchemy'] = SQLAlchemy.build(self.settings)
+        preload_state(self.preloaded, self.routes)
+        if 'sql_alchemy' in self.preloaded:
             self.commands += [cmd.create_tables]
-        if 'STATICS' in self.settings:
-            initial_types.append(Statics)
-            self.preloaded['statics'] = Statics.build(self.settings)
 
         self.router = routing.Router(self.routes, initial_types)
         self.wsgi = get_wsgi_server(app=self)
