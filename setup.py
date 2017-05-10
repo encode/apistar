@@ -62,7 +62,8 @@ setup(
         'jinja2',
         'pytest',
         'requests',
-        'werkzeug'
+        'werkzeug',
+        'whitenoise'
     ],
     classifiers=[
         'Development Status :: 3 - Alpha',
