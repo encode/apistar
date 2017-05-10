@@ -1,6 +1,6 @@
 import inspect
 from collections import OrderedDict
-from typing import Any, Callable, Dict, List
+from typing import Any, Callable, Dict, List, Set
 
 import click
 
@@ -38,6 +38,9 @@ class App(object):
         self.preloaded = {
             'app': self
         }
+        # preload_state(self.preloaded, self.routes)
+        print(self.preloaded)
+
         if 'TEMPLATES' in self.settings:
             initial_types.append(Templates)
             self.preloaded['templates'] = Templates.build(self.settings)
@@ -165,3 +168,26 @@ def get_click_client(app):
         client.add_command(command)
 
     return client
+
+
+def preload_state(state: Dict[str, Any], routes: List[routing.Route]) -> None:
+    components = get_preloaded_components(routes)
+    for component in components:
+        builder = getattr(component, 'build')
+        pipeline = pipelines.build_pipeline(
+            function=builder,
+            initial_types=[App]
+        )
+        pipelines.run_pipeline(pipeline, state)
+
+
+def get_preloaded_components(routes: List[routing.Route]) -> Set[type]:
+    preloaded_components = set()
+
+    for path, method, view in routes:
+        view_signature = inspect.signature(view)
+        for param in view_signature.parameters.values():
+            if getattr(param.annotation, 'preload', False):
+                preloaded_components.add(param.annotation)
+
+    return preloaded_components

@@ -9,6 +9,8 @@ from apistar.settings import Settings
 
 
 class Templates(jinja2.Environment):
+    preload = True
+
     @classmethod
     def build(cls, settings: Settings):
         template_dirs = settings.get(['TEMPLATES', 'DIRS'])
