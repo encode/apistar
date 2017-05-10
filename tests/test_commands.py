@@ -140,9 +140,4 @@ def test_schema():
         runner.invoke(['new', '.', '--layout', 'minimal'])
         result = runner.invoke(['schema'])
         assert result.exit_code == 0
-        assert result.output == (
-            '{"_type":"document","_meta":{"url":"/docs/schema"},'
-            '"welcome":{"_type":"link","url":"/","action":"GET",'
-            '"fields":[{"name":"name","location":"query","schema'
-            '":{"_type":"string","title":"","description":""}}]}}\n'
-        )
+        assert result.output.startswith('{"_type":"document"')
