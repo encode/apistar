@@ -1,7 +1,7 @@
-def welcome(username=None):
+def welcome(username: str=None):
     if username is None:
         message = 'Welcome to API Star!'
     else:
-        message = f'Welcome to API Star, {username}!'
+        message = 'Welcome to API Star, %s!' % username
 
     return {'message': message}
