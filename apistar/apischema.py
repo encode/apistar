@@ -33,7 +33,7 @@ def get_schema_url(routes: RoutesConfig, base_url: http.URL) -> Optional[str]:
     for route in walk(routes):
         if route.view is serve_schema:
             return urljoin(base_url, route.path)
-    return None
+    return None  # pragma: nocover
 
 
 def get_schema_content(routes: RoutesConfig) -> Dict[str, Route]:
