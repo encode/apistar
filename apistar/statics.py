@@ -1,9 +1,15 @@
+import os
 from wsgiref.util import FileWrapper
 
+import apistar
 from apistar import exceptions, wsgi
 from apistar.compat import whitenoise
+from apistar.decorators import exclude_from_schema
 from apistar.routing import Path
 from apistar.settings import Settings
+
+PACKAGE_DIR = os.path.dirname(apistar.__file__)
+PACKAGE_STATICS = os.path.join(PACKAGE_DIR, 'static')
 
 
 class Statics(object):
@@ -11,6 +17,7 @@ class Statics(object):
         assert whitenoise is not None, 'whitenoise must be installed.'
         from whitenoise import WhiteNoise
         self.whitenoise = WhiteNoise(application=None, root=root_dir)
+        self.whitenoise.add_files(PACKAGE_STATICS, prefix='apistar')
 
     @classmethod
     def build(cls, settings: Settings):
@@ -18,6 +25,7 @@ class Statics(object):
         return cls(root_dir)
 
 
+@exclude_from_schema
 def serve_static(path: Path, statics: Statics, environ: wsgi.WSGIEnviron) -> wsgi.WSGIResponse:
     if not path.startswith('/'):
         path = Path('/' + path)
