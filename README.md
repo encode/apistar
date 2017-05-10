@@ -53,14 +53,21 @@ Create a new project:
     app.py
     tests.py
     $ cat app.py
-    from apistar import App, Route
+    from apistar import App, Include, Route
+    from apistar.docs import docs_routes
+    from apistar.statics import static_routes
 
-    def welcome():
-        return {'message': 'Welcome to API Star!'}
+
+    def welcome(name=None):
+        if name is None:
+            return {'message': 'Welcome to API Star!'}
+        return {'message': 'Welcome to API Star, %s!' % name}
 
 
     routes = [
-        Route('/', 'GET', welcome)
+        Route('/', 'GET', welcome),
+        Include('/docs', docs_routes),
+        Include('/static', static_routes)
     ]
 
     app = App(routes=routes)
@@ -76,6 +83,12 @@ Run the tests:
     $ apistar test
     tests.py ..
     ===== 2 passed in 0.05 seconds =====
+
+View the interactive API documentation:
+
+    $ open http://localhost:8080/docs/
+
+![screenshot](docs/img/apistar.png)
 
 ---
 
