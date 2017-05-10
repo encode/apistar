@@ -140,4 +140,4 @@ def test_schema():
         runner.invoke(['new', '.', '--layout', 'minimal'])
         result = runner.invoke(['schema'])
         assert result.exit_code == 0
-        assert result.output == '{"_type":"document","welcome":{"_type":"link","url":"/","action":"GET"}}\n'
+        assert result.output.startswith('{"_type":"document"')

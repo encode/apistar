@@ -10,7 +10,7 @@ from apistar.http import Request, Response
 from apistar.routing import Include, Route
 from apistar.test import TestClient
 
-__version__ = '0.1.16'
+__version__ = '0.1.17'
 __all__ = [
     'App', 'Include', 'Route', 'Request', 'Response', 'TestClient'
 ]
