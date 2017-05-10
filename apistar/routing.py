@@ -1,7 +1,9 @@
 import inspect
 import traceback
 from collections import namedtuple
-from typing import Any, Callable, Dict, Iterator, List, Tuple, Union  # noqa
+from typing import (  # noqa
+    Any, Callable, Dict, Iterator, List, Sequence, Tuple, Union
+)
 from urllib.parse import urlparse
 
 import werkzeug
@@ -29,7 +31,7 @@ typing_types = (
 Route = namedtuple('Route', ['path', 'method', 'view'])
 Include = namedtuple('Include', ['path', 'routes'])
 Endpoint = namedtuple('Endpoint', ['view', 'pipeline'])
-RoutesConfig = List[Union[Route, Include]]
+RoutesConfig = Sequence[Union[Route, Include]]
 
 
 class Path(schema.String):

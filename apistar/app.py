@@ -19,7 +19,7 @@ class App(object):
     )
 
     def __init__(self,
-                 routes: Any = None,
+                 routes: routing.RoutesConfig = None,
                  commands: List[Callable] = None,
                  settings: Dict[str, Any] = None) -> None:
         from apistar.settings import Settings
