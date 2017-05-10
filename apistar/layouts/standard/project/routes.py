@@ -1,4 +1,4 @@
-from apistar import Route, Include
+from apistar import Include, Route
 from apistar.docs import docs_routes
 from apistar.statics import static_routes
 from project.views import welcome
