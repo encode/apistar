@@ -10,6 +10,7 @@ from apistar import schema
 APISTAR_PACKAGE_DIR = os.path.dirname(apistar.__file__)
 LAYOUTS_DIR = os.path.join(APISTAR_PACKAGE_DIR, 'layouts')
 LAYOUT_CHOICES = os.listdir(LAYOUTS_DIR)
+IGNORED_DIRECTORIES = ['__pycache__']
 
 
 class TargetDir(schema.String):
@@ -35,6 +36,7 @@ def new(target_dir: TargetDir, layout: Layout, force: Force) -> None:
 
     copy_paths = []
     for dir_path, dirs, filenames in os.walk(source_dir):
+        dirs[:] = [d for d in dirs if d not in IGNORED_DIRECTORIES]
         for filename in filenames:
             source_path = os.path.join(dir_path, filename)
             rel_path = os.path.relpath(source_path, source_dir)
