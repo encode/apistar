@@ -3,6 +3,7 @@ from apistar.settings import Settings
 
 class SQLAlchemy(object):
     __slots__ = ('engine', 'session_class', 'metadata')
+    preload = True
 
     def __init__(self, engine, session_class, metadata=None):
         self.engine = engine

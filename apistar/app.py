@@ -1,6 +1,6 @@
 import inspect
 from collections import OrderedDict
-from typing import Any, Callable, Dict, List
+from typing import Any, Callable, Dict, List, Set
 
 import click
 
@@ -23,9 +23,6 @@ class App(object):
                  commands: List[Callable] = None,
                  settings: Dict[str, Any] = None) -> None:
         from apistar.settings import Settings
-        from apistar.statics import Statics
-        from apistar.templating import Templates
-        from apistar.backends.sqlalchemy import SQLAlchemy
 
         routes = [] if (routes is None) else routes
         commands = [] if (commands is None) else commands
@@ -38,16 +35,9 @@ class App(object):
         self.preloaded = {
             'app': self
         }
-        if 'TEMPLATES' in self.settings:
-            initial_types.append(Templates)
-            self.preloaded['templates'] = Templates.build(self.settings)
-        if 'DATABASE' in self.settings:
-            initial_types.append(SQLAlchemy)
-            self.preloaded['sql_alchemy'] = SQLAlchemy.build(self.settings)
+        preload_state(self.preloaded, self.routes)
+        if 'sql_alchemy' in self.preloaded:
             self.commands += [cmd.create_tables]
-        if 'STATICS' in self.settings:
-            initial_types.append(Statics)
-            self.preloaded['statics'] = Statics.build(self.settings)
 
         self.router = routing.Router(self.routes, initial_types)
         self.wsgi = get_wsgi_server(app=self)
@@ -165,3 +155,26 @@ def get_click_client(app):
         client.add_command(command)
 
     return client
+
+
+def preload_state(state: Dict[str, Any], routes: List[routing.Route]) -> None:
+    components = get_preloaded_components(routes)
+    for component in components:
+        builder = getattr(component, 'build')
+        pipeline = pipelines.build_pipeline(
+            function=builder,
+            initial_types=[App]
+        )
+        pipelines.run_pipeline(pipeline, state)
+
+
+def get_preloaded_components(routes: List[routing.Route]) -> Set[type]:
+    preloaded_components = set()
+
+    for path, method, view in routes:
+        view_signature = inspect.signature(view)
+        for param in view_signature.parameters.values():
+            if getattr(param.annotation, 'preload', False):
+                preloaded_components.add(param.annotation)
+
+    return preloaded_components
