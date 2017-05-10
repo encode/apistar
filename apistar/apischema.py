@@ -1,6 +1,6 @@
 import base64
 import inspect
-from typing import Dict, List, Optional
+from typing import Dict, Optional
 from urllib.parse import urljoin
 
 import coreschema
@@ -11,7 +11,9 @@ from uritemplate import URITemplate
 from apistar import http, schema
 from apistar.app import App
 from apistar.decorators import exclude_from_schema
-from apistar.routing import Route, primitive_types, schema_types
+from apistar.routing import (
+    Route, RoutesConfig, primitive_types, schema_types, walk
+)
 from apistar.templating import Templates
 
 
@@ -24,23 +26,23 @@ class APISchema(Document):
         return cls(url=url, content=content)
 
 
-def get_schema_url(routes: List[Route], base_url: http.URL) -> Optional[str]:
+def get_schema_url(routes: RoutesConfig, base_url: http.URL) -> Optional[str]:
     """
     Given the application routes, return the URL path of the API Schema.
     """
-    for route in routes:
+    for route in walk(routes):
         if route.view is serve_schema:
             return urljoin(base_url, route.path)
     return None
 
 
-def get_schema_content(routes: List[Route]) -> Dict[str, Route]:
+def get_schema_content(routes: RoutesConfig) -> Dict[str, Route]:
     """
     Given the application routes, return a dictionary containing all the
     Links that the service exposes.
     """
     content = {}
-    for route in routes:
+    for route in walk(routes):
         view = route.view
         if getattr(view, 'exclude_from_schema', False):
             continue
@@ -91,16 +93,6 @@ def get_link(route: Route) -> Link:
     return Link(url=path, action=method, fields=fields)
 
 
-def render_form(link):
-    properties = dict([
-        (field.name, field.schema or coreschema.String())
-        for field in link.fields
-    ])
-    required = []
-    schema = coreschema.Object(properties=properties, required=required)
-    return coreschema.render_to_form(schema)
-
-
 @exclude_from_schema
 def serve_schema(schema: APISchema) -> http.Response:
     codec = CoreJSONCodec()
@@ -117,26 +109,3 @@ def serve_schema_js(schema: APISchema, templates: Templates) -> http.Response:
     content = template.render(base64_schema=base64_schema)
     headers = {'Content-Type': 'application/javascript'}
     return http.Response(content, headers=headers)
-
-
-@exclude_from_schema
-def serve_docs(schema: APISchema, templates: Templates):
-    index = templates.get_template('apistar/docs/index.html')
-    langs = ['python', 'javascript', 'shell']
-
-    def static(path):
-        return '/static/' + path
-
-    def get_fields(link, location):
-        return [
-            field for field in link.fields
-            if field.location == location
-        ]
-
-    return index.render(
-        document=schema,
-        static=static,
-        langs=langs,
-        get_fields=get_fields,
-        render_form=render_form,
-    )
