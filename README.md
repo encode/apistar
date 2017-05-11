@@ -22,7 +22,7 @@ be in sync with your codebase.
 * **Client libraries** - JavaScript and Python client libraries, driven by the schemas that API Star generates.
 * **Schema generation** - Support for generating Swagger or RAML API schemas.
 * **Expressive** - Type annotated views, that make for expressive, testable code.
-* **Performance** - Incredibly efficient views, that only run exactly what they need to satisfy their interface.
+* **Performance** - Dynamic behavior for determining how to run each view makes API Star incredibly efficient.
 
 ---
 
