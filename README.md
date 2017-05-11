@@ -737,8 +737,18 @@ def debug_environ(environ: wsgi.WSGIEnviron):
 
 # Performance
 
-The following results were obtained on a 2013 MacBook Air, using the simplest
-"JSON Serialization" [TechEmpower benchmark](https://www.techempower.com/benchmarks/).
+API Star dynamically determines exactly what does and does not need to
+run for any given view, based on the annotations it includes. This means that
+it can be incredibly efficient.
+
+For a simple JSON serialization test case, the [TechEmpower benchmarks][techempower]
+rank API Star as achieving the highest throughput of any Python, JavaScript, Ruby,
+or Go framework.
+
+![Benchmarks](docs/img/benchmarks.png)
+
+We're also able to replicate similar results locally. The following results
+were obtained on a 2013 MacBook Air, against the same JSON serialization test case.
 
 Framework | Configuration       | Requests/sec | Avg Latency
 ----------|---------------------|--------------|-------------
@@ -747,11 +757,17 @@ Sanic     | uvloop              | 21,233       | 10.19ms
 Falcon    | gunicorn + meinheld | 16,692       | 12.08ms
 Flask     | gunicorn + meinheld |  5,238       | 38.28ms
 
-A pull request [has been issued](https://github.com/TechEmpower/FrameworkBenchmarks/pull/2633)
-to add API Star to future rounds of the TechEmpower benchmarks. In the future we
-plan to be adding more realistic & useful test types, such as database query performance.
-
 API Star optionally supports the `ujson` package for improvements in serialization performance. Currently `ujson` will automatically be used if the package is installed.
+
+**Proviso**:
+
+It's worth noting that other types of test case would give different results.
+In particular, API Star would likely lose out to asynchronous frameworks once
+database access or other blocking operations are included in the test case.
+
+We'll be working towards adding further test case types to the TechEmpower
+benchmarks in the coming weeks, and are also planning to add support for an
+asynchronous deployment mode.
 
 ---
 
@@ -822,3 +838,5 @@ To run the continuous integration tests and code linting:
 ---
 
 <p align="center"><i>API Star is <a href="https://github.com/tomchristie/apistar/blob/master/LICENSE.md">BSD licensed</a> code.<br/>Designed & built in Brighton, England.</i><br/>&mdash; ⭐️ &mdash;</p>
+
+[techempower]: https://www.techempower.com/benchmarks/#section=data-r14&hw=ph&test=json
