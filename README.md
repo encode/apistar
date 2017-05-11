@@ -769,6 +769,11 @@ We'll be working towards adding further test case types to the TechEmpower
 benchmarks in the coming weeks, and are also planning to add support for an
 asynchronous deployment mode.
 
+Its also important to recognize that raw latency or throughput numbers are
+typically not the most important factor to take into consideration when choosing
+a framework. Having said that, our aim is for API Star to hit the sweet spot for
+both performance and for productivity.
+
 ---
 
 # Deployment
