@@ -9,10 +9,18 @@ fi
 find apistar -type f -name "*.py[co]" -delete
 find apistar -type d -name __pycache__ -delete
 
-${PREFIX}python setup.py sdist upload
+${PREFIX}python setup.py sdist
+
+if command -v "twine" &>/dev/null; then
+    ${PREFIX}twine upload dist/*
+
+    echo "You probably want to also tag the version now:"
+    echo "git tag -a ${VERSION} -m 'version ${VERSION}'"
+    echo "git push --tags"
+else
+    echo "Unable to find the 'twine' command"
+    echo "Please install 'twine' from PyPI"
+    exit 1
+fi
 
 rm -r dist
-
-echo "You probably want to also tag the version now:"
-echo "git tag -a ${VERSION} -m 'version ${VERSION}'"
-echo "git push --tags"
