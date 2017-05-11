@@ -6,21 +6,20 @@ if [ -d 'venv' ] ; then
     export PREFIX="venv/bin/"
 fi
 
+if [ ! -f ${PREFIX}twine ] ; then
+    echo "Unable to find the 'twine' command."
+    echo "Install from PyPI, using '${PREFIX}pip install twine'"
+    exit 1
+fi
+
 find apistar -type f -name "*.py[co]" -delete
 find apistar -type d -name __pycache__ -delete
 
 ${PREFIX}python setup.py sdist
+${PREFIX}twine upload dist/*
 
-if command -v "twine" &>/dev/null; then
-    ${PREFIX}twine upload dist/*
-
-    echo "You probably want to also tag the version now:"
-    echo "git tag -a ${VERSION} -m 'version ${VERSION}'"
-    echo "git push --tags"
-else
-    echo "Unable to find the 'twine' command"
-    echo "Please install 'twine' from PyPI"
-    exit 1
-fi
+echo "You probably want to also tag the version now:"
+echo "git tag -a ${VERSION} -m 'version ${VERSION}'"
+echo "git push --tags"
 
 rm -r dist
