@@ -6,9 +6,9 @@ if [ -d 'venv' ] ; then
     export PREFIX="venv/bin/"
 fi
 
-if [ ! -f ${PREFIX}twine ] ; then
+if ! command -v "${PRFIX}twine" &>/dev/null ; then
     echo "Unable to find the 'twine' command."
-    echo "Install from PyPI, using '${PREFIX}pip install twine'"
+    echo "Install from PyPI, using '${PREFIX}pip install twine'."
     exit 1
 fi
 
