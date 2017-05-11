@@ -13,6 +13,20 @@ A smart Web API framework, designed for Python 3.
 
 ---
 
+# Features
+
+Why should you consider using API Star for your next Web API project?
+
+* **API documentation** - Interactive API documentation, that is guaranteed to always
+be in sync with your codebase.
+* **Client libraries** - Dynamic JavaScript and Python client libraries, driven by the schemas that API Star generates.
+* **Schema generation** - Support for generating Swagger or RAML API schemas.
+* **Expressive** - Type annotated views, that make for expressive, testable code.
+* **Performance** - API Star is smart about only running exactly what's needed
+for any given view, making it incredibly efficient.
+
+---
+
 # Table of Contents
 
 - [Quickstart](#quickstart)
