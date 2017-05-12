@@ -13,6 +13,6 @@ from apistar.test import TestClient
 
 __version__ = '0.1.17'
 __all__ = [
-    'App', 'Include', 'Route', 'Request', 'Response', 'Templates', 
+    'App', 'Include', 'Route', 'Request', 'Response', 'Templates',
     'TestClient'
 ]
