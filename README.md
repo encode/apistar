@@ -517,7 +517,7 @@ from apistar import environment, schema
 
 class Env(environment.Environment):
     properties = {
-        'DEBUG': schema.Boolean(default=False)
+        'DEBUG': schema.Boolean(default=False),
         'DATABASE_URL': schema.String(default='sqlite://')
     }
 
