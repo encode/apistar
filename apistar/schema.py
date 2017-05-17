@@ -1,5 +1,5 @@
 import re
-from typing import Any, Dict, List, Tuple, Union, overload  # noqa
+from typing import Any, Dict, List, Optional, Tuple, Union, overload  # noqa
 
 from apistar.exceptions import SchemaError, ValidationError
 
@@ -254,6 +254,44 @@ class Object(dict):
                         self[key] = child_schema(item)
                     except SchemaError as exc:
                         errors[key] = exc.detail
+
+        if errors:
+            raise SchemaError(errors)
+
+
+class Array(list):
+    errors = {
+        'type': 'Must be a list.',
+        'invalid_item': 'Item of wrong type.',
+        'required': 'This field is required.',
+    }
+    item_type = None  # type: Optional[type]
+
+    def __new__(cls, *args, **kwargs):
+        if kwargs:
+            assert not args
+            return type(cls.__name__, (cls,), kwargs)
+
+        assert len(args) == 1
+        return list.__new__(cls, *args)
+
+    def __init__(self, value):
+        try:
+            value = list(value)
+        except TypeError:
+            raise SchemaError(error_message(self, 'type'))
+
+        # Ensure all items are of the right type.
+        errors = {}
+
+        if self.item_type is not None:
+            for pos, item in enumerate(value):
+                try:
+                    self.append(self.item_type(item))
+                except SchemaError as exc:
+                    errors[pos] = exc.detail
+        else:
+            self.extend(value)
 
         if errors:
             raise SchemaError(errors)
