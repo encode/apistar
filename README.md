@@ -162,7 +162,7 @@ returning a `Response`.
 ```python
 def create_project() -> Response:
     data = {'name': 'new project', 'id': 123}
-    headers = {'Location', 'http://example.com/project/123/'}
+    headers = {'Location': 'http://example.com/project/123/'}
     return Response(data, status=201, headers=headers)
 ```
 
