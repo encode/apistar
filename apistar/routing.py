@@ -11,7 +11,7 @@ from uritemplate import URITemplate
 from werkzeug.routing import Map, Rule
 from werkzeug.serving import is_running_from_reloader
 
-from apistar import exceptions, http, core, schema, wsgi
+from apistar import core, exceptions, http, schema, wsgi
 from apistar.core import ArgName, Pipeline
 
 primitive_types = (
