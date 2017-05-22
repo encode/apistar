@@ -2,7 +2,6 @@
 .cache
 .coverage
 .git
-.idea/
 __pycache__
 /*.egg-info
 /htmlcov
