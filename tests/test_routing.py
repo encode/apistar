@@ -226,21 +226,21 @@ def test_lookup_cache_expiry():
         assert response.json() == {'path': '/%d/' % index}
 
 
-@pytest.mark.skip('WIP')
 def test_routing_reversal_on_path_without_url_params():
-    pass
+    url = app.router.reverse_url('found')
+    assert url == 'http://localhost:8080/found/'
 
 
-@pytest.mark.skip('WIP')
 def test_routing_reversal_on_path_non_existent_path():
-    pass
+    with pytest.raises(exceptions.NotFound):
+        app.router.reverse_url('missing', var='not_here')
 
 
-@pytest.mark.skip('WIP')
 def test_routing_reversal_on_path_with_url_params():
-    pass
+    url = app.router.reverse_url('path_params', var='test')
+    assert url == 'http://localhost:8080/path_params/test/'
 
 
-@pytest.mark.skip('WIP')
 def test_routing_reversal_on_subpath_with_url_params():
-    pass
+    url = app.router.reverse_url('subpath', var='testing')
+    assert url == 'http://localhost:8080/subpath/testing/'
