@@ -11,8 +11,8 @@ from uritemplate import URITemplate
 from werkzeug.routing import Map, Rule
 from werkzeug.serving import is_running_from_reloader
 
-from apistar import exceptions, http, pipelines, schema, wsgi
-from apistar.pipelines import ArgName, Pipeline
+from apistar import exceptions, http, core, schema, wsgi
+from apistar.core import ArgName, Pipeline
 
 primitive_types = (
     str, int, float, bool, list, dict
@@ -147,10 +147,10 @@ class Router(object):
                 extra_annotations['return'] = http.ResponseData
 
             # Determine the pipeline for the view.
-            pipeline = pipelines.build_pipeline(view, initial_types, required_type, extra_annotations)
+            pipeline = core.build_pipeline(view, initial_types, required_type, extra_annotations)
             views[name] = Endpoint(view, pipeline)
 
-        self.exception_pipeline = pipelines.build_pipeline(exception_handler, initial_types, required_type, {})
+        self.exception_pipeline = core.build_pipeline(exception_handler, initial_types, required_type, {})
         self.routes = routes
         self.adapter = Map(rules).bind('example.com')
         self.views = views

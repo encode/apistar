@@ -73,7 +73,7 @@ def test_list_create(monkeypatch, clear_db):
     def mock_get_current_app():
         return app
 
-    monkeypatch.setattr(apistar.main, 'get_current_app', mock_get_current_app)
+    monkeypatch.setattr(apistar.cli, 'get_current_app', mock_get_current_app)
 
     result = runner.invoke(['create_tables'])
     assert 'Tables created' in result.output

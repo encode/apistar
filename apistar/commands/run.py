@@ -18,7 +18,7 @@ def run(host: Host, port: Port) -> None:  # pragma: nocover
     """
     Run the current app.
     """
-    from apistar.main import get_current_app
+    from apistar.cli import get_current_app
     app = get_current_app()
 
     try:

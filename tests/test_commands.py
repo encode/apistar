@@ -4,7 +4,7 @@ import click
 
 from apistar import __version__, exceptions
 from apistar.app import App
-from apistar.main import setup_pythonpath
+from apistar.cli import setup_pythonpath
 from apistar.test import CommandLineRunner
 
 app = App()
