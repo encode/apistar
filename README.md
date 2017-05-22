@@ -231,7 +231,7 @@ class ProductSize(schema.Enum):
 class Product(schema.Object):
     properties = {
         'name': schema.String(max_length=100),
-        'rating': schema.Integer(minimum=1, maximum=5),
+        'rating': Rating,
         'in_stock': schema.Boolean,
         'size': ProductSize,
     }
