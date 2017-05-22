@@ -11,6 +11,7 @@ django
 psycopg2
 sqlalchemy
 whitenoise
+dj-database-url
 
 # Testing requirements
 codecov
