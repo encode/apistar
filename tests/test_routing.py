@@ -228,19 +228,19 @@ def test_lookup_cache_expiry():
 
 def test_routing_reversal_on_path_without_url_params():
     url = app.router.reverse_url('found')
-    assert url == 'http://localhost:8080/found/'
+    assert url == '/found/'
 
 
 def test_routing_reversal_on_path_non_existent_path():
-    with pytest.raises(exceptions.NotFound):
+    with pytest.raises(ValueError):
         app.router.reverse_url('missing', var='not_here')
 
 
 def test_routing_reversal_on_path_with_url_params():
     url = app.router.reverse_url('path_params', var='test')
-    assert url == 'http://localhost:8080/path_params/test/'
+    assert url == '/path_params/test/'
 
 
 def test_routing_reversal_on_subpath_with_url_params():
     url = app.router.reverse_url('subpath', var='testing')
-    assert url == 'http://localhost:8080/subpath/testing/'
+    assert url == '/subpath/testing/'
