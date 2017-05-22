@@ -555,7 +555,7 @@ $ pip install psycopg2
 
 **Settings**
 
-You then need to add the database config to your settings:
+You then need to add the database config to your settings, and you'll also want to add the sqlalchemy command:
 
 * `URL` - The [Database URL](http://docs.sqlalchemy.org/en/latest/core/engines.html#database-urls).
 * `METADATA` - The SQLAlchemy [`Metadata`](http://docs.sqlalchemy.org/en/latest/core/metadata.html) instance, typically from the `declarative_base`.
@@ -563,6 +563,7 @@ You then need to add the database config to your settings:
 ```python
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String
+from apistar.commands import create_sqlalchemy_tables
 
 Base = declarative_base()
 
@@ -582,7 +583,7 @@ settings = {
     }
 }
 
-app = App(routes=routes, settings=settings)
+app = App(routes=routes, settings=settings, commands=[create_sqlalchemy_tables])
 ```
 
 A few common configurations are listed below.
@@ -633,11 +634,12 @@ $ pip install django
 
 **Settings**
 
-You then need to add the database config to your settings:
+You then need to add the database config to your settings and the django migration commands:
 
 ```python
 from apistar import App
 from project.routes import routes
+from apistar.commands import django_makemigrations, django_migrate
 
 
 settings = {
@@ -654,7 +656,7 @@ settings = {
 }
 
 
-app = App(routes=routes, settings=settings)
+app = App(routes=routes, settings=settings, commands=[django_makemigrations, django_migrate])
 ```
 
 **Migrations**

@@ -12,6 +12,7 @@ def create_sqlalchemy_tables():
     db_backend.create_tables()
     click.echo("Tables created")
 
+
 def django_makemigrations():
     """
     Makemigrations DjangoBackend.
@@ -22,6 +23,7 @@ def django_makemigrations():
     db_backend = DjangoBackend.build(settings=app.settings)
     db_backend.makemigrations()
     click.echo("makemigrations")
+
 
 def django_migrate():
     """
