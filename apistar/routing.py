@@ -169,6 +169,19 @@ class Router(object):
         (view, pipeline) = self.views[name]
         return (view, pipeline, kwargs)
 
+    def reverse_url(self, view_name: str, **url_params) -> str:
+        endpoint = self.views.get(view_name)
+        if not endpoint:
+            raise exceptions.NoReverseMatch
+
+        flattened_routes = walk(self.routes)
+        matched_views = [
+            route for route in flattened_routes
+            if route.view == endpoint.view
+        ]
+
+        return matched_views[0].path.format(**url_params)
+
 
 def exception_handler(environ: wsgi.WSGIEnviron,
                       exc: Exception) -> http.Response:

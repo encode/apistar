@@ -54,3 +54,11 @@ class MethodNotAllowed(APIException):
 class UnsupportedMediaType(APIException):
     default_status_code = 415
     default_detail = 'Unsupported media type in request'
+
+
+class NoReverseMatch(APIException):
+    """Exception for when no route was found when reversing a view to a URL.
+    Triggered by routing.Router.reverse_url() on a method not mapped to a view or route.
+    """
+    default_status_code = 500
+    default_detail = 'No reverse match found for view'
