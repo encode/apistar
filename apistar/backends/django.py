@@ -29,5 +29,5 @@ class DjangoBackend(object):
     def migrate(self):
         call_command('migrate')
 
-    def drop_tables(self):
-        pass
+    def showmigrations(self):
+        call_command('showmigrations')
