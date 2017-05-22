@@ -7,7 +7,7 @@ from apistar.statics import serve_static
 from apistar.test import TestClient
 
 
-def test_static_files():
+def test_static_files() -> None:
     with tempfile.TemporaryDirectory() as tempdir:
         path = os.path.join(tempdir, 'example.csv')
         with open(path, 'w') as example_file:

@@ -152,7 +152,7 @@ class Router(object):
 
         self.exception_pipeline = core.build_pipeline(exception_handler, initial_types, required_type, {})
         self.routes = routes
-        self.adapter = Map(rules).bind('example.com')
+        self.adapter = Map(rules).bind('')
         self.views = views
 
     def lookup(self, path: str, method: str) -> RouterLookup:
@@ -168,6 +168,19 @@ class Router(object):
 
         (view, pipeline) = self.views[name]
         return (view, pipeline, kwargs)
+
+    def reverse_url(self, view_name: str, **url_params) -> str:
+        endpoint = self.views.get(view_name)
+        if not endpoint:
+            raise exceptions.NoReverseMatch
+
+        flattened_routes = walk(self.routes)
+        matched_views = [
+            route for route in flattened_routes
+            if route.view == endpoint.view
+        ]
+
+        return matched_views[0].path.format(**url_params)
 
 
 def exception_handler(environ: wsgi.WSGIEnviron,
@@ -189,7 +202,7 @@ def exception_handler(environ: wsgi.WSGIEnviron,
     return http.Response(message, 500, {'Content-Type': 'text/plain; charset=utf-8'})
 
 
-def walk(routes: RoutesConfig, prefix='') -> Iterator[Route]:
+def walk(routes: RoutesConfig, prefix: str='') -> Iterator[Route]:
     for entry in routes:
         if isinstance(entry, Include):
             yield from walk(entry.routes, prefix + entry.path)

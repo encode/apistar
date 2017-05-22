@@ -1,5 +1,5 @@
 import io
-from urllib.parse import urlparse
+from urllib.parse import unquote, urlparse
 
 import requests
 from click.testing import CliRunner
@@ -30,7 +30,7 @@ class WSGIAdapter(requests.adapters.HTTPAdapter):
             'REQUEST_METHOD': request.method,
             'wsgi.url_scheme': url_components.scheme,
             'SCRIPT_NAME': self.root_path,
-            'PATH_INFO': url_components.path,
+            'PATH_INFO': unquote(url_components.path),
             'wsgi.input': io.BytesIO(body),
             'APISTAR_RAISE_500_EXC': self.raise_500_exc
         }

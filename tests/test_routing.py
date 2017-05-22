@@ -57,6 +57,12 @@ def path_param_with_integer(var: schema.Integer):
     }
 
 
+def path_param_with_string(var: schema.String):
+    return {
+        'var': var
+    }
+
+
 def subpath(var: schema.Integer):
     return {
         'var': var
@@ -72,6 +78,7 @@ app = App(routes=[
     Route('/max_length/{var}/', 'GET', path_param_with_max_length),
     Route('/number/{var}/', 'GET', path_param_with_number),
     Route('/integer/{var}/', 'GET', path_param_with_integer),
+    Route('/string/{var}/', 'GET', path_param_with_string),
     Include('/subpath', [
         Route('/{var}/', 'GET', subpath),
     ]),
@@ -198,6 +205,14 @@ def test_invalid_integer():
     }
 
 
+def test_valid_string():
+    response = client.get('/string/hello world/')
+    assert response.status_code == 200
+    assert response.json() == {
+        'var': 'hello world'  # makes sure we don't return hello%20world
+    }
+
+
 def test_misconfigured_route():
     def set_type(var: set):  # pragma: nocover  (We never actually call this handler)
         pass
@@ -224,3 +239,23 @@ def test_lookup_cache_expiry():
         response = client.get('/%d/' % index)
         assert response.status_code == 200
         assert response.json() == {'path': '/%d/' % index}
+
+
+def test_routing_reversal_on_path_without_url_params():
+    url = app.router.reverse_url('found')
+    assert url == '/found/'
+
+
+def test_routing_reversal_on_path_non_existent_path():
+    with pytest.raises(exceptions.NoReverseMatch):
+        app.router.reverse_url('missing', var='not_here')
+
+
+def test_routing_reversal_on_path_with_url_params():
+    url = app.router.reverse_url('path_params', var='test')
+    assert url == '/path_params/test/'
+
+
+def test_routing_reversal_on_subpath_with_url_params():
+    url = app.router.reverse_url('subpath', var='testing')
+    assert url == '/subpath/testing/'
