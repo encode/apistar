@@ -132,7 +132,7 @@ class _NumericType(object):
 
         if cls.multiple_of is not None:
             if isinstance(cls.multiple_of, float):
-                failed = not (value * (1/cls.multiple_of)).is_integer()
+                failed = not (value * (1 / cls.multiple_of)).is_integer()
             else:
                 failed = value % cls.multiple_of
             if failed:
