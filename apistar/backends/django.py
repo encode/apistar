@@ -24,7 +24,7 @@ class DjangoBackend(object):
         return dj
 
     def makemigrations(self):
-        call_command('migrate')
+        call_command('makemigrations')
 
     def migrate(self):
         call_command('migrate')
