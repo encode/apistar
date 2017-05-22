@@ -152,7 +152,7 @@ class Router(object):
 
         self.exception_pipeline = pipelines.build_pipeline(exception_handler, initial_types, required_type, {})
         self.routes = routes
-        self.adapter = Map(rules).bind('example.com')
+        self.adapter = Map(rules).bind('')
         self.views = views
 
     def lookup(self, path: str, method: str) -> RouterLookup:
