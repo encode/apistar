@@ -44,9 +44,10 @@ class App(object):
         self.click = get_click_client(app=self)
 
 
-def get_wsgi_server(app):
+def get_wsgi_server(app: App) -> Callable:
     lookup = app.router.lookup
-    lookup_cache = OrderedDict()  # FIFO Cache for URL lookups.
+    # FIFO Cache for URL lookups:
+    lookup_cache = OrderedDict()  # type: OrderedDict
     lookup_cache_size = app.settings.get(
         ['ROUTING', 'LOOKUP_CACHE_SIZE'],
         DEFAULT_LOOKUP_CACHE_SIZE
