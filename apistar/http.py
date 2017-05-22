@@ -12,7 +12,7 @@ from werkzeug.wsgi import get_input_stream
 
 from apistar import exceptions
 from apistar.compat import json
-from apistar.pipelines import ArgName
+from apistar.core import ArgName
 from apistar.schema import validate
 
 

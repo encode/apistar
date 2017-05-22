@@ -5,7 +5,7 @@ from typing import Any, Callable, Dict, Iterator, List, Mapping, Set
 import click
 
 from apistar import commands as cmd
-from apistar import pipelines, routing, schema
+from apistar import core, routing, schema
 
 DEFAULT_LOOKUP_CACHE_SIZE = 10000
 
@@ -97,7 +97,7 @@ def get_wsgi_server(app: App) -> Callable:
                 state[output] = function(**kwargs)
         except Exception as exc:
             state['exception'] = exc
-            pipelines.run_pipeline(app.router.exception_pipeline, state)
+            core.run_pipeline(app.router.exception_pipeline, state)
 
         wsgi_response = state['wsgi_response']
         start_response(wsgi_response.status, wsgi_response.headers)
@@ -165,11 +165,11 @@ def preload_state(state: Dict[str, Any], routes: routing.RoutesConfig) -> None:
     components = get_preloaded_components(routes)
     for component in components:
         builder = getattr(component, 'build')
-        pipeline = pipelines.build_pipeline(
+        pipeline = core.build_pipeline(
             function=builder,
             initial_types=[App]
         )
-        pipelines.run_pipeline(pipeline, state)
+        core.run_pipeline(pipeline, state)
 
 
 def get_preloaded_components(routes: routing.RoutesConfig) -> Set[type]:
