@@ -43,6 +43,9 @@ class App(object):
         self.wsgi = get_wsgi_server(app=self)
         self.click = get_click_client(app=self)
 
+    def __call__(self, *args, **kwargs):
+        return self.wsgi(*args, **kwargs)
+
 
 def get_wsgi_server(app):
     lookup = app.router.lookup
