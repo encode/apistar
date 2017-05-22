@@ -22,8 +22,10 @@ class DjangoBackend(object):
             setattr(dj, model.__name__, model)
         return dj
 
-    def create_tables(self):
-        call_command('makemigrations')
+    def makemigrations(self):
+        call_command('migrate')
+
+    def migrate(self):
         call_command('migrate')
 
     def drop_tables(self):
