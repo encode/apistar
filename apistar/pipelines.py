@@ -3,6 +3,8 @@ import re
 from collections import namedtuple
 from typing import Any, Callable, Dict, List  # noqa
 
+from apistar.util import resolve_class
+
 empty = inspect.Signature.empty
 FIRST_CAP_RE = re.compile('(.)([A-Z][a-z]+)')
 ALL_CAP_RE = re.compile('([a-z0-9])([A-Z])')
@@ -81,6 +83,8 @@ def _build_step(function: Callable,
         else:
             parameter_cls = parameter.annotation
 
+        parameter_cls = resolve_class(parameter_cls)
+
         if parameter_cls == ArgName:
             extra_kwargs[parameter.name] = arg_name
         else:
@@ -88,7 +92,7 @@ def _build_step(function: Callable,
             inputs.append(input)
 
     if 'return' in extra_annotations:
-        return_cls = extra_annotations['return']
+        return_cls = resolve_class(extra_annotations['return'])
     else:
         return_cls = signature.return_annotation
         if return_cls is empty:
@@ -114,7 +118,7 @@ def _build_pipeline(function: Callable,
     signature = inspect.signature(function)
     for parameter in signature.parameters.values():
         annotation = extra_annotations.get(parameter.name, parameter.annotation)
-
+        annotation = resolve_class(annotation)
         if get_class_id(annotation, parameter.name) in seen:
             # Don't build a dependancy if it has already been satisfied.
             continue

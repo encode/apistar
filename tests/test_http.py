@@ -1,3 +1,4 @@
+import apistar  # noqa
 from apistar import App, Route, http
 from apistar.test import TestClient
 
@@ -292,6 +293,10 @@ def empty_response():
     return b''
 
 
+def settings_forward_reference_response(settings: 'apistar.settings.Settings'):
+    return settings
+
+
 def unknown_status_code() -> http.Response:
     data = {'hello': 'world'}
     return http.Response(data, status=600)
@@ -346,6 +351,18 @@ def test_empty_response():
     assert response.status_code == 204
     assert response.text == ''
     assert 'Content-Type' not in response.headers
+
+
+def test_settings_forward_reference_response():
+    app = App(
+        routes=[Route('/', 'GET', settings_forward_reference_response)],
+        settings={
+            'foo': 'bar'
+        }
+    )
+    client = TestClient(app)
+    response = client.get('/')
+    assert response.json() == {'foo': 'bar'}
 
 
 def test_unknown_status_code():
