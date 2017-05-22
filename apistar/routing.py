@@ -180,9 +180,6 @@ class Router(object):
             if route.view == endpoint.view
         ]
 
-        if not matched_views:
-            raise ValueError('No view "{}" found.'.format(view_name))
-
         return matched_views[0].path.format(**url_params)
 
 
