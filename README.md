@@ -711,7 +711,8 @@ Component              | Description
 `http.Request`         | The full request instance.
 `http.Response`        | A return type for returning an HTTP response explicitly.
 `http.ResponseData`    | A return type for plain data responses.
-`core.ArgName`    | The keyword argument with which a component is being injected into the view. May be used within component `build` methods.
+`pipelines.ArgName`    | The keyword argument with which a component is being injected into the view. May be used within component `build` methods.
+`routing.Router`       | The router for the application instance.
 `routing.URLPathArgs`  | A dictionary containing all the matched URL path arguments.
 `routing.URLPathArg`   | A single URL path argument, corresponding to the keyword argument name. Automatically used for data arguments with a matching URL path component.
 `settings.Settings`    | A dictionary containing the application settings.
