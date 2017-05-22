@@ -1,7 +1,7 @@
 from typing import Any, List, Union
 
 from apistar import app
-from apistar.pipelines import ArgName
+from apistar.core import ArgName
 
 
 class Settings(dict):
