@@ -152,7 +152,7 @@ class Router(object):
 
         self.exception_pipeline = pipelines.build_pipeline(exception_handler, initial_types, required_type, {})
         self.routes = routes
-        self.adapter = Map(rules).bind('example.com')
+        self.adapter = Map(rules).bind('')
         self.views = views
 
     def lookup(self, path: str, method: str) -> RouterLookup:
@@ -189,7 +189,7 @@ def exception_handler(environ: wsgi.WSGIEnviron,
     return http.Response(message, 500, {'Content-Type': 'text/plain; charset=utf-8'})
 
 
-def walk(routes: RoutesConfig, prefix='') -> Iterator[Route]:
+def walk(routes: RoutesConfig, prefix: str='') -> Iterator[Route]:
     for entry in routes:
         if isinstance(entry, Include):
             yield from walk(entry.routes, prefix + entry.path)

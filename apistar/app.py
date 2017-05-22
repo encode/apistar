@@ -1,6 +1,6 @@
 import inspect
 from collections import OrderedDict
-from typing import Any, Callable, Dict, List, Set
+from typing import Any, Callable, Dict, Iterator, List, Mapping, Set
 
 import click
 
@@ -46,9 +46,10 @@ class App(object):
         self.click = get_click_client(app=self)
 
 
-def get_wsgi_server(app):
+def get_wsgi_server(app: App) -> Callable:
     lookup = app.router.lookup
-    lookup_cache = OrderedDict()  # FIFO Cache for URL lookups.
+    # FIFO Cache for URL lookups:
+    lookup_cache = OrderedDict()  # type: OrderedDict
     lookup_cache_size = app.settings.get(
         ['ROUTING', 'LOOKUP_CACHE_SIZE'],
         DEFAULT_LOOKUP_CACHE_SIZE
@@ -61,7 +62,7 @@ def get_wsgi_server(app):
             key = method.upper() + ' ' + path
             lookup_cache[key] = lookup(path, method)
 
-    def func(environ, start_response):
+    def func(environ: Mapping, start_response: Callable) -> Iterator:
         method = environ['REQUEST_METHOD']
         path = environ['PATH_INFO']
         lookup_key = method + ' ' + path
@@ -104,11 +105,11 @@ def get_wsgi_server(app):
     return func
 
 
-def get_click_client(app):
+def get_click_client(app: App) -> Callable:
     @click.group(invoke_without_command=True, help='API Star')
     @click.option('--version', is_flag=True, help='Display the `apistar` version number.')
     @click.pass_context
-    def client(ctx, version):
+    def client(ctx: click.Context, version: bool) -> None:
         if ctx.invoked_subcommand is not None:
             return
 
@@ -121,7 +122,7 @@ def get_click_client(app):
     for command in app.commands:
 
         command_signature = inspect.signature(command)
-        for param in reversed(command_signature.parameters.values()):
+        for param in reversed(list(command_signature.parameters.values())):
             name = param.name.replace('_', '-')
             annotation = param.annotation
             kwargs = {}

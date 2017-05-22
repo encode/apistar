@@ -57,6 +57,12 @@ def path_param_with_integer(var: schema.Integer):
     }
 
 
+def path_param_with_string(var: schema.String):
+    return {
+        'var': var
+    }
+
+
 def subpath(var: schema.Integer):
     return {
         'var': var
@@ -72,6 +78,7 @@ app = App(routes=[
     Route('/max_length/{var}/', 'GET', path_param_with_max_length),
     Route('/number/{var}/', 'GET', path_param_with_number),
     Route('/integer/{var}/', 'GET', path_param_with_integer),
+    Route('/string/{var}/', 'GET', path_param_with_string),
     Include('/subpath', [
         Route('/{var}/', 'GET', subpath),
     ]),
@@ -195,6 +202,14 @@ def test_invalid_integer():
     assert response.status_code == 404
     assert response.json() == {
         'message': 'Not found'
+    }
+
+
+def test_valid_string():
+    response = client.get('/string/hello world/')
+    assert response.status_code == 200
+    assert response.json() == {
+        'var': 'hello world'  # makes sure we don't return hello%20world
     }
 
 
