@@ -36,7 +36,7 @@ class App(object):
             'app': self
         }
         preload_state(self.preloaded, self.routes)
-        if 'sql_alchemy'  in self.preloaded:
+        if 'sql_alchemy' in self.preloaded:
             self.commands += [cmd.create_sqlalchemy_tables]
         if 'django_backend' in self.preloaded:
             self.commands += [cmd.django_makemigrations, cmd.django_migrate]
