@@ -1,10 +1,9 @@
 from os import environ
 
-import pytest
-import dj_database_url
 from django.db import models
 
 import apistar
+import dj_database_url
 from apistar import App, http, routing, test
 from apistar.backends import DjangoBackend
 from apistar.test import CommandLineRunner
@@ -36,9 +35,11 @@ app = App(
     ],
     settings={
         'DATABASES': {
-            'default': dj_database_url.config(default='DB_URL')}
+            'default': dj_database_url.config(
+                default=environ.get('DB_URL', 'sqlite:///test.db')
+            )
         },
-        'INSTALLED_APPS': ('project',)
+        'INSTALLED_APPS': ('project')
     }
 )
 
