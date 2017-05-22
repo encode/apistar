@@ -1,8 +1,9 @@
-from apistar.settings import Settings
 from django import setup
 from django.apps import apps
 from django.conf import settings as django_settings
 from django.core.management import call_command
+
+from apistar.settings import Settings
 
 
 class DjangoBackend(object):
