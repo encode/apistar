@@ -36,8 +36,10 @@ class App(object):
             'app': self
         }
         preload_state(self.preloaded, self.routes)
+        if 'sql_alchemy'  in self.preloaded:
+            self.commands += [cmd.create_sqlalchemy_tables]
         if 'django_backend' in self.preloaded:
-            self.commands += [cmd.create_tables]
+            self.commands += [cmd.create_django_tables]
 
         self.router = routing.Router(self.routes, initial_types)
         self.wsgi = get_wsgi_server(app=self)
