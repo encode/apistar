@@ -4,11 +4,11 @@ from apistar import app, exceptions, routing, schema, test
 
 
 class UntypedList(schema.Array):
-    item_type = None
+    pass
 
 
 class TypedList(schema.Array):
-    item_type = schema.Integer
+    items = schema.Integer
 
 
 def basic_untyped_list(things: UntypedList):
@@ -87,5 +87,101 @@ def test_array_invalid_type():
 
 
 def test_array_kwargs():
-    NewTypedList = schema.Array(item_type=float)
+    NewTypedList = schema.Array(items=schema.Number)
     assert NewTypedList([1.1, 2.2, 3.3]) == [1.1, 2.2, 3.3]
+    with pytest.raises(exceptions.SchemaError) as exc:
+        NewTypedList([1, 2, 'c'])
+    assert 'Must be a valid number.' in str(exc.value)
+
+
+def test_array_specific_single_item():
+    SpecificTypeList = schema.Array(items=schema.Number)
+
+    assert SpecificTypeList([1, 2, 3, 4.5]) == [1, 2, 3, 4.5]
+    assert SpecificTypeList([]) == []
+
+    with pytest.raises(exceptions.SchemaError) as exc:
+        SpecificTypeList([1, 'two', 3])
+    assert 'Must be a valid number.' in str(exc.value)
+
+
+def test_array_specific_items_no_additional():
+    SpecificTypedList = schema.Array(items=[
+        schema.Number,
+        schema.String,
+        schema.Boolean
+    ], additional_items=False)
+
+    assert SpecificTypedList([23, 'twenty-three', True]) == \
+        [23, 'twenty-three', True]
+
+    with pytest.raises(exceptions.SchemaError) as exc:
+        SpecificTypedList([23, 'twenty-three'])
+    assert str(exc.value) == 'Not enough items.'
+
+    with pytest.raises(exceptions.SchemaError) as exc:
+        SpecificTypedList([23, 'twenty-three', True, False])
+    assert str(exc.value) == 'Too many items.'
+
+    with pytest.raises(exceptions.SchemaError) as exc:
+        SpecificTypedList(['.', 'twenty-three', True])
+    assert 'Must be a valid number.' in str(exc.value)
+
+
+def test_array_specific_items_with_additional():
+    SpecificTypedList = schema.Array(items=[
+        schema.Number,
+        schema.String,
+        schema.Boolean
+    ], additional_items=True)
+
+    assert SpecificTypedList([23, 'twenty-three', True]) == \
+        [23, 'twenty-three', True]
+
+    with pytest.raises(exceptions.SchemaError) as exc:
+        SpecificTypedList([23, 'twenty-three'])
+    assert str(exc.value) == 'Not enough items.'
+
+    assert SpecificTypedList([23, 'twenty-three', True, False]) == \
+        [23, 'twenty-three', True, False]
+
+
+def test_array_min_items():
+    MinimumItemList = schema.Array(min_items=2)
+
+    assert MinimumItemList([1, 2]) == [1, 2]
+    assert MinimumItemList([1, 2] * 10) == [1, 2] * 10
+
+    with pytest.raises(exceptions.SchemaError) as exc:
+        MinimumItemList([])
+    assert str(exc.value) == 'Not enough items.'
+
+    with pytest.raises(exceptions.SchemaError) as exc:
+        MinimumItemList([1])
+    assert str(exc.value) == 'Not enough items.'
+
+
+def test_array_max_items():
+    MaximumItemList = schema.Array(max_items=3)
+
+    assert MaximumItemList([1, 2]) == [1, 2]
+    assert MaximumItemList([]) == []
+
+    with pytest.raises(exceptions.SchemaError) as exc:
+        MaximumItemList([1, 2, 3, 4, 5])
+    assert str(exc.value) == 'Too many items.'
+
+    with pytest.raises(exceptions.SchemaError) as exc:
+        MaximumItemList([1] * 50)
+    assert str(exc.value) == 'Too many items.'
+
+
+def test_array_unique_items():
+    UniqueItemList = schema.Array(unique_items=True)
+
+    assert UniqueItemList([1, 2, 3, 4, 5]) == [1, 2, 3, 4, 5]
+    assert UniqueItemList([]) == []
+
+    with pytest.raises(exceptions.SchemaError) as exc:
+        UniqueItemList([1, 2, 3, 4, 1])
+    assert 'This item is not unique.' in str(exc.value)

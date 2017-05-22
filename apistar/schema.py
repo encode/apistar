@@ -7,7 +7,6 @@ from apistar.exceptions import SchemaError, ValidationError
 # TODO: Error on unknown attributes
 # TODO: allow_blank?
 # TODO: format (check type at start and allow, coerce, .native)
-# TODO: Array
 # TODO: default=empty
 # TODO: check 'required' exists in 'properties'
 # TODO: smarter ordering
@@ -262,10 +261,15 @@ class Object(dict):
 class Array(list):
     errors = {
         'type': 'Must be a list.',
-        'invalid_item': 'Item of wrong type.',
-        'required': 'This field is required.',
+        'min_items': 'Not enough items.',
+        'max_items': 'Too many items.',
+        'unique_items': 'This item is not unique.',
     }
-    item_type = None  # type: Optional[type]
+    items = None  # type: Union[type, List[type]]
+    additional_items = False  # type: bool
+    min_items = 0  # type: Optional[int]
+    max_items = None  # type: Optional[int]
+    unique_items = False  # type: bool
 
     def __new__(cls, *args, **kwargs):
         if kwargs:
@@ -281,17 +285,39 @@ class Array(list):
         except TypeError:
             raise SchemaError(error_message(self, 'type'))
 
+        if isinstance(self.items, list) and len(self.items) > 1:
+            if len(value) < len(self.items):
+                raise SchemaError(error_message(self, 'min_items'))
+            elif len(value) > len(self.items) and not self.additional_items:
+                raise SchemaError(error_message(self, 'max_items'))
+
+        if len(value) < self.min_items:
+            raise SchemaError(error_message(self, 'min_items'))
+        elif self.max_items is not None and len(value) > self.max_items:
+            raise SchemaError(error_message(self, 'max_items'))
+
         # Ensure all items are of the right type.
         errors = {}
+        if self.unique_items:
+            seen_items = set()
 
-        if self.item_type is not None:
-            for pos, item in enumerate(value):
-                try:
-                    self.append(self.item_type(item))
-                except SchemaError as exc:
-                    errors[pos] = exc.detail
-        else:
-            self.extend(value)
+        for pos, item in enumerate(value):
+            try:
+                if isinstance(self.items, list):
+                    if pos < len(self.items):
+                        item = self.items[pos](item)
+                elif self.items is not None:
+                    item = self.items(item)
+
+                if self.unique_items:
+                    if item in seen_items:
+                        raise SchemaError(error_message(self, 'unique_items'))
+                    else:
+                        seen_items.add(item)
+
+                self.append(item)
+            except SchemaError as exc:
+                errors[pos] = exc.detail
 
         if errors:
             raise SchemaError(errors)
