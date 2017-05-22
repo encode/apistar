@@ -224,3 +224,23 @@ def test_lookup_cache_expiry():
         response = client.get('/%d/' % index)
         assert response.status_code == 200
         assert response.json() == {'path': '/%d/' % index}
+
+
+@pytest.mark.skip('WIP')
+def test_routing_reversal_on_path_without_url_params():
+    pass
+
+
+@pytest.mark.skip('WIP')
+def test_routing_reversal_on_path_non_existent_path():
+    pass
+
+
+@pytest.mark.skip('WIP')
+def test_routing_reversal_on_path_with_url_params():
+    pass
+
+
+@pytest.mark.skip('WIP')
+def test_routing_reversal_on_subpath_with_url_params():
+    pass
