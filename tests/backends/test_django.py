@@ -10,7 +10,7 @@ from apistar.backends import DjangoBackend
 from apistar.test import CommandLineRunner
 
 
-class Star(models.Model): # type: ignore
+class Star(models.Model):  # type: ignore
     name = models.CharField(max_length=255)
 
 
@@ -41,22 +41,6 @@ app = App(
         'INSTALLED_APPS': ('project',)
     }
 )
-
-settings = {
-    'DATABASES': {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': 'apidjango',
-            'HOST': 'localhost',
-            'USER': 'nirgalon',
-            'PASSWORD': ''
-        }
-    },
-    'INSTALLED_APPS': ('project',),
-    'TEMPLATES': {
-        'DIRS': ['templates']
-    }
-}
 
 
 client = test.TestClient(app)

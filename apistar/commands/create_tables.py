@@ -36,6 +36,7 @@ def django_migrate() -> None:
     db_backend.migrate()
     click.echo("migrate")
 
+
 def django_showmigrations() -> None:
     """
     Show Migrations DjangoBackend.
