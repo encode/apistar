@@ -5,7 +5,7 @@ from typing import Any, Callable, Dict, Iterator, List, Mapping, Set
 import click
 
 from apistar import commands as cmd
-from apistar import core, routing, schema
+from apistar import core, exceptions, routing, schema
 
 DEFAULT_LOOKUP_CACHE_SIZE = 10000
 
@@ -183,3 +183,22 @@ def get_preloaded_components(routes: routing.RoutesConfig) -> Set[type]:
                 preloaded_components.add(param.annotation)
 
     return preloaded_components
+
+
+__BUILDERS__ = {}
+
+
+def get_builder(cls):
+    if cls in __BUILDERS__:
+        return __BUILDERS__[cls]
+    elif hasattr(cls, 'build'):
+        return cls.build
+    else:
+        raise exceptions.InternalError(
+            "class {} has no builder".format(cls.__name__)
+        )
+
+
+def builder(func: Callable) -> Callable:
+    return_cls = func.__annotations__['return']
+    __BUILDERS__[return_cls] = func

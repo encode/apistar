@@ -3,6 +3,8 @@ import re
 from collections import namedtuple
 from typing import Any, Callable, Dict, List  # noqa
 
+from apistar import app
+
 empty = inspect.Signature.empty
 FIRST_CAP_RE = re.compile('(.)([A-Z][a-z]+)')
 ALL_CAP_RE = re.compile('([a-z0-9])([A-Z])')
@@ -122,7 +124,7 @@ def _build_pipeline(function: Callable,
         if annotation == ArgName:
             continue
 
-        build_function = annotation.build
+        build_function = app.get_builder(annotation)
         dependancy = _build_pipeline(build_function, seen=seen, arg_name=parameter.name)
         pipeline.extend(dependancy)
         seen |= set([step.output for step in dependancy])
@@ -143,6 +145,6 @@ def build_pipeline(function: Callable,
     if required_type is not None:
         seen |= set([step.output for step in pipeline])
         if get_class_id(required_type) not in seen:
-            final_pipeline = _build_pipeline(required_type.build, seen=seen)  # type: ignore
+            final_pipeline = _build_pipeline(app.get_builder(required_type), seen=seen)  # type: ignore
             pipeline.extend(final_pipeline)
     return pipeline
