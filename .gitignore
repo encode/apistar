@@ -2,6 +2,7 @@
 .cache
 .coverage
 .git
+.mypy_cache
 __pycache__
 /*.egg-info
 /htmlcov

@@ -15,6 +15,7 @@ from apistar.routing import (
     Route, RoutesConfig, primitive_types, schema_types, walk
 )
 from apistar.templating import Templates
+from apistar.util import resolve_class
 
 
 class APISchema(Document):
@@ -68,7 +69,7 @@ def get_link(route: Route) -> Link:
         if param.annotation is inspect.Signature.empty:
             annotated_type = str
         else:
-            annotated_type = param.annotation
+            annotated_type = resolve_class(param.annotation)
 
         location = None
         required = False

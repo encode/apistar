@@ -13,6 +13,7 @@ from werkzeug.serving import is_running_from_reloader
 
 from apistar import exceptions, http, pipelines, schema, wsgi
 from apistar.pipelines import ArgName, Pipeline
+from apistar.util import resolve_class
 
 primitive_types = (
     str, int, float, bool, list, dict
@@ -119,7 +120,7 @@ class Router(object):
                 if param.annotation is inspect.Signature.empty:
                     annotated_type = str
                 else:
-                    annotated_type = param.annotation
+                    annotated_type = resolve_class(param.annotation)
 
                 if param.name in uritemplate.variable_names:
                     class TypedURLPathArg(URLPathArg):
