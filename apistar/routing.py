@@ -172,7 +172,7 @@ class Router(object):
     def reverse_url(self, view_name: str, **url_params) -> str:
         endpoint = self.views.get(view_name)
         if not endpoint:
-            raise ValueError('No view "{}" found.'.format(view_name))
+            raise exceptions.NoReverseMatch
 
         flattened_routes = walk(self.routes)
         matched_views = [

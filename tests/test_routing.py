@@ -247,7 +247,7 @@ def test_routing_reversal_on_path_without_url_params():
 
 
 def test_routing_reversal_on_path_non_existent_path():
-    with pytest.raises(ValueError):
+    with pytest.raises(exceptions.NoReverseMatch):
         app.router.reverse_url('missing', var='not_here')
 
 

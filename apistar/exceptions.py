@@ -54,3 +54,8 @@ class MethodNotAllowed(APIException):
 class UnsupportedMediaType(APIException):
     default_status_code = 415
     default_detail = 'Unsupported media type in request'
+
+
+class NoReverseMatch(APIException):
+    default_status_code = 500
+    default_detail = 'No reverse match found for view'
