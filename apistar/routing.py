@@ -174,16 +174,16 @@ class Router(object):
         if not endpoint:
             raise ValueError('No view "{}" found.'.format(view_name))
 
-        matched_view = [
-            view for view in self.routes
-            if isinstance(view, Route) and view.view == endpoint.view
+        flattened_routes = walk(self.routes)
+        matched_views = [
+            route for route in flattened_routes
+            if route.view == endpoint.view
         ]
 
-        if not matched_view:
+        if not matched_views:
             raise ValueError('No view "{}" found.'.format(view_name))
 
-        path = matched_view[0].path.format(**url_params)
-        return path
+        return matched_views[0].path.format(**url_params)
 
 
 def exception_handler(environ: wsgi.WSGIEnviron,
