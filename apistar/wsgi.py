@@ -12,6 +12,7 @@ STATUS_CODES = {
     for code, msg in HTTP_STATUS_CODES.items()
 }
 
+ACCESS_CONTROL_ALLOW_ORIGIN = 'Access-Control-Allow-Origin'
 
 WSGIEnviron = http.WSGIEnviron
 
@@ -34,8 +35,13 @@ class WSGIResponse(object):
         except KeyError:
             status_text = str(response.status)
 
+        headers = list(response.headers.items())
+
+        if ACCESS_CONTROL_ALLOW_ORIGIN not in response.headers:
+            headers += [(ACCESS_CONTROL_ALLOW_ORIGIN, '*')]
+
         return WSGIResponse(
             status=status_text,
-            headers=list(response.headers.items()),
+            headers=headers,
             iterator=[response.content]
         )
