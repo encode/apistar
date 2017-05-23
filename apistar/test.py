@@ -1,4 +1,5 @@
 import io
+from typing import Callable, Dict, Mapping, Optional, Union  # noqa
 from urllib.parse import unquote, urlparse
 
 import requests
@@ -12,18 +13,21 @@ class WSGIAdapter(requests.adapters.HTTPAdapter):
     A transport adapter for `requests` that makes requests directly to a
     WSGI app, rather than making actual HTTP requests over the network.
     """
-    def __init__(self, wsgi_app, root_path=None, raise_500_exc=True):
+    def __init__(self, wsgi_app: Callable, root_path: str=None,
+                 raise_500_exc: bool=True) -> None:
         self.wsgi_app = wsgi_app
         self.root_path = ('/' + root_path.strip('/')) if root_path else ''
         self.raise_500_exc = raise_500_exc
 
-    def get_environ(self, request):
+    def get_environ(self, request: requests.PreparedRequest) -> Mapping:
         """
         Given a `requests.PreparedRequest` instance, return a WSGI environ dict.
         """
         body = request.body
-        if body and not isinstance(body, bytes):
-            body = body.encode('utf-8')
+        if isinstance(body, str):
+            body_bytes = body.encode("utf-8")  # type: Optional[bytes]
+        else:
+            body_bytes = body
 
         url_components = urlparse(request.url)
         environ = {
@@ -31,9 +35,9 @@ class WSGIAdapter(requests.adapters.HTTPAdapter):
             'wsgi.url_scheme': url_components.scheme,
             'SCRIPT_NAME': self.root_path,
             'PATH_INFO': unquote(url_components.path),
-            'wsgi.input': io.BytesIO(body),
+            'wsgi.input': io.BytesIO(body_bytes),
             'APISTAR_RAISE_500_EXC': self.raise_500_exc
-        }
+        }  # type: Dict[str, Union[bool, str, bytes, io.BytesIO]]
 
         if url_components.query:
             environ['QUERY_STRING'] = url_components.query
@@ -102,7 +106,7 @@ class _TestClient(requests.Session):
         return super().request(method, url, **kwargs)
 
 
-def TestClient(*args, **kwargs):
+def TestClient(*args, **kwargs) -> _TestClient:
     """
     We have to work around py.test discovery attempting to pick up
     the `TestClient` class, by declaring this as a function.

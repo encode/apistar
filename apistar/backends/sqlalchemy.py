@@ -1,3 +1,5 @@
+from typing import Any, Optional
+import sqlalchemy
 from apistar.settings import Settings
 
 
@@ -5,7 +7,9 @@ class SQLAlchemy(object):
     __slots__ = ('engine', 'session_class', 'metadata')
     preload = True
 
-    def __init__(self, engine, session_class, metadata=None):
+    def __init__(self, engine: sqlalchemy.engine.Engine,
+                 session_class: sqlalchemy.orm.session.Session,
+                 metadata: Optional[Any]=None) -> None:
         self.engine = engine
         self.session_class = session_class
         self.metadata = metadata
@@ -27,8 +31,8 @@ class SQLAlchemy(object):
         session_class = sessionmaker(bind=engine)
         return cls(engine, session_class, metadata)
 
-    def create_tables(self):
+    def create_tables(self) -> None:
         self.metadata.create_all(self.engine)
 
-    def drop_tables(self):
+    def drop_tables(self) -> None:
         self.metadata.drop_all(self.engine)
