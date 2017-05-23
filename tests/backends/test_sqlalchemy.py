@@ -8,7 +8,7 @@ import apistar
 from apistar import App, http, routing, test
 from apistar.backends import SQLAlchemy
 from apistar.test import CommandLineRunner
-
+from apistar.commands import create_sqlalchemy_tables
 Base = declarative_base()
 
 
@@ -53,7 +53,8 @@ app = App(
             "URL": environ.get('DB_URL', 'sqlite:///test.db'),
             "METADATA": Base.metadata
         }
-    }
+    },
+    commands=[create_sqlalchemy_tables]
 )
 
 
