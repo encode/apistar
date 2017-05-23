@@ -5,7 +5,7 @@ import dj_database_url
 import apistar
 from apistar import App, http, routing, test
 from apistar.backends import DjangoBackend
-from apistar.commands import django_makemigrations, django_migrate
+from apistar.commands import django_makemigrations, django_migrate, django_showmigrations
 from apistar.test import CommandLineRunner
 
 
@@ -37,7 +37,7 @@ app = App(
         },
         'INSTALLED_APPS': ['django_project']
     },
-    commands=[django_makemigrations, django_migrate]
+    commands=[django_makemigrations, django_migrate, django_showmigrations]
 )
 
 
@@ -56,6 +56,8 @@ def test_list_create(monkeypatch):
     assert 'makemigrations' in result.output
     result = runner.invoke(['django_migrate'])
     assert 'migrate' in result.output
+    result = runner.invoke(['django_showmigrations'])
+    assert 'showmigrations' in result.output
 
     response = client.get('http://example.com/api/stars/create?name=mars')
     assert response.status_code == 200
