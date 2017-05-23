@@ -17,7 +17,7 @@ def django_makemigrations() -> None:
     """
     Makemigrations DjangoBackend.
     """
-    from apistar.main import get_current_app
+    from apistar.cli import get_current_app
     from apistar.backends.django import DjangoBackend
     app = get_current_app()
     db_backend = DjangoBackend.build(settings=app.settings)
@@ -29,7 +29,7 @@ def django_migrate() -> None:
     """
     Migrate DjangoBackend.
     """
-    from apistar.main import get_current_app
+    from apistar.cli import get_current_app
     from apistar.backends.django import DjangoBackend
     app = get_current_app()
     db_backend = DjangoBackend.build(settings=app.settings)
@@ -41,7 +41,7 @@ def django_showmigrations() -> None:
     """
     Show Migrations DjangoBackend.
     """
-    from apistar.main import get_current_app
+    from apistar.cli import get_current_app
     from apistar.backends.django import DjangoBackend
     app = get_current_app()
     db_backend = DjangoBackend.build(settings=app.settings)

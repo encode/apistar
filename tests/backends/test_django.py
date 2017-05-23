@@ -53,6 +53,7 @@ def test_list_create(monkeypatch):
     monkeypatch.setattr(apistar.cli, 'get_current_app', mock_get_current_app)
 
     result = runner.invoke(['django_makemigrations'])
+    print('result.output', result.output)
     assert 'makemigrations' in result.output
     result = runner.invoke(['django_migrate'])
     assert 'migrate' in result.output

@@ -57,4 +57,4 @@ def test_app_is_callable():
         environ={'REQUEST_METHOD': 'GET',
                  'PATH_INFO': '/abc'}
     )
-    assert wsgi_response[0] == b'{"message": "Not found"}'
+    assert wsgi_response[0] == b'{"message":"Not found"}'
