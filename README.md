@@ -43,9 +43,9 @@ be in sync with your codebase.
 - [Settings & Environment](#settings--environment)
     - [Application settings](#application-settings)
     - [Environment](#environment)
-- [ORM](#orm)
+- [Backends](#backends)
   - [SQLAlchemy](#sqlalchemy)
-  - [Django](#django)
+  - [Django ORM](#django-orm)
 - [Testing](#testing)
 - [Components](#components)
 - [WSGI](#wsgi)
@@ -540,7 +540,7 @@ settings = {
 
 ---
 
-# ORM
+# Backends
 
 ## SQLAlchemy
 
@@ -622,7 +622,7 @@ def create_customer(db: SQLAlchemy, name: str):
     return {'name': name}
 ```
 
-## Django
+## Django ORM
 
 API Star has optional support for [Django ORM](https://docs.djangoproject.com/en/1.11/topics/db/).
 To use this you first need to install `django` and your chosen [database driver](https://docs.djangoproject.com/en/1.11/ref/databases/).
