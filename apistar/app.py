@@ -185,10 +185,10 @@ def get_preloaded_components(routes: routing.RoutesConfig) -> Set[type]:
     return preloaded_components
 
 
-__BUILDERS__ = {}
+__BUILDERS__: Dict[Any, Callable] = {}
 
 
-def get_builder(cls):
+def get_builder(cls: Any) -> Callable:
     if cls in __BUILDERS__:
         return __BUILDERS__[cls]
     elif hasattr(cls, 'build'):
@@ -202,3 +202,4 @@ def get_builder(cls):
 def builder(func: Callable) -> Callable:
     return_cls = func.__annotations__['return']
     __BUILDERS__[return_cls] = func
+    return None
