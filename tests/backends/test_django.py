@@ -12,7 +12,7 @@ from apistar.test import CommandLineRunner
 def list_stars(orm: DjangoBackend):
     Star = orm.Star
     return {
-        'stars': [Star.objects.values('name', 'id')]
+        'stars': Star.objects.values('name', 'id')
     }
 
 
@@ -64,4 +64,4 @@ def test_list_create(monkeypatch):
 
     response = client.get('http://example.com/api/stars')
     assert response.status_code == 200
-    assert response.json() == {'stars': [created_star]}
+    assert response.json() == {'stars': [created_star['star']]}
