@@ -42,7 +42,7 @@ def test_custom_command():
     assert result.exit_code == 0
 
 
-def test_custom_command_with_int_arguments(a: int, b: int) -> int:
+def test_custom_command_with_int_arguments(*args: int) -> int:
     def add(a: int, b: int) -> int:
         click.echo(str(a + b))
         return (a+b)
