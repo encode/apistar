@@ -347,6 +347,16 @@ Validates dictionary or object input. A subclass of `dict`.
 
 Note that child properties are considered to be required if they do not have a `default` value.
 
+### Array
+
+Validates list or tuple input. A subclass of `list`.
+
+* `items` - A schema or type or a list of schemas or types.
+* `additional_items` - Whether additional items past the end of the listed schema types are permitted.
+* `min_items` - The minimum number of items the array must contain.
+* `max_items` - The maximum number of items the array must contain.
+* `unique_items` - Whether repeated items are permitted in the array.
+
 ## Generating API Schemas
 
 API Star is designed to be able to map well onto API description formats, known as "API Schemas".

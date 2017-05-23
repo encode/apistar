@@ -20,7 +20,7 @@ primitive_types = (
 
 schema_types = (
     schema.String, schema.Integer, schema.Number, schema.Boolean,
-    schema.Enum, schema.Object
+    schema.Enum, schema.Object, schema.Array
 )
 
 typing_types = (
@@ -127,7 +127,7 @@ class Router(object):
                     extra_annotations[param.name] = TypedURLPathArg
                 elif (annotated_type in primitive_types) or issubclass(annotated_type, schema_types):
                     if method in ('POST', 'PUT', 'PATCH'):
-                        if issubclass(annotated_type, schema.Object):
+                        if issubclass(annotated_type, (schema.Object, schema.Array)):
                             class TypedDataParam(http.RequestData):
                                 schema = annotated_type
                             extra_annotations[param.name] = TypedDataParam

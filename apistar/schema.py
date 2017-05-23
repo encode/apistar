@@ -1,5 +1,5 @@
 import re
-from typing import Any, Dict, List, Tuple, Union, overload  # noqa
+from typing import Any, Dict, List, Optional, Tuple, Union, overload  # noqa
 
 from apistar.exceptions import SchemaError, ValidationError
 
@@ -7,7 +7,6 @@ from apistar.exceptions import SchemaError, ValidationError
 # TODO: Error on unknown attributes
 # TODO: allow_blank?
 # TODO: format (check type at start and allow, coerce, .native)
-# TODO: Array
 # TODO: default=empty
 # TODO: check 'required' exists in 'properties'
 # TODO: smarter ordering
@@ -254,6 +253,71 @@ class Object(dict):
                         self[key] = child_schema(item)
                     except SchemaError as exc:
                         errors[key] = exc.detail
+
+        if errors:
+            raise SchemaError(errors)
+
+
+class Array(list):
+    errors = {
+        'type': 'Must be a list.',
+        'min_items': 'Not enough items.',
+        'max_items': 'Too many items.',
+        'unique_items': 'This item is not unique.',
+    }
+    items = None  # type: Union[type, List[type]]
+    additional_items = False  # type: bool
+    min_items = 0  # type: Optional[int]
+    max_items = None  # type: Optional[int]
+    unique_items = False  # type: bool
+
+    def __new__(cls, *args, **kwargs):
+        if kwargs:
+            assert not args
+            return type(cls.__name__, (cls,), kwargs)
+
+        assert len(args) == 1
+        return list.__new__(cls, *args)
+
+    def __init__(self, value):
+        try:
+            value = list(value)
+        except TypeError:
+            raise SchemaError(error_message(self, 'type'))
+
+        if isinstance(self.items, list) and len(self.items) > 1:
+            if len(value) < len(self.items):
+                raise SchemaError(error_message(self, 'min_items'))
+            elif len(value) > len(self.items) and not self.additional_items:
+                raise SchemaError(error_message(self, 'max_items'))
+
+        if len(value) < self.min_items:
+            raise SchemaError(error_message(self, 'min_items'))
+        elif self.max_items is not None and len(value) > self.max_items:
+            raise SchemaError(error_message(self, 'max_items'))
+
+        # Ensure all items are of the right type.
+        errors = {}
+        if self.unique_items:
+            seen_items = set()
+
+        for pos, item in enumerate(value):
+            try:
+                if isinstance(self.items, list):
+                    if pos < len(self.items):
+                        item = self.items[pos](item)
+                elif self.items is not None:
+                    item = self.items(item)
+
+                if self.unique_items:
+                    if item in seen_items:
+                        raise SchemaError(error_message(self, 'unique_items'))
+                    else:
+                        seen_items.add(item)
+
+                self.append(item)
+            except SchemaError as exc:
+                errors[pos] = exc.detail
 
         if errors:
             raise SchemaError(errors)
