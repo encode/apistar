@@ -1,6 +1,6 @@
 import base64
 import inspect
-from typing import Dict, Optional
+from typing import cast, Dict, Optional, Type
 from urllib.parse import urljoin
 
 import coreschema
@@ -60,7 +60,8 @@ def _annotated_type_to_coreschema(annotated_type: type) -> coreschema.schemas.Sc
     elif annotated_type is float or issubclass(annotated_type, schema.Number):
         return coreschema.Number()
     elif issubclass(annotated_type, schema.Enum):
-        return coreschema.Enum(enum=annotated_type.enum)
+        enum = cast(Type[schema.Enum], annotated_type)
+        return coreschema.Enum(enum=enum.enum)
 
     return coreschema.String()
 
