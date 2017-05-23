@@ -121,7 +121,7 @@ $(function () {
           'false': false
         }[paramValue.toLowerCase()]
         if (value !== undefined) {
-          params[paramKey]
+          params[paramKey] = value
         }
       } else if (dataType === 'array' && paramValue) {
         try {

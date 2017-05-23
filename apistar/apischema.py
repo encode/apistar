@@ -52,6 +52,17 @@ def get_schema_content(routes: RoutesConfig) -> Dict[str, Route]:
     return content
 
 
+def _annotated_type_to_coreschema(annotated_type: type) -> coreschema.schemas.Schema:
+    if annotated_type is bool or issubclass(annotated_type, schema.Boolean):
+        return coreschema.Boolean()
+    elif annotated_type is int or issubclass(annotated_type, schema.Integer):
+        return coreschema.Integer()
+    elif annotated_type is float or issubclass(annotated_type, schema.Number):
+        return coreschema.Number()
+
+    return coreschema.String()
+
+
 def get_link(route: Route) -> Link:
     """
     Given a single route, return a Link instance containing all the information
@@ -72,7 +83,7 @@ def get_link(route: Route) -> Link:
 
         location = None
         required = False
-        param_schema = coreschema.String()
+        param_schema = _annotated_type_to_coreschema(annotated_type)
         if param.name in uritemplate.variable_names:
             location = 'path'
             required = True

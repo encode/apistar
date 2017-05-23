@@ -3,8 +3,8 @@ from typing import List  # noqa
 
 import jinja2
 
+from apistar.core import ArgName
 from apistar.exceptions import ConfigurationError
-from apistar.pipelines import ArgName
 from apistar.settings import Settings
 
 
