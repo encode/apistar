@@ -72,6 +72,38 @@ def test_no_builder_exception():
         get_builder(C)
 
 
+def test_multiple_builder_exception():
+    """ Complain if more than one builder is assigned to a class
+    """
+
+    class D(object):
+        @classmethod
+        def build(cls):  # pragma: no cover
+            pass
+
+    with pytest.raises(InternalError):
+        @builder
+        def build_d_again() -> D:  # pragma: no cover
+            pass
+
+
+def test_multiple_builder_exception_2():
+    """ Complain if more than one builder is assigned to a class
+    """
+
+    class E(object):
+        pass
+
+    @builder
+    def build_e() -> E:  # pragma: no cover
+        pass
+
+    with pytest.raises(InternalError):
+        @builder
+        def build_e_again() -> E:  # pragma: no cover
+            pass
+
+
 def test_unhandled_exception_as_500():
     client = TestClient(app, raise_500_exc=False)
     response = client.get('/unhandled_exception/')
