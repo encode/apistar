@@ -42,7 +42,7 @@ def test_custom_command():
     assert result.exit_code == 0
 
 
-def test_custom_command_with_int_arguments(a:int, b:int) -> int:
+def test_custom_command_with_int_arguments(a: int, b: int) -> int:
     def add(a: int, b: int) -> int:
         click.echo(str(a + b))
         return (a+b)
@@ -57,6 +57,7 @@ def test_custom_command_with_int_arguments(a:int, b:int) -> int:
     assert result.output == '3\n'
     assert result.exit_code == 0
     return result
+
 
 def test_new():
     with runner.isolated_filesystem():
