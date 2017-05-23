@@ -23,6 +23,7 @@ class App(object):
                  commands: List[Callable] = None,
                  settings: Dict[str, Any] = None) -> None:
         from apistar.settings import Settings
+        initial_types = [App, routing.Router]  # type: List[type]
 
         routes = [] if (routes is None) else routes
         commands = [] if (commands is None) else commands
@@ -30,16 +31,16 @@ class App(object):
         self.routes = routes
         self.commands = list(self.built_in_commands) + commands
         self.settings = Settings(settings or {})
+        self.router = routing.Router(self.routes, initial_types)
 
-        initial_types = [App]  # type: List[type]
         self.preloaded = {
-            'app': self
+            'app': self,
+            'router': self.router,
         }
         preload_state(self.preloaded, self.routes)
         if 'sql_alchemy' in self.preloaded:
             self.commands += [cmd.create_tables]
 
-        self.router = routing.Router(self.routes, initial_types)
         self.wsgi = get_wsgi_server(app=self)
         self.click = get_click_client(app=self)
 
