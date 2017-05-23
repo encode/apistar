@@ -78,7 +78,7 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'apistar=apistar.main:main'
+            'apistar=apistar.cli:main'
         ],
     },
 )
