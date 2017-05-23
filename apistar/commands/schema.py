@@ -1,7 +1,7 @@
 import click
 from coreapi.utils import get_installed_codecs
 
-from apistar import schema
+from apistar import core, schema
 
 codecs = {
     name: codec for name, codec in get_installed_codecs().items()
@@ -22,7 +22,7 @@ def schema(format: Format) -> None:  # pragma: nocover
     from apistar.cli import get_current_app
     from apistar.apischema import APISchema
     app = get_current_app()
-    schema = APISchema.build(app)
+    schema = core.get_builder(APISchema)(app)
     codec = codecs[format]
     output = codec.encode(schema)
     click.echo(output)
