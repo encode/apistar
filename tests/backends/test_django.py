@@ -4,9 +4,9 @@ import dj_database_url
 
 import apistar
 from apistar import App, http, routing, test
-from apistar.backends import DjangoBackend
 from apistar.commands import django_makemigrations, django_migrate
 from apistar.test import CommandLineRunner
+from apistar.backends import DjangoBackend
 
 
 def list_stars(orm: DjangoBackend):
@@ -35,7 +35,7 @@ app = App(
                 default=environ.get('DB_URL', 'sqlite:///test.db')
             )
         },
-        'INSTALLED_APPS': ['project']
+        'INSTALLED_APPS': ['django_project']
     },
     commands=[django_makemigrations, django_migrate]
 )
