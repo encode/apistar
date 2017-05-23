@@ -35,7 +35,7 @@ app = App(
                 default=environ.get('DB_URL', 'sqlite:///test.db')
             )
         },
-        'INSTALLED_APPS': ['django_project'],
+        'INSTALLED_APPS': ['django_project']
     },
     commands=[django_makemigrations, django_migrate]
 )
@@ -50,7 +50,7 @@ def test_list_create(monkeypatch):
     def mock_get_current_app():
         return app
 
-    monkeypatch.setattr(apistar.main, 'get_current_app', mock_get_current_app)
+    monkeypatch.setattr(apistar.cli, 'get_current_app', mock_get_current_app)
 
     result = runner.invoke(['django_makemigrations'])
     assert 'makemigrations' in result.output
