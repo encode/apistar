@@ -210,7 +210,7 @@ app = App(routes=[
 ```
 ### Reversing URLS
 
-To generate URLs based on the endpoint, use the `Router's reverse_url()`.
+Rather than build URLs by hand, it is possible to generate URLs based on the endpoint, using `Router's reverse_url()`.
 
 ```python
 from apistar import routing
