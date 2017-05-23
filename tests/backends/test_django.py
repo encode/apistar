@@ -3,11 +3,10 @@ from os import environ
 import dj_database_url
 
 import apistar
-import json
 from apistar import App, http, routing, test
 from apistar.backends import DjangoBackend
-from apistar.test import CommandLineRunner
 from apistar.commands import django_makemigrations, django_migrate
+from apistar.test import CommandLineRunner
 
 
 def list_stars(orm: DjangoBackend):
@@ -59,10 +58,8 @@ def test_list_create(monkeypatch):
     assert 'migrate' in result.output
 
     response = client.get('http://example.com/api/stars/create?name=mars')
-    print('response', vars(response))
     assert response.status_code == 200
     created_star = response.json()
-    print('created_star',created_star)
     assert created_star['star']['name'] == 'mars'
 
     response = client.get('http://example.com/api/stars')
