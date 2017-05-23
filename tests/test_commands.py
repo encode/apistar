@@ -42,7 +42,7 @@ def test_custom_command():
     assert result.exit_code == 0
 
 
-def test_custom_command_with_int_arguments(*args: int) -> int:
+def test_custom_command_with_int_arguments():
     def add(a: int, b: int) -> int:
         click.echo(str(a + b))
         return (a+b)
@@ -56,7 +56,6 @@ def test_custom_command_with_int_arguments(*args: int) -> int:
     result = runner.invoke(['add', '1', '2'])
     assert result.output == '3\n'
     assert result.exit_code == 0
-    return result
 
 
 def test_new():
