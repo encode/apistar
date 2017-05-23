@@ -43,7 +43,9 @@ be in sync with your codebase.
 - [Settings & Environment](#settings--environment)
     - [Application settings](#application-settings)
     - [Environment](#environment)
-- [SQLAlchemy](#sqlalchemy)
+- [Backends](#backends)
+  - [SQLAlchemy](#sqlalchemy)
+  - [Django ORM](#django-orm)
 - [Testing](#testing)
 - [Components](#components)
 - [WSGI](#wsgi)
@@ -562,7 +564,9 @@ settings = {
 
 ---
 
-# SQLAlchemy
+# Backends
+
+## SQLAlchemy
 
 API Star has optional support for [SQLAlchemy](https://www.sqlalchemy.org/).
 To use this you first need to install `sqlalchemy` and your chosen [database driver](http://docs.sqlalchemy.org/en/latest/core/engines.html#database-urls).
@@ -575,7 +579,7 @@ $ pip install psycopg2
 
 **Settings**
 
-You then need to add the database config to your settings:
+You then need to add the database config to your settings, and you'll also want to add the sqlalchemy command:
 
 * `URL` - The [Database URL](http://docs.sqlalchemy.org/en/latest/core/engines.html#database-urls).
 * `METADATA` - The SQLAlchemy [`Metadata`](http://docs.sqlalchemy.org/en/latest/core/metadata.html) instance, typically from the `declarative_base`.
@@ -583,6 +587,7 @@ You then need to add the database config to your settings:
 ```python
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String
+from apistar.commands import create_sqlalchemy_tables
 
 Base = declarative_base()
 
@@ -602,7 +607,7 @@ settings = {
     }
 }
 
-app = App(routes=routes, settings=settings)
+app = App(routes=routes, settings=settings, commands=[create_sqlalchemy_tables])
 ```
 
 A few common configurations are listed below.
@@ -639,6 +644,86 @@ def create_customer(db: SQLAlchemy, name: str):
     session.add(customer)
     session.commit()
     return {'name': name}
+```
+
+## Django ORM
+
+API Star has optional support for [Django ORM](https://docs.djangoproject.com/en/1.11/topics/db/).
+To use this you first need to install `django` and your chosen [database driver](https://docs.djangoproject.com/en/1.11/ref/databases/).
+
+
+```bash
+$ pip install django
+```
+
+**Settings**
+
+You then need to add the database config to your settings and the django migration commands:
+
+```python
+from apistar import App
+from project.routes import routes
+from apistar.commands import django_makemigrations, django_migrate
+
+
+settings = {
+    'DATABASES': {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'apidjango',
+            'HOST': 'localhost',
+            'USER': 'nirgalon',
+            'PASSWORD': ''
+        }
+    },
+    'INSTALLED_APPS': ['project',]
+}
+
+
+app = App(routes=routes, settings=settings, commands=[django_makemigrations, django_migrate])
+```
+
+**Migrations**
+
+You also need to manually create the `migrations` directory inside the `project` directory.
+
+Before starting you app you will likely need to make migrations and then migrate which you can do with the following commands:
+
+```bash
+$ apistar makemigrations
+$ apistar migrate
+```
+
+**Create a new model**
+
+To create a new Django model you will want to create a new `models.py` file and declare it.
+
+```python
+from django.db import models
+
+class Star(models.Model):
+    name = models.CharField(max_length=255)
+    age = models.IntegerField()
+```
+
+**Accessing the database**
+
+To access the database in your view, include the `Django` component.
+This has the following attributes:
+
+```python
+from apistar.backends import DjangoBackend
+
+def create_star(orm: DjangoBackend, star: schemas.Star):
+    """Create a new star object"""
+    star = orm.Star(**star)
+    star.save()
+    return {'star': {'name': star.name, 'id': star.id}}
+
+def list_stars(orm: DjangoBackend):
+    """Get all the stars objects"""
+    Star = orm.Star
+    return {'stars': list(Star.objects.values('name', 'id'))}
 ```
 
 ---

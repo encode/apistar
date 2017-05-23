@@ -1,13 +1,49 @@
 import click
 
 
-def create_tables() -> None:
+def create_sqlalchemy_tables() -> None:
     """
     Create SQLAlchemy tables.
     """
     from apistar.cli import get_current_app
-    from apistar.backends.sqlalchemy import SQLAlchemy
+    from apistar.backends.sqlalchemy_backend import SQLAlchemy
     app = get_current_app()
     db_backend = SQLAlchemy.build(settings=app.settings)
     db_backend.create_tables()
     click.echo("Tables created")
+
+
+def django_makemigrations() -> None:
+    """
+    Makemigrations DjangoBackend.
+    """
+    from apistar.cli import get_current_app
+    from apistar.backends.django_backend import DjangoBackend
+    app = get_current_app()
+    db_backend = DjangoBackend.build(settings=app.settings)
+    db_backend.makemigrations()
+    click.echo("makemigrations")
+
+
+def django_migrate() -> None:
+    """
+    Migrate DjangoBackend.
+    """
+    from apistar.cli import get_current_app
+    from apistar.backends.django_backend import DjangoBackend
+    app = get_current_app()
+    db_backend = DjangoBackend.build(settings=app.settings)
+    db_backend.migrate()
+    click.echo("migrate")
+
+
+def django_showmigrations() -> None:
+    """
+    Show Migrations DjangoBackend.
+    """
+    from apistar.cli import get_current_app
+    from apistar.backends.django_backend import DjangoBackend
+    app = get_current_app()
+    db_backend = DjangoBackend.build(settings=app.settings)
+    db_backend.showmigrations()
+    click.echo("showmigrations")

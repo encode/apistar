@@ -38,8 +38,6 @@ class App(object):
             'router': self.router,
         }
         preload_state(self.preloaded, self.routes)
-        if 'sql_alchemy' in self.preloaded:
-            self.commands += [cmd.create_tables]
 
         self.wsgi = get_wsgi_server(app=self)
         self.click = get_click_client(app=self)

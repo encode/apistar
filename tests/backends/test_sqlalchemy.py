@@ -7,6 +7,7 @@ from sqlalchemy.ext.declarative import declarative_base
 import apistar
 from apistar import App, http, routing, test
 from apistar.backends import SQLAlchemy
+from apistar.commands import create_sqlalchemy_tables
 from apistar.test import CommandLineRunner
 
 Base = declarative_base()
@@ -53,7 +54,8 @@ app = App(
             "URL": environ.get('DB_URL', 'sqlite:///test.db'),
             "METADATA": Base.metadata
         }
-    }
+    },
+    commands=[create_sqlalchemy_tables]
 )
 
 
@@ -75,7 +77,7 @@ def test_list_create(monkeypatch, clear_db):
 
     monkeypatch.setattr(apistar.cli, 'get_current_app', mock_get_current_app)
 
-    result = runner.invoke(['create_tables'])
+    result = runner.invoke(['create_sqlalchemy_tables'])
     assert 'Tables created' in result.output
 
     response = client.get('http://example.com/kittens/create/?name=minky')
