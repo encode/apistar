@@ -26,7 +26,7 @@ class APISchema(Document):
         return cls(url=url, content=content)
 
 
-def get_schema_url(routes: RoutesConfig, base_url: http.URL) -> Optional[str]:
+def get_schema_url(routes: RoutesConfig, base_url: http.URL=None) -> Optional[str]:
     """
     Given the application routes, return the URL path of the API Schema.
     """
@@ -59,6 +59,8 @@ def _annotated_type_to_coreschema(annotated_type: type) -> coreschema.schemas.Sc
         return coreschema.Integer()
     elif annotated_type is float or issubclass(annotated_type, schema.Number):
         return coreschema.Number()
+    elif issubclass(annotated_type, schema.Enum):
+        return coreschema.Enum(enum=annotated_type.enum)
 
     return coreschema.String()
 

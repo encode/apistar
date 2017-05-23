@@ -10,12 +10,17 @@ from apistar.routing import Route
 from apistar.test import TestClient
 
 
+class Category(schema.Enum):
+    enum = ['shop', 'chore']
+
+
 class ToDoNote(schema.Object):
     properties = {
         'id': schema.Integer(minimum=0),
         'text': schema.String(max_length=100),
         'complete': schema.Boolean,
-        'percent_complete': schema.Number
+        'percent_complete': schema.Number,
+        'category': Category
     }
 
 
@@ -39,12 +44,17 @@ def set_complete(ident: int, complete: bool):  # pragma: nocover
     pass
 
 
+def set_category(ident: int, category: Category):  # pragma: nocover
+    pass
+
+
 routes = [
     Route('/todo/', 'GET', list_todo),
     Route('/todo/', 'POST', add_todo),
     Route('/todo/{ident}/', 'GET', show_todo),
     Route('/todo/{ident}/', 'PUT', set_complete),
     Route('/todo/{ident}/percent_complete', 'PUT', set_percent_complete),
+    Route('/todo/{ident}/category', 'PUT', set_category),
     Route('/schema/', 'GET', serve_schema),
     Route('/docs/', 'GET', serve_docs),
     Route('/schema.js', 'GET', serve_schema_js)
@@ -84,6 +94,14 @@ expected = APISchema(url='/schema/', content={
         fields=[
             Field(name='ident', location='path', required=True, schema=coreschema.Integer()),
             Field(name='percent_complete', location='form', required=False, schema=coreschema.Number())
+        ]
+    ),
+    'set_category': Link(
+        url='/todo/{ident}/category',
+        action='PUT',
+        fields=[
+            Field(name='ident', location='path', required=True, schema=coreschema.Integer()),
+            Field(name='category', location='form', required=False, schema=coreschema.Enum(enum=['shop', 'chore']))
         ]
     )
 })
