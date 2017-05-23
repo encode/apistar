@@ -35,7 +35,7 @@ app = App(
                 default=environ.get('DB_URL', 'sqlite:///test.db')
             )
         },
-        'INSTALLED_APPS': ['django_project']
+        'INSTALLED_APPS': ['django_project'],
     },
     commands=[django_makemigrations, django_migrate]
 )
