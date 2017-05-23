@@ -102,8 +102,7 @@ def get_link(route: Route) -> Link:
                 location = 'query'
 
         if location is not None:
-            field = Field(name=param.name, location=location,
-                          required=required, schema=param_schema)
+            field = Field(name=param.name, location=location, required=required, schema=param_schema)
             fields.append(field)
 
     return Link(url=path, action=method, fields=fields)
