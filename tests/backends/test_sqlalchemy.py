@@ -7,8 +7,9 @@ from sqlalchemy.ext.declarative import declarative_base
 import apistar
 from apistar import App, http, routing, test
 from apistar.backends import SQLAlchemy
-from apistar.test import CommandLineRunner
 from apistar.commands import create_sqlalchemy_tables
+from apistar.test import CommandLineRunner
+
 Base = declarative_base()
 
 
