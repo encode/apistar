@@ -5,7 +5,7 @@ from typing import Any, Callable, Dict, Iterator, List, Mapping, Set
 import click
 
 from apistar import commands as cmd
-from apistar import pipelines, routing, schema
+from apistar import core, routing, schema
 
 DEFAULT_LOOKUP_CACHE_SIZE = 10000
 
@@ -23,6 +23,7 @@ class App(object):
                  commands: List[Callable] = None,
                  settings: Dict[str, Any] = None) -> None:
         from apistar.settings import Settings
+        initial_types = [App, routing.Router]  # type: List[type]
 
         routes = [] if (routes is None) else routes
         commands = [] if (commands is None) else commands
@@ -30,10 +31,11 @@ class App(object):
         self.routes = routes
         self.commands = list(self.built_in_commands) + commands
         self.settings = Settings(settings or {})
+        self.router = routing.Router(self.routes, initial_types)
 
-        initial_types = [App]  # type: List[type]
         self.preloaded = {
-            'app': self
+            'app': self,
+            'router': self.router,
         }
         preload_state(self.preloaded, self.routes)
         if 'sql_alchemy' in self.preloaded:
@@ -41,9 +43,11 @@ class App(object):
         if 'django_backend' in self.preloaded:
             self.commands += [cmd.django_makemigrations, cmd.django_migrate, cmd.django_showmigrations]
 
-        self.router = routing.Router(self.routes, initial_types)
         self.wsgi = get_wsgi_server(app=self)
         self.click = get_click_client(app=self)
+
+    def __call__(self, *args, **kwargs):
+        return self.wsgi(*args, **kwargs)
 
 
 def get_wsgi_server(app: App) -> Callable:
@@ -96,7 +100,7 @@ def get_wsgi_server(app: App) -> Callable:
                 state[output] = function(**kwargs)
         except Exception as exc:
             state['exception'] = exc
-            pipelines.run_pipeline(app.router.exception_pipeline, state)
+            core.run_pipeline(app.router.exception_pipeline, state)
 
         wsgi_response = state['wsgi_response']
         start_response(wsgi_response.status, wsgi_response.headers)
@@ -164,11 +168,11 @@ def preload_state(state: Dict[str, Any], routes: routing.RoutesConfig) -> None:
     components = get_preloaded_components(routes)
     for component in components:
         builder = getattr(component, 'build')
-        pipeline = pipelines.build_pipeline(
+        pipeline = core.build_pipeline(
             function=builder,
             initial_types=[App]
         )
-        pipelines.run_pipeline(pipeline, state)
+        core.run_pipeline(pipeline, state)
 
 
 def get_preloaded_components(routes: routing.RoutesConfig) -> Set[type]:

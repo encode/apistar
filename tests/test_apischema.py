@@ -14,7 +14,8 @@ class ToDoNote(schema.Object):
     properties = {
         'id': schema.Integer(minimum=0),
         'text': schema.String(max_length=100),
-        'complete': schema.Boolean
+        'complete': schema.Boolean,
+        'percent_complete': schema.Number
     }
 
 
@@ -30,6 +31,10 @@ def show_todo(ident: int):  # pragma: nocover
     pass
 
 
+def set_percent_complete(ident: int, percent_complete: float):  # pragma: nocover
+    pass
+
+
 def set_complete(ident: int, complete: bool):  # pragma: nocover
     pass
 
@@ -39,6 +44,7 @@ routes = [
     Route('/todo/', 'POST', add_todo),
     Route('/todo/{ident}/', 'GET', show_todo),
     Route('/todo/{ident}/', 'PUT', set_complete),
+    Route('/todo/{ident}/percent_complete', 'PUT', set_percent_complete),
     Route('/schema/', 'GET', serve_schema),
     Route('/docs/', 'GET', serve_docs),
     Route('/schema.js', 'GET', serve_schema_js)
@@ -62,14 +68,22 @@ expected = APISchema(url='/schema/', content={
     'show_todo': Link(
         url='/todo/{ident}/',
         action='GET',
-        fields=[Field(name='ident', location='path', required=True, schema=coreschema.String())]
+        fields=[Field(name='ident', location='path', required=True, schema=coreschema.Integer())]
     ),
     'set_complete': Link(
         url='/todo/{ident}/',
         action='PUT',
         fields=[
-            Field(name='ident', location='path', required=True, schema=coreschema.String()),
-            Field(name='complete', location='form', required=False, schema=coreschema.String())
+            Field(name='ident', location='path', required=True, schema=coreschema.Integer()),
+            Field(name='complete', location='form', required=False, schema=coreschema.Boolean())
+        ]
+    ),
+    'set_percent_complete': Link(
+        url='/todo/{ident}/percent_complete',
+        action='PUT',
+        fields=[
+            Field(name='ident', location='path', required=True, schema=coreschema.Integer()),
+            Field(name='percent_complete', location='form', required=False, schema=coreschema.Number())
         ]
     )
 })

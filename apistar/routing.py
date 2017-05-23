@@ -11,8 +11,8 @@ from uritemplate import URITemplate
 from werkzeug.routing import Map, Rule
 from werkzeug.serving import is_running_from_reloader
 
-from apistar import exceptions, http, pipelines, schema, wsgi
-from apistar.pipelines import ArgName, Pipeline
+from apistar import core, exceptions, http, schema, wsgi
+from apistar.core import ArgName, Pipeline
 
 primitive_types = (
     str, int, float, bool, list, dict
@@ -147,10 +147,10 @@ class Router(object):
                 extra_annotations['return'] = http.ResponseData
 
             # Determine the pipeline for the view.
-            pipeline = pipelines.build_pipeline(view, initial_types, required_type, extra_annotations)
+            pipeline = core.build_pipeline(view, initial_types, required_type, extra_annotations)
             views[name] = Endpoint(view, pipeline)
 
-        self.exception_pipeline = pipelines.build_pipeline(exception_handler, initial_types, required_type, {})
+        self.exception_pipeline = core.build_pipeline(exception_handler, initial_types, required_type, {})
         self.routes = routes
         self.adapter = Map(rules).bind('')
         self.views = views
@@ -168,6 +168,19 @@ class Router(object):
 
         (view, pipeline) = self.views[name]
         return (view, pipeline, kwargs)
+
+    def reverse_url(self, view_name: str, **url_params) -> str:
+        endpoint = self.views.get(view_name)
+        if not endpoint:
+            raise exceptions.NoReverseMatch
+
+        flattened_routes = walk(self.routes)
+        matched_views = [
+            route for route in flattened_routes
+            if route.view == endpoint.view
+        ]
+
+        return matched_views[0].path.format(**url_params)
 
 
 def exception_handler(environ: wsgi.WSGIEnviron,
