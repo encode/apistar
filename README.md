@@ -208,6 +208,30 @@ app = App(routes=[
     Route('/hello/', 'GET', echo_username)
 ])
 ```
+### Reversing URLS
+
+To generate URLs based on the endpoint, use the `Router's reverse_url()`.
+
+```python
+from apistar import routing
+
+def get_player_details(player_name):
+    score = get_score(player_name)
+    return {'name': player_name, 'score': score}
+    
+def get_all_players(router: routing.Router):
+    players = get_players()
+    player_list = [
+        {'name': player.name, 'url': router.reverse_url('get_player_details', player_name=player.name)}
+        for player in players
+    ]
+    return {'players': player_list}
+
+app = App(routes=[
+    Route('/players/', 'GET', get_all_players),
+    Route('/players/{name}', 'GET', get_player_details),
+])
+```
 
 ---
 
