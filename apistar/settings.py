@@ -1,7 +1,7 @@
 from typing import Any, List, Union
 
 from apistar import app
-from apistar.core import ArgName
+from apistar.core import ArgName, builder
 
 
 class Settings(dict):
@@ -18,7 +18,7 @@ class Settings(dict):
         return value
 
 
-@app.builder
+@builder
 def build_settings(app: app.App) -> Settings:
     return Settings(app.settings)
 
@@ -29,6 +29,6 @@ class Setting(object):
         return args[0]
 
 
-@app.builder
-def build(arg_name: ArgName, settings: Settings) -> Setting:
+@builder
+def build_setting(arg_name: ArgName, settings: Settings) -> Setting:
     return settings.get(arg_name)

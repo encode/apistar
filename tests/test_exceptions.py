@@ -1,7 +1,7 @@
 import pytest
 
 from apistar import App, Route
-from apistar.app import builder, get_builder
+from apistar.core import builder, get_builder
 from apistar.exceptions import APIException, InternalError
 from apistar.test import TestClient
 

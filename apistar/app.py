@@ -5,7 +5,7 @@ from typing import Any, Callable, Dict, Iterator, List, Mapping, Set
 import click
 
 from apistar import commands as cmd
-from apistar import core, exceptions, routing, schema
+from apistar import core, routing, schema
 
 DEFAULT_LOOKUP_CACHE_SIZE = 10000
 
@@ -183,41 +183,3 @@ def get_preloaded_components(routes: routing.RoutesConfig) -> Set[type]:
                 preloaded_components.add(param.annotation)
 
     return preloaded_components
-
-
-__BUILDERS__: Dict[Any, Callable] = {}  # noqa
-
-
-def _get_builder(cls: Any) -> Callable:
-    if cls in __BUILDERS__:
-        return __BUILDERS__[cls]
-    elif hasattr(cls, 'build'):
-        return cls.build
-    else:
-        return None
-
-
-def get_builder(cls: Any) -> Callable:
-    """
-    Use two methods to find the `build` method to use during the build pipeline
-    """
-    builder = _get_builder(cls)
-    if not builder:
-        raise exceptions.InternalError(
-            "class {} has no builder".format(cls.__name__)
-        )
-    return builder
-
-
-def builder(func: Callable) -> Callable:
-    """
-    Decorator to register a function used to build a class,
-    gets picked up by `get_builder`
-    """
-    return_cls = func.__annotations__['return']
-    if _get_builder(return_cls):
-        raise exceptions.InternalError(
-            "class {} already has a builder".format(return_cls.__name__)
-        )
-    __BUILDERS__[return_cls] = func
-    return func
