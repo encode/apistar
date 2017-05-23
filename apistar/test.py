@@ -4,7 +4,7 @@ from urllib.parse import unquote, urlparse
 import requests
 from click.testing import CliRunner
 
-from apistar.main import get_current_app
+from apistar.cli import get_current_app
 
 
 class WSGIAdapter(requests.adapters.HTTPAdapter):

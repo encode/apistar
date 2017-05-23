@@ -19,7 +19,7 @@ def schema(format: Format) -> None:  # pragma: nocover
     """
     Output an API Schema.
     """
-    from apistar.main import get_current_app
+    from apistar.cli import get_current_app
     from apistar.apischema import APISchema
     app = get_current_app()
     schema = APISchema.build(app)

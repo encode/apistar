@@ -239,3 +239,23 @@ def test_lookup_cache_expiry():
         response = client.get('/%d/' % index)
         assert response.status_code == 200
         assert response.json() == {'path': '/%d/' % index}
+
+
+def test_routing_reversal_on_path_without_url_params():
+    url = app.router.reverse_url('found')
+    assert url == '/found/'
+
+
+def test_routing_reversal_on_path_non_existent_path():
+    with pytest.raises(exceptions.NoReverseMatch):
+        app.router.reverse_url('missing', var='not_here')
+
+
+def test_routing_reversal_on_path_with_url_params():
+    url = app.router.reverse_url('path_params', var='test')
+    assert url == '/path_params/test/'
+
+
+def test_routing_reversal_on_subpath_with_url_params():
+    url = app.router.reverse_url('subpath', var='testing')
+    assert url == '/subpath/testing/'

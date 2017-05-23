@@ -210,6 +210,30 @@ app = App(routes=[
     Route('/hello/', 'GET', echo_username)
 ])
 ```
+### Reversing URLS
+
+Rather than build URLs by hand, it is possible to generate URLs based on the endpoint, using `Router's reverse_url()`.
+
+```python
+from apistar import routing
+
+def get_player_details(player_name):
+    score = get_score(player_name)
+    return {'name': player_name, 'score': score}
+    
+def get_all_players(router: routing.Router):
+    players = get_players()
+    player_list = [
+        {'name': player.name, 'url': router.reverse_url('get_player_details', player_name=player.name)}
+        for player in players
+    ]
+    return {'players': player_list}
+
+app = App(routes=[
+    Route('/players/', 'GET', get_all_players),
+    Route('/players/{name}', 'GET', get_player_details),
+])
+```
 
 ---
 
@@ -796,7 +820,8 @@ Component              | Description
 `http.Request`         | The full request instance.
 `http.Response`        | A return type for returning an HTTP response explicitly.
 `http.ResponseData`    | A return type for plain data responses.
-`pipelines.ArgName`    | The keyword argument with which a component is being injected into the view. May be used within component `build` methods.
+`core.ArgName`         | The keyword argument with which a component is being injected into the view. May be used within component `build` methods.
+`routing.Router`       | The router for the application instance.
 `routing.URLPathArgs`  | A dictionary containing all the matched URL path arguments.
 `routing.URLPathArg`   | A single URL path argument, corresponding to the keyword argument name. Automatically used for data arguments with a matching URL path component.
 `settings.Settings`    | A dictionary containing the application settings.

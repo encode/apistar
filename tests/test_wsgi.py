@@ -18,8 +18,8 @@ def get_wsgi_response() -> wsgi.WSGIResponse:
 
 
 app = App(routes=[
-    Route('/wsgi_environ/', 'get', get_wsgi_environ),
-    Route('/wsgi_response/', 'get', get_wsgi_response),
+    Route('/wsgi_environ/', 'GET', get_wsgi_environ),
+    Route('/wsgi_response/', 'GET', get_wsgi_response),
 ])
 
 
@@ -46,3 +46,15 @@ def test_wsgi_environ():
 def test_wsgi_response():
     response = client.get('http://example.com/wsgi_response/')
     assert response.json() == {'hello': 'world'}
+
+
+def test_app_is_callable():
+    def start_wsgi_response(status, headers):
+        return None
+
+    wsgi_response = app(
+        start_response=start_wsgi_response,
+        environ={'REQUEST_METHOD': 'GET',
+                 'PATH_INFO': '/abc'}
+    )
+    assert wsgi_response[0] == b'{"message": "Not found"}'
