@@ -14,16 +14,20 @@ from apistar.decorators import exclude_from_schema
 from apistar.routing import (
     Route, RoutesConfig, primitive_types, schema_types, walk
 )
+from apistar.settings import Settings
 from apistar.templating import Templates
 
 
 class APISchema(Document):
     @classmethod
-    def build(cls, app: App, base_url: http.URL=None):
+    def build(cls, app: App, settings: Settings, base_url: http.URL=None):
         routes = app.routes
         url = get_schema_url(routes, base_url)
         content = get_schema_content(routes)
-        return cls(url=url, content=content)
+        schema = settings.get("SCHEMA", {})
+        title = schema.get("TITLE", None)
+        description = schema.get("DESCRIPTION", None)
+        return cls(url=url, content=content, title=title, description=description)
 
 
 def get_schema_url(routes: RoutesConfig, base_url: http.URL) -> Optional[str]:
@@ -98,7 +102,8 @@ def get_link(route: Route) -> Link:
                 location = 'query'
 
         if location is not None:
-            field = Field(name=param.name, location=location, required=required, schema=param_schema)
+            field = Field(name=param.name, location=location,
+                          required=required, schema=param_schema)
             fields.append(field)
 
     return Link(url=path, action=method, fields=fields)
