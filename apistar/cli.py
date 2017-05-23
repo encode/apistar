@@ -37,7 +37,7 @@ def setup_pythonpath() -> None:
     sys.path.insert(0, cwd)
 
 
-def cli() -> None:  # pragma: no cover
+def main() -> None:  # pragma: no cover
     setup_pythonpath()
     app_path = get_app_path()
     if os.path.exists(app_path):
@@ -53,4 +53,4 @@ def cli() -> None:  # pragma: no cover
 
 
 if __name__ == '__main__':  # pragma: no cover
-    cli()
+    main()
