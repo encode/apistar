@@ -12,7 +12,7 @@ from apistar.test import CommandLineRunner
 def list_stars(orm: DjangoBackend):
     Star = orm.Star
     return {
-        'stars': iter(Star.objects.values('name', 'id'))
+        'stars': list(Star.objects.values('name', 'id'))
     }
 
 
