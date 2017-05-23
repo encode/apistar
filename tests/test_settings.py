@@ -43,7 +43,7 @@ def test_setting():
 
 
 def test_use_setting_as_argument():
-    abc = Setting(789)
+    abc = 789
     assert get_setting(abc) == {'ABC': 789}
 
 

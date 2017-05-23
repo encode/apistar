@@ -23,10 +23,7 @@ def build_settings(app: app.App) -> Settings:
     return Settings(app.settings)
 
 
-class Setting(object):
-    def __new__(cls, *args):
-        assert len(args) == 1
-        return args[0]
+Setting = object
 
 
 @builder
