@@ -29,7 +29,7 @@ class WSGIResponse(object):
         self.iterator = iterator
 
     @classmethod
-    def build(cls, response: http.Response):
+    def build(cls, response: http.Response) -> 'WSGIResponse':
         try:
             status_text = STATUS_CODES[response.status]
         except KeyError:
