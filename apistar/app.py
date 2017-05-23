@@ -189,6 +189,9 @@ __BUILDERS__: Dict[Any, Callable] = {}
 
 
 def get_builder(cls: Any) -> Callable:
+    """
+    Use two methods to find the `build` method to use during the build pipeline
+    """
     if cls in __BUILDERS__:
         return __BUILDERS__[cls]
     elif hasattr(cls, 'build'):
@@ -200,6 +203,10 @@ def get_builder(cls: Any) -> Callable:
 
 
 def builder(func: Callable) -> Callable:
+    """
+    Decorator to register a function used to build a class,
+    gets picked up by `get_builder`
+    """
     return_cls = func.__annotations__['return']
     __BUILDERS__[return_cls] = func
     return None
