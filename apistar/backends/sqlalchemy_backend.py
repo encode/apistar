@@ -1,7 +1,8 @@
+from apistar.backends.alembic import AlembicMigration
 from apistar.settings import Settings
 
 
-class SQLAlchemy(object):
+class SQLAlchemy(AlembicMigration, object):
     __slots__ = ('engine', 'session_class', 'metadata')
     preload = True
 
