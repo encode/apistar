@@ -43,9 +43,8 @@ def test_custom_command():
 
 
 def test_custom_command_with_int_arguments():
-    def add(a: int, b: int) -> int:
+    def add(a: int, b: int) -> None:
         click.echo(str(a + b))
-        return (a+b)
 
     app = App(commands=[add])
     runner = CommandLineRunner(app)
