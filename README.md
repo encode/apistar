@@ -688,9 +688,9 @@ app = App(routes=routes, settings=settings, commands=[alembic_downgrade, alembic
 ```
 
 To initialize your migrations, type `apistar alembic_init`
-To create a new revision, type `apistar revision "test revision"`
-To upgrade to the head revision, type `apistar upgrade`
-To downgrade to a previous revision, type `apistar downgrade [revision]`
+To create a new revision, type `apistar alembic_revision "test revision"`
+To upgrade to the head revision, type `apistar alembic_upgrade head`
+To downgrade to a previous revision, type `apistar alembic_downgrade [revision]`
 
 ## Django ORM
 
