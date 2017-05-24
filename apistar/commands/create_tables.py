@@ -77,7 +77,7 @@ def alembic_init() -> None:
 
 def alembic_revision(message: Message) -> None:
     """
-    Alembic Revision SQLAlchemyBackend.
+    Alembic Create Revision SQLAlchemyBackend.
     """
     db_backend = _get_sqlalchemy_backend()
     db_backend.revision(message=message)
@@ -86,7 +86,7 @@ def alembic_revision(message: Message) -> None:
 
 def alembic_downgrade(revision: Revision) -> None:
     """
-    Alembic Upgrade SQLAlchemyBackend.
+    Alembic Downgrade SQLAlchemyBackend.
     """
     db_backend = _get_sqlalchemy_backend()
     db_backend.downgrade(revision=revision)
@@ -100,3 +100,12 @@ def alembic_upgrade(revision: Revision) -> None:
     db_backend = _get_sqlalchemy_backend()
     db_backend.upgrade(revision=revision)
     click.echo("upgrade to revision: %s" % revision)
+
+
+def alembic_show() -> None:
+    """
+    Alembic Show Migrations SQLAlchemyBackend.
+    """
+    db_backend = _get_sqlalchemy_backend()
+    db_backend.show(revision="current")
+    click.echo("Showing migrations")

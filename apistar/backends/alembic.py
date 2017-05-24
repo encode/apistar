@@ -33,5 +33,8 @@ class AlembicMigration(object):
     def upgrade(self, revision):
         self._run_alembic_command(command.upgrade, revision=revision)
 
+    def show(self, revision):
+        self._run_alembic_command(command.show, rev=revision)
+
     def revision(self, message):
         self._run_alembic_command(command.revision, message=message)

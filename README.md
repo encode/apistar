@@ -669,7 +669,7 @@ You'll want to modify your settings and add in the alembic commands:
 ```python
 from sqlalchemy.ext.declarative import declarative_base
 from apistar.commands import (alembic_downgrade, alembic_init,
-                              alembic_revision, alembic_upgrade)
+                              alembic_revision, alembic_show, alembic_upgrade)
 
 Base = declarative_base()
 
@@ -684,7 +684,10 @@ settings = {
     }
 }
 
-app = App(routes=routes, settings=settings, commands=[alembic_downgrade, alembic_init, alembic_revision, alembic_upgrade])
+app = App(routes=routes,
+          settings=settings,
+          commands=[alembic_downgrade, alembic_init, alembic_revision,
+                    alembic_show, alembic_upgrade])
 ```
 
 To initialize your migrations, type `apistar alembic_init`
