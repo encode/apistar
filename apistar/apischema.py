@@ -1,6 +1,6 @@
 import base64
 import inspect
-from typing import Dict, Optional
+from typing import Dict, Optional, Type, cast
 from urllib.parse import urljoin
 
 import coreschema
@@ -26,7 +26,7 @@ class APISchema(Document):
         return cls(url=url, content=content)
 
 
-def get_schema_url(routes: RoutesConfig, base_url: http.URL) -> Optional[str]:
+def get_schema_url(routes: RoutesConfig, base_url: http.URL=None) -> Optional[str]:
     """
     Given the application routes, return the URL path of the API Schema.
     """
@@ -59,6 +59,9 @@ def _annotated_type_to_coreschema(annotated_type: type) -> coreschema.schemas.Sc
         return coreschema.Integer()
     elif annotated_type is float or issubclass(annotated_type, schema.Number):
         return coreschema.Number()
+    elif issubclass(annotated_type, schema.Enum):
+        enum = cast(Type[schema.Enum], annotated_type)
+        return coreschema.Enum(enum=enum.enum)
 
     return coreschema.String()
 
