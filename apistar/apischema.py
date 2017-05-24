@@ -20,7 +20,7 @@ from apistar.templating import Templates
 
 class APISchema(Document):
     @classmethod
-    def build(cls, app: App, settings: Settings={}, base_url: http.URL=None):
+    def build(cls, app: App, settings: Settings=Settings({}), base_url: http.URL=None):
         routes = app.routes
         url = get_schema_url(routes, base_url)
         content = get_schema_content(routes)
