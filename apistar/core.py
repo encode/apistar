@@ -151,7 +151,7 @@ def build_pipeline(function: Callable,
     return pipeline
 
 
-__BUILDERS__: Dict[Any, Callable] = {}  # noqa
+__BUILDERS__ = {}  # type: Dict[Any, Callable]
 
 
 def _get_builder(cls: Any) -> Callable:
