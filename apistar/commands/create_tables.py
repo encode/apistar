@@ -66,6 +66,15 @@ def django_showmigrations() -> None:
     click.echo("showmigrations")
 
 
+def alembic_init() -> None:
+    """
+    Alembic Initialize SQLAlchemyBackend.
+    """
+    db_backend = _get_sqlalchemy_backend()
+    db_backend.initialize()
+    click.echo("Initialize alembic migrations")
+
+
 def alembic_revision(message: Message) -> None:
     """
     Alembic Revision SQLAlchemyBackend.
@@ -73,6 +82,15 @@ def alembic_revision(message: Message) -> None:
     db_backend = _get_sqlalchemy_backend()
     db_backend.revision(message=message)
     click.echo("revision: %s" % message)
+
+
+def alembic_downgrade(revision: Revision) -> None:
+    """
+    Alembic Upgrade SQLAlchemyBackend.
+    """
+    db_backend = _get_sqlalchemy_backend()
+    db_backend.downgrade(revision=revision)
+    click.echo("Downgrade to revision: %s" % revision)
 
 
 def alembic_upgrade(revision: Revision) -> None:

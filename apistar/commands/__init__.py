@@ -1,5 +1,6 @@
 from apistar.commands.create_tables import (
-    alembic_revision, alembic_upgrade, create_sqlalchemy_tables,
+    alembic_downgrade, alembic_init, alembic_revision, alembic_upgrade,
+    create_sqlalchemy_tables,
     django_makemigrations, django_migrate, django_showmigrations
 )
 from apistar.commands.new import new
@@ -12,6 +13,8 @@ __all__ = [
     'run',
     'schema',
     'test',
+    'alembic_downgrade',
+    'alembic_init',
     'alembic_revision',
     'alembic_upgrade',
     'create_sqlalchemy_tables',

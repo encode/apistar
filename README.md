@@ -656,6 +656,42 @@ def create_customer(db: SQLAlchemy, name: str):
     return {'name': name}
 ```
 
+**Running Migrations with Alembic**
+
+To use migrations with SQLAlchemy install `alembic`.
+
+```bash
+$ pip install alembic
+```
+
+You'll want to modify your settings and add in the alembic commands:
+
+```python
+from sqlalchemy.ext.declarative import declarative_base
+from apistar.commands import (alembic_downgrade, alembic_init,
+                              alembic_revision, alembic_upgrade)
+
+Base = declarative_base()
+
+routes = [
+    # ...
+]
+
+settings = {
+    "DATABASE": {
+        "URL": "postgresql://:@localhost/apistar",
+        "METADATA": Base.metadata
+    }
+}
+
+app = App(routes=routes, settings=settings, commands=[alembic_downgrade, alembic_init, alembic_revision, alembic_upgrade])
+```
+
+To initialize your migrations, type `apistar alembic_init`
+To create a new revision, type `apistar revision "test revision"`
+To upgrade to the head revision, type `apistar upgrade`
+To downgrade to a previous revision, type `apistar downgrade [revision]`
+
 ## Django ORM
 
 API Star has optional support for [Django ORM](https://docs.djangoproject.com/en/1.11/topics/db/).
