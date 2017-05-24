@@ -284,8 +284,9 @@ def text_response():
     return '<html><h1>Hello, world</h1></html>'
 
 
-def data_response():
-    return {'hello': 'world'}
+def data_response() -> http.Response:
+    data = {'hello': 'world'}
+    return http.Response(data, status=200)
 
 
 def empty_response():
