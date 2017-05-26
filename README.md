@@ -182,6 +182,21 @@ app = App(routes=[
 ])
 ```
 
+Use `Include` to include a list of routes.
+
+```python
+star_routes=[
+    Route('/', 'GET', list_stars),
+    Route('/', 'POST', create_new_star),
+    Route('/{star_id}', 'PUT', edit_star),
+    Route('/{star_id}', 'DELETE', delete_star)
+]
+
+app = App(routes=[
+    Include('/api/star', star_routes)
+])
+```
+
 Use type annotation on the view method to include typed URL path parameters.
 
 ```python
@@ -852,7 +867,7 @@ returning a WSGI response directly:
 from apistar import wsgi
 
 def hello_world() -> wsgi.WSGIResponse:
-    wsgi.WSGIResponse(
+    return wsgi.WSGIResponse(
         '200 OK',
         [('Content-Type', 'text/plain')],
         [b'Hello, world!']
