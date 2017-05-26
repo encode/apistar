@@ -852,7 +852,7 @@ returning a WSGI response directly:
 from apistar import wsgi
 
 def hello_world() -> wsgi.WSGIResponse:
-    wsgi.WSGIResponse(
+    return wsgi.WSGIResponse(
         '200 OK',
         [('Content-Type', 'text/plain')],
         [b'Hello, world!']
