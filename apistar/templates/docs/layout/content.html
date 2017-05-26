@@ -1,7 +1,9 @@
 <div class="row intro">
 <div class="col-md-6 intro-title">
     <h1>{{ document.title|default('API Star', True) }}</h1>
-    <p>{{ document.description|default('description', True) }}</p>
+    {% if document.description %}
+        <p>{{ document.description }}</p>
+    {% endif %}
 </div>
 <div class="col-md-6 intro-code">
     {% if 'shell' in langs %}{% include "apistar/docs/langs/intro/shell.html" %}{% endif %}
