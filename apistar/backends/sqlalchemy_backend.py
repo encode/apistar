@@ -7,6 +7,7 @@ class SQLAlchemy(AlembicMigration, object):
     preload = True
 
     def __init__(self, engine, session_class, db_url=None, metadata=None):
+        AlembicMigration.__init__(self)
         self.engine = engine
         self.session_class = session_class
         self.metadata = metadata
