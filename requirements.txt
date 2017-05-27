@@ -3,7 +3,7 @@ click
 coreapi
 jinja2
 pytest
-requests>=2.15.1,<2.16
+requests
 werkzeug
 
 # Optional
