@@ -3,7 +3,6 @@ from typing import Any, Dict, List, Optional, Tuple, Union, overload  # noqa
 
 from apistar.exceptions import SchemaError, ValidationError
 
-
 # TODO: Error on unknown attributes
 # TODO: allow_blank?
 # TODO: format (check type at start and allow, coerce, .native)
