@@ -42,7 +42,7 @@ def new(target_dir: TargetDir, layout: Layout, force: Force) -> None:
             rel_path = os.path.relpath(source_path, source_dir)
             target_path = os.path.join(target_dir, rel_path)
             if os.path.exists(target_path) and not force:
-                click.echo('Project files already exist. Use `-f` to overwrite.')
+                click.echo('Project files already exist. Use `--force` to overwrite.')
                 sys.exit(1)
             copy_paths.append((source_path, target_path))
 
