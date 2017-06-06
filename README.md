@@ -612,7 +612,7 @@ You then need to add the database config to your settings, and you'll also want 
 ```python
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String
-from apistar.commands import create_sqlalchemy_tables
+from apistar.commands import create_tables
 
 Base = declarative_base()
 
@@ -632,7 +632,7 @@ settings = {
     }
 }
 
-app = App(routes=routes, settings=settings, commands=[create_sqlalchemy_tables])
+app = App(routes=routes, settings=settings, commands=[create_tables])
 ```
 
 A few common configurations are listed below.
