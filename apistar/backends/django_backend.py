@@ -13,7 +13,7 @@ class DjangoBackend(object):
 
     @classmethod
     def build(cls, settings: Settings):
-        if not cls._loaded:
+        if not cls._loaded and not django_settings.configured:
             django_settings.configure(INSTALLED_APPS=settings.get('INSTALLED_APPS'),
                                       DATABASES=settings.get('DATABASES'))
             setup()
