@@ -240,7 +240,10 @@ class Object(dict):
             except KeyError:
                 if hasattr(child_schema, 'default'):
                     # If a key is missing but has a default, then use that.
-                    self[key] = child_schema.default
+                    if callable(child_schema.default):
+                        self[key] = child_schema.default()
+                    else:
+                        self[key] = child_schema.default
                 else:
                     errors[key] = error_message(self, 'required')
             else:
