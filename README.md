@@ -643,14 +643,6 @@ PostgreSQL | `psycopg2`                  | `postgresql://<username>:<password>@l
 MySQL      | `mysql-python`              | `mysql://<username>:<password>@localhost/example`
 SQLite     | `sqlite3` (Python built-in) | `sqlite:///example.db`
 
-**Creating the database tables**
-
-Before starting you app you will likely need to create the database tables declared in your MetaData which you can do with the following command:
-
-```bash
-$ apistar create_tables
-```
-
 **Accessing the database**
 
 To access the database in your view, include the `SQLAlchemy` component.
@@ -669,6 +661,18 @@ def create_customer(db: SQLAlchemy, name: str):
     session.add(customer)
     session.commit()
     return {'name': name}
+
+routes = [
+    Route('/customers/', 'POST', create_classroom),
+]    
+```
+
+**Creating the database tables**
+
+In order to get access to SQLAlchemy integration, and the `create_tables` command you must have a route defined which loads the SQLAlchemy db. You will likely want to create the database tables declared in your MetaData which you can do with the following command:
+
+```bash
+$ apistar create_tables
 ```
 
 ## Django ORM
