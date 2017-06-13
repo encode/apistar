@@ -1,6 +1,8 @@
 import base64
 import inspect
-from typing import Dict, Optional, Type, cast
+from typing import Dict, Optional, cast
+if False:
+    from typing import Type
 from urllib.parse import urljoin
 
 import coreschema
