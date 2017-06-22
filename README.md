@@ -260,6 +260,8 @@ expected inputs and outputs of your interface.
 Here’s a quick example of what the schema type system in API Star looks like:
 
 ```python
+from apistar import schema
+
 class Rating(schema.Integer):
     minimum = 1
     maximum = 5
