@@ -15,7 +15,7 @@ from apistar.exceptions import SchemaError, ValidationError
 # TODO: Blank booleans as False?
 
 
-def validate(schema: type, value: Any, key=None):
+def validate(schema: type, value: Any, key: Any=None) -> Any:
     try:
         return schema(value)
     except SchemaError as exc:
@@ -26,7 +26,7 @@ def validate(schema: type, value: Any, key=None):
         raise ValidationError(detail=detail)
 
 
-def error_message(schema, code):
+def error_message(schema: type, code: str) -> Union[str, dict]:
     return schema.errors[code].format(**schema.__dict__)
 
 
