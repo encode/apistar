@@ -26,7 +26,7 @@ def validate(schema: type, value: Any, key: Any=None) -> Any:
         raise ValidationError(detail=detail)
 
 
-def error_message(schema: type, code: str) -> Union[str, dict]:
+def error_message(schema, code: str) -> Union[str, dict]:
     return schema.errors[code].format(**schema.__dict__)
 
 
