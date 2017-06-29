@@ -1,5 +1,5 @@
-from coreapi import Link
 import coreschema
+from coreapi import Link
 
 from apistar.apischema import APISchema, serve_schema, serve_schema_js
 from apistar.decorators import exclude_from_schema
