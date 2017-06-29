@@ -13,7 +13,7 @@ def render_form(link: Link) -> str:
         (field.name, field.schema or coreschema.String())
         for field in link.fields
     ])
-    required: list = []
+    required = []  # type: list
     schema = coreschema.Object(properties=properties, required=required)
     return coreschema.render_to_form(schema)
 
