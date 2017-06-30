@@ -1,5 +1,5 @@
 import re
-from typing import Any, Dict, List, Optional, Tuple, Union, overload  # noqa
+from typing import Any, Dict, List, Set, Optional, Tuple, Union, overload  # noqa
 
 from apistar.exceptions import SchemaError, ValidationError
 
@@ -45,7 +45,7 @@ class String(str):
     format = None  # type: Any
     trim_whitespace = True
 
-    def __new__(cls, *args, **kwargs):
+    def __new__(cls, *args: Any, **kwargs: Dict[str, Any]) -> type:
         if kwargs:
             assert not args
             return type(cls.__name__, (cls,), kwargs)
@@ -77,7 +77,7 @@ class String(str):
     # with our atypical usage of `__new__`...
     # See: https://github.com/python/mypy/issues/3307
 
-    def __init__(self, *args, **kwargs):  # pragma: nocover
+    def __init__(self, *args: Any, **kwargs: Dict[str, Any]) -> None:  # pragma: nocover
         super().__init__()
 
 
@@ -100,7 +100,7 @@ class _NumericType(object):
     exclusive_maximum = False
     multiple_of = None  # type: Union[float, int]
 
-    def __new__(cls, *args, **kwargs):
+    def __new__(cls, *args: Any, **kwargs: Dict[str, Any]) -> type:
         if kwargs:
             assert not args
             return type(cls.__name__, (cls,), kwargs)
@@ -142,7 +142,7 @@ class _NumericType(object):
     # with our atypical usage of `__new__`...
     # See: https://github.com/python/mypy/issues/3307
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Dict[str, Any]) -> None:
         super().__init__()
 
 
@@ -160,7 +160,7 @@ class Boolean(object):
         'type': 'Must be a valid boolean.'
     }
 
-    def __new__(cls, *args, **kwargs):
+    def __new__(cls, *args: Any, **kwargs: Dict[str, Any]) -> Union[type, bool]:
         if kwargs:
             assert not args
             return type(cls.__name__, (cls,), kwargs)
@@ -188,7 +188,7 @@ class Enum(str):
     }
     enum = []  # type: List[str]
 
-    def __new__(cls, *args, **kwargs):
+    def __new__(cls, *args: Any, **kwargs: Dict[str, Any]) -> type:
         if kwargs:
             assert not args
             return type(cls.__name__, (cls,), kwargs)
@@ -211,7 +211,7 @@ class Object(dict):
     }
     properties = {}  # type: Dict[str, Any]
 
-    def __new__(cls, *args, **kwargs):
+    def __new__(cls, *args: Any, **kwargs: Dict[str, Any]) -> type:
         if kwargs:
             assert not args
             return type(cls.__name__, (cls,), kwargs)
@@ -219,7 +219,7 @@ class Object(dict):
         assert len(args) == 1
         return dict.__new__(cls, *args)
 
-    def __init__(self, value):
+    def __init__(self, value: Dict) -> None:
         try:
             value = dict(value)
         except TypeError:
@@ -270,7 +270,7 @@ class Array(list):
     max_items = None  # type: Optional[int]
     unique_items = False  # type: bool
 
-    def __new__(cls, *args, **kwargs):
+    def __new__(cls, *args: Any, **kwargs: Dict[str, Any]) -> Union[List[Any], type]:
         if kwargs:
             assert not args
             return type(cls.__name__, (cls,), kwargs)
@@ -278,7 +278,7 @@ class Array(list):
         assert len(args) == 1
         return list.__new__(cls, *args)
 
-    def __init__(self, value):
+    def __init__(self, value: List[Any]) -> None:
         try:
             value = list(value)
         except TypeError:
@@ -298,7 +298,7 @@ class Array(list):
         # Ensure all items are of the right type.
         errors = {}
         if self.unique_items:
-            seen_items = set()
+            seen_items: Set[Any] = set()
 
         for pos, item in enumerate(value):
             try:

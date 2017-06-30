@@ -12,7 +12,7 @@ class Templates(jinja2.Environment):
     preload = True
 
     @classmethod
-    def build(cls, settings: Settings):
+    def build(cls, settings: Settings) -> "Templates":
         template_dirs = settings.get(['TEMPLATES', 'DIRS'])
 
         package_loaders = [
@@ -39,7 +39,7 @@ class Template(jinja2.Template):
     path_delimiter = '__'
 
     @classmethod
-    def build(cls, arg_name: ArgName, templates: Templates):
+    def build(cls, arg_name: ArgName, templates: Templates) -> jinja2.Template:
         paths = arg_name.split(cls.path_delimiter)
         path = os.path.join(cls.prefix, *paths)
         for suffix in cls.suffixes:
