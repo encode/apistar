@@ -1,6 +1,7 @@
-from apistar.settings import Settings
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm.session import Session
+
+from apistar.settings import Settings
 
 
 class SQLAlchemy(object):
