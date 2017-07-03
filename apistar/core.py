@@ -125,7 +125,7 @@ def _build_pipeline(function: Callable,
         build_function = annotation.build
         dependancy = _build_pipeline(build_function, seen=seen, arg_name=parameter.name)
         pipeline.extend(dependancy)
-        seen |= set([step.output for step in dependancy])
+        seen |= {step.output for step in dependancy}
 
     step = _build_step(function, arg_name, extra_annotations)
     pipeline.append(step)
@@ -138,10 +138,10 @@ def build_pipeline(function: Callable,
                    extra_annotations: Dict[str, Any]=None) -> Pipeline:
     seen = None
     if initial_types:
-        seen = set([get_class_id(cls) for cls in initial_types])
+        seen = {get_class_id(cls) for cls in initial_types}
     pipeline = _build_pipeline(function, seen=seen, extra_annotations=extra_annotations)
     if required_type is not None:
-        seen |= set([step.output for step in pipeline])
+        seen |= {step.output for step in pipeline}
         if get_class_id(required_type) not in seen:
             final_pipeline = _build_pipeline(required_type.build, seen=seen)  # type: ignore
             pipeline.extend(final_pipeline)
