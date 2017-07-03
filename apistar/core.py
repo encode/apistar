@@ -125,7 +125,7 @@ def _build_pipeline(function: Callable,
         build_function = annotation.build
         dependancy = _build_pipeline(build_function, seen=seen, arg_name=parameter.name)
         pipeline.extend(dependancy)
-        seen |= set([step.output for step in dependancy])
+        seen |= {step.output for step in dependancy}
 
     step = _build_step(function, arg_name, extra_annotations)
     pipeline.append(step)
