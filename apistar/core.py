@@ -138,10 +138,10 @@ def build_pipeline(function: Callable,
                    extra_annotations: Dict[str, Any]=None) -> Pipeline:
     seen = None
     if initial_types:
-        seen = set([get_class_id(cls) for cls in initial_types])
+        seen = {get_class_id(cls) for cls in initial_types}
     pipeline = _build_pipeline(function, seen=seen, extra_annotations=extra_annotations)
     if required_type is not None:
-        seen |= set([step.output for step in pipeline])
+        seen |= {step.output for step in pipeline}
         if get_class_id(required_type) not in seen:
             final_pipeline = _build_pipeline(required_type.build, seen=seen)  # type: ignore
             pipeline.extend(final_pipeline)
