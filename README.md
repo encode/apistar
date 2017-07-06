@@ -147,6 +147,7 @@ Some of the components you might use most often:
 | `QueryParams` | The request query parameters, returned as a dictionary-like object. |
 | `QueryParam`  | Lookup a single query parameter, corresponding to the argument name.<br/>Returns a string or `None`. |
 | `Body`        | The request body. Returns a bytestring. |
+| `RequestData` | The request data, returned as a dictionary-like object. |
 
 ## Responses
 
