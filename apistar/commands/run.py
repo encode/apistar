@@ -14,7 +14,12 @@ class Port(schema.Integer):
     default = 8080
 
 
-def run(host: Host, port: Port) -> None:  # pragma: nocover
+class NoDebugger(schema.Boolean):
+    description = 'Turn off the Werkzeug debugger (on by default)'
+    default = False
+
+
+def run(host: Host, port: Port, no_debugger: NoDebugger) -> None:  # pragma: nocover
     """
     Run the current app.
     """
@@ -24,6 +29,6 @@ def run(host: Host, port: Port) -> None:  # pragma: nocover
     try:
         if not is_running_from_reloader():
             click.echo('Starting up...')
-        run_simple(host, port, app.wsgi, use_reloader=True, use_debugger=True, extra_files=['app.py'])
+        run_simple(host, port, app.wsgi, use_reloader=True, use_debugger=(not no_debugger), extra_files=['app.py'])
     except KeyboardInterrupt:
         pass
