@@ -1,7 +1,11 @@
+import os
 import re
-from typing import Any, Dict, List, Optional, Tuple, Union, overload  # noqa
+from typing import Any, Dict, List, Optional, Union  # noqa
+
+from werkzeug.datastructures import FileStorage
 
 from apistar.exceptions import SchemaError, ValidationError
+
 
 # TODO: Error on unknown attributes
 # TODO: allow_blank?
@@ -320,3 +324,44 @@ class Array(list):
 
         if errors:
             raise SchemaError(errors)
+
+
+class File(object):
+    errors = {
+        'required': 'No file was submitted.',
+        'type': 'Must be a valid file.',
+        'empty': 'The submitted file is empty.',
+        'max_length': 'Ensure this filename has at most {max_length} characters (it has {file_size}).',
+    }
+    max_length = None  # type: int
+    file_size = 0
+
+    @staticmethod
+    def get_file_size(file):
+        if hasattr(file, 'tell') and hasattr(file, 'seek'):
+            pos = file.tell()
+            file.seek(0, os.SEEK_END)
+            size = file.tell()
+            file.seek(pos)
+            return size
+        raise SchemaError("Unable to determine the file's size.")
+
+    def __new__(cls, *args, **kwargs):
+        if kwargs:
+            assert not args
+            return type(cls.__name__, (cls,), kwargs)
+
+        file = args[0][0]
+
+        if not isinstance(file, FileStorage):
+            raise SchemaError(error_message(cls, 'type'))
+
+        cls.file_size = cls.get_file_size(file)
+        if not cls.file_size:
+            raise SchemaError(error_message(cls, 'empty'))
+
+        if cls.max_length is not None:
+            if cls.file_size > cls.max_length:
+                raise SchemaError(error_message(cls, 'max_length'))
+        file.size = cls.file_size
+        return file
