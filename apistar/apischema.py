@@ -1,6 +1,7 @@
 import base64
 import inspect
-from typing import Dict, Optional, Type, cast
+import textwrap
+from typing import Callable, Dict, Optional, Type, cast
 from urllib.parse import urljoin
 
 import coreschema
@@ -66,6 +67,12 @@ def _annotated_type_to_coreschema(annotated_type: type) -> coreschema.schemas.Sc
     return coreschema.String()
 
 
+def _get_link_description(view: Callable) -> Optional[str]:
+    if view.__doc__:
+        return textwrap.dedent(view.__doc__).strip()
+    return None
+
+
 def get_link(route: Route) -> Link:
     """
     Given a single route, return a Link instance containing all the information
@@ -75,6 +82,8 @@ def get_link(route: Route) -> Link:
 
     view_signature = inspect.signature(view)
     uritemplate = URITemplate(path)
+
+    description = _get_link_description(view)
 
     fields = []
     for param in view_signature.parameters.values():
@@ -104,7 +113,7 @@ def get_link(route: Route) -> Link:
             field = Field(name=param.name, location=location, required=required, schema=param_schema)
             fields.append(field)
 
-    return Link(url=path, action=method, fields=fields)
+    return Link(url=path, action=method, description=description, fields=fields)
 
 
 @exclude_from_schema

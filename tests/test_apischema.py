@@ -25,10 +25,17 @@ class ToDoNote(schema.Object):
 
 
 def list_todo(app: App, search):  # pragma: nocover
+    """
+    list_todo description
+    """
     pass
 
 
 def add_todo(note: ToDoNote):  # pragma: nocover
+    """
+    add_todo description
+    Multiple indented lines
+    """
     pass
 
 
@@ -68,11 +75,13 @@ expected = APISchema(url='/schema/', content={
     'list_todo': Link(
         url='/todo/',
         action='GET',
+        description='list_todo description',
         fields=[Field(name='search', location='query', required=False, schema=coreschema.String())]
     ),
     'add_todo': Link(
         url='/todo/',
         action='POST',
+        description='add_todo description\nMultiple indented lines',
         fields=[Field(name='note', location='body', required=True, schema=coreschema.String())]
     ),
     'show_todo': Link(
