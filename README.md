@@ -236,7 +236,7 @@ from apistar import routing
 def get_player_details(player_name):
     score = get_score(player_name)
     return {'name': player_name, 'score': score}
-    
+
 def get_all_players(router: routing.Router):
     players = get_players()
     player_list = [
@@ -953,29 +953,51 @@ API Star can also be deployed on so called "serverless" platforms.
 A good option for using API Star with this style of deployment is [Zappa](https://github.com/Miserlou/Zappa), which allows you to deploy
 any Python WSGI server onto AWS Lambda.
 
-In order to use `zappa`, you'll need to expose the app.wsgi property
-to the top level of the `app.py` module.
+For Zappa to execute it needs to be provided with the path to your `app` instance in its `app_function` key. Given that your `app` is contained within `app.py`, e.g.
 
 ```python
-app = App(...)
-
-wsgi_app = app.wsgi
+# app.py
+app = App(routes=routes, settings=settings)
 ```
 
-You should then follow [Zappa's installation instructions](https://github.com/Miserlou/Zappa#installation-and-configuration).
-
-Your `zappa_settings.json` configuration file should look something like this:
+Your `zappa_settings.json` configuration file should then look something like this:
 
 ```
 {
     "dev": {
-        "app_function": "app.wsgi_app",
+        "app_function": "app.app",
         "aws_region": "us-east-1",
         "profile_name": "default",
         "s3_bucket": "<a-unique-s3-bucket-name>",
+        "keep_warm": false
+    },
+    "prod": {
+        "app_function": "app.app",
+        "aws_region": "us-east-1",
+        "profile_name": "default",
+        "s3_bucket": "<a-unique-s3-bucket-name>",
+        "debug": false,
+        "log_level": "WARNING",
+        "apigateway_description": "Description of your app on AWS API Gateway",
+        "lambda_description": "Description of your app on AWS Lambda",
     }
 }
 ```
+
+See [Zappa's installation instructions](https://github.com/Miserlou/Zappa#installation-and-configuration) for full configuration details.
+
+### Notes
+
+- `keep_warm` is a four minute callback to AWS to ensure your function stays loaded in AWS, decreasing the initial response time. When doing development work you don't really need the function to stay 'warm' 24/7 so by setting it to `false` in `dev` it will save you some AWS invocation requests. The free tier at AWS gives you [1,000,000 free requests](https://aws.amazon.com/s/dm/optimization/server-side-test/free-tier/free_np/) so it shouldn't matter too much.
+- `profile_name` specifies which alias to use in your [AWS Credentials](https://aws.amazon.com/blogs/security/a-new-and-standardized-way-to-manage-credentials-in-the-aws-sdks/) file. This is usually located at `~/.aws/credentials`.
+
+```
+[default]
+aws_access_key_id = 'xxx'
+aws_secret_access_key = 'xxx'
+```
+
+To successfully run `zappa deploy` you will need an IAM user on your AWS account with the a sufficiently permissive policy attached. See the [discussions on Zappa's minimum policy requirements](https://github.com/Miserlou/Zappa/issues/244) for more details.
 
 ---
 
