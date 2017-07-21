@@ -936,6 +936,12 @@ both performance and for productivity.
 A development server is available, using the `run` command:
 
     $ apistar run
+    # Specify the port or interface via --port and --host
+    # Serve on port 9001 and use IPv6 only
+    $ apistar run --port 9001 --host ::1
+    # If you don't like the Werkzeug web debugger, turn it off
+    $ apistar run --no-debugger
+
 
 ## Running in Production
 
