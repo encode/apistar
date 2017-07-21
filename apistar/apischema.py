@@ -9,7 +9,7 @@ from coreapi import Document, Field, Link
 from coreapi.codecs import CoreJSONCodec
 from uritemplate import URITemplate
 
-from apistar import http, schema
+from apistar import core, http, schema
 from apistar.app import App
 from apistar.decorators import exclude_from_schema
 from apistar.routing import (
@@ -19,12 +19,15 @@ from apistar.templating import Templates
 
 
 class APISchema(Document):
-    @classmethod
-    def build(cls, app: App, base_url: http.URL=None):
-        routes = app.routes
-        url = get_schema_url(routes, base_url)
-        content = get_schema_content(routes)
-        return cls(url=url, content=content)
+    pass
+
+
+@core.builder
+def build_apischema(app: App, base_url: http.URL=None) -> APISchema:
+    routes = app.routes
+    url = get_schema_url(routes, base_url)
+    content = get_schema_content(routes)
+    return APISchema(url=url, content=content)
 
 
 def get_schema_url(routes: RoutesConfig, base_url: http.URL=None) -> Optional[str]:

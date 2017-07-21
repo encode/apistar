@@ -3,7 +3,9 @@ from coreapi import Field, Link
 from coreapi.codecs import CoreJSONCodec
 
 from apistar import schema
-from apistar.apischema import APISchema, serve_schema, serve_schema_js
+from apistar.apischema import (
+    APISchema, build_apischema, serve_schema, serve_schema_js
+)
 from apistar.app import App
 from apistar.docs import serve_docs
 from apistar.routing import Route
@@ -117,7 +119,7 @@ expected = APISchema(url='/schema/', content={
 
 
 def test_api_schema():
-    schema = APISchema.build(app)
+    schema = build_apischema(app)
     assert schema == expected
 
 

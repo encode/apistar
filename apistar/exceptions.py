@@ -5,6 +5,10 @@ class ConfigurationError(Exception):
     pass
 
 
+class InternalError(Exception):
+    pass
+
+
 class SchemaError(Exception):
     def __init__(self, detail: Union[str, dict]) -> None:
         self.detail = detail

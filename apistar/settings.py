@@ -1,13 +1,10 @@
 from typing import Any, List, Union
 
 from apistar import app
-from apistar.core import ArgName
+from apistar.core import ArgName, builder
 
 
 class Settings(dict):
-    @classmethod
-    def build(cls, app: app.App):
-        return cls(app.settings)
 
     def get(self, indexes: Union[str, List[str]], default: Any=None) -> Any:
         if isinstance(indexes, str):
@@ -21,11 +18,14 @@ class Settings(dict):
         return value
 
 
-class Setting(object):
-    def __new__(cls, *args):
-        assert len(args) == 1
-        return args[0]
+@builder
+def build_settings(app: app.App) -> Settings:
+    return Settings(app.settings)
 
-    @classmethod
-    def build(cls, arg_name: ArgName, settings: Settings):
-        return settings.get(arg_name)
+
+Setting = object
+
+
+@builder
+def build_setting(arg_name: ArgName, settings: Settings) -> Setting:
+    return settings.get(arg_name)

@@ -20,9 +20,9 @@ def schema(format: Format) -> None:  # pragma: nocover
     Output an API Schema.
     """
     from apistar.cli import get_current_app
-    from apistar.apischema import APISchema
+    from apistar.apischema import build_apischema
     app = get_current_app()
-    schema = APISchema.build(app)
+    schema = build_apischema(app)
     codec = codecs[format]
     output = codec.encode(schema)
     click.echo(output)

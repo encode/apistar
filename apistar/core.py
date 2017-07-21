@@ -3,6 +3,9 @@ import re
 from collections import namedtuple
 from typing import Any, Callable, Dict, List  # noqa
 
+from apistar import exceptions
+
+
 empty = inspect.Signature.empty
 FIRST_CAP_RE = re.compile('(.)([A-Z][a-z]+)')
 ALL_CAP_RE = re.compile('([a-z0-9])([A-Z])')
@@ -122,7 +125,7 @@ def _build_pipeline(function: Callable,
         if annotation == ArgName:
             continue
 
-        build_function = annotation.build
+        build_function = get_builder(annotation)
         dependancy = _build_pipeline(build_function, seen=seen, arg_name=parameter.name)
         pipeline.extend(dependancy)
         seen |= {step.output for step in dependancy}
@@ -143,6 +146,44 @@ def build_pipeline(function: Callable,
     if required_type is not None:
         seen |= {step.output for step in pipeline}
         if get_class_id(required_type) not in seen:
-            final_pipeline = _build_pipeline(required_type.build, seen=seen)  # type: ignore
+            final_pipeline = _build_pipeline(get_builder(required_type), seen=seen)  # type: ignore
             pipeline.extend(final_pipeline)
     return pipeline
+
+
+__BUILDERS__ = {}  # type: Dict[Any, Callable]
+
+
+def _get_builder(cls: Any) -> Callable:
+    if cls in __BUILDERS__:
+        return __BUILDERS__[cls]
+    elif hasattr(cls, 'build'):
+        return cls.build
+    else:
+        return None
+
+
+def get_builder(cls: Any) -> Callable:
+    """
+    Use two methods to find the `build` method to use during the build pipeline
+    """
+    builder = _get_builder(cls)
+    if not builder:
+        raise exceptions.InternalError(
+            "class {} has no builder".format(cls.__name__)
+        )
+    return builder
+
+
+def builder(func: Callable) -> Callable:
+    """
+    Decorator to register a function used to build a class,
+    gets picked up by `get_builder`
+    """
+    return_cls = func.__annotations__['return']
+    if _get_builder(return_cls):
+        raise exceptions.InternalError(
+            "class {} already has a builder".format(return_cls.__name__)
+        )
+    __BUILDERS__[return_cls] = func
+    return func
