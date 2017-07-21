@@ -1,4 +1,17 @@
-from apistar.backends.django_backend import DjangoBackend
-from apistar.backends.sqlalchemy_backend import SQLAlchemy
+importable_backends = []
 
-__all__ = ['SQLAlchemy', 'DjangoBackend']
+try:
+    from apistar.backends.django_backend import DjangoBackend  # noqa
+except ImportError:
+    pass
+else:
+    importable_backends.append('DjangoBackend')
+
+try:
+    from apistar.backends.sqlalchemy_backend import SQLAlchemy  # noqa
+except ImportError:
+    pass
+else:
+    importable_backends.append('SQLAlchemy')
+
+__all__ = importable_backends
