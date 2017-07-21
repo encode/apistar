@@ -20,6 +20,17 @@ class HighScore(schema.Object):
     }
 
 
+def get_artist_id():
+    return 1
+
+
+class Artist(schema.Object):
+    properties = {
+        'id': schema.Integer(default=get_artist_id),
+        'name': schema.String(max_length=100)
+    }
+
+
 def basic_object(score: HighScore):
     return score
 
@@ -117,3 +128,8 @@ class test_object_invalid_type():
     with pytest.raises(exceptions.SchemaError) as exc:
         HighScore(1)
     assert str(exc.value) == 'Must be an object.'
+
+
+class test_object_with_callable_default():
+    artist = Artist({"name": "John Doe"})
+    assert artist['id'] == 1
