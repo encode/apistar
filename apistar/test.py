@@ -1,11 +1,7 @@
 import io
 from typing import Callable, Dict, Mapping, Optional, Union  # noqa
 from urllib.parse import unquote, urlparse
-
 import requests
-from click.testing import CliRunner
-
-from apistar.cli import get_current_app
 
 
 class WSGIAdapter(requests.adapters.HTTPAdapter):
@@ -13,11 +9,8 @@ class WSGIAdapter(requests.adapters.HTTPAdapter):
     A transport adapter for `requests` that makes requests directly to a
     WSGI app, rather than making actual HTTP requests over the network.
     """
-    def __init__(self, wsgi_app: Callable, root_path: str=None,
-                 raise_500_exc: bool=True) -> None:
-        self.wsgi_app = wsgi_app
-        self.root_path = ('/' + root_path.strip('/')) if root_path else ''
-        self.raise_500_exc = raise_500_exc
+    def __init__(self, app: Callable) -> None:
+        self.app = app
 
     def get_environ(self, request: requests.PreparedRequest) -> Mapping:
         """
@@ -33,10 +26,9 @@ class WSGIAdapter(requests.adapters.HTTPAdapter):
         environ = {
             'REQUEST_METHOD': request.method,
             'wsgi.url_scheme': url_components.scheme,
-            'SCRIPT_NAME': self.root_path,
+            'SCRIPT_NAME': '',
             'PATH_INFO': unquote(url_components.path),
             'wsgi.input': io.BytesIO(body_bytes),
-            'APISTAR_RAISE_500_EXC': self.raise_500_exc
         }  # type: Dict[str, Union[bool, str, bytes, io.BytesIO]]
 
         if url_components.query:
@@ -84,15 +76,12 @@ class WSGIAdapter(requests.adapters.HTTPAdapter):
 
 
 class _TestClient(requests.Session):
-    def __init__(self, app=None, root_path=None, raise_500_exc=True, hostname='testserver'):
+    def __init__(self, app, hostname='testserver'):
         super(_TestClient, self).__init__()
-        if app is None:
-            app = get_current_app()
-
-        adapter = WSGIAdapter(app.wsgi, root_path=root_path, raise_500_exc=raise_500_exc)
+        adapter = WSGIAdapter(app)
         self.mount('http://', adapter)
         self.mount('https://', adapter)
-        self.headers.update({'User-Agent': 'requests_client'})
+        self.headers.update({'User-Agent': 'testclient'})
         self.hostname = hostname
 
     def request(self, method, url, **kwargs):
@@ -112,13 +101,3 @@ def TestClient(*args, **kwargs) -> _TestClient:
     the `TestClient` class, by declaring this as a function.
     """
     return _TestClient(*args, **kwargs)
-
-
-class CommandLineRunner(CliRunner):
-    def __init__(self, app):
-        self.click_client = app.click
-        super(CommandLineRunner, self).__init__()
-
-    def invoke(self, *args, **kwargs):
-        args = [self.click_client] + list(args)
-        return super(CommandLineRunner, self).invoke(*args, **kwargs)

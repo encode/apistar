@@ -1,5 +1,4 @@
-from apistar import App, Route, http
-from apistar.test import TestClient
+from apistar import App, Route, TestClient, http
 
 
 def to_native(obj):  # pragma: nocover  (Some cases only included for completeness)
