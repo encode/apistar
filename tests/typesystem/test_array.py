@@ -177,7 +177,7 @@ def test_array_max_items():
 
 
 def test_array_unique_items():
-    UniqueItemList = typesytem.Array(unique_items=True)
+    UniqueItemList = typesystem.Array(unique_items=True)
 
     assert UniqueItemList([1, 2, 3, 4, 5]) == [1, 2, 3, 4, 5]
     assert UniqueItemList([]) == []

@@ -1,11 +1,11 @@
 import pytest
 
-from apistar import App, Include, Route, exceptions, http, schema
-from apistar.routing import Path, URLPathArgs
+from apistar import App, Route, exceptions, http, typesystem
+from apistar.interfaces import URLArgs, PathWildcard
 from apistar.test import TestClient
 
 
-class MaxLength(schema.String):
+class MaxLength(typesystem.String):
     max_length = 5
 
 
@@ -15,7 +15,7 @@ def found():
     }
 
 
-def path_params(args: URLPathArgs, var: int):
+def path_params(args: URLArgs, var: int):
     return {
         'args': args
     }
@@ -33,7 +33,7 @@ def path_param_with_int(var: int):
     }
 
 
-def path_param_with_full_path(var: Path):
+def path_param_with_full_path(var: PathWildcard):
     return {
         'var': var
     }
@@ -45,28 +45,28 @@ def path_param_with_max_length(var: MaxLength):
     }
 
 
-def path_param_with_number(var: schema.Number):
+def path_param_with_number(var: typesystem.Number):
     return {
         'var': var
     }
 
 
-def path_param_with_integer(var: schema.Integer):
+def path_param_with_integer(var: typesystem.Integer):
     return {
         'var': var
     }
 
 
-def path_param_with_string(var: schema.String):
+def path_param_with_string(var: typesystem.String):
     return {
         'var': var
     }
 
 
-def subpath(var: schema.Integer):
-    return {
-        'var': var
-    }
+# def subpath(var: typesystem.Integer):
+#     return {
+#         'var': var
+#     }
 
 
 app = App(routes=[
@@ -79,9 +79,9 @@ app = App(routes=[
     Route('/number/{var}/', 'GET', path_param_with_number),
     Route('/integer/{var}/', 'GET', path_param_with_integer),
     Route('/string/{var}/', 'GET', path_param_with_string),
-    Include('/subpath', [
-        Route('/{var}/', 'GET', subpath),
-    ]),
+    # Include('/subpath', [
+    #     Route('/{var}/', 'GET', subpath),
+    # ]),
 ])
 
 
@@ -115,7 +115,7 @@ def test_405():
 def test_found_no_slash():
     response = client.get('/found', allow_redirects=False)
     assert response.status_code == 302
-    assert response.headers['Location'] == '/found/'
+    assert response.headers['Location'] == 'http://testserver/found/'
 
     response = client.get('/found')
     assert response.status_code == 200
@@ -143,11 +143,11 @@ def test_int_path_param():
     }
 
 
-def test_subpath():
-    response = client.get('/subpath/123/')
-    assert response.json() == {
-        'var': 123
-    }
+# def test_subpath():
+#     response = client.get('/subpath/123/')
+#     assert response.json() == {
+#         'var': 123
+#     }
 
 
 def test_full_path_param():
@@ -221,26 +221,6 @@ def test_misconfigured_route():
         App(routes=[Route('/{var}/', 'GET', set_type)])
 
 
-def test_lookup_cache_expiry():
-    """
-    Forcibly cycle the URL lookup cache, and ensure that
-    we continue to generate correct lookups.
-    """
-    def get_path(var: int, path: http.Path):
-        return {'path': path}
-
-    routes = [
-        Route('/{var}/', 'GET', get_path)
-    ]
-    settings = {'ROUTING': {'LOOKUP_CACHE_SIZE': 3}}
-    app = App(routes=routes, settings=settings)
-    client = TestClient(app)
-    for index in range(10):
-        response = client.get('/%d/' % index)
-        assert response.status_code == 200
-        assert response.json() == {'path': '/%d/' % index}
-
-
 def test_routing_reversal_on_path_without_url_params():
     url = app.router.reverse_url('found')
     assert url == '/found/'
@@ -248,14 +228,14 @@ def test_routing_reversal_on_path_without_url_params():
 
 def test_routing_reversal_on_path_non_existent_path():
     with pytest.raises(exceptions.NoReverseMatch):
-        app.router.reverse_url('missing', var='not_here')
+        app.router.reverse_url('missing', {'var': 'not_here'})
 
 
 def test_routing_reversal_on_path_with_url_params():
-    url = app.router.reverse_url('path_params', var='test')
-    assert url == '/path_params/test/'
+    url = app.router.reverse_url('path_params', {'var': '100'})
+    assert url == '/path_params/100/'
 
 
-def test_routing_reversal_on_subpath_with_url_params():
-    url = app.router.reverse_url('subpath', var='testing')
-    assert url == '/subpath/testing/'
+# def test_routing_reversal_on_subpath_with_url_params():
+#     url = app.router.reverse_url('subpath', {'var': 'testing'})
+#     assert url == '/subpath/testing/'

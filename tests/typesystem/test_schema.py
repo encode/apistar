@@ -71,7 +71,7 @@ def test_list_kittens():
 
 
 def test_add_kitten():
-    response = client.post('/add_favorite_kitten/', data={'name': 'charlie'})
+    response = client.post('/add_favorite_kitten/?name=charlie')
     assert response.status_code == 200
     assert response.json() == {
         'name': 'charlie', 'color': 'black', 'cuteness': 0.0

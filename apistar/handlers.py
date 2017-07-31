@@ -1,4 +1,4 @@
-from apistar.interfaces import Path, Router, Schema, StaticFiles, Templates, WSGIEnviron
+from apistar.interfaces import PathWildcard, Schema, StaticFiles, Templates, WSGIEnviron
 import base64
 import coreapi
 import coreschema
@@ -6,7 +6,7 @@ import typing
 import werkzeug
 
 
-def api_documentation(schema: Schema, templates: Templates, router: Router, path: Path):
+def api_documentation(schema: Schema, templates: Templates):
     index = templates.get_template('apistar/docs/index.html')
     langs = ['python', 'javascript', 'shell']
 
@@ -29,8 +29,7 @@ def api_documentation(schema: Schema, templates: Templates, router: Router, path
         document=schema,
         langs=langs,
         get_fields=get_fields,
-        render_form=render_form,
-        path=path
+        render_form=render_form
     ).encode('utf-8')
     return werkzeug.Response(content, content_type='text/html')
 
@@ -51,7 +50,7 @@ def javascript_schema(schema: Schema, templates: Templates):
     return werkzeug.Response(content, headers=headers)
 
 
-def serve_static(path, statics: StaticFiles, environ: WSGIEnviron):
+def serve_static(path: PathWildcard, statics: StaticFiles, environ: WSGIEnviron):
     static_file = statics.get_file(path)
     if static_file is None:
         raise werkzeug.exceptions.NotFound()

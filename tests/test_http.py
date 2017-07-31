@@ -32,14 +32,6 @@ def get_port(port: http.Port) -> http.Response:
     return http.Response({'port': port})
 
 
-def get_mount_path(mount_path: http.MountPath) -> http.Response:
-    return http.Response({'mount_path': mount_path})
-
-
-def get_relative_path(relative_path: http.RelativePath) -> http.Response:
-    return http.Response({'relative_path': relative_path})
-
-
 def get_path(path: http.Path) -> http.Response:
     return http.Response({'path': path})
 
@@ -68,8 +60,8 @@ def get_data(data: http.RequestData) -> http.Response:
     return http.Response({'data': to_native(data)})
 
 
-def get_field(field: http.RequestField) -> http.Response:
-    return http.Response({'field': to_native(field)})
+# def get_field(field: http.RequestField) -> http.Response:
+#     return http.Response({'field': to_native(field)})
 
 
 def get_headers(headers: http.Headers) -> http.Response:
@@ -80,12 +72,12 @@ def get_accept_header(accept: http.Header) -> http.Response:
     return http.Response({'accept': accept})
 
 
-def get_request(request: http.Request) -> http.Response:
-    return http.Response({
-        'method': request.method,
-        'url': request.url,
-        'headers': dict(request.headers)
-    })
+# def get_request(request: http.Request) -> http.Response:
+#     return http.Response({
+#         'method': request.method,
+#         'url': request.url,
+#         'headers': dict(request.headers)
+#     })
 
 
 app = App(routes=[
@@ -94,8 +86,6 @@ app = App(routes=[
     Route('/scheme/', 'GET', get_scheme),
     Route('/host/', 'GET', get_host),
     Route('/port/', 'GET', get_port),
-    Route('/mount_path/', 'GET', get_mount_path),
-    Route('/relative_path/', 'GET', get_relative_path),
     Route('/path/', 'GET', get_path),
     Route('/query_string/', 'GET', get_query_string),
     Route('/query_params/', 'GET', get_query_params),
@@ -103,10 +93,10 @@ app = App(routes=[
     Route('/url/', 'GET', get_url),
     Route('/body/', 'POST', get_body),
     Route('/data/', 'POST', get_data),
-    Route('/field/', 'POST', get_field),
+    # Route('/field/', 'POST', get_field),
     Route('/headers/', 'GET', get_headers),
     Route('/accept_header/', 'GET', get_accept_header),
-    Route('/request/', 'GET', get_request),
+    # Route('/request/', 'GET', get_request),
 ])
 
 
@@ -141,16 +131,6 @@ def test_port():
     assert response.json() == {'port': 123}
     response = client.get('https://example.com:123/port/')
     assert response.json() == {'port': 123}
-
-
-def test_mount_path():
-    response = client.get('http://example.com/mount_path/')
-    assert response.json() == {'mount_path': ''}
-
-
-def test_relative_path():
-    response = client.get('http://example.com/relative_path/')
-    assert response.json() == {'relative_path': '/relative_path/'}
 
 
 def test_path():
@@ -219,16 +199,16 @@ def test_data():
     assert response.status_code == 415
 
 
-def test_field():
-    response = client.post('http://example.com/field/', json={"field": 123})
-    assert response.json() == {'field': 123}
-
-    response = client.post('http://example.com/field/', data={'field': 123})
-    assert response.json() == {'field': '123'}
-
-    csv_file = ('report.csv', '1,2,3\n4,5,6\n')
-    response = client.post('http://example.com/field/', files={'field': csv_file})
-    assert response.json() == {'field': '1,2,3\n4,5,6\n'}
+# def test_field():
+#     response = client.post('http://example.com/field/', json={"field": 123})
+#     assert response.json() == {'field': 123}
+#
+#     response = client.post('http://example.com/field/', data={'field': 123})
+#     assert response.json() == {'field': '123'}
+#
+#     csv_file = ('report.csv', '1,2,3\n4,5,6\n')
+#     response = client.post('http://example.com/field/', files={'field': csv_file})
+#     assert response.json() == {'field': '1,2,3\n4,5,6\n'}
 
 
 def test_headers():
@@ -238,7 +218,7 @@ def test_headers():
         'Accept-Encoding': 'gzip, deflate',
         'Connection': 'keep-alive',
         'Host': 'example.com',
-        'User-Agent': 'requests_client'
+        'User-Agent': 'testclient'
     }}
     response = client.get('http://example.com/headers/', headers={
         'X-Example-Header': 'example'
@@ -248,7 +228,7 @@ def test_headers():
         'Accept-Encoding': 'gzip, deflate',
         'Connection': 'keep-alive',
         'Host': 'example.com',
-        'User-Agent': 'requests_client',
+        'User-Agent': 'testclient',
         'X-Example-Header': 'example'
     }}
 
@@ -258,19 +238,19 @@ def test_accept_header():
     assert response.json() == {'accept': '*/*'}
 
 
-def test_request():
-    response = client.get('http://example.com/request/')
-    assert response.json() == {
-        'method': 'GET',
-        'url': 'http://example.com/request/',
-        'headers': {
-            'Accept': '*/*',
-            'Accept-Encoding': 'gzip, deflate',
-            'Connection': 'keep-alive',
-            'Host': 'example.com',
-            'User-Agent': 'requests_client'
-        }
-    }
+# def test_request():
+#     response = client.get('http://example.com/request/')
+#     assert response.json() == {
+#         'method': 'GET',
+#         'url': 'http://example.com/request/',
+#         'headers': {
+#             'Accept': '*/*',
+#             'Accept-Encoding': 'gzip, deflate',
+#             'Connection': 'keep-alive',
+#             'Host': 'example.com',
+#             'User-Agent': 'requests_client'
+#         }
+#     }
 
 
 # Test reponse types
@@ -344,7 +324,6 @@ def test_empty_response():
     response = client.get('/')
     assert response.status_code == 204
     assert response.text == ''
-    assert 'Content-Type' not in response.headers
 
 
 def test_unknown_status_code():

@@ -19,7 +19,7 @@ class Jinja2Templates(Templates):
         ]
         loader = jinja2.ChoiceLoader(package_loaders)
         env = jinja2.Environment(loader=loader)
-        env.globals['reverse'] = router.reverse
+        env.globals['reverse_url'] = router.reverse_url
         env.globals['static'] = statics.get_url
         self._env = env
 

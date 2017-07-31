@@ -4,7 +4,7 @@ from urllib.parse import unquote, urlparse
 import requests
 
 
-class WSGIAdapter(requests.adapters.HTTPAdapter):
+class _WSGIAdapter(requests.adapters.HTTPAdapter):
     """
     A transport adapter for `requests` that makes requests directly to a
     WSGI app, rather than making actual HTTP requests over the network.
@@ -65,7 +65,7 @@ class WSGIAdapter(requests.adapters.HTTPAdapter):
 
         # Make the outgoing request via WSGI.
         environ = self.get_environ(request)
-        wsgi_response = self.wsgi_app(environ, start_response)
+        wsgi_response = self.app(environ, start_response)
 
         # Build the underlying urllib3.HTTPResponse
         raw_kwargs['body'] = io.BytesIO(b''.join(wsgi_response))
@@ -76,12 +76,13 @@ class WSGIAdapter(requests.adapters.HTTPAdapter):
 
 
 class _TestClient(requests.Session):
-    def __init__(self, app, hostname='testserver'):
+    def __init__(self, app, scheme='http', hostname='testserver'):
         super(_TestClient, self).__init__()
-        adapter = WSGIAdapter(app)
+        adapter = _WSGIAdapter(app)
         self.mount('http://', adapter)
         self.mount('https://', adapter)
         self.headers.update({'User-Agent': 'testclient'})
+        self.scheme = scheme
         self.hostname = hostname
 
     def request(self, method, url, **kwargs):
@@ -91,7 +92,7 @@ class _TestClient(requests.Session):
                 "an absolute URL starting 'http:' / 'https:', "
                 "or a relative URL starting with '/'. URL was '%s'." % url
             )
-            url = 'http://' + self.hostname + url
+            url = f'{self.scheme}://{self.hostname}{url}'
         return super().request(method, url, **kwargs)
 
 

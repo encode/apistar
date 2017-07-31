@@ -1,4 +1,5 @@
-from apistar.interfaces import Injector, URLArgs, QueryParams, ParamName, ParamAnnotation
+from apistar import exceptions, http, typesystem
+from apistar.interfaces import Injector, URLArgs, ParamName, ParamAnnotation
 import functools
 import inspect
 import typing
@@ -17,17 +18,20 @@ Step = typing.NamedTuple('Step', [
 DependencyResolution = typing.Tuple[str, typing.Optional[typing.Callable]]
 
 
-def empty(name: ParamName, args: URLArgs, queryparams: QueryParams):
+def empty(name: ParamName, args: URLArgs, query_params: http.QueryParams):
     if name in args:
         return args[name]
-    return queryparams.get(name)
+    return query_params.get(name)
 
 
-def typed(name: ParamName, args: URLArgs, queryparams: QueryParams, coerce: ParamAnnotation):
+def scalar_type(name: ParamName, args: URLArgs, query_params: http.QueryParams, coerce: ParamAnnotation):
     if name in args:
-        return args[name]
+        value = args[name]
+        is_url_arg = True
+    else:
+        value = query_params.get(name)
+        is_url_arg = False
 
-    value = queryparams.get(name)
     if value is None or isinstance(value, coerce):
         return value
 
@@ -35,6 +39,23 @@ def typed(name: ParamName, args: URLArgs, queryparams: QueryParams, coerce: Para
         return coerce(value)
     except (TypeError, ValueError):
         return None
+    except exceptions.SchemaError as exc:
+        if is_url_arg:
+            raise exceptions.NotFound()
+        detail = {name: exc.detail}
+        raise exceptions.ValidationError(detail=detail)
+
+
+def container_type(data: http.RequestData, coerce: ParamAnnotation):
+    if data is None or isinstance(data, coerce):
+        return data
+
+    try:
+        return coerce(data)
+    except (TypeError, ValueError):
+        return None
+    except exceptions.SchemaError as exc:
+        raise exceptions.ValidationError(detail=exc.detail)
 
 
 class DependencyInjector(Injector):
@@ -85,14 +106,16 @@ class DependencyInjector(Injector):
             return ret
 
     def resolve(self, param: inspect.Parameter) -> DependencyResolution:
-        if param.annotation in self.required_state_lookup:
-            key = self.required_state_lookup[param.annotation]
+        annotation = param.annotation
+
+        if annotation in self.required_state_lookup:
+            key = self.required_state_lookup[annotation]
             func = None
             return (key, func)
 
-        elif param.annotation in self.providers:
-            key = param.annotation.__name__.lower()
-            func = self.providers[param.annotation]
+        elif annotation in self.providers:
+            key = annotation.__name__.lower()
+            func = self.providers[annotation]
 
             params = inspect.signature(func).parameters.values()
             if any([param.annotation is ParamName for param in params]):
@@ -100,14 +123,19 @@ class DependencyInjector(Injector):
 
             return (key, func)
 
-        elif param.annotation is inspect.Parameter.empty:
+        elif annotation is inspect.Parameter.empty:
             key = 'empty:' + param.name
             func = empty
             return (key, func)
 
-        elif param.annotation in (str, int, float, bool):
-            key = f'{param.annotation.__name__}:{param.name}'
-            func = typed
+        elif issubclass(annotation, (str, int, float, bool, typesystem.Boolean)):
+            key = f'{annotation.__name__}:{param.name}'
+            func = scalar_type
+            return (key, func)
+
+        elif issubclass(annotation, (dict, list)):
+            key = f'{annotation.__name__}:{param.name}'
+            func = container_type
             return (key, func)
 
         raise Exception('Injector could not resolve parameter %s' % param)
