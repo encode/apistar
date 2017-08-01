@@ -3,7 +3,7 @@ import jinja2
 
 
 class Jinja2Template(Template):
-    def __init__(self, template) -> None:
+    def __init__(self, template: jinja2.Template) -> None:
         self._template = template
 
     def render(self, **context) -> str:

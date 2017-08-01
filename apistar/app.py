@@ -81,12 +81,12 @@ class App():
         if isinstance(exc, exceptions.Found):
             return http.Response('', exc.status_code, {'Location': exc.location})
 
-        if isinstance(exc, exceptions.APIException):
+        if isinstance(exc, exceptions.HTTPException):
             if isinstance(exc.detail, str):
                 content = {'message': exc.detail}
             else:
                 content = exc.detail
-            return http.Response(content, exc.status_code)
+            return http.Response(content, exc.status_code, {})
 
         raise
 

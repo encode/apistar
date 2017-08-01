@@ -39,7 +39,7 @@ def scalar_type(name: ParamName, args: URLArgs, query_params: http.QueryParams, 
         return coerce(value)
     except (TypeError, ValueError):
         return None
-    except exceptions.SchemaError as exc:
+    except exceptions.TypeSystemError as exc:
         if is_url_arg:
             raise exceptions.NotFound()
         detail = {name: exc.detail}
@@ -54,7 +54,7 @@ def container_type(data: http.RequestData, coerce: ParamAnnotation):
         return coerce(data)
     except (TypeError, ValueError):
         return None
-    except exceptions.SchemaError as exc:
+    except exceptions.TypeSystemError as exc:
         raise exceptions.ValidationError(detail=exc.detail)
 
 

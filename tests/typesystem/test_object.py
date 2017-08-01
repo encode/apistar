@@ -108,12 +108,12 @@ class test_raw_instance():
 
 
 class test_object_invalid_key():
-    with pytest.raises(exceptions.SchemaError) as exc:
+    with pytest.raises(exceptions.TypeSystemError) as exc:
         HighScore({1: 'invalid'})
     assert str(exc.value) == 'Object keys must be strings.'
 
 
 class test_object_invalid_type():
-    with pytest.raises(exceptions.SchemaError) as exc:
+    with pytest.raises(exceptions.TypeSystemError) as exc:
         HighScore(1)
     assert str(exc.value) == 'Must be an object.'

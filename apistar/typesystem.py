@@ -1,5 +1,5 @@
 import re
-from apistar.exceptions import SchemaError, ValidationError
+from apistar.exceptions import TypeSystemError, ValidationError
 from typing import Any, Dict, List, Optional, Tuple, Union  # noqa
 
 # TODO: Error on unknown attributes
@@ -17,7 +17,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union  # noqa
 def validate(schema: type, value: Any, key=None):
     try:
         return schema(value)
-    except SchemaError as exc:
+    except TypeSystemError as exc:
         if key is None:
             detail = exc.detail
         else:
@@ -58,17 +58,17 @@ class String(str):
         if cls.min_length is not None:
             if len(value) < cls.min_length:
                 if cls.min_length == 1:
-                    raise SchemaError(error_message(cls, 'blank'))
+                    raise TypeSystemError(error_message(cls, 'blank'))
                 else:
-                    raise SchemaError(error_message(cls, 'min_length'))
+                    raise TypeSystemError(error_message(cls, 'min_length'))
 
         if cls.max_length is not None:
             if len(value) > cls.max_length:
-                raise SchemaError(error_message(cls, 'max_length'))
+                raise TypeSystemError(error_message(cls, 'max_length'))
 
         if cls.pattern is not None:
             if not re.search(cls.pattern, value):
-                raise SchemaError(error_message(cls, 'pattern'))
+                raise TypeSystemError(error_message(cls, 'pattern'))
 
         return value
 
@@ -109,23 +109,23 @@ class _NumericType(object):
         try:
             value = cls.native_type.__new__(cls, value)
         except (TypeError, ValueError):
-            raise SchemaError(error_message(cls, 'type'))
+            raise TypeSystemError(error_message(cls, 'type'))
 
         if cls.minimum is not None:
             if cls.exclusive_minimum:
                 if value <= cls.minimum:
-                    raise SchemaError(error_message(cls, 'exclusive_minimum'))
+                    raise TypeSystemError(error_message(cls, 'exclusive_minimum'))
             else:
                 if value < cls.minimum:
-                    raise SchemaError(error_message(cls, 'minimum'))
+                    raise TypeSystemError(error_message(cls, 'minimum'))
 
         if cls.maximum is not None:
             if cls.exclusive_maximum:
                 if value >= cls.maximum:
-                    raise SchemaError(error_message(cls, 'exclusive_maximum'))
+                    raise TypeSystemError(error_message(cls, 'exclusive_maximum'))
             else:
                 if value > cls.maximum:
-                    raise SchemaError(error_message(cls, 'maximum'))
+                    raise TypeSystemError(error_message(cls, 'maximum'))
 
         if cls.multiple_of is not None:
             if isinstance(cls.multiple_of, float):
@@ -133,7 +133,7 @@ class _NumericType(object):
             else:
                 failed = value % cls.multiple_of
             if failed:
-                raise SchemaError(error_message(cls, 'multiple_of'))
+                raise TypeSystemError(error_message(cls, 'multiple_of'))
 
         return value
 
@@ -176,7 +176,7 @@ class Boolean(object):
                     '0': False
                 }[value.lower()]
             except KeyError:
-                raise SchemaError(error_message(cls, 'type'))
+                raise TypeSystemError(error_message(cls, 'type'))
         return bool(value)
 
 
@@ -197,8 +197,8 @@ class Enum(str):
 
         if value not in cls.enum:
             if len(cls.enum) == 1:
-                raise SchemaError(error_message(cls, 'exact'))
-            raise SchemaError(error_message(cls, 'enum'))
+                raise TypeSystemError(error_message(cls, 'exact'))
+            raise TypeSystemError(error_message(cls, 'enum'))
         return value
 
 
@@ -225,12 +225,12 @@ class Object(dict):
             if hasattr(value, '__dict__'):
                 value = dict(value.__dict__)
             else:
-                raise SchemaError(error_message(self, 'type'))
+                raise TypeSystemError(error_message(self, 'type'))
 
         # Ensure all property keys are strings.
         errors = {}
         if any(not isinstance(key, str) for key in value.keys()):
-            raise SchemaError(error_message(self, 'invalid_key'))
+            raise TypeSystemError(error_message(self, 'invalid_key'))
 
         # Properties
         for key, child_schema in self.properties.items():
@@ -249,11 +249,11 @@ class Object(dict):
                 else:
                     try:
                         self[key] = child_schema(item)
-                    except SchemaError as exc:
+                    except TypeSystemError as exc:
                         errors[key] = exc.detail
 
         if errors:
-            raise SchemaError(errors)
+            raise TypeSystemError(errors)
 
 
 class Array(list):
@@ -281,18 +281,18 @@ class Array(list):
         try:
             value = list(value)
         except TypeError:
-            raise SchemaError(error_message(self, 'type'))
+            raise TypeSystemError(error_message(self, 'type'))
 
         if isinstance(self.items, list) and len(self.items) > 1:
             if len(value) < len(self.items):
-                raise SchemaError(error_message(self, 'min_items'))
+                raise TypeSystemError(error_message(self, 'min_items'))
             elif len(value) > len(self.items) and not self.additional_items:
-                raise SchemaError(error_message(self, 'max_items'))
+                raise TypeSystemError(error_message(self, 'max_items'))
 
         if len(value) < self.min_items:
-            raise SchemaError(error_message(self, 'min_items'))
+            raise TypeSystemError(error_message(self, 'min_items'))
         elif self.max_items is not None and len(value) > self.max_items:
-            raise SchemaError(error_message(self, 'max_items'))
+            raise TypeSystemError(error_message(self, 'max_items'))
 
         # Ensure all items are of the right type.
         errors = {}
@@ -309,13 +309,13 @@ class Array(list):
 
                 if self.unique_items:
                     if item in seen_items:
-                        raise SchemaError(error_message(self, 'unique_items'))
+                        raise TypeSystemError(error_message(self, 'unique_items'))
                     else:
                         seen_items.add(item)
 
                 self.append(item)
-            except SchemaError as exc:
+            except TypeSystemError as exc:
                 errors[pos] = exc.detail
 
         if errors:
-            raise SchemaError(errors)
+            raise TypeSystemError(errors)

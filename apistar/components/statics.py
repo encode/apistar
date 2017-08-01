@@ -39,4 +39,4 @@ class WhiteNoiseStaticFiles(StaticFiles):
         return WhiteNoiseStaticFile(file)
 
     def get_url(self, path: str) -> str:
-        return self._router.reverse('serve_static', kwargs={'path': path})
+        return self._router.reverse_url('serve_static', kwargs={'path': path})

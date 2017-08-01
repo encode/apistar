@@ -6,10 +6,11 @@
    \/     /_/   \_\_|  |___| |____/ \__\__,_|_|        \/
 """
 from apistar.app import App
+from apistar.http import Response
 from apistar.interfaces import Route
 from apistar.test import TestClient
 
 __version__ = '0.2.0'
 __all__ = [
-    'App', 'Route', 'TestClient'
+    'App', 'Response', 'Route', 'TestClient'
 ]
