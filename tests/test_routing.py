@@ -1,7 +1,7 @@
 import pytest
 
-from apistar import App, Route, exceptions, http, typesystem
-from apistar.interfaces import URLArgs, PathWildcard
+from apistar import App, Route, exceptions, typesystem
+from apistar.interfaces import PathWildcard, URLArgs
 from apistar.test import TestClient
 
 

@@ -43,7 +43,7 @@ def test_invalid_boolean():
 
 
 def test_boolean_kwargs():
-    CustomBool = typesystem.Boolean(errors={'type': 'Must be true or false.'})
+    CustomBool = typesystem.newtype('Boolean', errors={'type': 'Must be true or false.'})
     with pytest.raises(exceptions.TypeSystemError) as exc:
         CustomBool('invalid')
     assert str(exc.value) == 'Must be true or false.'

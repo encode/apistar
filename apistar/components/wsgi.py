@@ -1,12 +1,14 @@
-from apistar import exceptions
-from apistar.interfaces import WSGIEnviron
+import json
 from urllib.parse import quote
+
+import werkzeug
 from werkzeug.datastructures import ImmutableMultiDict
 from werkzeug.formparser import parse_form_data
 from werkzeug.http import parse_options_header
 from werkzeug.wsgi import get_input_stream
-import json
-import werkzeug
+
+from apistar import exceptions, http
+from apistar.interfaces import ParamName, WSGIEnviron
 
 
 def get_url(environ: WSGIEnviron):
@@ -59,8 +61,16 @@ def get_queryparams(environ: WSGIEnviron):
     return werkzeug.urls.url_decode(environ.get('QUERY_STRING', ''))
 
 
+def get_queryparam(name: ParamName, queryparams: http.QueryParams):
+    return queryparams.get(name)
+
+
 def get_headers(environ: WSGIEnviron):
     return werkzeug.datastructures.EnvironHeaders(environ)
+
+
+def get_header(name: ParamName, headers: http.Headers):
+    return headers.get(name.replace('_', '-'))
 
 
 def get_body(environ: WSGIEnviron):

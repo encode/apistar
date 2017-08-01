@@ -3,7 +3,14 @@ from typing import Union
 
 class TypeSystemError(Exception):
     def __init__(self,
-                 detail: Union[str, dict]=None) -> None:
+                 detail: Union[str, dict]=None,
+                 cls: type=None,
+                 code: str=None) -> None:
+
+        if cls is not None and code is not None:
+            errors = getattr(cls, 'errors')
+            detail = errors[code].format(**cls.__dict__)
+
         self.detail = detail
         super().__init__(detail)
 

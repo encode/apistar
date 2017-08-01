@@ -1,23 +1,19 @@
-from apistar import exceptions
-from apistar.interfaces import Route, Router, Lookup, PathWildcard
-from urllib.parse import urlparse
-from werkzeug.routing import Rule, Map
 import inspect
 import typing
+from urllib.parse import urlparse
+
 import uritemplate
 import werkzeug
+from werkzeug.routing import Map, Rule
+
+from apistar import exceptions
+from apistar.interfaces import Lookup, PathWildcard, Route, Router
 
 
 class WerkzeugRouter(Router):
     def __init__(self, routes: typing.Sequence[Route]) -> None:
         rules = []
         views = {}
-        converters = {
-            int: 'int',
-            float: 'float',
-            str: 'string',
-            PathWildcard: 'path'
-        }
 
         for path, method, view in routes:
             template = uritemplate.URITemplate(path)
@@ -26,9 +22,9 @@ class WerkzeugRouter(Router):
             parameters = inspect.signature(view).parameters
 
             for arg in template.variable_names:
-                converter = self._get_converter(parameters, arg)
+                converter = self._get_converter(parameters, arg, view)
                 template_format = '{%s}' % arg
-                werkzeug_format = f'<{converter}:{arg}>'
+                werkzeug_format = '<%s:%s>' % (converter, arg)
                 werkzeug_path = werkzeug_path.replace(template_format, werkzeug_format)
 
             name = view.__name__
@@ -40,9 +36,9 @@ class WerkzeugRouter(Router):
         self._adapter = Map(rules).bind('')
         self._views = views
 
-    def _get_converter(self, parameters, arg):
+    def _get_converter(self, parameters, arg, view):
         if arg not in parameters:
-            msg = f'URL Argument "{arg}" missing from view {view}.'
+            msg = 'URL Argument "%s" missing from view "%s".' % (arg, view)
             raise exceptions.ConfigurationError(msg)
 
         annotation = parameters[arg].annotation
@@ -58,7 +54,7 @@ class WerkzeugRouter(Router):
         elif issubclass(annotation, float):
             return 'float'
 
-        msg = f'Invalid type for path parameter "{parameters[arg]}".'
+        msg = 'Invalid type for path parameter "%s" in view "%s".' % (parameters[arg], view)
         raise exceptions.ConfigurationError(msg)
 
     def lookup(self, path: str, method: str) -> Lookup:

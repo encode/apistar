@@ -1,6 +1,5 @@
 import typing
 
-
 Method = typing.NewType('Method', str)
 URL = typing.NewType('URL', str)
 Scheme = typing.NewType('Scheme', str)
@@ -16,9 +15,15 @@ Body = typing.NewType('Body', bytes)
 
 RequestData = typing.TypeVar('RequestData')
 
-Response = typing.NamedTuple('Response', [
-    ('data', typing.Any),
-    ('status', int),
-    ('headers', typing.Dict[str, str])
-])
-Response.__new__.__defaults__ = (None, 200, {})
+
+class Response(object):
+    def __init__(self,
+                 content: typing.Any,
+                 status: int=200,
+                 headers: typing.Dict[str, str]=None) -> None:
+        self.content = content
+        self.status = status
+        self.headers = headers or {}
+
+    def __iter__(self):
+        return iter((self.content, self.status, self.headers))

@@ -1,11 +1,10 @@
-from apistar import exceptions, http, typesystem
-from apistar.interfaces import Injector, URLArgs, ParamName, ParamAnnotation
-import functools
 import inspect
 import typing
 from collections import OrderedDict
 from contextlib import ExitStack
 
+from apistar import exceptions, http, typesystem
+from apistar.interfaces import Injector, ParamAnnotation, ParamName, URLArgs
 
 Step = typing.NamedTuple('Step', [
     ('func', typing.Callable),
@@ -129,12 +128,12 @@ class DependencyInjector(Injector):
             return (key, func)
 
         elif issubclass(annotation, (str, int, float, bool, typesystem.Boolean)):
-            key = f'{annotation.__name__}:{param.name}'
+            key = '%s:%s' % (annotation.__name__, param.name)
             func = scalar_type
             return (key, func)
 
         elif issubclass(annotation, (dict, list)):
-            key = f'{annotation.__name__}:{param.name}'
+            key = '%s:%s' % (annotation.__name__, param.name)
             func = container_type
             return (key, func)
 

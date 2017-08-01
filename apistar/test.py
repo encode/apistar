@@ -1,6 +1,7 @@
 import io
 from typing import Callable, Dict, Mapping, Optional, Union  # noqa
 from urllib.parse import unquote, urlparse
+
 import requests
 
 
@@ -92,7 +93,7 @@ class _TestClient(requests.Session):
                 "an absolute URL starting 'http:' / 'https:', "
                 "or a relative URL starting with '/'. URL was '%s'." % url
             )
-            url = f'{self.scheme}://{self.hostname}{url}'
+            url = '%s://%s%s' % (self.scheme, self.hostname, url)
         return super().request(method, url, **kwargs)
 
 

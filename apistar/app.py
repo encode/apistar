@@ -1,11 +1,15 @@
-from apistar import exceptions, http
-from apistar.interfaces import *
-from apistar.components import common, dependency, routing, statics, templates, wsgi
-from apistar.schema import get_schema
-import typing
 import json
+import typing
+
 import werkzeug
 
+from apistar import exceptions, http
+from apistar.components import dependency, routing, statics, templates, wsgi
+from apistar.interfaces import (
+    Injector, Route, Router, Schema, StaticFiles, Templates, URLArgs,
+    WSGIEnviron
+)
+from apistar.schema import get_schema
 
 REQUIRED_STATE = {
     'wsgi_environ': WSGIEnviron,
@@ -18,22 +22,20 @@ REQUIRED_STATE = {
 
 
 DEFAULT_COMPONENTS = {
-    # WSGI
+    # HTTP Components
     http.URL: wsgi.get_url,
     http.Scheme: wsgi.get_scheme,
     http.Host: wsgi.get_host,
     http.Port: wsgi.get_port,
     http.Path: wsgi.get_path,
     http.Headers: wsgi.get_headers,
+    http.Header: wsgi.get_header,
     http.QueryString: wsgi.get_querystring,
     http.QueryParams: wsgi.get_queryparams,
+    http.QueryParam: wsgi.get_queryparam,
     http.Body: wsgi.get_body,
     http.RequestData: wsgi.get_request_data,
-    # Common
-    http.Header: common.lookup_header,
-    http.QueryParam: common.lookup_queryparam,
-    URLArg: common.lookup_url_arg,
-    # Schemas
+    # Framework Components
     Schema: get_schema,
     Templates: templates.Jinja2Templates,
     StaticFiles: statics.WhiteNoiseStaticFiles,

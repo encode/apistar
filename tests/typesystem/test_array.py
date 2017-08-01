@@ -86,8 +86,16 @@ def test_array_invalid_type():
     assert str(exc.value) == 'Must be a list.'
 
 
+def test_array_should_treat_string_as_invalid_type():
+    with pytest.raises(exceptions.TypeSystemError) as exc:
+        UntypedList('abc')
+    assert str(exc.value) == 'Must be a list.'
+
+
 def test_array_kwargs():
-    NewTypedList = typesystem.Array(items=typesystem.Number)
+    class NewTypedList(typesystem.Array):
+        items = typesystem.Number
+
     assert NewTypedList([1.1, 2.2, 3.3]) == [1.1, 2.2, 3.3]
     with pytest.raises(exceptions.TypeSystemError) as exc:
         NewTypedList([1, 2, 'c'])
@@ -95,7 +103,8 @@ def test_array_kwargs():
 
 
 def test_array_specific_single_item():
-    SpecificTypeList = typesystem.Array(items=typesystem.Number)
+    class SpecificTypeList(typesystem.Array):
+        items = typesystem.Number
 
     assert SpecificTypeList([1, 2, 3, 4.5]) == [1, 2, 3, 4.5]
     assert SpecificTypeList([]) == []
@@ -106,11 +115,13 @@ def test_array_specific_single_item():
 
 
 def test_array_specific_items_no_additional():
-    SpecificTypedList = typesystem.Array(items=[
-        typesystem.Number,
-        typesystem.String,
-        typesystem.Boolean
-    ], additional_items=False)
+    class SpecificTypedList(typesystem.Array):
+        items = [
+            typesystem.Number,
+            typesystem.String,
+            typesystem.Boolean
+        ]
+        additional_items = False
 
     assert SpecificTypedList([23, 'twenty-three', True]) == \
         [23, 'twenty-three', True]
@@ -129,11 +140,13 @@ def test_array_specific_items_no_additional():
 
 
 def test_array_specific_items_with_additional():
-    SpecificTypedList = typesystem.Array(items=[
-        typesystem.Number,
-        typesystem.String,
-        typesystem.Boolean
-    ], additional_items=True)
+    class SpecificTypedList(typesystem.Array):
+        items = [
+            typesystem.Number,
+            typesystem.String,
+            typesystem.Boolean
+        ]
+        additional_items = True
 
     assert SpecificTypedList([23, 'twenty-three', True]) == \
         [23, 'twenty-three', True]
@@ -147,7 +160,8 @@ def test_array_specific_items_with_additional():
 
 
 def test_array_min_items():
-    MinimumItemList = typesystem.Array(min_items=2)
+    class MinimumItemList(typesystem.Array):
+        min_items = 2
 
     assert MinimumItemList([1, 2]) == [1, 2]
     assert MinimumItemList([1, 2] * 10) == [1, 2] * 10
@@ -162,7 +176,8 @@ def test_array_min_items():
 
 
 def test_array_max_items():
-    MaximumItemList = typesystem.Array(max_items=3)
+    class MaximumItemList(typesystem.Array):
+        max_items = 3
 
     assert MaximumItemList([1, 2]) == [1, 2]
     assert MaximumItemList([]) == []
@@ -177,7 +192,8 @@ def test_array_max_items():
 
 
 def test_array_unique_items():
-    UniqueItemList = typesystem.Array(unique_items=True)
+    class UniqueItemList(typesystem.Array):
+        unique_items = True
 
     assert UniqueItemList([1, 2, 3, 4, 5]) == [1, 2, 3, 4, 5]
     assert UniqueItemList([]) == []

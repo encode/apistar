@@ -9,7 +9,6 @@ import uritemplate
 from apistar import typesystem
 from apistar.interfaces import Route, Router
 
-
 PRIMITIVE_TYPES = (
     str, int, float, bool, list, dict
 )

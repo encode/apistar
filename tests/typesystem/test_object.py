@@ -5,18 +5,18 @@ from apistar import App, Route, TestClient, exceptions, typesystem
 
 class Location(typesystem.Object):
     properties = {
-        'latitude': typesystem.Number(minimum=-90.0, maximum=90.0),
-        'longitude': typesystem.Number(minimum=-180.0, maximum=180.0)
+        'latitude': typesystem.newtype('Number', minimum=-90.0, maximum=90.0),
+        'longitude': typesystem.newtype('Number', minimum=-180.0, maximum=180.0)
     }
 
 
 class HighScore(typesystem.Object):
     properties = {
-        'name': typesystem.String(max_length=100),
-        'score': typesystem.Integer(minimum=0, maximum=100),
-        'completed': typesystem.Boolean(default=False),
-        'difficulty': typesystem.Enum(enum=['easy', 'medium', 'hard']),
-        'location': Location(default={'latitude': 0.0, 'longitude': 0.0})
+        'name': typesystem.newtype('String', max_length=100),
+        'score': typesystem.newtype('Integer', minimum=0, maximum=100),
+        'completed': typesystem.newtype('Boolean', default=False),
+        'difficulty': typesystem.newtype('Enum', enum=['easy', 'medium', 'hard']),
+        'location': typesystem.newtype(Location, default={'latitude': 0.0, 'longitude': 0.0})
     }
 
 

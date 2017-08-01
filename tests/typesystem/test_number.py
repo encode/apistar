@@ -35,6 +35,12 @@ def test_invalid_numberr():
     assert response.json() == {'value': 'Must be a valid number.'}
 
 
+def test_finite_numberr():
+    response = client.get('/min_max/?value=inf')
+    assert response.status_code == 400
+    assert response.json() == {'value': 'Must be a finite number.'}
+
+
 def test_valid_min_max():
     response = client.get('/min_max/?value=2.9')
     assert response.status_code == 200

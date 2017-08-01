@@ -1,32 +1,35 @@
+import math
 import re
-from apistar.exceptions import TypeSystemError, ValidationError
-from typing import Any, Dict, List, Optional, Tuple, Union  # noqa
+import typing
+
+from apistar.exceptions import TypeSystemError
+
 
 # TODO: Error on unknown attributes
 # TODO: allow_blank?
-# TODO: format (check type at start and allow, coerce, .native)
+# TODO: input_type (check type at start and allow, coerce, .native)
 # TODO: default=empty
 # TODO: check 'required' exists in 'properties'
 # TODO: smarter ordering
 # TODO: extra_properties=False by default
-# TODO: inf, -inf, nan
 # TODO: Overriding errors
 # TODO: Blank booleans as False?
 
 
-def validate(schema: type, value: Any, key=None):
-    try:
-        return schema(value)
-    except TypeSystemError as exc:
-        if key is None:
-            detail = exc.detail
-        else:
-            detail = {key: exc.detail}
-        raise ValidationError(detail=detail)
-
-
-def error_message(schema, code):
-    return schema.errors[code].format(**schema.__dict__)
+def newtype(name_or_type: typing.Union[str, type], **kwargs) -> typing.Type:
+    if isinstance(name_or_type, str):
+        cls = {
+            'String': String,
+            'Number': Number,
+            'Integer': Integer,
+            'Boolean': Boolean,
+            'Enum': Enum,
+            'Object': Object,
+            'Array': Array
+        }[name_or_type]
+    else:
+        cls = name_or_type
+    return type(cls.__name__, (cls,), kwargs)
 
 
 class String(str):
@@ -36,21 +39,16 @@ class String(str):
         'max_length': 'Must have no more than {max_length} characters.',
         'min_length': 'Must have at least {min_length} characters.',
         'pattern': 'Must match the pattern /{pattern}/.',
-        'format': 'Must be a valid {format}.',
+        'input_type': 'Must be a valid {input_type}.',
     }
     max_length = None  # type: int
     min_length = None  # type: int
     pattern = None  # type: str
-    format = None  # type: Any
+    input_type = None  # type: str
     trim_whitespace = True
 
     def __new__(cls, *args, **kwargs):
-        if kwargs:
-            assert not args
-            return type(cls.__name__, (cls,), kwargs)
-
-        assert len(args) == 1
-        value = super().__new__(cls, *args)
+        value = super().__new__(cls, *args, **kwargs)
 
         if cls.trim_whitespace:
             value = value.strip()
@@ -58,26 +56,19 @@ class String(str):
         if cls.min_length is not None:
             if len(value) < cls.min_length:
                 if cls.min_length == 1:
-                    raise TypeSystemError(error_message(cls, 'blank'))
+                    raise TypeSystemError(cls=cls, code='blank')
                 else:
-                    raise TypeSystemError(error_message(cls, 'min_length'))
+                    raise TypeSystemError(cls=cls, code='min_length')
 
         if cls.max_length is not None:
             if len(value) > cls.max_length:
-                raise TypeSystemError(error_message(cls, 'max_length'))
+                raise TypeSystemError(cls=cls, code='max_length')
 
         if cls.pattern is not None:
             if not re.search(cls.pattern, value):
-                raise TypeSystemError(error_message(cls, 'pattern'))
+                raise TypeSystemError(cls=cls, code='pattern')
 
         return value
-
-    # The following is currently required in order to keep mypy happy
-    # with our atypical usage of `__new__`...
-    # See: https://github.com/python/mypy/issues/3307
-
-    def __init__(self, *args, **kwargs):  # pragma: nocover
-        super().__init__()
 
 
 class _NumericType(object):
@@ -87,45 +78,43 @@ class _NumericType(object):
     native_type = None  # type: type
     errors = {
         'type': 'Must be a valid number.',
+        'finite': 'Must be a finite number.',
         'minimum': 'Must be greater than or equal to {minimum}.',
         'exclusive_minimum': 'Must be greater than {minimum}.',
         'maximum': 'Must be less than or equal to {maximum}.',
         'exclusive_maximum': 'Must be less than {maximum}.',
         'multiple_of': 'Must be a multiple of {multiple_of}.',
     }
-    minimum = None  # type: Union[float, int]
-    maximum = None  # type: Union[float, int]
+    minimum = None  # type: typing.Union[float, int]
+    maximum = None  # type: typing.Union[float, int]
     exclusive_minimum = False
     exclusive_maximum = False
-    multiple_of = None  # type: Union[float, int]
+    multiple_of = None  # type: typing.Union[float, int]
 
     def __new__(cls, *args, **kwargs):
-        if kwargs:
-            assert not args
-            return type(cls.__name__, (cls,), kwargs)
-
-        assert len(args) == 1
-        value = args[0]
         try:
-            value = cls.native_type.__new__(cls, value)
+            value = cls.native_type.__new__(cls, *args, **kwargs)
         except (TypeError, ValueError):
-            raise TypeSystemError(error_message(cls, 'type'))
+            raise TypeSystemError(cls=cls, code='type') from None
+
+        if not math.isfinite(value):
+            raise TypeSystemError(cls=cls, code='finite')
 
         if cls.minimum is not None:
             if cls.exclusive_minimum:
                 if value <= cls.minimum:
-                    raise TypeSystemError(error_message(cls, 'exclusive_minimum'))
+                    raise TypeSystemError(cls=cls, code='exclusive_minimum')
             else:
                 if value < cls.minimum:
-                    raise TypeSystemError(error_message(cls, 'minimum'))
+                    raise TypeSystemError(cls=cls, code='minimum')
 
         if cls.maximum is not None:
             if cls.exclusive_maximum:
                 if value >= cls.maximum:
-                    raise TypeSystemError(error_message(cls, 'exclusive_maximum'))
+                    raise TypeSystemError(cls=cls, code='exclusive_maximum')
             else:
                 if value > cls.maximum:
-                    raise TypeSystemError(error_message(cls, 'maximum'))
+                    raise TypeSystemError(cls=cls, code='maximum')
 
         if cls.multiple_of is not None:
             if isinstance(cls.multiple_of, float):
@@ -133,16 +122,9 @@ class _NumericType(object):
             else:
                 failed = value % cls.multiple_of
             if failed:
-                raise TypeSystemError(error_message(cls, 'multiple_of'))
+                raise TypeSystemError(cls=cls, code='multiple_of')
 
         return value
-
-    # The following is currently required in order to keep mypy happy
-    # with our atypical usage of `__new__`...
-    # See: https://github.com/python/mypy/issues/3307
-
-    def __init__(self, *args, **kwargs):
-        super().__init__()
 
 
 class Number(_NumericType, float):
@@ -159,46 +141,29 @@ class Boolean(object):
         'type': 'Must be a valid boolean.'
     }
 
-    def __new__(cls, *args, **kwargs):
-        if kwargs:
-            assert not args
-            return type(cls.__name__, (cls,), kwargs)
-
-        assert len(args) == 1
-        value = args[0]
-
-        if isinstance(value, str):
+    def __new__(cls, *args, **kwargs) -> bool:
+        if args and isinstance(args[0], str):
             try:
                 return {
                     'true': True,
                     'false': False,
                     '1': True,
                     '0': False
-                }[value.lower()]
+                }[args[0].lower()]
             except KeyError:
-                raise TypeSystemError(error_message(cls, 'type'))
-        return bool(value)
+                raise TypeSystemError(cls=cls, code='type') from None
+        return bool(*args, **kwargs)
 
 
 class Enum(str):
     errors = {
-        'enum': 'Must be a valid choice.',
-        'exact': 'Must be {exact}.'
+        'invalid': 'Must be a valid choice.',
     }
-    enum = []  # type: List[str]
+    enum = []  # type: typing.List[str]
 
-    def __new__(cls, *args, **kwargs):
-        if kwargs:
-            assert not args
-            return type(cls.__name__, (cls,), kwargs)
-
-        assert len(args) == 1
-        value = args[0]
-
+    def __new__(cls, value: str):
         if value not in cls.enum:
-            if len(cls.enum) == 1:
-                raise TypeSystemError(error_message(cls, 'exact'))
-            raise TypeSystemError(error_message(cls, 'enum'))
+            raise TypeSystemError(cls=cls, code='invalid')
         return value
 
 
@@ -208,29 +173,21 @@ class Object(dict):
         'invalid_key': 'Object keys must be strings.',
         'required': 'This field is required.',
     }
-    properties = {}  # type: Dict[str, Any]
+    properties = {}  # type: typing.Dict[str, typing.Any]
 
-    def __new__(cls, *args, **kwargs):
-        if kwargs:
-            assert not args
-            return type(cls.__name__, (cls,), kwargs)
-
-        assert len(args) == 1
-        return dict.__new__(cls, *args)
-
-    def __init__(self, value):
+    def __init__(self, *args, **kwargs):
         try:
-            value = dict(value)
+            value = dict(*args, **kwargs)
         except TypeError:
-            if hasattr(value, '__dict__'):
-                value = dict(value.__dict__)
+            if len(args) == 1 and not kwargs and hasattr(args[0], '__dict__'):
+                value = dict(args[0].__dict__)
             else:
-                raise TypeSystemError(error_message(self, 'type'))
+                raise TypeSystemError(cls=self.__class__, code='type') from None
 
         # Ensure all property keys are strings.
         errors = {}
         if any(not isinstance(key, str) for key in value.keys()):
-            raise TypeSystemError(error_message(self, 'invalid_key'))
+            raise TypeSystemError(cls=self.__class__, code='invalid_key')
 
         # Properties
         for key, child_schema in self.properties.items():
@@ -241,7 +198,8 @@ class Object(dict):
                     # If a key is missing but has a default, then use that.
                     self[key] = child_schema.default
                 else:
-                    errors[key] = error_message(self, 'required')
+                    exc = TypeSystemError(cls=self.__class__, code='required')
+                    errors[key] = exc.detail
             else:
                 # Coerce value into the given schema type if needed.
                 if isinstance(item, child_schema):
@@ -263,36 +221,31 @@ class Array(list):
         'max_items': 'Too many items.',
         'unique_items': 'This item is not unique.',
     }
-    items = None  # type: Union[type, List[type]]
+    items = None  # type: typing.Union[type, typing.List[type]]
     additional_items = False  # type: bool
-    min_items = 0  # type: Optional[int]
-    max_items = None  # type: Optional[int]
+    min_items = 0  # type: typing.Optional[int]
+    max_items = None  # type: typing.Optional[int]
     unique_items = False  # type: bool
 
-    def __new__(cls, *args, **kwargs):
-        if kwargs:
-            assert not args
-            return type(cls.__name__, (cls,), kwargs)
+    def __init__(self, *args, **kwargs):
+        if args and isinstance(args[0], (str, bytes)):
+            raise TypeSystemError(cls=self.__class__, code='type')
 
-        assert len(args) == 1
-        return list.__new__(cls, *args)
-
-    def __init__(self, value):
         try:
-            value = list(value)
+            value = list(*args, **kwargs)
         except TypeError:
-            raise TypeSystemError(error_message(self, 'type'))
+            raise TypeSystemError(cls=self.__class__, code='type') from None
 
         if isinstance(self.items, list) and len(self.items) > 1:
             if len(value) < len(self.items):
-                raise TypeSystemError(error_message(self, 'min_items'))
+                raise TypeSystemError(cls=self.__class__, code='min_items')
             elif len(value) > len(self.items) and not self.additional_items:
-                raise TypeSystemError(error_message(self, 'max_items'))
+                raise TypeSystemError(cls=self.__class__, code='max_items')
 
         if len(value) < self.min_items:
-            raise TypeSystemError(error_message(self, 'min_items'))
+            raise TypeSystemError(cls=self.__class__, code='min_items')
         elif self.max_items is not None and len(value) > self.max_items:
-            raise TypeSystemError(error_message(self, 'max_items'))
+            raise TypeSystemError(cls=self.__class__, code='max_items')
 
         # Ensure all items are of the right type.
         errors = {}
@@ -309,7 +262,7 @@ class Array(list):
 
                 if self.unique_items:
                     if item in seen_items:
-                        raise TypeSystemError(error_message(self, 'unique_items'))
+                        raise TypeSystemError(cls=self.__class__, code='unique_items')
                     else:
                         seen_items.add(item)
 

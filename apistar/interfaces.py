@@ -1,8 +1,9 @@
-from apistar  import typesystem
 import abc
-import coreapi
 import typing
 
+import coreapi
+
+from apistar import typesystem
 
 # WSGI
 
@@ -12,10 +13,10 @@ WSGIEnviron = typing.NewType('WSGIEnviron', dict)
 # Routing
 
 URLArgs = typing.NewType('URLArgs', dict)
-URLArg = typing.TypeVar('URLArg')
+
 
 class PathWildcard(typesystem.String):
-    allow_empty = True
+    pass
 
 
 Lookup = typing.Tuple[typing.Callable, typing.Dict[str, typing.Any]]
@@ -38,7 +39,7 @@ class Router(metaclass=abc.ABCMeta):
 
 # Schemas
 
-Schema = typing.NewType('Schema', coreapi.Document)
+Schema = coreapi.Document
 
 
 # Templates
@@ -77,6 +78,7 @@ class StaticFiles(metaclass=abc.ABCMeta):
 
 ParamName = typing.NewType('ParamName', str)
 ParamAnnotation = typing.NewType('ParamAnnotation', type)
+
 
 class Injector(metaclass=abc.ABCMeta):
     @abc.abstractmethod

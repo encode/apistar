@@ -1,5 +1,6 @@
-from apistar.interfaces import Router, StaticFiles, Template, Templates
 import jinja2
+
+from apistar.interfaces import Router, StaticFiles, Template, Templates
 
 
 class Jinja2Template(Template):

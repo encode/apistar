@@ -21,7 +21,8 @@ class Kitten(typesystem.Object):
     properties = {
         'name': KittenName,
         'color': KittenColor,
-        'cuteness': typesystem.Number(
+        'cuteness': typesystem.newtype(
+            'Number',
             minimum=0.0,
             maximum=10.0,
             multiple_of=0.1

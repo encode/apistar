@@ -1,9 +1,11 @@
-from apistar.interfaces import Router, StaticFile, StaticFiles, WSGIEnviron
-from wsgiref.util import FileWrapper
-import apistar
 import os
+from wsgiref.util import FileWrapper
+
 import werkzeug
 import whitenoise
+
+import apistar
+from apistar.interfaces import Router, StaticFile, StaticFiles, WSGIEnviron
 
 
 class WhiteNoiseStaticFile(StaticFile):

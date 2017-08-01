@@ -2,12 +2,12 @@ from apistar import App, Route, TestClient, typesystem
 
 
 class Color(typesystem.Enum):
-    errors = {'enum': 'Must be a valid color.'}
+    errors = {'invalid': 'Must be a valid color.'}
     enum = ['red', 'green', 'blue']
 
 
 class TermsAndConditions(typesystem.Enum):
-    errors = {'exact': 'You must agree to the terms and conditions to proceed.'}
+    errors = {'invalid': 'You must agree to the terms and conditions to proceed.'}
     enum = ['yes']
 
 

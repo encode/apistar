@@ -1,10 +1,13 @@
-from apistar import exceptions, Response
-from apistar.interfaces import PathWildcard, Schema, StaticFiles, Templates, WSGIEnviron
 import base64
+import typing
+
 import coreapi
 import coreschema
-import typing
-import werkzeug
+
+from apistar import Response, exceptions
+from apistar.interfaces import (
+    PathWildcard, Schema, StaticFiles, Templates, WSGIEnviron
+)
 
 
 def api_documentation(schema: Schema, templates: Templates) -> Response:
