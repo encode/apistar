@@ -49,10 +49,6 @@ def get_port(environ: WSGIEnviron):
     return int(environ.get('SERVER_PORT') or 80)
 
 
-def get_path(environ: WSGIEnviron):
-    return quote(environ.get('SCRIPT_NAME', '') + environ.get('PATH_INFO', ''))
-
-
 def get_querystring(environ: WSGIEnviron):
     return environ.get('QUERY_STRING', '')
 

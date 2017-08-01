@@ -29,7 +29,6 @@ DEFAULT_COMPONENTS = {
     http.Scheme: wsgi.get_scheme,
     http.Host: wsgi.get_host,
     http.Port: wsgi.get_port,
-    http.Path: wsgi.get_path,
     http.Headers: wsgi.get_headers,
     http.Header: wsgi.get_header,
     http.QueryString: wsgi.get_querystring,
