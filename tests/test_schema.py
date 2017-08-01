@@ -1,0 +1,139 @@
+import coreschema
+from coreapi import Field, Link
+from coreapi.codecs import CoreJSONCodec
+
+from apistar import App, Route, TestClient, typesystem
+from apistar.handlers import (
+    api_documentation, corejson_schema, javascript_schema, serve_static
+)
+from apistar.interfaces import Schema
+
+
+class Category(typesystem.Enum):
+    enum = ['shop', 'chore']
+
+
+class ToDoNote(typesystem.Object):
+    properties = {
+        'id': typesystem.newtype('Integer', minimum=0),
+        'text': typesystem.newtype('String', max_length=100),
+        'complete': typesystem.Boolean,
+        'percent_complete': typesystem.Number,
+        'category': Category
+    }
+
+
+def list_todo(search):  # pragma: nocover
+    """
+    list_todo description
+    """
+    pass
+
+
+def add_todo(note: ToDoNote):  # pragma: nocover
+    """
+    add_todo description
+    Multiple indented lines
+    """
+    pass
+
+
+def show_todo(ident: int):  # pragma: nocover
+    pass
+
+
+def set_percent_complete(ident: int, percent_complete: float):  # pragma: nocover
+    pass
+
+
+def set_complete(ident: int, complete: bool):  # pragma: nocover
+    pass
+
+
+def set_category(ident: int, category: Category):  # pragma: nocover
+    pass
+
+
+routes = [
+    Route('/todo/', 'GET', list_todo),
+    Route('/todo/', 'POST', add_todo),
+    Route('/todo/{ident}/', 'GET', show_todo),
+    Route('/todo/{ident}/', 'PUT', set_complete),
+    Route('/todo/{ident}/percent_complete', 'PUT', set_percent_complete),
+    Route('/todo/{ident}/category', 'PUT', set_category),
+    Route('/docs/', 'GET', api_documentation),
+    Route('/schema/', 'GET', corejson_schema),
+    Route('/schema.js', 'GET', javascript_schema),
+    Route('/static/{path}', 'GET', serve_static)
+]
+
+app = App(routes=routes)
+
+client = TestClient(app)
+
+expected = Schema(url='/schema/', content={
+    'list_todo': Link(
+        url='/todo/',
+        action='GET',
+        description='list_todo description',
+        fields=[Field(name='search', location='query', required=False, schema=coreschema.String())]
+    ),
+    'add_todo': Link(
+        url='/todo/',
+        action='POST',
+        description='add_todo description\nMultiple indented lines',
+        fields=[Field(name='note', location='body', required=True, schema=coreschema.String())]
+    ),
+    'show_todo': Link(
+        url='/todo/{ident}/',
+        action='GET',
+        fields=[Field(name='ident', location='path', required=True, schema=coreschema.Integer())]
+    ),
+    'set_complete': Link(
+        url='/todo/{ident}/',
+        action='PUT',
+        fields=[
+            Field(name='ident', location='path', required=True, schema=coreschema.Integer()),
+            Field(name='complete', location='form', required=False, schema=coreschema.Boolean())
+        ]
+    ),
+    'set_percent_complete': Link(
+        url='/todo/{ident}/percent_complete',
+        action='PUT',
+        fields=[
+            Field(name='ident', location='path', required=True, schema=coreschema.Integer()),
+            Field(name='percent_complete', location='form', required=False, schema=coreschema.Number())
+        ]
+    ),
+    'set_category': Link(
+        url='/todo/{ident}/category',
+        action='PUT',
+        fields=[
+            Field(name='ident', location='path', required=True, schema=coreschema.Integer()),
+            Field(name='category', location='form', required=False, schema=coreschema.Enum(enum=['shop', 'chore']))
+        ]
+    )
+})
+
+
+def test_corejson_schema():
+    response = client.get('/schema/')
+    codec = CoreJSONCodec()
+    document = codec.decode(response.content)
+    assert document.url == '/'
+    for name, link in expected.links.items():
+        assert name in document
+        assert link.action == document[name].action
+        assert link.fields == document[name].fields
+
+
+def test_javascript_schema():
+    response = client.get('/schema.js')
+    assert response.status_code == 200
+    assert response.headers['Content-Type'] == 'application/javascript'
+
+
+def test_api_documentation():
+    response = client.get('/docs/')
+    assert response.status_code == 200
+    assert response.headers['Content-Type'] == 'text/html; charset=utf-8'
