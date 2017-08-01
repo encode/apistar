@@ -4,7 +4,7 @@ import tempfile
 import pytest
 
 from apistar import App, Route, TestClient
-from apistar.exceptions import ConfigurationError
+from apistar.exceptions import TemplateNotFound
 from apistar.interfaces import Templates
 
 
@@ -38,14 +38,14 @@ def test_get_and_render_template():
         assert response.text == '<html><body>Hello, tom</body><html>'
 
 
-# def test_template_not_found():
-#     settings = {
-#         'TEMPLATES': {
-#             'PACKAGE_DIRS': [],
-#             'ROOT_DIR': []
-#         }
-#     }
-#     app = App(routes=routes, settings=settings)
-#     client = TestClient(app)
-#     with pytest.raises(ConfigurationError):
-#         client.get('/render_template/?username=tom')
+def test_template_not_found():
+    settings = {
+        'TEMPLATES': {
+            'PACKAGE_DIRS': [],
+            'ROOT_DIR': []
+        }
+    }
+    app = App(routes=routes, settings=settings)
+    client = TestClient(app)
+    with pytest.raises(TemplateNotFound):
+        client.get('/get_and_render_template/?username=tom')

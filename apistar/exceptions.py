@@ -19,6 +19,10 @@ class NoReverseMatch(Exception):
     pass
 
 
+class TemplateNotFound(Exception):
+    pass
+
+
 class ConfigurationError(Exception):
     pass
 

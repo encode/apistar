@@ -2,6 +2,7 @@ import typing  # noqa
 
 import jinja2
 
+from apistar import exceptions
 from apistar.interfaces import (
     Router, Settings, StaticFiles, Template, Templates
 )
@@ -44,7 +45,9 @@ class Jinja2Templates(Templates):
         self._env = env
 
     def get_template(self, path: str) -> Template:
-        template = self._env.get_template(path)
-        if template is None:
-            return None
+        try:
+            template = self._env.get_template(path)
+        except jinja2.exceptions.TemplateNotFound:
+            msg = 'Template "%s" could not be found.' % path
+            raise exceptions.TemplateNotFound(msg) from None
         return Jinja2Template(template)
