@@ -34,7 +34,7 @@ class Router(metaclass=abc.ABCMeta):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def reverse_url(self, identifier: str, kwargs: dict=None) -> str:
+    def reverse_url(self, identifier: str, values: dict=None) -> str:
         raise NotImplementedError
 
     @abc.abstractmethod
