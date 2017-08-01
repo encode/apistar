@@ -40,14 +40,14 @@ def api_documentation(schema: Schema, templates: Templates) -> Response:
         'Content-Type': 'text/html; charset=utf-8'
     }
 
-    return Response(content, 200, headers)
+    return Response(content, headers=headers)
 
 
 def corejson_schema(schema: Schema) -> Response:
     codec = coreapi.codecs.CoreJSONCodec()
     content = codec.encode(schema)
     headers = {'Content-Type': codec.media_type}
-    return Response(content, 200, headers)
+    return Response(content, headers=headers)
 
 
 def javascript_schema(schema: Schema, templates: Templates) -> Response:
@@ -56,7 +56,7 @@ def javascript_schema(schema: Schema, templates: Templates) -> Response:
     template = templates.get_template('apistar/schema.js')
     content = template.render(base64_schema=base64_schema).encode('utf-8')
     headers = {'Content-Type': 'application/javascript'}
-    return Response(content, 200, headers)
+    return Response(content, headers=headers)
 
 
 def serve_static(path: PathWildcard, statics: StaticFiles, environ: WSGIEnviron):
