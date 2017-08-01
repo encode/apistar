@@ -60,10 +60,6 @@ def get_data(data: http.RequestData) -> http.Response:
     return http.Response({'data': to_native(data)})
 
 
-# def get_field(field: http.RequestField) -> http.Response:
-#     return http.Response({'field': to_native(field)})
-
-
 def get_headers(headers: http.Headers) -> http.Response:
     return http.Response({'headers': dict(headers)})
 
@@ -93,7 +89,6 @@ app = App(routes=[
     Route('/url/', 'GET', get_url),
     Route('/body/', 'POST', get_body),
     Route('/data/', 'POST', get_data),
-    # Route('/field/', 'POST', get_field),
     Route('/headers/', 'GET', get_headers),
     Route('/accept_header/', 'GET', get_accept_header),
     # Route('/request/', 'GET', get_request),
