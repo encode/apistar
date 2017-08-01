@@ -54,7 +54,7 @@ class WhiteNoiseStaticFiles(StaticFiles):
 
     def get_url(self, path: str) -> str:
         try:
-            return self._router.reverse_url('serve_static', kwargs={'path': path})
+            return self._router.reverse_url('serve_static', values={'path': path})
         except exceptions.NoReverseMatch:
             msg = (
                 'The "serve_static" handler must be included in the App routes '
