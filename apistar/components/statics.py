@@ -1,4 +1,5 @@
 import os
+from importlib.util import find_spec
 from wsgiref.util import FileWrapper
 
 import werkzeug
@@ -25,11 +26,16 @@ class WhiteNoiseStaticFile(StaticFile):
 
 
 class WhiteNoiseStaticFiles(StaticFiles):
+    static_dir = None
+    packages = ['apistar']
+
     def __init__(self, router: Router) -> None:
-        package_dir = os.path.dirname(apistar.__file__)
-        package_statics = os.path.join(package_dir, 'static')
-        self._whitenoise = whitenoise.WhiteNoise(application=None, root=None)
-        self._whitenoise.add_files(package_statics, prefix='apistar')
+        app = whitenoise.WhiteNoise(application=None, root=self.static_dir)
+        for package in self.packages:
+            package_dir = os.path.dirname(find_spec(package).origin)
+            package_statics = os.path.join(package_dir, 'static')
+            app.add_files(package_statics, prefix=package)
+        self._whitenoise = app
         self._router = router
 
     def get_file(self, path: str) -> StaticFile:
@@ -41,4 +47,15 @@ class WhiteNoiseStaticFiles(StaticFiles):
         return WhiteNoiseStaticFile(file)
 
     def get_url(self, path: str) -> str:
-        return self._router.reverse_url('serve_static', kwargs={'path': path})
+        try:
+            return self._router.reverse_url('serve_static', kwargs={'path': path})
+        except exceptions.NoReverseMatch:
+            msg = (
+                'The "serve_static" handler must be included in the App routes '
+                'in order to use WhiteNoiseStaticFiles'
+            )
+            raise exceptions.ConfigurationError(msg) from None
+
+    @classmethod
+    def configure(cls, **kwargs):
+        return type(cls.__name__, (cls,), kwargs)
