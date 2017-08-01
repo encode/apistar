@@ -4,7 +4,6 @@ import typing
 
 from apistar.exceptions import TypeSystemError
 
-
 # TODO: Error on unknown attributes
 # TODO: allow_blank?
 # TODO: input_type (check type at start and allow, coerce, .native)
