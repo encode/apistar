@@ -128,6 +128,9 @@ class App():
             status = 204
             content_type = None
 
+        if 'Content-Type' in headers:
+            content_type = None
+
         return werkzeug.Response(content, status, headers, content_type=content_type)
 
     def run(self, hostname: str='localhost', port: int=8080, **options) -> None:
