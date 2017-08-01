@@ -21,7 +21,7 @@ class Jinja2Templates(Templates):
         loader = jinja2.ChoiceLoader(package_loaders)
         env = jinja2.Environment(loader=loader)
         env.globals['reverse_url'] = router.reverse_url
-        env.globals['static'] = statics.get_url
+        env.globals['static_url'] = statics.get_url
         self._env = env
 
     def get_template(self, path: str) -> Template:
