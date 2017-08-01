@@ -4,12 +4,13 @@ import typing
 import werkzeug
 
 from apistar import exceptions, http
-from apistar.components import dependency, routing, statics, templates, wsgi
+from apistar.components import (
+    dependency, routing, schema, statics, templates, wsgi
+)
 from apistar.interfaces import (
     Injector, Route, Router, Schema, StaticFiles, Templates, URLArgs,
     WSGIEnviron
 )
-from apistar.schema import get_schema
 
 REQUIRED_STATE = {
     'wsgi_environ': WSGIEnviron,
@@ -36,7 +37,7 @@ DEFAULT_COMPONENTS = {
     http.Body: wsgi.get_body,
     http.RequestData: wsgi.get_request_data,
     # Framework Components
-    Schema: get_schema,
+    Schema: schema.CoreAPISchema,
     Templates: templates.Jinja2Templates,
     StaticFiles: statics.WhiteNoiseStaticFiles,
     Router: routing.WerkzeugRouter,

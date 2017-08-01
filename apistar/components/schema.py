@@ -7,7 +7,7 @@ import coreschema
 import uritemplate
 
 from apistar import typesystem
-from apistar.interfaces import Route, Router
+from apistar.interfaces import Route, Router, Schema
 
 PRIMITIVE_TYPES = (
     str, int, float, bool, list, dict
@@ -19,10 +19,11 @@ SCHEMA_TYPES = (
 )
 
 
-def get_schema(router: Router) -> coreapi.Document:
-    routes = router.get_routes()
-    content = get_schema_content(routes)
-    return coreapi.Document(url='/', content=content)
+class CoreAPISchema(Schema):
+    def __init__(self, router: Router) -> None:
+        routes = router.get_routes()
+        content = get_schema_content(routes)
+        super().__init__(url='/', content=content)
 
 
 def get_schema_content(routes: typing.Sequence[Route]) -> typing.Dict[str, coreapi.Link]:
