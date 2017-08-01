@@ -8,7 +8,7 @@ from apistar.components import (
     dependency, routing, schema, statics, templates, wsgi
 )
 from apistar.interfaces import (
-    Injector, Route, Router, Schema, StaticFiles, Templates, URLArgs,
+    Injector, Route, Router, Schema, Settings, StaticFiles, Templates, URLArgs,
     WSGIEnviron
 )
 
@@ -18,6 +18,7 @@ REQUIRED_STATE = {
     'method': http.Method,
     'url_args': URLArgs,
     'router': Router,
+    'settings': Settings,
     'exc': Exception
 }  # type: typing.Dict[str, type]
 
@@ -48,12 +49,19 @@ DEFAULT_COMPONENTS = {
 class App():
     def __init__(self,
                  routes: typing.Sequence[Route],
-                 components: typing.Dict[type, typing.Callable]={}) -> None:
+                 components: typing.Dict[type, typing.Callable]=None,
+                 settings: typing.Dict[str, typing.Any]=None) -> None:
+        if components is None:
+            components = {}
+        if settings is None:
+            settings = {}
+
         components = {**DEFAULT_COMPONENTS, **components}
         router_cls = components.pop(Router)
         injector_cls = components.pop(Injector)
 
         self.routes = routes
+        self.settings = settings
         self.router = router_cls(routes)
         self.injector = injector_cls(components, REQUIRED_STATE)
 
@@ -65,6 +73,7 @@ class App():
             'path': path,
             'method': method,
             'router': self.router,
+            'settings': self.settings,
             'url_args': None,
             'exc': None
         }

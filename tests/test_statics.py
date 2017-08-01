@@ -4,8 +4,6 @@ import tempfile
 
 from apistar import App, Route, TestClient
 from apistar.handlers import serve_static
-from apistar.interfaces import StaticFiles
-from apistar.components.statics import WhiteNoiseStaticFiles
 
 
 def test_static_files() -> None:
@@ -17,11 +15,11 @@ def test_static_files() -> None:
         routes = [
             Route('/static/{path}', 'GET', serve_static)
         ]
-        components = {
-            StaticFiles: WhiteNoiseStaticFiles.configure(static_dir=tempdir)
+        settings = {
+            'STATICS': {'ROOT_DIR': tempdir, 'PACKAGE_DIRS': ['apistar']}
         }
 
-        app = App(routes=routes, components=components)
+        app = App(routes=routes, settings=settings)
         client = TestClient(app)
 
         response = client.get('/static/example.csv')

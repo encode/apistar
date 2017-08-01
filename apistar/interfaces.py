@@ -10,6 +10,11 @@ from apistar import typesystem
 WSGIEnviron = typing.NewType('WSGIEnviron', dict)
 
 
+# Settings
+
+Settings = typing.NewType('Settings', dict)
+
+
 # Routing
 
 URLArgs = typing.NewType('URLArgs', dict)

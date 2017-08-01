@@ -1,6 +1,10 @@
+import typing  # noqa
+
 import jinja2
 
-from apistar.interfaces import Router, StaticFiles, Template, Templates
+from apistar.interfaces import (
+    Router, Settings, StaticFiles, Template, Templates
+)
 
 
 class Jinja2Template(Template):
@@ -12,13 +16,28 @@ class Jinja2Template(Template):
 
 
 class Jinja2Templates(Templates):
-    def __init__(self, router: Router, statics: StaticFiles) -> None:
-        package_loaders = [
-            jinja2.PrefixLoader({
-                'apistar': jinja2.PackageLoader('apistar', 'templates')
-            })
-        ]
-        loader = jinja2.ChoiceLoader(package_loaders)
+    DEFAULT_SETTINGS = {
+        'ROOT_DIR': None,
+        'PACKAGE_DIRS': ['apistar']
+    }
+
+    def __init__(self, router: Router, statics: StaticFiles, settings: Settings) -> None:
+        settings = settings.get('TEMPLATES', self.DEFAULT_SETTINGS)
+
+        loaders = []  # type: typing.List[jinja2.BaseLoader]
+        if settings['PACKAGE_DIRS']:
+            loaders.extend([
+                jinja2.PrefixLoader({
+                    package_dir: jinja2.PackageLoader(package_dir, 'templates')
+                })
+                for package_dir in settings['PACKAGE_DIRS']
+            ])
+        if settings['ROOT_DIR']:
+            loaders.append(
+                jinja2.FileSystemLoader(settings['ROOT_DIR'])
+            )
+
+        loader = jinja2.ChoiceLoader(loaders)
         env = jinja2.Environment(loader=loader)
         env.globals['reverse_url'] = router.reverse_url
         env.globals['static_url'] = statics.get_url

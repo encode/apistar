@@ -5,8 +5,10 @@ from wsgiref.util import FileWrapper
 import werkzeug
 import whitenoise
 
-import apistar
-from apistar.interfaces import Router, StaticFile, StaticFiles, WSGIEnviron
+from apistar import exceptions
+from apistar.interfaces import (
+    Router, Settings, StaticFile, StaticFiles, WSGIEnviron
+)
 
 
 class WhiteNoiseStaticFile(StaticFile):
@@ -26,15 +28,19 @@ class WhiteNoiseStaticFile(StaticFile):
 
 
 class WhiteNoiseStaticFiles(StaticFiles):
-    static_dir = None
-    packages = ['apistar']
+    DEFAULT_SETTINGS = {
+        'ROOT_DIR': None,
+        'PACKAGE_DIRS': ['apistar']
+    }
 
-    def __init__(self, router: Router) -> None:
-        app = whitenoise.WhiteNoise(application=None, root=self.static_dir)
-        for package in self.packages:
+    def __init__(self, router: Router, settings: Settings) -> None:
+        settings = settings.get('STATICS', self.DEFAULT_SETTINGS)
+        app = whitenoise.WhiteNoise(application=None, root=settings['ROOT_DIR'])
+        for package in settings['PACKAGE_DIRS']:
             package_dir = os.path.dirname(find_spec(package).origin)
             package_statics = os.path.join(package_dir, 'static')
             app.add_files(package_statics, prefix=package)
+
         self._whitenoise = app
         self._router = router
 
@@ -55,7 +61,3 @@ class WhiteNoiseStaticFiles(StaticFiles):
                 'in order to use WhiteNoiseStaticFiles'
             )
             raise exceptions.ConfigurationError(msg) from None
-
-    @classmethod
-    def configure(cls, **kwargs):
-        return type(cls.__name__, (cls,), kwargs)
