@@ -27,7 +27,7 @@ def list_todo(search):
     """
     list_todo description
     """
-    raise NotImplemented
+    raise NotImplementedError
 
 
 def add_todo(note: ToDoNote):
@@ -35,23 +35,23 @@ def add_todo(note: ToDoNote):
     add_todo description
     Multiple indented lines
     """
-    raise NotImplemented
+    raise NotImplementedError
 
 
 def show_todo(ident: int):
-    raise NotImplemented
+    raise NotImplementedError
 
 
 def set_percent_complete(ident: int, percent_complete: float):
-    raise NotImplemented
+    raise NotImplementedError
 
 
 def set_complete(ident: int, complete: bool):
-    raise NotImplemented
+    raise NotImplementedError
 
 
 def set_category(ident: int, category: Category):
-    raise NotImplemented
+    raise NotImplementedError
 
 
 routes = [

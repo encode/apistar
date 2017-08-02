@@ -8,6 +8,7 @@ from apistar import App, Route, TestClient, exceptions
 from apistar.components.routing import WerkzeugRouter
 from apistar.components.statics import WhiteNoiseStaticFiles
 from apistar.handlers import serve_static
+from apistar.interfaces import Settings
 
 
 def test_static_files() -> None:
@@ -43,9 +44,9 @@ def test_static_files() -> None:
 
 def test_misconfigured_static_files() -> None:
     router = WerkzeugRouter([])
-    settings = {
+    settings = Settings({
         'STATICS': {'ROOT_DIR': None, 'PACKAGE_DIRS': ['apistar']}
-    }
+    })
     statics = WhiteNoiseStaticFiles(router=router, settings=settings)
     with pytest.raises(exceptions.ConfigurationError):
         statics.get_url('/apistar/css/base.css')

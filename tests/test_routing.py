@@ -215,7 +215,7 @@ def test_valid_string():
 
 def test_misconfigured_omission_on_route():
     def missing_type():
-        raise NotImplemented
+        raise NotImplementedError
 
     with pytest.raises(exceptions.ConfigurationError):
         App(routes=[Route('/{var}/', 'GET', missing_type)])
@@ -223,7 +223,7 @@ def test_misconfigured_omission_on_route():
 
 def test_misconfigured_type_on_route():
     def set_type(var: set):
-        raise NotImplemented
+        raise NotImplementedError
 
     with pytest.raises(exceptions.ConfigurationError):
         App(routes=[Route('/{var}/', 'GET', set_type)])
