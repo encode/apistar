@@ -251,7 +251,7 @@ def data_response():
 
 
 def empty_response():
-    return b''
+    return None
 
 
 def unknown_status_code() -> http.Response:

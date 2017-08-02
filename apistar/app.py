@@ -132,5 +132,5 @@ class App():
 
         return werkzeug.Response(content, status, headers, content_type=content_type)
 
-    def run(self, hostname: str='localhost', port: int=8080, **options) -> None:
+    def run(self, hostname: str='localhost', port: int=8080, **options) -> None:  # pragma: nocover
         werkzeug.run_simple(hostname, port, self, **options)
