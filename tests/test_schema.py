@@ -23,35 +23,35 @@ class ToDoNote(typesystem.Object):
     }
 
 
-def list_todo(search):  # pragma: nocover
+def list_todo(search):
     """
     list_todo description
     """
-    pass
+    raise NotImplemented
 
 
-def add_todo(note: ToDoNote):  # pragma: nocover
+def add_todo(note: ToDoNote):
     """
     add_todo description
     Multiple indented lines
     """
-    pass
+    raise NotImplemented
 
 
-def show_todo(ident: int):  # pragma: nocover
-    pass
+def show_todo(ident: int):
+    raise NotImplemented
 
 
-def set_percent_complete(ident: int, percent_complete: float):  # pragma: nocover
-    pass
+def set_percent_complete(ident: int, percent_complete: float):
+    raise NotImplemented
 
 
-def set_complete(ident: int, complete: bool):  # pragma: nocover
-    pass
+def set_complete(ident: int, complete: bool):
+    raise NotImplemented
 
 
-def set_category(ident: int, category: Category):  # pragma: nocover
-    pass
+def set_category(ident: int, category: Category):
+    raise NotImplemented
 
 
 routes = [

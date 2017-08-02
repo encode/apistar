@@ -194,18 +194,6 @@ def test_data():
     assert response.status_code == 415
 
 
-# def test_field():
-#     response = client.post('http://example.com/field/', json={"field": 123})
-#     assert response.json() == {'field': 123}
-#
-#     response = client.post('http://example.com/field/', data={'field': 123})
-#     assert response.json() == {'field': '123'}
-#
-#     csv_file = ('report.csv', '1,2,3\n4,5,6\n')
-#     response = client.post('http://example.com/field/', files={'field': csv_file})
-#     assert response.json() == {'field': '1,2,3\n4,5,6\n'}
-
-
 def test_headers():
     response = client.get('http://example.com/headers/')
     assert response.json() == {'headers': {

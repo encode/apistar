@@ -5,9 +5,9 @@ import tempfile
 import pytest
 
 from apistar import App, Route, TestClient, exceptions
-from apistar.handlers import serve_static
 from apistar.components.routing import WerkzeugRouter
 from apistar.components.statics import WhiteNoiseStaticFiles
+from apistar.handlers import serve_static
 
 
 def test_static_files() -> None:
