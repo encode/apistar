@@ -213,9 +213,17 @@ def test_valid_string():
     }
 
 
-def test_misconfigured_route():
-    def set_type(var: set):  # pragma: nocover  (We never actually call this handler)
-        pass
+def test_misconfigured_omission_on_route():
+    def missing_type():
+        raise NotImplemented
+
+    with pytest.raises(exceptions.ConfigurationError):
+        App(routes=[Route('/{var}/', 'GET', missing_type)])
+
+
+def test_misconfigured_type_on_route():
+    def set_type(var: set):
+        raise NotImplemented
 
     with pytest.raises(exceptions.ConfigurationError):
         App(routes=[Route('/{var}/', 'GET', set_type)])
