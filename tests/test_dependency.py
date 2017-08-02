@@ -85,3 +85,48 @@ def test_invalid_list_kittens():
     assert response.json() == {
         'color': 'Must be a valid choice.'
     }
+
+
+def test_empty_arg_as_query_param():
+    def view(arg):
+        return {'arg': arg}
+
+    routes = [
+        Route('/', 'GET', view)
+    ]
+    app = App(routes=routes)
+    client = TestClient(app)
+    response = client.get('/?arg=123')
+    assert response.json() == {
+        'arg': '123'
+    }
+
+
+def test_cannot_coerce_query_param():
+    def view(arg: int):
+        return {'arg': arg}
+
+    routes = [
+        Route('/', 'GET', view)
+    ]
+    app = App(routes=routes)
+    client = TestClient(app)
+    response = client.get('/?arg=abc')
+    assert response.json() == {
+        'arg': None
+    }
+
+
+def test_arg_as_composite_param():
+    def view(arg: dict):
+        return {'arg': arg}
+
+    routes = [
+        Route('/', 'POST', view)
+    ]
+    app = App(routes=routes)
+    client = TestClient(app)
+    response = client.post('/', json={'a': 123})
+    assert response.json() == {
+        'arg': {'a': 123}
+    }
