@@ -86,6 +86,3 @@ class WerkzeugRouter(Router):
             return self._adapter.build(identifier, values)
         except werkzeug.routing.BuildError as exc:
             raise exceptions.NoReverseMatch(str(exc)) from None
-
-    def get_routes(self) -> Routes:
-        return self._routes

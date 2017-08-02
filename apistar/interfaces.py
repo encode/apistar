@@ -3,8 +3,6 @@ import typing
 
 import coreapi
 
-from apistar.routing import Routes
-
 # WSGI
 
 WSGIEnviron = typing.NewType('WSGIEnviron', dict)
@@ -17,8 +15,6 @@ Settings = typing.NewType('Settings', dict)
 
 # Routing
 
-URLArgs = typing.NewType('URLArgs', dict)
-
 Lookup = typing.Tuple[typing.Callable, typing.Dict[str, typing.Any]]
 
 
@@ -29,10 +25,6 @@ class Router(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def reverse_url(self, identifier: str, values: dict=None) -> str:
-        raise NotImplementedError
-
-    @abc.abstractmethod
-    def get_routes(self) -> Routes:
         raise NotImplementedError
 
 

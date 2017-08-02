@@ -1,8 +1,7 @@
 import pytest
 
 from apistar import App, Include, Route, TestClient, exceptions, typesystem
-from apistar.interfaces import URLArgs
-from apistar.routing import PathWildcard
+from apistar.routing import PathWildcard, URLArgs
 
 
 class MaxLength(typesystem.String):

@@ -3,6 +3,8 @@ import typing
 
 from apistar import typesystem
 
+URLArgs = typing.NewType('URLArgs', dict)
+
 
 class Route(collections.abc.Iterable):
     def __init__(self,

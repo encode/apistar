@@ -8,15 +8,15 @@ from apistar.components import (
     dependency, router, schema, statics, templates, wsgi
 )
 from apistar.interfaces import (
-    Injector, Router, Schema, Settings, StaticFiles, Templates, URLArgs,
-    WSGIEnviron
+    Injector, Router, Schema, Settings, StaticFiles, Templates, WSGIEnviron
 )
 
 REQUIRED_STATE = {
     'wsgi_environ': WSGIEnviron,
     'path': http.Path,
     'method': http.Method,
-    'url_args': URLArgs,
+    'url_args': routing.URLArgs,
+    'routes': routing.Routes,
     'router': Router,
     'settings': Settings,
     'exc': Exception
@@ -71,6 +71,7 @@ class App():
             'wsgi_environ': environ,
             'path': path,
             'method': method,
+            'routes': self.routes,
             'router': self.router,
             'settings': self.settings,
             'url_args': None,
