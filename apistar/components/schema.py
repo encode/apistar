@@ -7,7 +7,8 @@ import coreschema
 import uritemplate
 
 from apistar import typesystem
-from apistar.interfaces import Route, Router, Schema
+from apistar.interfaces import Router, Schema
+from apistar.routing import Route, Routes, flatten_routes
 
 PRIMITIVE_TYPES = (
     str, int, float, bool, list, dict
@@ -26,16 +27,16 @@ class CoreAPISchema(Schema):
         super().__init__(url='/', content=content)
 
 
-def get_schema_content(routes: typing.Sequence[Route]) -> typing.Dict[str, coreapi.Link]:
+def get_schema_content(routes: Routes) -> typing.Dict[str, coreapi.Link]:
     """
     Given the application routes, return a dictionary containing all the
     Links that the service exposes.
     """
     content = {}
-    for route in routes:
+    for route in flatten_routes(routes):
         if getattr(route.view, 'exclude_from_schema', False):
             continue
-        content[route.view.__name__] = get_link(route)
+        content[route.name] = get_link(route)
     return content
 
 
@@ -44,7 +45,7 @@ def get_link(route: Route) -> coreapi.Link:
     Given a single route, return a Link instance containing all the information
     needed to expose that route in an API Schema.
     """
-    path, method, view = route
+    path, method, view, name = route
 
     fields = []
     path_names = set(uritemplate.URITemplate(path).variable_names)

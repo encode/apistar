@@ -1,3 +1,4 @@
+import collections
 import typing
 
 Method = typing.NewType('Method', str)
@@ -16,7 +17,7 @@ Body = typing.NewType('Body', bytes)
 RequestData = typing.TypeVar('RequestData')
 
 
-class Response(object):
+class Response(collections.abc.Iterable):
     def __init__(self,
                  content: typing.Any,
                  status: int=200,
@@ -25,5 +26,5 @@ class Response(object):
         self.status = status
         self.headers = headers or {}
 
-    def __iter__(self):
+    def __iter__(self) -> typing.Iterator:
         return iter((self.content, self.status, self.headers))

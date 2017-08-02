@@ -5,7 +5,7 @@ import tempfile
 import pytest
 
 from apistar import App, Route, TestClient, exceptions
-from apistar.components.routing import WerkzeugRouter
+from apistar.components.router import WerkzeugRouter
 from apistar.components.statics import WhiteNoiseStaticFiles
 from apistar.handlers import serve_static
 from apistar.interfaces import Settings

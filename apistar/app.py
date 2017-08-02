@@ -3,12 +3,12 @@ import typing
 
 import werkzeug
 
-from apistar import exceptions, http
+from apistar import exceptions, http, routing
 from apistar.components import (
-    dependency, routing, schema, statics, templates, wsgi
+    dependency, router, schema, statics, templates, wsgi
 )
 from apistar.interfaces import (
-    Injector, Route, Router, Schema, Settings, StaticFiles, Templates, URLArgs,
+    Injector, Router, Schema, Settings, StaticFiles, Templates, URLArgs,
     WSGIEnviron
 )
 
@@ -40,14 +40,14 @@ DEFAULT_COMPONENTS = {
     Schema: schema.CoreAPISchema,
     Templates: templates.Jinja2Templates,
     StaticFiles: statics.WhiteNoiseStaticFiles,
-    Router: routing.WerkzeugRouter,
+    Router: router.WerkzeugRouter,
     Injector: dependency.DependencyInjector
 }  # type: typing.Dict[type, typing.Callable]
 
 
 class App():
     def __init__(self,
-                 routes: typing.Sequence[Route],
+                 routes: routing.Routes,
                  components: typing.Dict[type, typing.Callable]=None,
                  settings: typing.Dict[str, typing.Any]=None) -> None:
         if components is None:

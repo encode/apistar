@@ -1,8 +1,8 @@
 import pytest
 
-from apistar import App, Route, exceptions, typesystem
-from apistar.interfaces import PathWildcard, URLArgs
-from apistar.test import TestClient
+from apistar import App, Include, Route, TestClient, exceptions, typesystem
+from apistar.interfaces import URLArgs
+from apistar.routing import PathWildcard
 
 
 class MaxLength(typesystem.String):
@@ -63,10 +63,10 @@ def path_param_with_string(var: typesystem.String):
     }
 
 
-# def subpath(var: typesystem.Integer):
-#     return {
-#         'var': var
-#     }
+def subpath(var: typesystem.Integer):
+    return {
+        'var': var
+    }
 
 
 app = App(routes=[
@@ -79,9 +79,9 @@ app = App(routes=[
     Route('/number/{var}/', 'GET', path_param_with_number),
     Route('/integer/{var}/', 'GET', path_param_with_integer),
     Route('/string/{var}/', 'GET', path_param_with_string),
-    # Include('/subpath', [
-    #     Route('/{var}/', 'GET', subpath),
-    # ]),
+    Include('/subpath', [
+        Route('/{var}/', 'GET', subpath),
+    ], namespace='included'),
 ])
 
 
@@ -143,11 +143,11 @@ def test_int_path_param():
     }
 
 
-# def test_subpath():
-#     response = client.get('/subpath/123/')
-#     assert response.json() == {
-#         'var': 123
-#     }
+def test_subpath():
+    response = client.get('/subpath/123/')
+    assert response.json() == {
+        'var': 123
+    }
 
 
 def test_full_path_param():
@@ -244,6 +244,6 @@ def test_routing_reversal_on_path_with_url_params():
     assert url == '/path_params/100/'
 
 
-# def test_routing_reversal_on_subpath_with_url_params():
-#     url = app.router.reverse_url('subpath', {'var': 'testing'})
-#     assert url == '/subpath/testing/'
+def test_routing_reversal_on_subpath():
+    url = app.router.reverse_url('included:subpath', {'var': '100'})
+    assert url == '/subpath/100/'

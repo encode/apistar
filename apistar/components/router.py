@@ -1,5 +1,4 @@
 import inspect
-import typing
 from urllib.parse import urlparse
 
 import uritemplate
@@ -7,15 +6,16 @@ import werkzeug
 from werkzeug.routing import Map, Rule
 
 from apistar import exceptions
-from apistar.interfaces import Lookup, PathWildcard, Route, Router
+from apistar.interfaces import Lookup, Router
+from apistar.routing import PathWildcard, Routes, flatten_routes
 
 
 class WerkzeugRouter(Router):
-    def __init__(self, routes: typing.Sequence[Route]) -> None:
+    def __init__(self, routes: Routes) -> None:
         rules = []
         views = {}
 
-        for path, method, view in routes:
+        for path, method, view, name in flatten_routes(routes):
             template = uritemplate.URITemplate(path)
             werkzeug_path = path[:]
 
@@ -27,7 +27,6 @@ class WerkzeugRouter(Router):
                 werkzeug_format = '<%s:%s>' % (converter, arg)
                 werkzeug_path = werkzeug_path.replace(template_format, werkzeug_format)
 
-            name = view.__name__
             rule = Rule(werkzeug_path, methods=[method], endpoint=name)
             rules.append(rule)
             views[name] = view
@@ -77,5 +76,5 @@ class WerkzeugRouter(Router):
         except werkzeug.routing.BuildError as exc:
             raise exceptions.NoReverseMatch(str(exc)) from None
 
-    def get_routes(self) -> typing.Sequence[Route]:
+    def get_routes(self) -> Routes:
         return self._routes

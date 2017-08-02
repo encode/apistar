@@ -5,9 +5,8 @@ import coreapi
 import coreschema
 
 from apistar import Response, exceptions
-from apistar.interfaces import (
-    PathWildcard, Schema, StaticFiles, Templates, WSGIEnviron
-)
+from apistar.interfaces import Schema, StaticFiles, Templates, WSGIEnviron
+from apistar.routing import PathWildcard
 
 
 def api_documentation(schema: Schema, templates: Templates) -> Response:

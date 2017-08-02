@@ -3,7 +3,7 @@ import typing
 
 import coreapi
 
-from apistar import typesystem
+from apistar.routing import Routes
 
 # WSGI
 
@@ -19,13 +19,7 @@ Settings = typing.NewType('Settings', dict)
 
 URLArgs = typing.NewType('URLArgs', dict)
 
-
-class PathWildcard(typesystem.String):
-    pass
-
-
 Lookup = typing.Tuple[typing.Callable, typing.Dict[str, typing.Any]]
-Route = typing.NamedTuple('Route', [('path', str), ('method', str), ('view', typing.Callable)])
 
 
 class Router(metaclass=abc.ABCMeta):
@@ -38,7 +32,7 @@ class Router(metaclass=abc.ABCMeta):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def get_routes(self) -> typing.Sequence[Route]:
+    def get_routes(self) -> Routes:
         raise NotImplementedError
 
 
