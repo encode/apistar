@@ -2,8 +2,12 @@
 import os
 import tempfile
 
-from apistar import App, Route, TestClient
+import pytest
+
+from apistar import App, Route, TestClient, exceptions
 from apistar.handlers import serve_static
+from apistar.components.routing import WerkzeugRouter
+from apistar.components.statics import WhiteNoiseStaticFiles
 
 
 def test_static_files() -> None:
@@ -35,3 +39,13 @@ def test_static_files() -> None:
 
         response = client.head('/static/404')
         assert response.status_code == 404
+
+
+def test_misconfigured_static_files() -> None:
+    router = WerkzeugRouter([])
+    settings = {
+        'STATICS': {'ROOT_DIR': None, 'PACKAGE_DIRS': ['apistar']}
+    }
+    statics = WhiteNoiseStaticFiles(router=router, settings=settings)
+    with pytest.raises(exceptions.ConfigurationError):
+        statics.get_url('/apistar/css/base.css')
