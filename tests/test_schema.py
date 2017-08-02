@@ -6,7 +6,7 @@ from apistar import App, Route, TestClient, typesystem
 from apistar.handlers import (
     api_documentation, corejson_schema, javascript_schema, serve_static
 )
-from apistar.interfaces import Schema
+from apistar.interfaces import Schema, Settings
 
 
 class Category(typesystem.Enum):
@@ -23,7 +23,7 @@ class ToDoNote(typesystem.Object):
     }
 
 
-def list_todo(search):
+def list_todo(search, settings: Settings):
     """
     list_todo description
     """

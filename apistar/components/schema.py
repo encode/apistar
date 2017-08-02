@@ -70,7 +70,7 @@ def get_field(param: inspect.Parameter,
         annotated_type = param.annotation
 
     if not inspect.isclass(annotated_type):
-        return None
+        return None  # Ignore type annotations
 
     if param.name in path_names:
         return coreapi.Field(
@@ -79,38 +79,37 @@ def get_field(param: inspect.Parameter,
             required=True,
             schema=get_param_schema(annotated_type)
         )
-    elif (annotated_type in PRIMITIVE_TYPES) or issubclass(annotated_type, SCHEMA_TYPES):
-        if method in ('POST', 'PUT', 'PATCH'):
-            if issubclass(annotated_type, typesystem.Object):
-                return coreapi.Field(
-                    name=param.name,
-                    location='body',
-                    required=True,
-                    schema=get_param_schema(annotated_type)
-                )
-            else:
-                return coreapi.Field(
-                    name=param.name,
-                    location='form',
-                    required=False,
-                    schema=get_param_schema(annotated_type)
-                )
+
+    if method in ('POST', 'PUT', 'PATCH'):
+        if issubclass(annotated_type, (dict, list)):
+            return coreapi.Field(
+                name=param.name,
+                location='body',
+                required=True,
+                schema=get_param_schema(annotated_type)
+            )
         else:
             return coreapi.Field(
                 name=param.name,
-                location='query',
+                location='form',
                 required=False,
                 schema=get_param_schema(annotated_type)
             )
-    return None
+
+    return coreapi.Field(
+        name=param.name,
+        location='query',
+        required=False,
+        schema=get_param_schema(annotated_type)
+    )
 
 
 def get_param_schema(annotated_type: typing.Type) -> coreschema.schemas.Schema:
-    if annotated_type is bool or issubclass(annotated_type, typesystem.Boolean):
+    if issubclass(annotated_type, (bool, typesystem.Boolean)):
         return coreschema.Boolean()
-    elif annotated_type is int or issubclass(annotated_type, typesystem.Integer):
+    elif issubclass(annotated_type, int):
         return coreschema.Integer()
-    elif annotated_type is float or issubclass(annotated_type, typesystem.Number):
+    elif issubclass(annotated_type, float):
         return coreschema.Number()
     elif issubclass(annotated_type, typesystem.Enum):
         enum = typing.cast(typing.Type[typesystem.Enum], annotated_type)
