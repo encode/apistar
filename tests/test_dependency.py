@@ -1,6 +1,9 @@
 from typing import List
 
-from apistar import App, Route, TestClient, typesystem
+import pytest
+
+from apistar import App, Route, TestClient, exceptions, typesystem
+from apistar.interfaces import WSGIEnviron
 
 
 class KittenName(typesystem.String):
@@ -104,7 +107,7 @@ def test_empty_arg_as_query_param():
 
 def test_cannot_coerce_query_param():
     def view(arg: int):
-        return {'arg': arg}
+        raise NotImplementedError
 
     routes = [
         Route('/', 'GET', view)
@@ -112,8 +115,9 @@ def test_cannot_coerce_query_param():
     app = App(routes=routes)
     client = TestClient(app)
     response = client.get('/?arg=abc')
+    assert response.status_code == 400
     assert response.json() == {
-        'arg': None
+        'arg': "invalid literal for int() with base 10: 'abc'"
     }
 
 
@@ -130,3 +134,86 @@ def test_arg_as_composite_param():
     assert response.json() == {
         'arg': {'a': 123}
     }
+
+
+def test_cannot_coerce_body_param():
+    def view(arg: dict):
+        raise NotImplementedError
+
+    routes = [
+        Route('/', 'POST', view)
+    ]
+    app = App(routes=routes)
+    client = TestClient(app)
+    response = client.post('/', json=123)
+    assert response.status_code == 400
+    assert response.json() == {
+        'message': "'int' object is not iterable"
+    }
+
+
+def test_cannot_inject_unkown_component():
+    class A():
+        pass
+
+    def view(component: A):
+        raise NotImplementedError
+
+    routes = [
+        Route('/', 'GET', view)
+    ]
+    app = App(routes=routes)
+    client = TestClient(app)
+    with pytest.raises(exceptions.ConfigurationError):
+        client.get('/')
+
+
+def test_component_injected_twice_runs_once():
+    log = []
+
+    class LoggingComponent():
+        def __init__(self, environ: WSGIEnviron) -> None:
+            nonlocal log
+            log.append('logging component injected')
+
+    def view(a: LoggingComponent, b: LoggingComponent):
+        return
+
+    routes = [
+        Route('/', 'GET', view)
+    ]
+    components = {LoggingComponent: LoggingComponent}
+    app = App(routes=routes, components=components)
+    client = TestClient(app)
+    client.get('/')
+    assert log == ['logging component injected']
+
+
+def test_context_manager_component():
+    log = []
+
+    class ContextManagerComponent():
+        def __init__(self, environ: WSGIEnviron) -> None:
+            pass
+
+        def __enter__(self):
+            nonlocal log
+            log.append('context manager enter')
+
+        def __exit__(self, *args, **kwargs):
+            nonlocal log
+            log.append('context manager exit')
+
+    def view(c: ContextManagerComponent):
+        nonlocal log
+        log.append('view')
+        return
+
+    routes = [
+        Route('/', 'GET', view)
+    ]
+    components = {ContextManagerComponent: ContextManagerComponent}
+    app = App(routes=routes, components=components)
+    client = TestClient(app)
+    client.get('/')
+    assert log == ['context manager enter', 'view', 'context manager exit']

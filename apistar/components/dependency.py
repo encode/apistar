@@ -36,13 +36,14 @@ def scalar_type(name: ParamName, args: URLArgs, query_params: http.QueryParams, 
 
     try:
         return coerce(value)
-    except (TypeError, ValueError):
-        return None
     except exceptions.TypeSystemError as exc:
-        if is_url_arg:
-            raise exceptions.NotFound()
         detail = {name: exc.detail}
-        raise exceptions.ValidationError(detail=detail)
+    except (TypeError, ValueError) as exc:
+        detail = {name: str(exc)}
+
+    if is_url_arg:
+        raise exceptions.NotFound()
+    raise exceptions.ValidationError(detail=detail)
 
 
 def container_type(data: http.RequestData, coerce: ParamAnnotation):
@@ -51,10 +52,12 @@ def container_type(data: http.RequestData, coerce: ParamAnnotation):
 
     try:
         return coerce(data)
-    except (TypeError, ValueError):
-        return None
     except exceptions.TypeSystemError as exc:
-        raise exceptions.ValidationError(detail=exc.detail)
+        detail = exc.detail
+    except (TypeError, ValueError) as exc:
+        detail = str(exc)
+
+    raise exceptions.ValidationError(detail=detail)
 
 
 class DependencyInjector(Injector):
@@ -67,9 +70,9 @@ class DependencyInjector(Injector):
                  providers: typing.Dict[type, typing.Callable]=None,
                  required_state: typing.Dict[str, type]=None) -> None:
         if providers is None:
-            providers = {}
+            providers = {}  # pragma: nocover
         if required_state is None:
-            required_state = {}
+            required_state = {}  # pragma: nocover
 
         self.providers = providers
         self.required_state = required_state
@@ -82,7 +85,7 @@ class DependencyInjector(Injector):
             func: typing.Callable,
             state: typing.Dict[str, typing.Any]=None) -> typing.Any:
         if state is None:
-            state = {}
+            state = {}  # pragma: nocover
 
         try:
             steps = self.steps[func]
@@ -137,7 +140,8 @@ class DependencyInjector(Injector):
             func = container_type
             return (key, func)
 
-        raise Exception('Injector could not resolve parameter %s' % param)
+        msg = 'Injector could not resolve parameter %s' % param
+        raise exceptions.ConfigurationError(msg)
 
     def create_steps(self,
                      func: typing.Callable,
