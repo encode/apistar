@@ -39,7 +39,9 @@ class Include(collections.abc.Iterable):
 Routes = typing.Sequence[typing.Union[Route, Include]]
 
 
-def flatten_routes(routes: Routes, path_prefix: str=None, namespace_prefix: str=None) -> typing.Sequence[Route]:
+def flatten_routes(routes: Routes,
+                   path_prefix: str=None,
+                   namespace_prefix: str=None) -> typing.Sequence[Route]:
     if path_prefix is None:
         path_prefix = ''
     if namespace_prefix is None:
