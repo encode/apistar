@@ -247,3 +247,14 @@ def test_routing_reversal_on_path_with_url_params():
 def test_routing_reversal_on_subpath():
     url = app.router.reverse_url('included:subpath', {'var': '100'})
     assert url == '/subpath/100/'
+
+
+def test_misconfigured_routes():
+    def view():
+        raise NotImplementedError
+
+    with pytest.raises(exceptions.ConfigurationError):
+        App([
+            Route('/', 'GET', view),
+            Route('/another', 'POST', view)
+        ])

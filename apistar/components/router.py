@@ -1,4 +1,5 @@
 import inspect
+import typing
 from urllib.parse import urlparse
 
 import uritemplate
@@ -12,10 +13,17 @@ from apistar.routing import PathWildcard, Routes, flatten_routes
 
 class WerkzeugRouter(Router):
     def __init__(self, routes: Routes) -> None:
-        rules = []
-        views = {}
+        rules = []  # type: typing.List[Rule]
+        views = {}  # type: typing.Dict[str, typing.Callable]
 
         for path, method, view, name in flatten_routes(routes):
+            if name in views:
+                msg = (
+                    'Route wtih name "%s" exists more than once. Use an '
+                    'explicit name="..." on the Route to avoid a conflict.'
+                ) % name
+                raise exceptions.ConfigurationError(msg)
+
             template = uritemplate.URITemplate(path)
             werkzeug_path = path[:]
 
@@ -35,7 +43,10 @@ class WerkzeugRouter(Router):
         self._adapter = Map(rules).bind('')
         self._views = views
 
-    def _get_converter(self, parameters, arg, view):
+    def _get_converter(self,
+                       parameters: typing.Mapping[str, inspect.Parameter],
+                       arg: str,
+                       view: typing.Callable) -> str:
         if arg not in parameters:
             msg = 'URL Argument "%s" missing from view "%s".' % (arg, view)
             raise exceptions.ConfigurationError(msg)

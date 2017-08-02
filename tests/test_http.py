@@ -78,7 +78,7 @@ def get_accept_header(accept: http.Header) -> http.Response:
 
 app = App(routes=[
     Route('/method/', 'GET', get_method),
-    Route('/method/', 'POST', get_method),
+    Route('/method/', 'POST', get_method, name='post_method'),
     Route('/scheme/', 'GET', get_scheme),
     Route('/host/', 'GET', get_host),
     Route('/port/', 'GET', get_port),
