@@ -94,7 +94,7 @@ expected = Schema(url='/schema/', content={
         action='PUT',
         fields=[
             Field(name='ident', location='path', required=True, schema=coreschema.Integer()),
-            Field(name='complete', location='form', required=False, schema=coreschema.Boolean())
+            Field(name='complete', location='query', required=False, schema=coreschema.Boolean())
         ]
     ),
     'set_percent_complete': Link(
@@ -102,7 +102,7 @@ expected = Schema(url='/schema/', content={
         action='PUT',
         fields=[
             Field(name='ident', location='path', required=True, schema=coreschema.Integer()),
-            Field(name='percent_complete', location='form', required=False, schema=coreschema.Number())
+            Field(name='percent_complete', location='query', required=False, schema=coreschema.Number())
         ]
     ),
     'set_category': Link(
@@ -110,7 +110,7 @@ expected = Schema(url='/schema/', content={
         action='PUT',
         fields=[
             Field(name='ident', location='path', required=True, schema=coreschema.Integer()),
-            Field(name='category', location='form', required=False, schema=coreschema.Enum(enum=['shop', 'chore']))
+            Field(name='category', location='query', required=False, schema=coreschema.Enum(enum=['shop', 'chore']))
         ]
     )
 })

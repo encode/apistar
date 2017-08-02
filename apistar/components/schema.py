@@ -80,21 +80,13 @@ def get_field(param: inspect.Parameter,
             schema=get_param_schema(annotated_type)
         )
 
-    if method in ('POST', 'PUT', 'PATCH'):
-        if issubclass(annotated_type, (dict, list)):
-            return coreapi.Field(
-                name=param.name,
-                location='body',
-                required=True,
-                schema=get_param_schema(annotated_type)
-            )
-        else:
-            return coreapi.Field(
-                name=param.name,
-                location='form',
-                required=False,
-                schema=get_param_schema(annotated_type)
-            )
+    if issubclass(annotated_type, (dict, list)):
+        return coreapi.Field(
+            name=param.name,
+            location='body',
+            required=True,
+            schema=get_param_schema(annotated_type)
+        )
 
     return coreapi.Field(
         name=param.name,
