@@ -18,13 +18,11 @@ REQUIRED_STATE = {
     'kwargs': KeywordArgs,
     'exc': Exception,
     'routes': RouteConfig,
-    'router': Router,
     'settings': Settings,
 }  # type: typing.Dict[str, type]
 
 
-DEFAULT_COMPONENTS = {
-    # HTTP Components
+WSGI_COMPONENTS = {
     http.Method: wsgi.get_method,
     http.URL: wsgi.get_url,
     http.Scheme: wsgi.get_scheme,
@@ -38,7 +36,10 @@ DEFAULT_COMPONENTS = {
     http.QueryParam: wsgi.get_queryparam,
     http.Body: wsgi.get_body,
     http.RequestData: wsgi.get_request_data,
-    # Framework Components
+}  # type: typing.Dict[type, typing.Callable]
+
+
+FRAMEWORK_COMPONENTS = {
     Schema: schema.CoreAPISchema,
     Templates: templates.Jinja2Templates,
     StaticFiles: statics.WhiteNoiseStaticFiles,
@@ -63,18 +64,15 @@ class App():
         if settings is None:
             settings = {}
 
-        components = {**DEFAULT_COMPONENTS, **components}
-        router_cls = components.pop(Router)
+        components = {**WSGI_COMPONENTS, **FRAMEWORK_COMPONENTS, **components}
         injector_cls = components.pop(Injector)
-        commandline_cls = components.pop(CommandLineClient)
 
         self.routes = routes
         self.settings = settings
-        self.router = router_cls(routes)
-        self.commandline = commandline_cls(commands)
+        self.router = components[Router](routes)
+        self.commandline = components[CommandLineClient](commands)
         self.injector = injector_cls(components, REQUIRED_STATE, initial_state={
             'routes': self.routes,
-            'router': self.router,
             'settings': self.settings
         })
 
