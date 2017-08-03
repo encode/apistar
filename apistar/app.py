@@ -1,22 +1,24 @@
 import json
+import sys
 import typing
 
 import werkzeug
 
-from apistar import exceptions, http, routing
+from apistar import exceptions, http
 from apistar.components import (
-    dependency, router, schema, statics, templates, wsgi
+    commandline, dependency, router, schema, statics, templates, wsgi
 )
 from apistar.interfaces import (
-    Injector, Router, Schema, Settings, StaticFiles, Templates, WSGIEnviron
+    CommandConfig, CommandLineClient, Injector, KeywordArgs, RouteConfig,
+    Router, Schema, Settings, StaticFiles, Templates, WSGIEnviron
 )
 
 REQUIRED_STATE = {
     'wsgi_environ': WSGIEnviron,
     'path': http.Path,
     'method': http.Method,
-    'url_args': routing.URLArgs,
-    'routes': routing.Routes,
+    'kwargs': KeywordArgs,
+    'routes': RouteConfig,
     'router': Router,
     'settings': Settings,
     'exc': Exception
@@ -41,15 +43,21 @@ DEFAULT_COMPONENTS = {
     Templates: templates.Jinja2Templates,
     StaticFiles: statics.WhiteNoiseStaticFiles,
     Router: router.WerkzeugRouter,
-    Injector: dependency.DependencyInjector
+    Injector: dependency.DependencyInjector,
+    CommandLineClient: commandline.ArgParseCommandLineClient
 }  # type: typing.Dict[type, typing.Callable]
 
 
 class App():
     def __init__(self,
-                 routes: routing.Routes,
+                 routes: RouteConfig=None,
+                 commands: CommandConfig=None,
                  components: typing.Dict[type, typing.Callable]=None,
                  settings: typing.Dict[str, typing.Any]=None) -> None:
+        if routes is None:
+            routes = []
+        if commands is None:
+            commands = []
         if components is None:
             components = {}
         if settings is None:
@@ -58,10 +66,12 @@ class App():
         components = {**DEFAULT_COMPONENTS, **components}
         router_cls = components.pop(Router)
         injector_cls = components.pop(Injector)
+        commandline_cls = components.pop(CommandLineClient)
 
         self.routes = routes
         self.settings = settings
         self.router = router_cls(routes)
+        self.commandline = commandline_cls(commands)
         self.injector = injector_cls(components, REQUIRED_STATE)
 
     def __call__(self, environ: typing.Dict[str, typing.Any], start_response: typing.Callable):
@@ -74,13 +84,13 @@ class App():
             'routes': self.routes,
             'router': self.router,
             'settings': self.settings,
-            'url_args': None,
+            'kwargs': None,
             'exc': None
         }
         try:
-            view, url_args = self.router.lookup(path, method)
-            state['url_args'] = url_args
-            response = self.injector.run(view, state=state)
+            handler, kwargs = self.router.lookup(path, method)
+            state['kwargs'] = kwargs
+            response = self.injector.run(handler, state=state)
             response = self.finalize_response(response)
         except Exception as exc:
             state['exc'] = exc
@@ -133,5 +143,29 @@ class App():
 
         return werkzeug.Response(content, status, headers, content_type=content_type)
 
-    def run(self, hostname: str='localhost', port: int=8080, **options) -> None:  # pragma: nocover
-        werkzeug.run_simple(hostname, port, self, **options)
+    def main(self,
+             args: typing.Sequence[str]=None,
+             standalone_mode: bool=True):
+        if args is None:  # pragma: nocover
+            args = sys.argv[1:]
+
+        state = {}
+        try:
+            handler, kwargs = self.commandline.parse(args)
+            state['kwargs'] = kwargs
+            ret = handler(**kwargs)
+        except exceptions.CommandLineError as exc:
+            if standalone_mode:  # pragma: nocover
+                sys.stderr.write('Error: %s\n' % exc)
+                sys.exit(exc.exit_code)
+            raise
+        except (EOFError, KeyboardInterrupt):  # pragma: nocover
+            sys.stderr.write('Aborted!\n')
+            sys.exit(1)
+
+        if standalone_mode:  # pragma: nocover
+            print(ret)
+        return ret
+
+    # def run(self, hostname: str='localhost', port: int=8080, **options) -> None:  # pragma: nocover
+    #     werkzeug.run_simple(hostname, port, self, **options)

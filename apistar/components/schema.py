@@ -7,7 +7,7 @@ import coreschema
 import uritemplate
 
 from apistar import routing, typesystem
-from apistar.interfaces import Schema
+from apistar.interfaces import RouteConfig, Schema
 
 PRIMITIVE_TYPES = (
     str, int, float, bool, list, dict
@@ -20,7 +20,7 @@ SCHEMA_TYPES = (
 
 
 class CoreAPISchema(Schema):
-    def __init__(self, routes: routing.Routes) -> None:
+    def __init__(self, routes: RouteConfig) -> None:
         content = {}
         for route in routing.flatten_routes(routes):
             if getattr(route.view, 'exclude_from_schema', False):

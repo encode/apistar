@@ -27,6 +27,13 @@ class ConfigurationError(Exception):
     pass
 
 
+class CommandLineError(Exception):
+    def __init__(self, message, exit_code: int=1) -> None:
+        self.exit_code = exit_code
+        self.message = message
+        super().__init__(message)
+
+
 # HTTP exceptions
 
 class HTTPException(Exception):

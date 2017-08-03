@@ -7,12 +7,12 @@ import werkzeug
 from werkzeug.routing import Map, Rule
 
 from apistar import exceptions
-from apistar.interfaces import Lookup, Router
-from apistar.routing import PathWildcard, Routes, flatten_routes
+from apistar.interfaces import HandlerLookup, RouteConfig, Router
+from apistar.routing import PathWildcard, flatten_routes
 
 
 class WerkzeugRouter(Router):
-    def __init__(self, routes: Routes) -> None:
+    def __init__(self, routes: RouteConfig) -> None:
         rules = []  # type: typing.List[Rule]
         views = {}  # type: typing.Dict[str, typing.Callable]
 
@@ -67,7 +67,7 @@ class WerkzeugRouter(Router):
         msg = 'Invalid type for path parameter "%s" in view "%s".' % (parameters[arg], view)
         raise exceptions.ConfigurationError(msg)
 
-    def lookup(self, path: str, method: str) -> Lookup:
+    def lookup(self, path: str, method: str) -> HandlerLookup:
         try:
             name, kwargs = self._adapter.match(path, method)
         except werkzeug.exceptions.NotFound:

@@ -3,8 +3,10 @@ import typing
 from collections import OrderedDict
 from contextlib import ExitStack
 
-from apistar import exceptions, http, routing, typesystem
-from apistar.interfaces import Injector, ParamAnnotation, ParamName
+from apistar import exceptions, http, typesystem
+from apistar.interfaces import (
+    Injector, KeywordArgs, ParamAnnotation, ParamName
+)
 
 Step = typing.NamedTuple('Step', [
     ('func', typing.Callable),
@@ -18,19 +20,19 @@ DependencyResolution = typing.Tuple[str, typing.Optional[typing.Callable]]
 
 
 def empty(name: ParamName,
-          args: routing.URLArgs,
+          kwargs: KeywordArgs,
           query_params: http.QueryParams):
-    if name in args:
-        return args[name]
+    if name in kwargs:
+        return kwargs[name]
     return query_params.get(name)
 
 
 def scalar_type(name: ParamName,
-                args: routing.URLArgs,
+                kwargs: KeywordArgs,
                 query_params: http.QueryParams,
                 coerce: ParamAnnotation):
-    if name in args:
-        value = args[name]
+    if name in kwargs:
+        value = kwargs[name]
         is_url_arg = True
     else:
         value = query_params.get(name)

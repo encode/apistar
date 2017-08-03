@@ -3,6 +3,14 @@ import typing
 
 import coreapi
 
+from apistar import cli, routing
+
+# Common
+
+KeywordArgs = typing.Dict[str, typing.Any]
+HandlerLookup = typing.Tuple[typing.Callable, KeywordArgs]
+
+
 # WSGI
 
 WSGIEnviron = typing.NewType('WSGIEnviron', dict)
@@ -15,12 +23,12 @@ Settings = typing.NewType('Settings', dict)
 
 # Routing
 
-Lookup = typing.Tuple[typing.Callable, typing.Dict[str, typing.Any]]
+RouteConfig = typing.Sequence[typing.Union[routing.Route, routing.Include]]
 
 
 class Router(metaclass=abc.ABCMeta):
     @abc.abstractmethod
-    def lookup(self, path: str, method: str) -> Lookup:
+    def lookup(self, path: str, method: str) -> HandlerLookup:
         raise NotImplementedError
 
     @abc.abstractmethod
@@ -62,6 +70,23 @@ class StaticFiles(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def get_url(self, path: str) -> str:
+        raise NotImplementedError
+
+
+# Command Line Parser
+
+CommandConfig = typing.Sequence[cli.Command]
+
+
+class CommandLineClient(metaclass=abc.ABCMeta):
+    @abc.abstractmethod
+    def __init__(self,
+                 commands: CommandConfig) -> None:
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def parse(self,
+              args: typing.Sequence[str]) -> HandlerLookup:
         raise NotImplementedError
 
 

@@ -3,8 +3,6 @@ import typing
 
 from apistar import typesystem
 
-URLArgs = typing.NewType('URLArgs', dict)
-
 
 class Route(collections.abc.Iterable):
     def __init__(self,
@@ -36,10 +34,7 @@ class Include(collections.abc.Iterable):
         return iter((self.path, self.routes, self.namespace))
 
 
-Routes = typing.Sequence[typing.Union[Route, Include]]
-
-
-def flatten_routes(routes: Routes,
+def flatten_routes(routes: typing.Sequence[typing.Union[Route, Include]],
                    path_prefix: str=None,
                    namespace_prefix: str=None) -> typing.Sequence[Route]:
     if path_prefix is None:

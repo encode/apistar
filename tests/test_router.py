@@ -1,7 +1,8 @@
 import pytest
 
 from apistar import App, Include, Route, TestClient, exceptions, typesystem
-from apistar.routing import PathWildcard, URLArgs
+from apistar.interfaces import KeywordArgs
+from apistar.routing import PathWildcard
 
 
 class MaxLength(typesystem.String):
@@ -14,7 +15,7 @@ def found():
     }
 
 
-def path_params(args: URLArgs, var: int):
+def path_params(args: KeywordArgs, var: int):
     return {
         'args': args
     }
