@@ -15,22 +15,22 @@ from apistar.interfaces import (
 
 REQUIRED_STATE = {
     'wsgi_environ': WSGIEnviron,
-    'path': http.Path,
-    'method': http.Method,
     'kwargs': KeywordArgs,
+    'exc': Exception,
     'routes': RouteConfig,
     'router': Router,
     'settings': Settings,
-    'exc': Exception
 }  # type: typing.Dict[str, type]
 
 
 DEFAULT_COMPONENTS = {
     # HTTP Components
+    http.Method: wsgi.get_method,
     http.URL: wsgi.get_url,
     http.Scheme: wsgi.get_scheme,
     http.Host: wsgi.get_host,
     http.Port: wsgi.get_port,
+    http.Path: wsgi.get_path,
     http.Headers: wsgi.get_headers,
     http.Header: wsgi.get_header,
     http.QueryString: wsgi.get_querystring,
@@ -72,28 +72,27 @@ class App():
         self.settings = settings
         self.router = router_cls(routes)
         self.commandline = commandline_cls(commands)
-        self.injector = injector_cls(components, REQUIRED_STATE)
-
-    def __call__(self, environ: typing.Dict[str, typing.Any], start_response: typing.Callable):
-        method = environ['REQUEST_METHOD'].upper()
-        path = environ['SCRIPT_NAME'] + environ['PATH_INFO']
-        state = {
-            'wsgi_environ': environ,
-            'path': path,
-            'method': method,
+        self.injector = injector_cls(components, REQUIRED_STATE, initial_state={
             'routes': self.routes,
             'router': self.router,
-            'settings': self.settings,
+            'settings': self.settings
+        })
+
+    def __call__(self, environ: typing.Dict[str, typing.Any], start_response: typing.Callable):
+        state = {
+            'wsgi_environ': environ,
             'kwargs': None,
             'exc': None
         }
+        method = environ['REQUEST_METHOD'].upper()
+        path = environ['SCRIPT_NAME'] + environ['PATH_INFO']
         try:
             handler, kwargs = self.router.lookup(path, method)
             state['kwargs'] = kwargs
             response = self.injector.run(handler, state=state)
             response = self.finalize_response(response)
         except Exception as exc:
-            state['exc'] = exc
+            state['exc'] = exc  # type: ignore
             response = self.injector.run(self.exception_handler, state=state)
             response = self.finalize_response(response)
 

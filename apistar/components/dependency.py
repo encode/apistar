@@ -76,17 +76,21 @@ class DependencyInjector(Injector):
 
     def __init__(self,
                  providers: typing.Dict[type, typing.Callable]=None,
-                 required_state: typing.Dict[str, type]=None) -> None:
+                 required_state: typing.Dict[str, type]=None,
+                 initial_state: typing.Dict[str, typing.Any]=None) -> None:
         if providers is None:
             providers = {}  # pragma: nocover
         if required_state is None:
             required_state = {}  # pragma: nocover
+        if initial_state is None:
+            initial_state = {}  # pragma: nocover
 
         self.providers = providers
         self.required_state = required_state
         self.required_state_lookup = {
             cls: key for key, cls in required_state.items()
         }
+        self.initial_state = initial_state
         self.steps = {}  # type: typing.Dict[typing.Callable, typing.List[Step]]
 
     def run(self,
@@ -94,6 +98,7 @@ class DependencyInjector(Injector):
             state: typing.Dict[str, typing.Any]=None) -> typing.Any:
         if state is None:
             state = {}  # pragma: nocover
+        state = {**state, **self.initial_state}
 
         try:
             steps = self.steps[func]

@@ -11,6 +11,10 @@ from apistar import exceptions, http
 from apistar.interfaces import ParamName, WSGIEnviron
 
 
+def get_method(environ: WSGIEnviron):
+    return environ['REQUEST_METHOD'].upper()
+
+
 def get_url(environ: WSGIEnviron):
     return request_uri(environ)
 
@@ -27,6 +31,10 @@ def get_port(environ: WSGIEnviron):
     if environ['wsgi.url_scheme'] == 'https':
         return int(environ.get('SERVER_PORT') or 443)
     return int(environ.get('SERVER_PORT') or 80)
+
+
+def get_path(environ: WSGIEnviron):
+    return environ['SCRIPT_NAME'] + environ['PATH_INFO']
 
 
 def get_querystring(environ: WSGIEnviron):

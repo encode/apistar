@@ -100,7 +100,8 @@ class Injector(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def __init__(self,
                  providers: typing.Dict[type, typing.Callable],
-                 required_state: typing.Dict[str, type]) -> None:
+                 required_state: typing.Dict[str, type],
+                 initial_state: typing.Dict[str, typing.Any]) -> None:
         raise NotImplementedError
 
     @abc.abstractmethod
