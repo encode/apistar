@@ -434,7 +434,8 @@ responses, using [Jinja2](http://jinja.pocoo.org/).
 **app.py:**
 
 ```python
-from apistar import App, Route, Templates
+from apistar import App, Route
+from apistar.templating import Templates
 import os
 
 def hello(username: str, templates: Templates):
