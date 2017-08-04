@@ -28,7 +28,41 @@ class ArgParseCommandLineClient(CommandLineClient):
 
             parameters = inspect.signature(handler).parameters
             for param_name, param in parameters.items():
-                subparser.add_argument(param_name)
+                annotation = param.annotation
+                if annotation is inspect.Parameter.empty:
+                    annotation = str
+
+                if issubclass(annotation, (str, int, float, bool)):
+                    name = param_name.replace('_', '-')
+                    default = param.default
+                    if default is inspect.Parameter.empty:
+                        subparser.add_argument(
+                            param_name,
+                            metavar=name.upper(),
+                            type=annotation
+                        )
+                    elif default is False:
+                        subparser.add_argument(
+                            '--%s' % name,
+                            dest=param_name,
+                            action='store_true',
+                            default=default
+                        )
+                    elif default is True:
+                        subparser.add_argument(
+                            '--no-%s' % name,
+                            dest=param_name,
+                            action='store_false',
+                            default=default
+                        )
+                    else:
+                        subparser.add_argument(
+                            '--%s' % name,
+                            dest=param_name,
+                            type=annotation,
+                            action='store',
+                            default=default
+                        )
 
         self._parser = parser
 

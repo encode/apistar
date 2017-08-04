@@ -17,6 +17,12 @@ HandlerLookup = typing.Tuple[typing.Callable, KeywordArgs]
 WSGIEnviron = typing.NewType('WSGIEnviron', dict)
 
 
+class WSGICallable(metaclass=abc.ABCMeta):
+    @abc.abstractmethod
+    def __call__(self, environ: typing.Dict[str, typing.Any], start_response: typing.Callable):
+        raise NotImplementedError
+
+
 # Settings
 
 Settings = typing.NewType('Settings', dict)

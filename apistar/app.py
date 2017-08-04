@@ -5,13 +5,20 @@ import typing
 import werkzeug
 
 from apistar import exceptions, http
+from apistar.cli import Command
+from apistar.commands.run import run
 from apistar.components import (
     commandline, dependency, router, schema, statics, templates, wsgi
 )
 from apistar.interfaces import (
     CommandConfig, CommandLineClient, Injector, KeywordArgs, RouteConfig,
-    Router, Schema, Settings, StaticFiles, Templates, WSGIEnviron
+    Router, Schema, Settings, StaticFiles, Templates, WSGICallable,
+    WSGIEnviron
 )
+
+BUILTIN_COMMANDS = [
+    Command('run', run),
+]
 
 WSGI_COMPONENTS = {
     http.Method: wsgi.get_method,
@@ -40,7 +47,7 @@ FRAMEWORK_COMPONENTS = {
 }  # type: typing.Dict[type, typing.Callable]
 
 
-class App():
+class App(WSGICallable):
     def __init__(self,
                  routes: RouteConfig=None,
                  commands: CommandConfig=None,
@@ -55,6 +62,7 @@ class App():
         if settings is None:
             settings = {}
 
+        commands = [*BUILTIN_COMMANDS, *commands]
         components = {**FRAMEWORK_COMPONENTS, **components}
         injector_cls = components.pop(Injector)
 
@@ -69,6 +77,7 @@ class App():
                 RouteConfig: routes,
                 CommandConfig: commands,
                 Settings: settings,
+                WSGICallable: self,
             },
             required_state={
                 WSGIEnviron: 'wsgi_environ',
@@ -83,6 +92,7 @@ class App():
                 RouteConfig: routes,
                 CommandConfig: commands,
                 Settings: settings,
+                WSGICallable: self,
             },
             required_state={
                 KeywordArgs: 'kwargs',
@@ -174,9 +184,6 @@ class App():
             sys.stderr.write('Aborted!\n')
             sys.exit(1)
 
-        if standalone_mode:  # pragma: nocover
+        if standalone_mode and ret is not None:  # pragma: nocover
             print(ret)
         return ret
-
-    # def run(self, hostname: str='localhost', port: int=8080, **options) -> None:  # pragma: nocover
-    #     werkzeug.run_simple(hostname, port, self, **options)
