@@ -13,15 +13,6 @@ from apistar.interfaces import (
     Router, Schema, Settings, StaticFiles, Templates, WSGIEnviron
 )
 
-REQUIRED_STATE = {
-    'wsgi_environ': WSGIEnviron,
-    'kwargs': KeywordArgs,
-    'exc': Exception,
-    'routes': RouteConfig,
-    'settings': Settings,
-}  # type: typing.Dict[str, type]
-
-
 WSGI_COMPONENTS = {
     http.Method: wsgi.get_method,
     http.URL: wsgi.get_url,
@@ -64,17 +55,40 @@ class App():
         if settings is None:
             settings = {}
 
-        components = {**WSGI_COMPONENTS, **FRAMEWORK_COMPONENTS, **components}
+        components = {**FRAMEWORK_COMPONENTS, **components}
         injector_cls = components.pop(Injector)
 
         self.routes = routes
         self.settings = settings
         self.router = components[Router](routes)
         self.commandline = components[CommandLineClient](commands)
-        self.injector = injector_cls(components, REQUIRED_STATE, initial_state={
-            'routes': self.routes,
-            'settings': self.settings
-        })
+
+        self.wsgi_injector = injector_cls(
+            components={**WSGI_COMPONENTS, **components},
+            initial_state={
+                RouteConfig: routes,
+                CommandConfig: commands,
+                Settings: settings,
+            },
+            required_state={
+                WSGIEnviron: 'wsgi_environ',
+                KeywordArgs: 'kwargs',
+                Exception: 'exc'
+            },
+            resolvers=[dependency.HTTPResolver()]
+        )
+        self.cli_injector = injector_cls(
+            components=components,
+            initial_state={
+                RouteConfig: routes,
+                CommandConfig: commands,
+                Settings: settings,
+            },
+            required_state={
+                KeywordArgs: 'kwargs',
+            },
+            resolvers=[dependency.CliResolver()]
+        )
 
     def __call__(self, environ: typing.Dict[str, typing.Any], start_response: typing.Callable):
         state = {
@@ -87,11 +101,11 @@ class App():
         try:
             handler, kwargs = self.router.lookup(path, method)
             state['kwargs'] = kwargs
-            response = self.injector.run(handler, state=state)
+            response = self.wsgi_injector.run(handler, state=state)
             response = self.finalize_response(response)
         except Exception as exc:
             state['exc'] = exc  # type: ignore
-            response = self.injector.run(self.exception_handler, state=state)
+            response = self.wsgi_injector.run(self.exception_handler, state=state)
             response = self.finalize_response(response)
 
         return response(environ, start_response)
@@ -150,7 +164,7 @@ class App():
         try:
             handler, kwargs = self.commandline.parse(args)
             state['kwargs'] = kwargs
-            ret = handler(**kwargs)
+            ret = self.cli_injector.run(handler, state=state)
         except exceptions.CommandLineError as exc:
             if standalone_mode:  # pragma: nocover
                 sys.stderr.write('Error: %s\n' % exc)

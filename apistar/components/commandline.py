@@ -28,8 +28,7 @@ class ArgParseCommandLineClient(CommandLineClient):
 
             parameters = inspect.signature(handler).parameters
             for param_name, param in parameters.items():
-                if param.annotation is inspect.Parameter.empty:
-                    subparser.add_argument(param_name)
+                subparser.add_argument(param_name)
 
         self._parser = parser
 

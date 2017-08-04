@@ -1,4 +1,5 @@
 import abc
+import inspect
 import typing
 
 import coreapi
@@ -24,6 +25,7 @@ Settings = typing.NewType('Settings', dict)
 # Routing
 
 RouteConfig = typing.Sequence[typing.Union[routing.Route, routing.Include]]
+RouteConfig.__name__ = 'RouteConfig'
 
 
 class Router(metaclass=abc.ABCMeta):
@@ -76,6 +78,7 @@ class StaticFiles(metaclass=abc.ABCMeta):
 # Command Line Parser
 
 CommandConfig = typing.Sequence[cli.Command]
+CommandConfig.__name__ = 'CommandConfig'
 
 
 class CommandLineClient(metaclass=abc.ABCMeta):
@@ -96,12 +99,19 @@ ParamName = typing.NewType('ParamName', str)
 ParamAnnotation = typing.NewType('ParamAnnotation', type)
 
 
+class Resolver(metaclass=abc.ABCMeta):
+    @abc.abstractmethod
+    def resolve(self, param: inspect.Parameter) -> typing.Optional[typing.Tuple[str, typing.Callable]]:
+        raise NotImplementedError
+
+
 class Injector(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def __init__(self,
-                 providers: typing.Dict[type, typing.Callable],
+                 components: typing.Dict[type, typing.Callable],
+                 initial_state: typing.Dict[str, typing.Any],
                  required_state: typing.Dict[str, type],
-                 initial_state: typing.Dict[str, typing.Any]) -> None:
+                 resolvers: typing.List[Resolver]) -> None:
         raise NotImplementedError
 
     @abc.abstractmethod

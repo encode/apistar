@@ -5,7 +5,7 @@ from contextlib import ExitStack
 
 from apistar import exceptions, http, typesystem
 from apistar.interfaces import (
-    Injector, KeywordArgs, ParamAnnotation, ParamName
+    Injector, KeywordArgs, ParamAnnotation, ParamName, Resolver
 )
 
 Step = typing.NamedTuple('Step', [
@@ -16,56 +16,89 @@ Step = typing.NamedTuple('Step', [
     ('is_context_manager', bool)
 ])
 
-DependencyResolution = typing.Tuple[str, typing.Optional[typing.Callable]]
+
+class HTTPResolver(Resolver):
+    def resolve(self, param: inspect.Parameter) -> typing.Optional[typing.Tuple[str, typing.Callable]]:
+        annotation = param.annotation
+
+        key = ''
+        func = None  # type: typing.Callable
+
+        if annotation is inspect.Parameter.empty:
+            key = 'empty:' + param.name
+            func = self.empty
+            return (key, func)
+
+        elif issubclass(annotation, (str, int, float, bool, typesystem.Boolean)):
+            key = '%s:%s' % (annotation.__name__.lower(), param.name)
+            func = self.scalar_type
+            return (key, func)
+
+        elif issubclass(annotation, (dict, list)):
+            key = '%s:%s' % (annotation.__name__.lower(), param.name)
+            func = self.container_type
+            return (key, func)
+
+        return None
+
+    def empty(self,
+              name: ParamName,
+              kwargs: KeywordArgs,
+              query_params: http.QueryParams):
+        if name in kwargs:
+            return kwargs[name]
+        return query_params.get(name)
+
+    def scalar_type(self,
+                    name: ParamName,
+                    kwargs: KeywordArgs,
+                    query_params: http.QueryParams,
+                    coerce: ParamAnnotation):
+        if name in kwargs:
+            value = kwargs[name]
+            is_url_arg = True
+        else:
+            value = query_params.get(name)
+            is_url_arg = False
+
+        if value is None or isinstance(value, coerce):
+            return value
+
+        try:
+            return coerce(value)
+        except exceptions.TypeSystemError as exc:
+            detail = {name: exc.detail}
+        except (TypeError, ValueError) as exc:
+            detail = {name: str(exc)}
+
+        if is_url_arg:
+            raise exceptions.NotFound()
+        raise exceptions.ValidationError(detail=detail)
+
+    def container_type(self,
+                       data: http.RequestData,
+                       coerce: ParamAnnotation):
+        if data is None or isinstance(data, coerce):
+            return data
+
+        try:
+            return coerce(data)
+        except exceptions.TypeSystemError as exc:
+            detail = exc.detail
+        except (TypeError, ValueError) as exc:
+            detail = str(exc)
+
+        raise exceptions.ValidationError(detail=detail)
 
 
-def empty(name: ParamName,
-          kwargs: KeywordArgs,
-          query_params: http.QueryParams):
-    if name in kwargs:
+class CliResolver(Resolver):
+    def resolve(self, param: inspect.Parameter) -> typing.Optional[typing.Tuple[str, typing.Callable]]:
+        key = 'param:%s' % param.name
+        func = self.command_line_argument
+        return (key, func)
+
+    def command_line_argument(self, name: ParamName, kwargs: KeywordArgs):
         return kwargs[name]
-    return query_params.get(name)
-
-
-def scalar_type(name: ParamName,
-                kwargs: KeywordArgs,
-                query_params: http.QueryParams,
-                coerce: ParamAnnotation):
-    if name in kwargs:
-        value = kwargs[name]
-        is_url_arg = True
-    else:
-        value = query_params.get(name)
-        is_url_arg = False
-
-    if value is None or isinstance(value, coerce):
-        return value
-
-    try:
-        return coerce(value)
-    except exceptions.TypeSystemError as exc:
-        detail = {name: exc.detail}
-    except (TypeError, ValueError) as exc:
-        detail = {name: str(exc)}
-
-    if is_url_arg:
-        raise exceptions.NotFound()
-    raise exceptions.ValidationError(detail=detail)
-
-
-def container_type(data: http.RequestData,
-                   coerce: ParamAnnotation):
-    if data is None or isinstance(data, coerce):
-        return data
-
-    try:
-        return coerce(data)
-    except exceptions.TypeSystemError as exc:
-        detail = exc.detail
-    except (TypeError, ValueError) as exc:
-        detail = str(exc)
-
-    raise exceptions.ValidationError(detail=detail)
 
 
 class DependencyInjector(Injector):
@@ -73,38 +106,41 @@ class DependencyInjector(Injector):
     Stores all the state required in order to create
     dependency-injected functions.
     """
-
     def __init__(self,
-                 providers: typing.Dict[type, typing.Callable]=None,
-                 required_state: typing.Dict[str, type]=None,
-                 initial_state: typing.Dict[str, typing.Any]=None) -> None:
-        if providers is None:
-            providers = {}  # pragma: nocover
-        if required_state is None:
-            required_state = {}  # pragma: nocover
+                 components: typing.Dict[type, typing.Callable]=None,
+                 initial_state: typing.Dict[type, typing.Any]=None,
+                 required_state: typing.Dict[type, str]=None,
+                 resolvers: typing.List[Resolver]=None) -> None:
+        if components is None:
+            components = {}  # pragma: nocover
         if initial_state is None:
             initial_state = {}  # pragma: nocover
+        if required_state is None:
+            required_state = {}  # pragma: nocover
+        if resolvers is None:
+            resolvers = []  # pragma: nocover
 
-        self.providers = providers
-        self.required_state = required_state
-        self.required_state_lookup = {
-            cls: key for key, cls in required_state.items()
-        }
+        self.components = components
         self.initial_state = initial_state
+        self.required_state = required_state
+        self.resolvers = resolvers
+
+        self.setup_state = {
+            cls.__name__.lower(): value
+            for cls, value in initial_state.items()
+        }
         self.steps = {}  # type: typing.Dict[typing.Callable, typing.List[Step]]
 
     def run(self,
             func: typing.Callable,
-            state: typing.Dict[str, typing.Any]=None) -> typing.Any:
-        if state is None:
-            state = {}  # pragma: nocover
-        state = {**state, **self.initial_state}
-
+            state: typing.Dict[str, typing.Any]={}) -> typing.Any:
         try:
             steps = self.steps[func]
         except KeyError:
             steps = self.create_steps(func)
             self.steps[func] = steps
+
+        state = {**state, **self.setup_state}
 
         ret = None
         with ExitStack() as stack:
@@ -120,17 +156,12 @@ class DependencyInjector(Injector):
                 state[step.output_key] = ret
             return ret
 
-    def resolve(self, param: inspect.Parameter) -> DependencyResolution:
+    def resolve(self, param: inspect.Parameter) -> typing.Tuple[str, typing.Optional[typing.Callable]]:
         annotation = param.annotation
 
-        if annotation in self.required_state_lookup:
-            key = self.required_state_lookup[annotation]
-            func = None
-            return (key, func)
-
-        elif annotation in self.providers:
+        if annotation in self.components:
             key = annotation.__name__.lower()
-            func = self.providers[annotation]
+            func = self.components[annotation]
 
             params = inspect.signature(func).parameters.values()
             if any([param.annotation is ParamName for param in params]):
@@ -138,20 +169,20 @@ class DependencyInjector(Injector):
 
             return (key, func)
 
-        elif annotation is inspect.Parameter.empty:
-            key = 'empty:' + param.name
-            func = empty
+        elif annotation in self.initial_state:
+            key = annotation.__name__.lower()
+            func = None
             return (key, func)
 
-        elif issubclass(annotation, (str, int, float, bool, typesystem.Boolean)):
-            key = '%s:%s' % (annotation.__name__, param.name)
-            func = scalar_type
+        elif annotation in self.required_state:
+            key = self.required_state[annotation]
+            func = None
             return (key, func)
 
-        elif issubclass(annotation, (dict, list)):
-            key = '%s:%s' % (annotation.__name__, param.name)
-            func = container_type
-            return (key, func)
+        for resolver in self.resolvers:
+            ret = resolver.resolve(param)
+            if ret is not None:
+                return ret
 
         msg = 'Injector could not resolve parameter %s' % param
         raise exceptions.ConfigurationError(msg)
