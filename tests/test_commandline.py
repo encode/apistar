@@ -1,6 +1,6 @@
 import pytest
 
-from apistar import App, Command, exceptions
+from apistar import App, Command, Route, exceptions
 
 
 def no_args():
@@ -55,3 +55,16 @@ def test_default_args():
 def test_missing_required_args():
     with pytest.raises(exceptions.CommandLineError):
         app.main(['required_args', '1'], standalone_mode=False)
+
+
+def test_schema():
+    def hello_world():
+        raise NotImplementedError
+
+    routes = [
+        Route('/', 'GET', hello_world),
+    ]
+    app = App(routes=routes)
+
+    ret = app.main(['schema'], standalone_mode=False)
+    assert ret == b'{"_type":"document","_meta":{"url":"/"},"hello_world":{"_type":"link","action":"GET"}}'

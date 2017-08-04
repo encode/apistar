@@ -4,9 +4,8 @@ import typing
 
 import werkzeug
 
-from apistar import exceptions, http
+from apistar import commands, exceptions, http
 from apistar.cli import Command
-from apistar.commands.run import run
 from apistar.components import (
     commandline, dependency, router, schema, statics, templates, wsgi
 )
@@ -16,38 +15,38 @@ from apistar.interfaces import (
     WSGIEnviron
 )
 
-BUILTIN_COMMANDS = [
-    Command('run', run),
-]
-
-WSGI_COMPONENTS = {
-    http.Method: wsgi.get_method,
-    http.URL: wsgi.get_url,
-    http.Scheme: wsgi.get_scheme,
-    http.Host: wsgi.get_host,
-    http.Port: wsgi.get_port,
-    http.Path: wsgi.get_path,
-    http.Headers: wsgi.get_headers,
-    http.Header: wsgi.get_header,
-    http.QueryString: wsgi.get_querystring,
-    http.QueryParams: wsgi.get_queryparams,
-    http.QueryParam: wsgi.get_queryparam,
-    http.Body: wsgi.get_body,
-    http.RequestData: wsgi.get_request_data,
-}  # type: typing.Dict[type, typing.Callable]
-
-
-FRAMEWORK_COMPONENTS = {
-    Schema: schema.CoreAPISchema,
-    Templates: templates.Jinja2Templates,
-    StaticFiles: statics.WhiteNoiseStaticFiles,
-    Router: router.WerkzeugRouter,
-    Injector: dependency.DependencyInjector,
-    CommandLineClient: commandline.ArgParseCommandLineClient
-}  # type: typing.Dict[type, typing.Callable]
-
 
 class App(WSGICallable):
+    BUILTIN_COMMANDS = [
+        Command('run', commands.run),
+        Command('schema', commands.schema)
+    ]
+
+    WSGI_COMPONENTS = {
+        http.Method: wsgi.get_method,
+        http.URL: wsgi.get_url,
+        http.Scheme: wsgi.get_scheme,
+        http.Host: wsgi.get_host,
+        http.Port: wsgi.get_port,
+        http.Path: wsgi.get_path,
+        http.Headers: wsgi.get_headers,
+        http.Header: wsgi.get_header,
+        http.QueryString: wsgi.get_querystring,
+        http.QueryParams: wsgi.get_queryparams,
+        http.QueryParam: wsgi.get_queryparam,
+        http.Body: wsgi.get_body,
+        http.RequestData: wsgi.get_request_data,
+    }  # type: typing.Dict[type, typing.Callable]
+
+    FRAMEWORK_COMPONENTS = {
+        Schema: schema.CoreAPISchema,
+        Templates: templates.Jinja2Templates,
+        StaticFiles: statics.WhiteNoiseStaticFiles,
+        Router: router.WerkzeugRouter,
+        Injector: dependency.DependencyInjector,
+        CommandLineClient: commandline.ArgParseCommandLineClient
+    }  # type: typing.Dict[type, typing.Callable]
+
     def __init__(self,
                  routes: RouteConfig=None,
                  commands: CommandConfig=None,
@@ -62,8 +61,8 @@ class App(WSGICallable):
         if settings is None:
             settings = {}
 
-        commands = [*BUILTIN_COMMANDS, *commands]
-        components = {**FRAMEWORK_COMPONENTS, **components}
+        commands = [*self.BUILTIN_COMMANDS, *commands]
+        components = {**self.FRAMEWORK_COMPONENTS, **components}
         injector_cls = components.pop(Injector)
 
         self.routes = routes
@@ -72,7 +71,7 @@ class App(WSGICallable):
         self.commandline = components[CommandLineClient](commands)
 
         self.wsgi_injector = injector_cls(
-            components={**WSGI_COMPONENTS, **components},
+            components={**self.WSGI_COMPONENTS, **components},
             initial_state={
                 RouteConfig: routes,
                 CommandConfig: commands,
