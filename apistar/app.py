@@ -66,18 +66,40 @@ class App(WSGICallable):
         injector_cls = components.pop(Injector)
 
         self.routes = routes
+        self.commands = commands
         self.settings = settings
-        self.router = components[Router](routes)
-        self.commandline = components[CommandLineClient](commands)
 
+        components, initial_state = self.preload_components(injector_cls, components)
+
+        self.router = initial_state[Router]
+        self.commandline = initial_state[CommandLineClient]
+        self.setup_wsgi_injector(injector_cls, components, initial_state)
+        self.setup_cli_injector(injector_cls, components, initial_state)
+
+    def preload_components(self, injector_cls, components):
+        initial_state = {
+            RouteConfig: self.routes,
+            CommandConfig: self.commands,
+            Settings: self.settings,
+            WSGICallable: self,
+        }
+        injector = injector_cls(components, initial_state)
+
+        for interface, func in list(components.items()):
+            try:
+                component = injector.run(func)
+            except exceptions.CouldNotResolveDependency:
+                continue
+            del components[interface]
+            initial_state[interface] = component
+            injector = injector_cls(components, initial_state)
+
+        return (components, initial_state)
+
+    def setup_wsgi_injector(self, injector_cls, components, initial_state):
         self.wsgi_injector = injector_cls(
             components={**self.WSGI_COMPONENTS, **components},
-            initial_state={
-                RouteConfig: routes,
-                CommandConfig: commands,
-                Settings: settings,
-                WSGICallable: self,
-            },
+            initial_state=initial_state,
             required_state={
                 WSGIEnviron: 'wsgi_environ',
                 KeywordArgs: 'kwargs',
@@ -85,14 +107,11 @@ class App(WSGICallable):
             },
             resolvers=[dependency.HTTPResolver()]
         )
+
+    def setup_cli_injector(self, injector_cls, components, initial_state):
         self.cli_injector = injector_cls(
             components=components,
-            initial_state={
-                RouteConfig: routes,
-                CommandConfig: commands,
-                Settings: settings,
-                WSGICallable: self,
-            },
+            initial_state=initial_state,
             required_state={
                 KeywordArgs: 'kwargs',
             },

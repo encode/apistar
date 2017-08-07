@@ -161,7 +161,7 @@ class DependencyInjector(Injector):
                 return ret
 
         msg = 'Injector could not resolve parameter %s' % param
-        raise exceptions.ConfigurationError(msg)
+        raise exceptions.CouldNotResolveDependency(msg)
 
     def create_steps(self,
                      func: typing.Callable,

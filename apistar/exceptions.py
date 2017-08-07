@@ -23,6 +23,10 @@ class TemplateNotFound(Exception):
     pass
 
 
+class CouldNotResolveDependency(Exception):
+    pass
+
+
 class ConfigurationError(Exception):
     pass
 

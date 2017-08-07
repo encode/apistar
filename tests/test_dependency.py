@@ -164,7 +164,7 @@ def test_cannot_inject_unkown_component():
     ]
     app = App(routes=routes)
     client = TestClient(app)
-    with pytest.raises(exceptions.ConfigurationError):
+    with pytest.raises(exceptions.CouldNotResolveDependency):
         client.get('/')
 
 
