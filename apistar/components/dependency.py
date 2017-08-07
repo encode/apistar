@@ -1,6 +1,5 @@
 import inspect
 import typing
-from collections import OrderedDict
 from contextlib import ExitStack
 
 from apistar import exceptions, http, typesystem
@@ -188,8 +187,8 @@ class DependencyInjector(Injector):
             seen_keys = set(seen_keys)
         steps = []
 
-        input_keys = OrderedDict()  # type: typing.Dict[str, str]
-        input_values = OrderedDict()  # type: typing.Dict[str, str]
+        input_keys = {}
+        input_values = {}
 
         # Add the steps required to satisfy each parameter in the function.
         for param in inspect.signature(func).parameters.values():
