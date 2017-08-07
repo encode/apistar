@@ -1,5 +1,5 @@
 import io
-from typing import Callable, Dict, Mapping, Optional, Union  # noqa
+from typing import Any, Callable, Dict, Optional, Union  # noqa
 from urllib.parse import unquote, urlparse
 
 import requests
@@ -13,7 +13,7 @@ class _WSGIAdapter(requests.adapters.HTTPAdapter):
     def __init__(self, app: Callable) -> None:
         self.app = app
 
-    def get_environ(self, request: requests.PreparedRequest) -> Mapping:
+    def get_environ(self, request: requests.PreparedRequest) -> Dict[str, Any]:
         """
         Given a `requests.PreparedRequest` instance, return a WSGI environ dict.
         """
@@ -30,7 +30,7 @@ class _WSGIAdapter(requests.adapters.HTTPAdapter):
             'SCRIPT_NAME': '',
             'PATH_INFO': unquote(url_components.path),
             'wsgi.input': io.BytesIO(body_bytes),
-        }  # type: Dict[str, Union[bool, str, bytes, io.BytesIO]]
+        }  # type: Dict[str, Any]
 
         if url_components.query:
             environ['QUERY_STRING'] = url_components.query
