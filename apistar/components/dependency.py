@@ -57,14 +57,14 @@ class DependencyInjector(Injector):
 
         # Create a dictionary of any pre-existing state that should be
         # used on every call to `run()`.
-        self.setup_state = {
+        self._setup_state = {
             cls.__name__.lower(): value
             for cls, value in initial_state.items()
         }
 
         # Create a cache for storing the resolution of the required dependency
         # injection steps for any given function.
-        self.steps = {}  # type: typing.Dict[typing.Callable, typing.List[Step]]
+        self._steps_cache = {}  # type: typing.Dict[typing.Callable, typing.List[Step]]
 
     def run(self,
             func: typing.Callable,
@@ -84,13 +84,13 @@ class DependencyInjector(Injector):
         """
         try:
             # We cache the steps that are required to run a given function.
-            steps = self.steps[func]
+            steps = self._steps_cache[func]
         except KeyError:
-            steps = self.create_steps(func)
-            self.steps[func] = steps
+            steps = self._create_steps(func)
+            self._steps_cache[func] = steps
 
         # Combine any preconfigured initial state with any explicit per-call state.
-        state = {**self.setup_state, **state}
+        state = {**self._setup_state, **state}
 
         ret = None
         with ExitStack() as stack:
@@ -113,7 +113,7 @@ class DependencyInjector(Injector):
 
         return ret
 
-    def resolve(self, param: inspect.Parameter) -> typing.Tuple[str, typing.Optional[typing.Callable]]:
+    def _resolve_parameter(self, param: inspect.Parameter) -> typing.Tuple[str, typing.Optional[typing.Callable]]:
         """
         Resolve a single function parameter, returning the information needed
         to inject it to the function.
@@ -163,10 +163,10 @@ class DependencyInjector(Injector):
         msg = 'Injector could not resolve parameter %s' % param
         raise exceptions.CouldNotResolveDependency(msg)
 
-    def create_steps(self,
-                     func: typing.Callable,
-                     parent_param: typing.Optional[inspect.Parameter]=None,
-                     seen_keys: typing.Set[str]=None) -> typing.List[Step]:
+    def _create_steps(self,
+                      func: typing.Callable,
+                      parent_param: typing.Optional[inspect.Parameter]=None,
+                      seen_keys: typing.Set[str]=None) -> typing.List[Step]:
         """
         Return all the dependant steps required to run a given function.
 
@@ -200,12 +200,12 @@ class DependencyInjector(Injector):
                 input_values[param.name] = parent_param.annotation
                 continue
 
-            key, provider_func = self.resolve(param)
+            key, provider_func = self._resolve_parameter(param)
             input_keys[param.name] = key
             if provider_func is None or (key in seen_keys):
                 continue
 
-            param_steps = self.create_steps(provider_func, param, seen_keys)
+            param_steps = self._create_steps(provider_func, param, seen_keys)
             steps.extend(param_steps)
             seen_keys |= set([
                 step.output_key for step in param_steps
@@ -216,7 +216,7 @@ class DependencyInjector(Injector):
             output_key = ''
             context_manager = False
         else:
-            output_key, _ = self.resolve(parent_param)
+            output_key, _ = self._resolve_parameter(parent_param)
             context_manager = (
                 hasattr(parent_param.annotation, '__enter__') and
                 hasattr(parent_param.annotation, '__exit__')
@@ -257,7 +257,13 @@ class CliResolver(Resolver):
         func = self.command_line_argument
         return (key, func)
 
-    def command_line_argument(self, name: ParamName, kwargs: KeywordArgs):
+    def command_line_argument(self, name: ParamName, kwargs: KeywordArgs) -> typing.Any:
+        """
+        Provides a command line argument to a dependency injected parameter.
+
+        Returns:
+            The value that should be used for the handler function.
+        """
         return kwargs[name]
 
 
@@ -306,7 +312,7 @@ class HTTPResolver(Resolver):
     def empty(self,
               name: ParamName,
               kwargs: KeywordArgs,
-              query_params: http.QueryParams):
+              query_params: http.QueryParams) -> str:
         """
         Handles unannotated parameters for HTTP requests.
         These types use either a matched URL keyword argument, or else
@@ -328,7 +334,7 @@ class HTTPResolver(Resolver):
                     name: ParamName,
                     kwargs: KeywordArgs,
                     query_params: http.QueryParams,
-                    coerce: ParamAnnotation):
+                    coerce: ParamAnnotation) -> typing.Any:
         """
         Handles `str`, `int`, `float`, or `bool` annotations for HTTP requests.
         These types use either a matched URL keyword argument, or else
@@ -366,7 +372,7 @@ class HTTPResolver(Resolver):
 
     def container_type(self,
                        data: http.RequestData,
-                       coerce: ParamAnnotation):
+                       coerce: ParamAnnotation) -> typing.Any:
         """
         Handles `list` or `dict` annotations for HTTP requests.
         These types use the parsed request body.
