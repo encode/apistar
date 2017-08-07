@@ -10,17 +10,26 @@ from apistar.components import (
     commandline, dependency, router, schema, statics, templates, wsgi
 )
 from apistar.interfaces import (
-    CommandConfig, CommandLineClient, Injector, KeywordArgs, RouteConfig,
-    Router, Schema, Settings, StaticFiles, Templates, WSGICallable,
-    WSGIEnviron
+    CommandConfig, CommandLineClient, KeywordArgs, RouteConfig, Router, Schema,
+    Settings, StaticFiles, Templates, WSGICallable, WSGIEnviron
 )
 
 
 class App(WSGICallable):
+    INJECTOR_CLS = dependency.DependencyInjector
+
     BUILTIN_COMMANDS = [
         Command('run', commands.run),
         Command('schema', commands.schema)
     ]
+
+    BUILTIN_COMPONENTS = {
+        Schema: schema.CoreAPISchema,
+        Templates: templates.Jinja2Templates,
+        StaticFiles: statics.WhiteNoiseStaticFiles,
+        Router: router.WerkzeugRouter,
+        CommandLineClient: commandline.ArgParseCommandLineClient
+    }  # type: typing.Dict[type, typing.Callable]
 
     WSGI_COMPONENTS = {
         http.Method: wsgi.get_method,
@@ -38,15 +47,6 @@ class App(WSGICallable):
         http.RequestData: wsgi.get_request_data,
     }  # type: typing.Dict[type, typing.Callable]
 
-    FRAMEWORK_COMPONENTS = {
-        Schema: schema.CoreAPISchema,
-        Templates: templates.Jinja2Templates,
-        StaticFiles: statics.WhiteNoiseStaticFiles,
-        Router: router.WerkzeugRouter,
-        Injector: dependency.DependencyInjector,
-        CommandLineClient: commandline.ArgParseCommandLineClient
-    }  # type: typing.Dict[type, typing.Callable]
-
     def __init__(self,
                  routes: RouteConfig=None,
                  commands: CommandConfig=None,
@@ -62,28 +62,44 @@ class App(WSGICallable):
             settings = {}
 
         commands = [*self.BUILTIN_COMMANDS, *commands]
-        components = {**self.FRAMEWORK_COMPONENTS, **components}
-        injector_cls = components.pop(Injector)
+        components = {**self.BUILTIN_COMPONENTS, **components}
 
         self.routes = routes
         self.commands = commands
         self.settings = settings
 
-        components, initial_state = self.preload_components(injector_cls, components)
+        components, initial_state = self._preload_components(components)
 
         self.router = initial_state[Router]
         self.commandline = initial_state[CommandLineClient]
-        self.setup_wsgi_injector(injector_cls, components, initial_state)
-        self.setup_cli_injector(injector_cls, components, initial_state)
+        self._setup_wsgi_injector(components, initial_state)
+        self._setup_cli_injector(components, initial_state)
 
-    def preload_components(self, injector_cls, components):
+    def _preload_components(self,
+                            components: typing.Dict[type, typing.Callable]) -> typing.Tuple[
+                                                                                    typing.Dict[type, typing.Callable],
+                                                                                    typing.Dict[type, typing.Any]
+                                                                                ]:
+        """
+        Create any components that can be preloaded at the point of
+        instantiating the app. This ensures that the dependency injection
+        will not need to re-create these on every incoming request or
+        command-line invocation.
+
+        Args:
+            components: The components that have been configured for this app.
+
+        Return:
+            A tuple of the components that could not be preloaded,
+            and the initial state, which may include preloaded components.
+        """
         initial_state = {
             RouteConfig: self.routes,
             CommandConfig: self.commands,
             Settings: self.settings,
             WSGICallable: self,
         }
-        injector = injector_cls(components, initial_state)
+        injector = self.INJECTOR_CLS(components, initial_state)
 
         for interface, func in list(components.items()):
             try:
@@ -92,12 +108,22 @@ class App(WSGICallable):
                 continue
             del components[interface]
             initial_state[interface] = component
-            injector = injector_cls(components, initial_state)
+            injector = self.INJECTOR_CLS(components, initial_state)
 
         return (components, initial_state)
 
-    def setup_wsgi_injector(self, injector_cls, components, initial_state):
-        self.wsgi_injector = injector_cls(
+    def _setup_wsgi_injector(self,
+                             components: typing.Dict[type, typing.Callable],
+                             initial_state: typing.Dict[type, typing.Any]) -> None:
+        """
+        Create the dependency injector for running handlers in response to
+        incoming HTTP requests.
+
+        Args:
+            components: Any components that are created per-request.
+            initial_state: Any preloaded components and other initial state.
+        """
+        self.wsgi_injector = self.INJECTOR_CLS(
             components={**self.WSGI_COMPONENTS, **components},
             initial_state=initial_state,
             required_state={
@@ -108,8 +134,18 @@ class App(WSGICallable):
             resolvers=[dependency.HTTPResolver()]
         )
 
-    def setup_cli_injector(self, injector_cls, components, initial_state):
-        self.cli_injector = injector_cls(
+    def _setup_cli_injector(self,
+                            components: typing.Dict[type, typing.Callable],
+                            initial_state: typing.Dict[type, typing.Any]) -> None:
+        """
+        Create the dependency injector for running handlers in response to
+        command-line invocation.
+
+        Args:
+            components: Any components that are created per-request.
+            initial_state: Any preloaded components and other initial state.
+        """
+        self.cli_injector = self.INJECTOR_CLS(
             components=components,
             initial_state=initial_state,
             required_state={
@@ -118,7 +154,9 @@ class App(WSGICallable):
             resolvers=[dependency.CliResolver()]
         )
 
-    def __call__(self, environ: typing.Dict[str, typing.Any], start_response: typing.Callable):
+    def __call__(self,
+                 environ: typing.Dict[str, typing.Any],
+                 start_response: typing.Callable):
         state = {
             'wsgi_environ': environ,
             'kwargs': None,
