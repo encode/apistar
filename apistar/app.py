@@ -248,4 +248,5 @@ class App(WSGICallable):
 
         if standalone_mode and ret is not None:  # pragma: nocover
             self.console.echo(ret)
-        return ret
+        if not standalone_mode:
+            return ret
