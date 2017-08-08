@@ -8,6 +8,15 @@ def run(app: WSGICallable,
         port: int=8080,
         debug=True,
         reloader=True) -> None:  # pragma: nocover
+    """
+    Run the development server.
+
+    Args:
+      host: The host of the server.
+      port: The port of the server.
+      debug: Turn the debugger [on|off].
+      reloader: Turn the reloader [on|off].
+    """
     options = {
         'use_debugger': debug,
         'use_reloader': reloader,

@@ -9,6 +9,12 @@ codecs = {
 
 
 def schema(schema: Schema,
-           format: str='corejson') -> None:
+           format: str='corejson') -> bytes:
+    """
+    Generate an API schema.
+
+    Args:
+      format:  The format for the API Schema output.
+    """
     codec = codecs[format]
     return codec.encode(schema)
