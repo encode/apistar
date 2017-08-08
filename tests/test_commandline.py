@@ -8,24 +8,106 @@ def no_args():
 
 
 def required_args(a, b):
+    """
+    Returns the values for a and b.
+    """
     return 'a=%s, b=%s' % (a, b)
 
 
-def default_args(a=True, b=False, c: int=None):
-    return 'a=%s, b=%s, c=%s' % (a, b, c)
+def default_args(a=True, b=False, c: int=None, d: float=None):
+    """
+    Returns the values for a, b, c, and d, which have default values.
+
+    Args:
+      a: A flag which may be turned [on|off].
+      b: A flag which may be turned [on|off].
+      c: A parameter.
+      d: A parameter.
+    """
+    return 'a=%s, b=%s, c=%s, d=%s' % (a, b, c, d)
 
 
 commands = [
     Command('no_args', no_args),
-    Command('default_args', default_args),
-    Command('required_args', required_args)
+    Command('required_args', required_args),
+    Command('default_args', default_args)
 ]
 app = App(commands=commands)
 
 
+def _get_help_lines(content):
+    """
+    Return the help text split into lines, but replacing the
+    progname part of the usage line.
+    """
+    lines = content.splitlines()
+    lines[0] = 'Usage: <progname> ' + ' '.join(lines[0].split()[2:])
+    return lines
+
+
 def test_main():
     ret = app.main([], standalone_mode=False)
-    assert ret.startswith('usage:')
+    assert ret.startswith('Usage:')
+
+
+def test_help():
+    ret = app.main(['--help'], standalone_mode=False)
+    assert _get_help_lines(ret) == [
+        "Usage: <progname> COMMAND [OPTIONS] [ARGS]...",
+        "",
+        "  API Star",
+        "",
+        "Options:",
+        "  --help  Show this message and exit.",
+        "",
+        "Commands:",
+        "  run            Run the development server.",
+        "  schema         Generate an API schema.",
+        "  no_args        ",
+        "  required_args  Returns the values for a and b.",
+        "  default_args   Returns the values for a, b, c, and d, which have default values."
+    ]
+
+
+def test_no_args_subcommand_help():
+    ret = app.main(['no_args', '--help'], standalone_mode=False)
+    lines = _get_help_lines(ret)
+    assert lines == [
+        "Usage: <progname> no_args",
+        "",
+        "Options:",
+        "  --help  Show this message and exit."
+    ]
+
+
+def test_required_args_subcommand_help():
+    ret = app.main(['required_args', '--help'], standalone_mode=False)
+    lines = _get_help_lines(ret)
+    assert lines == [
+        "Usage: <progname> required_args",
+        "",
+        "  Returns the values for a and b.",
+        "",
+        "Options:",
+        "  --help  Show this message and exit."
+    ]
+
+
+def test_default_args_subcommand_help():
+    ret = app.main(['default_args', '--help'], standalone_mode=False)
+    lines = _get_help_lines(ret)
+    assert lines == [
+        "Usage: <progname> default_args",
+        "",
+        "  Returns the values for a, b, c, and d, which have default values.",
+        "",
+        "Options:",
+        "  --help       Show this message and exit.",
+        "  --no-a       A flag which may be turned [on|off].",
+        "  --b          A flag which may be turned [on|off].",
+        "  --c INTEGER  A parameter.",
+        "  --d FLOAT    A parameter."
+    ]
 
 
 def test_noargs():
@@ -40,21 +122,34 @@ def test_required_args():
 
 def test_default_args():
     ret = app.main(['default_args'], standalone_mode=False)
-    assert ret == 'a=True, b=False, c=None'
+    assert ret == 'a=True, b=False, c=None, d=None'
 
     ret = app.main(['default_args', '--b'], standalone_mode=False)
-    assert ret == 'a=True, b=True, c=None'
+    assert ret == 'a=True, b=True, c=None, d=None'
 
     ret = app.main(['default_args', '--no-a'], standalone_mode=False)
-    assert ret == 'a=False, b=False, c=None'
+    assert ret == 'a=False, b=False, c=None, d=None'
 
     ret = app.main(['default_args', '--c', '123'], standalone_mode=False)
-    assert ret == 'a=True, b=False, c=123'
+    assert ret == 'a=True, b=False, c=123, d=None'
+
+    ret = app.main(['default_args', '--d', '123'], standalone_mode=False)
+    assert ret == 'a=True, b=False, c=None, d=123.0'
+
+
+def test_unknown_command():
+    with pytest.raises(exceptions.CommandLineError):
+        app.main(['unknown'], standalone_mode=False)
 
 
 def test_missing_required_args():
     with pytest.raises(exceptions.CommandLineError):
         app.main(['required_args', '1'], standalone_mode=False)
+
+
+def test_invalid_args():
+    with pytest.raises(exceptions.CommandLineError):
+        app.main(['default_args', '--c', 'abc'], standalone_mode=False)
 
 
 def test_schema():

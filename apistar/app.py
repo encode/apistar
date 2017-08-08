@@ -231,6 +231,8 @@ class App(WSGICallable):
             handler, kwargs = self.commandline.parse(args)
             state['kwargs'] = kwargs
             ret = self.cli_injector.run(handler, state=state)
+        except exceptions.CommandLineExit as exc:
+            ret = exc.message
         except exceptions.CommandLineError as exc:
             if standalone_mode:  # pragma: nocover
                 sys.stderr.write('Error: %s\n' % exc)
