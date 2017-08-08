@@ -1,6 +1,6 @@
 import pytest
 
-from apistar import App, Command, Route, exceptions
+from apistar import App, Command, exceptions
 
 
 def no_args():
@@ -52,6 +52,7 @@ def test_main():
 
 def test_help():
     ret = app.main(['--help'], standalone_mode=False)
+    print(ret)
     assert _get_help_lines(ret) == [
         "Usage: <progname> COMMAND [OPTIONS] [ARGS]...",
         "",
@@ -61,6 +62,7 @@ def test_help():
         "  --help  Show this message and exit.",
         "",
         "Commands:",
+        "  new            Create a new project in TARGET_DIR.",
         "  run            Run the development server.",
         "  schema         Generate an API schema.",
         "  no_args        ",
@@ -150,16 +152,3 @@ def test_missing_required_args():
 def test_invalid_args():
     with pytest.raises(exceptions.CommandLineError):
         app.main(['default_args', '--c', 'abc'], standalone_mode=False)
-
-
-def test_schema():
-    def hello_world():
-        raise NotImplementedError
-
-    routes = [
-        Route('/', 'GET', hello_world),
-    ]
-    app = App(routes=routes)
-
-    ret = app.main(['schema'], standalone_mode=False)
-    assert ret == b'{"_type":"document","_meta":{"url":"/"},"hello_world":{"_type":"link","action":"GET"}}'

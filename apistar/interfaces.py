@@ -125,3 +125,11 @@ class Injector(metaclass=abc.ABCMeta):
             func: typing.Callable,
             state: typing.Dict[str, typing.Any]) -> typing.Any:
         raise NotImplementedError
+
+
+# Console
+
+class Console(metaclass=abc.ABCMeta):
+    @abc.abstractmethod
+    def echo(self, message: str) -> None:
+        raise NotImplementedError

@@ -7,11 +7,12 @@ import werkzeug
 from apistar import commands, exceptions, http
 from apistar.cli import Command
 from apistar.components import (
-    commandline, dependency, router, schema, statics, templates, wsgi
+    commandline, console, dependency, router, schema, statics, templates, wsgi
 )
 from apistar.interfaces import (
-    CommandConfig, CommandLineClient, KeywordArgs, RouteConfig, Router, Schema,
-    Settings, StaticFiles, Templates, WSGICallable, WSGIEnviron
+    CommandConfig, CommandLineClient, Console, KeywordArgs, RouteConfig,
+    Router, Schema, Settings, StaticFiles, Templates, WSGICallable,
+    WSGIEnviron
 )
 
 
@@ -19,6 +20,7 @@ class App(WSGICallable):
     INJECTOR_CLS = dependency.DependencyInjector
 
     BUILTIN_COMMANDS = [
+        Command('new', commands.new),
         Command('run', commands.run),
         Command('schema', commands.schema)
     ]
@@ -28,7 +30,8 @@ class App(WSGICallable):
         Templates: templates.Jinja2Templates,
         StaticFiles: statics.WhiteNoiseStaticFiles,
         Router: router.WerkzeugRouter,
-        CommandLineClient: commandline.ArgParseCommandLineClient
+        CommandLineClient: commandline.ArgParseCommandLineClient,
+        Console: console.PrintConsole
     }  # type: typing.Dict[type, typing.Callable]
 
     WSGI_COMPONENTS = {
@@ -72,6 +75,7 @@ class App(WSGICallable):
 
         self.router = initial_state[Router]
         self.commandline = initial_state[CommandLineClient]
+        self.console = initial_state[Console]
         self._setup_wsgi_injector(components, initial_state)
         self._setup_cli_injector(components, initial_state)
 
@@ -243,5 +247,5 @@ class App(WSGICallable):
             sys.exit(1)
 
         if standalone_mode and ret is not None:  # pragma: nocover
-            print(ret)
+            self.console.echo(ret)
         return ret
