@@ -57,7 +57,6 @@ setup(
     packages=get_packages('apistar'),
     package_data=get_package_data('apistar'),
     install_requires=[
-        'click',
         'coreapi',
         'jinja2',
         'pytest',

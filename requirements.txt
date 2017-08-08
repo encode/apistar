@@ -1,5 +1,4 @@
 # Core requirements
-click
 coreapi
 jinja2
 pytest
