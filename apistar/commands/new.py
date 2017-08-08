@@ -34,7 +34,7 @@ def new(console: Console, target_dir: str, layout: str='minimal', force: bool=Fa
                 raise exceptions.CommandLineError(message)
             copy_paths.append((source_path, target_path))
 
-    for source_path, target_path in copy_paths:
+    for source_path, target_path in sorted(copy_paths):
         console.echo(target_path)
         parent = os.path.dirname(target_path)
         if parent:
