@@ -1,6 +1,8 @@
 import pytest
 
-from apistar import App, Include, Route, TestClient, exceptions, typesystem
+from apistar import Include, Route, TestClient, exceptions, typesystem
+from apistar.frameworks.asyncio import ASyncIOApp
+from apistar.frameworks.wsgi import WSGIApp
 from apistar.interfaces import KeywordArgs
 from apistar.routing import PathWildcard
 
@@ -69,7 +71,7 @@ def subpath(var: typesystem.Integer):
     }
 
 
-app = App(routes=[
+routes = [
     Route('/found/', 'GET', found),
     Route('/path_params/{var}/', 'GET', path_params),
     Route('/path_param/{var}/', 'GET', path_param),
@@ -82,13 +84,16 @@ app = App(routes=[
     Include('/subpath', [
         Route('/{var}/', 'GET', subpath),
     ], namespace='included'),
-])
+]
+wsgi_app = WSGIApp(routes=routes)
+async_app = ASyncIOApp(routes=routes)
+
+client = TestClient(wsgi_app)
+async_client = TestClient(async_app)
 
 
-client = TestClient(app)
-
-
-def test_200():
+@pytest.mark.parametrize('client', [client, async_client])
+def test_200(client):
     response = client.get('/found/')
     assert response.status_code == 200
     assert response.json() == {
@@ -96,7 +101,8 @@ def test_200():
     }
 
 
-def test_404():
+@pytest.mark.parametrize('client', [client, async_client])
+def test_404(client):
     response = client.get('/404/')
     assert response.status_code == 404
     assert response.json() == {
@@ -104,7 +110,8 @@ def test_404():
     }
 
 
-def test_405():
+@pytest.mark.parametrize('client', [client, async_client])
+def test_405(client):
     response = client.post('/found/')
     assert response.status_code == 405
     assert response.json() == {
@@ -112,7 +119,8 @@ def test_405():
     }
 
 
-def test_found_no_slash():
+@pytest.mark.parametrize('client', [client, async_client])
+def test_found_no_slash(client):
     response = client.get('/found', allow_redirects=False)
     assert response.status_code == 302
     assert response.headers['Location'] == '/found/'
@@ -218,7 +226,7 @@ def test_misconfigured_omission_on_route():
         raise NotImplementedError
 
     with pytest.raises(exceptions.ConfigurationError):
-        App(routes=[Route('/{var}/', 'GET', missing_type)])
+        WSGIApp(routes=[Route('/{var}/', 'GET', missing_type)])
 
 
 def test_misconfigured_type_on_route():
@@ -226,26 +234,26 @@ def test_misconfigured_type_on_route():
         raise NotImplementedError
 
     with pytest.raises(exceptions.ConfigurationError):
-        App(routes=[Route('/{var}/', 'GET', set_type)])
+        WSGIApp(routes=[Route('/{var}/', 'GET', set_type)])
 
 
 def test_routing_reversal_on_path_without_url_params():
-    url = app.router.reverse_url('found')
+    url = wsgi_app.router.reverse_url('found')
     assert url == '/found/'
 
 
 def test_routing_reversal_on_path_non_existent_path():
     with pytest.raises(exceptions.NoReverseMatch):
-        app.router.reverse_url('missing', {'var': 'not_here'})
+        wsgi_app.router.reverse_url('missing', {'var': 'not_here'})
 
 
 def test_routing_reversal_on_path_with_url_params():
-    url = app.router.reverse_url('path_params', {'var': '100'})
+    url = wsgi_app.router.reverse_url('path_params', {'var': '100'})
     assert url == '/path_params/100/'
 
 
 def test_routing_reversal_on_subpath():
-    url = app.router.reverse_url('included:subpath', {'var': '100'})
+    url = wsgi_app.router.reverse_url('included:subpath', {'var': '100'})
     assert url == '/subpath/100/'
 
 
@@ -254,7 +262,7 @@ def test_misconfigured_routes():
         raise NotImplementedError
 
     with pytest.raises(exceptions.ConfigurationError):
-        App(routes=[
+        WSGIApp(routes=[
             Route('/', 'GET', view),
             Route('/another', 'POST', view)
         ])

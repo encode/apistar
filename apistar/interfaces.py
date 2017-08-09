@@ -12,10 +12,10 @@ KeywordArgs = typing.Dict[str, typing.Any]
 HandlerLookup = typing.Tuple[typing.Callable, KeywordArgs]
 
 
-# WSGI
+# WSGI, UMI
 
 WSGIEnviron = typing.NewType('WSGIEnviron', dict)
-
+UMIMessage = typing.NewType('UMIMessage', dict)
 
 # Settings
 

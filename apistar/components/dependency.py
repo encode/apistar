@@ -1,3 +1,4 @@
+import asyncio
 import inspect
 import typing
 from contextlib import ExitStack
@@ -12,7 +13,8 @@ Step = typing.NamedTuple('Step', [
     ('input_keys', typing.Dict[str, str]),
     ('input_values', typing.Dict[str, str]),
     ('output_key', str),
-    ('is_context_manager', bool)
+    ('is_context_manager', bool),
+    ('is_async', bool)
 ])
 
 
@@ -227,10 +229,64 @@ class DependencyInjector(Injector):
             input_keys=input_keys,
             input_values=input_values,
             output_key=output_key,
-            is_context_manager=context_manager
+            is_context_manager=context_manager,
+            is_async=asyncio.iscoroutinefunction(func)
         )
         steps.append(step)
         return steps
+
+
+class AsyncDependencyInjector(DependencyInjector):
+    async def run_async(self,
+                        func: typing.Callable,
+                        state: typing.Dict[str, typing.Any]={}) -> typing.Any:
+        """
+        Run a function, using dependency inject to resolve any parameters
+        that it requires.
+
+        Args:
+            func: The function to run.
+            state: A dictionary of any per-call state that can differ on each
+                   run. For example, this might include any base information
+                   associated with an incoming HTTP request.
+
+        Returns:
+            The return value of the given function.
+        """
+        try:
+            # We cache the steps that are required to run a given function.
+            steps = self._steps_cache[func]
+        except KeyError:
+            steps = self._create_steps(func)
+            self._steps_cache[func] = steps
+
+        # Combine any preconfigured initial state with any explicit per-call state.
+        state = {**self._setup_state, **state}
+
+        ret = None
+        with ExitStack() as stack:
+            for step in steps:
+                # Keyword arguments are usually "input_key" references to state
+                # that's been generated. In the case of `ParamName` or
+                # `ParamAnnotation` they will be a pre-provided "input_value".
+                kwargs = {
+                    argname: state[state_key]
+                    for (argname, state_key) in step.input_keys.items()
+                }
+                kwargs.update(step.input_values)
+
+                # Run the function, possibly entering it into the context
+                # stack in order to handle context managers.
+                if step.is_async:
+                    ret = await step.func(**kwargs)
+                else:
+                    ret = step.func(**kwargs)
+
+                if step.is_context_manager:
+                    stack.enter_context(ret)
+                state[step.output_key] = ret
+
+        return ret
 
 
 class CliResolver(Resolver):

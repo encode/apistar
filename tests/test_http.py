@@ -1,4 +1,7 @@
+import pytest
+
 from apistar import App, Route, TestClient, http
+from apistar.frameworks.asyncio import ASyncIOApp
 
 
 def to_native(obj):  # pragma: nocover  (Some cases only included for completeness)
@@ -15,6 +18,8 @@ def to_native(obj):  # pragma: nocover  (Some cases only included for completene
         return str(obj)
     return obj
 
+
+# HTTP Components as parameters
 
 def get_method(method: http.Method) -> http.Response:
     return http.Response({'method': method})
@@ -68,15 +73,36 @@ def get_accept_header(accept: http.Header) -> http.Response:
     return http.Response({'accept': accept})
 
 
-# def get_request(request: http.Request) -> http.Response:
-#     return http.Response({
-#         'method': request.method,
-#         'url': request.url,
-#         'headers': dict(request.headers)
-#     })
+# Different response types
+
+def binary_response():
+    return b'<html><h1>Hello, world</h1></html>'
 
 
-app = App(routes=[
+def text_response():
+    return '<html><h1>Hello, world</h1></html>'
+
+
+def data_response():
+    return {'hello': 'world'}
+
+
+def empty_response():
+    return None
+
+
+def unknown_status_code() -> http.Response:
+    data = {'hello': 'world'}
+    return http.Response(data, status=600)
+
+
+def response_headers() -> http.Response:
+    data = {'hello': 'world'}
+    headers = {'Content-Language': 'de'}
+    return http.Response(data, headers=headers)
+
+
+routes = [
     Route('/method/', 'GET', get_method),
     Route('/method/', 'POST', get_method, name='post_method'),
     Route('/scheme/', 'GET', get_scheme),
@@ -91,33 +117,45 @@ app = App(routes=[
     Route('/data/', 'POST', get_data),
     Route('/headers/', 'GET', get_headers),
     Route('/accept_header/', 'GET', get_accept_header),
-    # Route('/request/', 'GET', get_request),
-])
+    Route('/binary/', 'GET', binary_response),
+    Route('/text/', 'GET', text_response),
+    Route('/data/', 'GET', data_response),
+    Route('/empty/', 'GET', empty_response),
+    Route('/unknown_status_code/', 'GET', unknown_status_code),
+    Route('/response_headers/', 'GET', response_headers),
+]
 
-
+app = App(routes=routes)
 client = TestClient(app)
 
+async_app = ASyncIOApp(routes=routes)
+async_client = TestClient(async_app)
 
-def test_method():
+
+@pytest.mark.parametrize('client', [client, async_client])
+def test_method(client):
     response = client.get('http://example.com/method/')
     assert response.json() == {'method': 'GET'}
     response = client.post('http://example.com/method/')
     assert response.json() == {'method': 'POST'}
 
 
-def test_scheme():
+@pytest.mark.parametrize('client', [client, async_client])
+def test_scheme(client):
     response = client.get('http://example.com/scheme/')
     assert response.json() == {'scheme': 'http'}
     response = client.get('https://example.com/scheme/')
     assert response.json() == {'scheme': 'https'}
 
 
-def test_host():
+@pytest.mark.parametrize('client', [client, async_client])
+def test_host(client):
     response = client.get('http://example.com/host/')
     assert response.json() == {'host': 'example.com'}
 
 
-def test_port():
+@pytest.mark.parametrize('client', [client, async_client])
+def test_port(client):
     response = client.get('http://example.com/port/')
     assert response.json() == {'port': 80}
     response = client.get('https://example.com/port/')
@@ -128,19 +166,22 @@ def test_port():
     assert response.json() == {'port': 123}
 
 
-def test_path():
+@pytest.mark.parametrize('client', [client, async_client])
+def test_path(client):
     response = client.get('http://example.com/path/')
     assert response.json() == {'path': '/path/'}
 
 
-def test_query_string():
+@pytest.mark.parametrize('client', [client, async_client])
+def test_query_string(client):
     response = client.get('http://example.com/query_string/')
     assert response.json() == {'query_string': ''}
     response = client.get('http://example.com/query_string/?a=1&a=2&b=3')
     assert response.json() == {'query_string': 'a=1&a=2&b=3'}
 
 
-def test_query_params():
+@pytest.mark.parametrize('client', [client, async_client])
+def test_query_params(client):
     response = client.get('http://example.com/query_params/')
     assert response.json() == {'query_params': {}}
     response = client.get('http://example.com/query_params/?a=1&a=2&b=3')
@@ -149,7 +190,8 @@ def test_query_params():
     }
 
 
-def test_single_query_param():
+@pytest.mark.parametrize('client', [client, async_client])
+def test_single_query_param(client):
     response = client.get('http://example.com/page_query_param/')
     assert response.json() == {'page': None}
     response = client.get('http://example.com/page_query_param/?page=123')
@@ -221,119 +263,43 @@ def test_accept_header():
     assert response.json() == {'accept': '*/*'}
 
 
-# def test_request():
-#     response = client.get('http://example.com/request/')
-#     assert response.json() == {
-#         'method': 'GET',
-#         'url': 'http://example.com/request/',
-#         'headers': {
-#             'Accept': '*/*',
-#             'Accept-Encoding': 'gzip, deflate',
-#             'Connection': 'keep-alive',
-#             'Host': 'example.com',
-#             'User-Agent': 'requests_client'
-#         }
-#     }
-
-
-# Test reponse types
-
-def binary_response():
-    return b'<html><h1>Hello, world</h1></html>'
-
-
-def text_response():
-    return '<html><h1>Hello, world</h1></html>'
-
-
-def data_response():
-    return {'hello': 'world'}
-
-
-def empty_response():
-    return None
-
-
-def unknown_status_code() -> http.Response:
-    data = {'hello': 'world'}
-    return http.Response(data, status=600)
-
-
-def dict_headers() -> http.Response:
-    data = {'hello': 'world'}
-    headers = {'Content-Language': 'de'}
-    return http.Response(data, headers=headers)
-
-
-# def list_headers() -> http.Response:
-#     data = {'hello': 'world'}
-#     headers = [('Content-Language', 'de')]
-#     return http.Response(data, headers=headers)
-#
-#
-# def object_headers() -> http.Response:
-#     data = {'hello': 'world'}
-#     headers = http.Headers({'Content-Language': 'de'})
-#     return http.Response(data, headers=headers)
-
-
-def test_binary_response():
-    app = App(routes=[Route('/', 'GET', binary_response)])
-    client = TestClient(app)
-    response = client.get('/')
+@pytest.mark.parametrize('client', [client, async_client])
+def test_binary_response(client):
+    response = client.get('/binary/')
     assert response.text == '<html><h1>Hello, world</h1></html>'
     assert response.headers['Content-Type'] == 'text/html; charset=utf-8'
 
 
-def test_text_response():
-    app = App(routes=[Route('/', 'GET', text_response)])
-    client = TestClient(app)
-    response = client.get('/')
+@pytest.mark.parametrize('client', [client, async_client])
+def test_text_response(client):
+    response = client.get('/text/')
     assert response.text == '<html><h1>Hello, world</h1></html>'
     assert response.headers['Content-Type'] == 'text/html; charset=utf-8'
 
 
-def test_data_response():
-    app = App(routes=[Route('/', 'GET', data_response)])
-    client = TestClient(app)
-    response = client.get('/')
+@pytest.mark.parametrize('client', [client, async_client])
+def test_data_response(client):
+    response = client.get('/data/')
     assert response.json() == {'hello': 'world'}
     assert response.headers['Content-Type'] == 'application/json'
 
 
-def test_empty_response():
-    app = App(routes=[Route('/', 'GET', empty_response)])
-    client = TestClient(app)
-    response = client.get('/')
+@pytest.mark.parametrize('client', [client, async_client])
+def test_empty_response(client):
+    response = client.get('/empty/')
     assert response.status_code == 204
     assert response.text == ''
 
 
-def test_unknown_status_code():
-    app = App(routes=[Route('/', 'GET', unknown_status_code)])
-    client = TestClient(app)
-    response = client.get('/')
+@pytest.mark.parametrize('client', [client, async_client])
+def test_unknown_status_code(client):
+    response = client.get('/unknown_status_code/')
     assert response.status_code == 600
     assert response.json() == {'hello': 'world'}
     assert response.headers['Content-Type'] == 'application/json'
 
 
-def test_dict_headers():
-    app = App(routes=[Route('/', 'GET', dict_headers)])
-    client = TestClient(app)
-    response = client.get('/')
+@pytest.mark.parametrize('client', [client, async_client])
+def test_response_headers(client):
+    response = client.get('/response_headers/')
     assert response.headers['Content-Language'] == 'de'
-
-
-# def test_list_headers():
-#     app = App(routes=[Route('/', 'GET', list_headers)])
-#     client = TestClient(app)
-#     response = client.get('/')
-#     assert response.headers['Content-Language'] == 'de'
-#
-#
-# def test_object_headers():
-#     app = App(routes=[Route('/', 'GET', object_headers)])
-#     client = TestClient(app)
-#     response = client.get('/')
-#     assert response.headers['Content-Language'] == 'de'

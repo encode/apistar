@@ -1,5 +1,7 @@
+import asyncio
 import io
-from typing import Any, Callable, Dict, Optional, Union  # noqa
+import typing
+from http import HTTPStatus
 from urllib.parse import unquote, urlparse
 
 import requests
@@ -10,16 +12,16 @@ class _WSGIAdapter(requests.adapters.HTTPAdapter):
     A transport adapter for `requests` that makes requests directly to a
     WSGI app, rather than making actual HTTP requests over the network.
     """
-    def __init__(self, app: Callable) -> None:
+    def __init__(self, app: typing.Callable) -> None:
         self.app = app
 
-    def get_environ(self, request: requests.PreparedRequest) -> Dict[str, Any]:
+    def get_environ(self, request: requests.PreparedRequest) -> typing.Dict[str, typing.Any]:
         """
         Given a `requests.PreparedRequest` instance, return a WSGI environ dict.
         """
         body = request.body
         if isinstance(body, str):
-            body_bytes = body.encode("utf-8")  # type: Optional[bytes]
+            body_bytes = body.encode("utf-8")  # type: bytes
         else:
             body_bytes = body
 
@@ -30,7 +32,7 @@ class _WSGIAdapter(requests.adapters.HTTPAdapter):
             'SCRIPT_NAME': '',
             'PATH_INFO': unquote(url_components.path),
             'wsgi.input': io.BytesIO(body_bytes),
-        }  # type: Dict[str, Any]
+        }  # type: typing.Dict[str, typing.Any]
 
         if url_components.query:
             environ['QUERY_STRING'] = url_components.query
@@ -76,10 +78,123 @@ class _WSGIAdapter(requests.adapters.HTTPAdapter):
         return self.build_response(request, raw)
 
 
+class _MockReplyChannel():
+    def __init__(self):
+        self.status = None
+        self.headers = None
+        self.body = b''
+
+    async def send(self, message):
+        if 'status' in message:
+            self.status = message['status']
+        if 'headers' in message:
+            self.headers = message['headers']
+        if 'content' in message:
+            self.body += message['content']
+
+
+def _get_reason_phrase(status_code: int) -> str:
+    try:
+        return HTTPStatus(status_code).phrase
+    except ValueError:
+        return ''
+
+
+def _coerce_to_bytes(item: typing.Union[str, bytes]):
+    if isinstance(item, str):
+        return item.encode()
+    return item
+
+
+class _UMIAdapter(requests.adapters.HTTPAdapter):
+    """
+    A transport adapter for `requests` that makes requests directly to a
+    asyncio app, rather than making actual HTTP requests over the network.
+    """
+    def __init__(self, app: typing.Callable) -> None:
+        self.app = app
+
+    def get_message(self, request: requests.PreparedRequest) -> typing.Dict[str, typing.Any]:
+        """
+        Given a `requests.PreparedRequest` instance, return a WSGI environ dict.
+        """
+        body = request.body
+        if isinstance(body, str):
+            body_bytes = body.encode("utf-8")  # type: bytes
+        else:
+            body_bytes = body
+
+        url_components = urlparse(request.url)
+        message = {
+            'method': request.method,
+            'scheme': url_components.scheme,
+            'path': unquote(url_components.path),
+            'body': body_bytes,
+            'query_string': url_components.query
+        }  # type: typing.Dict[str, typing.Any]
+
+        if url_components.port:
+            message['server'] = [
+                url_components.hostname,
+                url_components.port
+            ]
+        else:
+            message['server'] = [
+                url_components.hostname,
+                443 if (url_components.scheme == 'https') else 80
+            ]
+
+        message['headers'] = [
+            [_coerce_to_bytes(key), _coerce_to_bytes(value)]
+            for key, value in request.headers.items()
+        ]
+
+        return message
+
+    def send(self, request, *args, **kwargs):
+        """
+        Make an outgoing request to a WSGI application.
+        """
+        # Make the outgoing request via WSGI.
+        reply = _MockReplyChannel()
+        message = self.get_message(request)
+        channels = {'reply': reply}
+
+        task = self.app(message, channels)
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(task)
+
+        status = reply.status
+        headers = reply.headers
+        body = reply.body
+
+        assert status is not None
+        assert headers is not None
+
+        raw_kwargs = {
+            'status': status,
+            'reason': _get_reason_phrase(status),
+            'headers': [(key.decode(), value.decode()) for key, value in headers],
+            'version': 11,
+            'preload_content': False,
+            'original_response': None,
+            'body': io.BytesIO(body)
+        }
+
+        # Build the underlying urllib3.HTTPResponse
+        raw = requests.packages.urllib3.HTTPResponse(**raw_kwargs)
+
+        # Build the requests.Response
+        return self.build_response(request, raw)
+
+
 class _TestClient(requests.Session):
     def __init__(self, app, scheme='http', hostname='testserver'):
         super(_TestClient, self).__init__()
-        adapter = _WSGIAdapter(app)
+        if asyncio.iscoroutinefunction(app.__call__):
+            adapter = _UMIAdapter(app)
+        else:
+            adapter = _WSGIAdapter(app)
         self.mount('http://', adapter)
         self.mount('https://', adapter)
         self.headers.update({'User-Agent': 'testclient'})
