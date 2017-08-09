@@ -1,3 +1,4 @@
+import collections
 import inspect
 import typing
 from urllib.parse import urlparse
@@ -43,6 +44,10 @@ class WerkzeugRouter(Router):
         self._adapter = Map(rules).bind('')
         self._views = views
 
+        # Use an MRU cache for router lookups.
+        self._lookup_cache = collections.OrderedDict()
+        self._lookup_cache_size = 10000
+
     def _get_converter(self,
                        parameters: typing.Mapping[str, inspect.Parameter],
                        arg: str,
@@ -68,6 +73,12 @@ class WerkzeugRouter(Router):
         raise exceptions.ConfigurationError(msg)
 
     def lookup(self, path: str, method: str) -> HandlerLookup:
+        lookup_key = method + ' ' + path
+        try:
+            return self._lookup_cache[lookup_key]
+        except KeyError:
+            pass
+
         try:
             name, kwargs = self._adapter.match(path, method)
         except werkzeug.exceptions.NotFound:
@@ -79,6 +90,11 @@ class WerkzeugRouter(Router):
             raise exceptions.Found(path) from None
 
         view = self._views[name]
+
+        self._lookup_cache[lookup_key] = (view, kwargs)
+        if len(self._lookup_cache) > self._lookup_cache_size:
+            self._lookup_cache.pop(next(iter(self._lookup_cache)))
+
         return (view, kwargs)
 
     def reverse_url(self, identifier: str, values: dict=None) -> str:
