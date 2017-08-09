@@ -115,7 +115,7 @@ def test_405():
 def test_found_no_slash():
     response = client.get('/found', allow_redirects=False)
     assert response.status_code == 302
-    assert response.headers['Location'] == 'http://testserver/found/'
+    assert response.headers['Location'] == '/found/'
 
     response = client.get('/found')
     assert response.status_code == 200

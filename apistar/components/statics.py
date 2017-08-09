@@ -2,10 +2,9 @@ import os
 from importlib.util import find_spec
 from wsgiref.util import FileWrapper
 
-import werkzeug
 import whitenoise
 
-from apistar import exceptions
+from apistar import exceptions, http
 from apistar.interfaces import (
     Router, Settings, StaticFile, StaticFiles, WSGIEnviron
 )
@@ -24,7 +23,10 @@ class WhiteNoiseStaticFile(StaticFile):
         else:
             # We hit this branch for HEAD requests
             content = []
-        return werkzeug.Response(content, status=response.status, headers=list(response.headers))
+
+        headers = dict(response.headers)
+        content_type = headers.pop('Content-Type')
+        return http.Response(content, status=response.status, headers=headers, content_type=content_type)
 
 
 class WhiteNoiseStaticFiles(StaticFiles):

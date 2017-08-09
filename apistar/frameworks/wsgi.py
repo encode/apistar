@@ -1,7 +1,7 @@
 import json
 import typing
 
-import werkzeug
+from werkzeug.http import HTTP_STATUS_CODES
 
 from apistar import commands, exceptions, http
 from apistar.cli import Command
@@ -13,6 +13,11 @@ from apistar.interfaces import (
     CommandLineClient, Console, Injector, KeywordArgs, Router, Schema,
     StaticFiles, Templates, WSGIEnviron
 )
+
+STATUS_TEXT = {
+    code: "%d %s" % (code, msg)
+    for code, msg in HTTP_STATUS_CODES.items()
+}
 
 
 class WSGIApp(CliApp):
@@ -90,13 +95,30 @@ class WSGIApp(CliApp):
             handler, kwargs = self.router.lookup(path, method)
             state['kwargs'] = kwargs
             response = self.wsgi_injector.run(handler, state=state)
-            response = self.finalize_response(response)
         except Exception as exc:
             state['exc'] = exc  # type: ignore
             response = self.wsgi_injector.run(self.exception_handler, state=state)
+
+        if getattr(response, 'content_type', None) is None:
             response = self.finalize_response(response)
 
-        return response(environ, start_response)
+        # Get the WSGI response information, given the Response instance.
+        try:
+            status_text = STATUS_TEXT[response.status]
+        except KeyError:
+            status_text = str(response.status)
+
+        headers = list(response.headers.items())
+        headers.append(('content-type', response.content_type))
+
+        if isinstance(response.content, (bytes, str)):
+            content = [response.content]
+        else:
+            content = response.content
+
+        # Return the WSGI response.
+        start_response(status_text, headers)
+        return content
 
     def exception_handler(self, exc: Exception) -> http.Response:
         if isinstance(exc, exceptions.Found):
@@ -112,13 +134,10 @@ class WSGIApp(CliApp):
         raise
 
     def finalize_response(self, response):
-        # TODO: We want to remove this in favor of more dynamic response types.
-        if isinstance(response, werkzeug.Response):
-            return response
-        elif isinstance(response, http.Response):
-            data, status, headers = response
+        if isinstance(response, http.Response):
+            data, status, headers, content_type = response
         else:
-            data, status, headers = response, 200, {}
+            data, status, headers, content_type = response, 200, {}, None
 
         if data is None:
             content = b''
@@ -135,9 +154,6 @@ class WSGIApp(CliApp):
 
         if not content and status == 200:
             status = 204
-            content_type = None
+            content_type = 'text/plain'
 
-        if 'Content-Type' in headers:
-            content_type = None
-
-        return werkzeug.Response(content, status, headers, content_type=content_type)
+        return http.Response(content, status, headers, content_type)

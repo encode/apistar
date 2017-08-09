@@ -21,10 +21,12 @@ class Response(collections.abc.Iterable):
     def __init__(self,
                  content: typing.Any,
                  status: int=200,
-                 headers: typing.Dict[str, str]=None) -> None:
+                 headers: typing.Dict[str, str]=None,
+                 content_type: str=None) -> None:
         self.content = content
         self.status = status
         self.headers = headers or {}
+        self.content_type = content_type
 
     def __iter__(self) -> typing.Iterator:
-        return iter((self.content, self.status, self.headers))
+        return iter((self.content, self.status, self.headers, self.content_type))
