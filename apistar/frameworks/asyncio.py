@@ -9,7 +9,7 @@ from apistar.components import (
 from apistar.frameworks.cli import CliApp
 from apistar.interfaces import (
     CommandLineClient, Console, Injector, KeywordArgs, Router, Schema,
-    StaticFiles, Templates, UMIMessage
+    StaticFiles, Templates, UMIChannels, UMIMessage
 )
 
 
@@ -33,17 +33,17 @@ class ASyncIOApp(CliApp):
 
     UMI_COMPONENTS = {
         http.Method: umi.get_method,
-        # http.URL: umi.get_url,
+        http.URL: umi.get_url,
         http.Scheme: umi.get_scheme,
         http.Host: umi.get_host,
         http.Port: umi.get_port,
         http.Path: umi.get_path,
-        # http.Headers: umi.get_headers,
-        # http.Header: umi.get_header,
+        http.Headers: umi.get_headers,
+        http.Header: umi.get_header,
         http.QueryString: umi.get_querystring,
         http.QueryParams: umi.get_queryparams,
         http.QueryParam: umi.get_queryparam,
-        # http.Body: umi.get_body,
+        http.Body: umi.get_body,
         # http.RequestData: umi.get_request_data,
     }  # type: typing.Dict[type, typing.Callable]
 
@@ -68,6 +68,7 @@ class ASyncIOApp(CliApp):
             initial_state=self.preloaded_state,
             required_state={
                 UMIMessage: 'message',
+                UMIChannels: 'channels',
                 KeywordArgs: 'kwargs',
                 Exception: 'exc'
             },
@@ -79,6 +80,7 @@ class ASyncIOApp(CliApp):
                        channels: typing.Dict[str, typing.Any]):
         state = {
             'message': message,
+            'channels': channels,
             'kwargs': None,
             'exc': None
         }

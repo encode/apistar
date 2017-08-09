@@ -16,6 +16,7 @@ HandlerLookup = typing.Tuple[typing.Callable, KeywordArgs]
 
 WSGIEnviron = typing.NewType('WSGIEnviron', dict)
 UMIMessage = typing.NewType('UMIMessage', dict)
+UMIChannels = typing.NewType('UMIChannels', dict)
 
 # Settings
 

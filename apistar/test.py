@@ -130,7 +130,7 @@ class _UMIAdapter(requests.adapters.HTTPAdapter):
             'scheme': url_components.scheme,
             'path': unquote(url_components.path),
             'body': body_bytes,
-            'query_string': url_components.query
+            'query_string': url_components.query.encode()
         }  # type: typing.Dict[str, typing.Any]
 
         if url_components.port:
@@ -145,6 +145,8 @@ class _UMIAdapter(requests.adapters.HTTPAdapter):
             ]
 
         message['headers'] = [
+            [b'Host', url_components.hostname.encode()]
+        ] + [
             [_coerce_to_bytes(key), _coerce_to_bytes(value)]
             for key, value in request.headers.items()
         ]

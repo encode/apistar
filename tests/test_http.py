@@ -200,7 +200,8 @@ def test_single_query_param(client):
     assert response.json() == {'page': '123'}
 
 
-def test_url():
+@pytest.mark.parametrize('client', [client, async_client])
+def test_url(client):
     response = client.get('http://example.com/url/')
     assert response.json() == {'url': 'http://example.com/url/'}
     response = client.get('https://example.com/url/')
@@ -213,7 +214,8 @@ def test_url():
     assert response.json() == {'url': 'http://example.com/url/?a=1'}
 
 
-def test_body():
+@pytest.mark.parametrize('client', [client, async_client])
+def test_body(client):
     response = client.post('http://example.com/body/', data="content")
     assert response.json() == {'body': 'content'}
 
@@ -236,7 +238,8 @@ def test_data():
     assert response.status_code == 415
 
 
-def test_headers():
+@pytest.mark.parametrize('client', [client, async_client])
+def test_headers(client):
     response = client.get('http://example.com/headers/')
     assert response.json() == {'headers': {
         'Accept': '*/*',
@@ -258,7 +261,8 @@ def test_headers():
     }}
 
 
-def test_accept_header():
+@pytest.mark.parametrize('client', [client, async_client])
+def test_accept_header(client):
     response = client.get('http://example.com/accept_header/')
     assert response.json() == {'accept': '*/*'}
 
