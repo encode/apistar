@@ -45,7 +45,7 @@ class WerkzeugRouter(Router):
         self._views = views
 
         # Use an MRU cache for router lookups.
-        self._lookup_cache = collections.OrderedDict()
+        self._lookup_cache = collections.OrderedDict()  # type: collections.OrderedDict
         self._lookup_cache_size = 10000
 
     def _get_converter(self,
