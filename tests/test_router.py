@@ -254,7 +254,7 @@ def test_misconfigured_routes():
         raise NotImplementedError
 
     with pytest.raises(exceptions.ConfigurationError):
-        App([
+        App(routes=[
             Route('/', 'GET', view),
             Route('/another', 'POST', view)
         ])

@@ -17,12 +17,6 @@ HandlerLookup = typing.Tuple[typing.Callable, KeywordArgs]
 WSGIEnviron = typing.NewType('WSGIEnviron', dict)
 
 
-class WSGICallable(metaclass=abc.ABCMeta):
-    @abc.abstractmethod
-    def __call__(self, environ: typing.Dict[str, typing.Any], start_response: typing.Callable):
-        raise NotImplementedError
-
-
 # Settings
 
 Settings = typing.NewType('Settings', dict)
@@ -132,4 +126,12 @@ class Injector(metaclass=abc.ABCMeta):
 class Console(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def echo(self, message: str) -> None:
+        raise NotImplementedError
+
+
+# App
+
+class App(metaclass=abc.ABCMeta):
+    @abc.abstractmethod
+    def main(self, args: typing.Sequence[str]=None) -> None:
         raise NotImplementedError

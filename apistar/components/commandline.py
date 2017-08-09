@@ -202,6 +202,9 @@ class CommandArgumentParser(argparse.ArgumentParser):
 
     def format_usage(self) -> str:
         message = 'Usage: {prog}'
+        for name, description in self.positionals:
+            message += ' ' + name.upper()
+        message += ' [OPTIONS]'
         return message.format(prog=self.prog)
 
     def format_description(self) -> str:

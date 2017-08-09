@@ -1,9 +1,9 @@
 import werkzeug
 
-from apistar.interfaces import WSGICallable
+from apistar.interfaces import App
 
 
-def run(app: WSGICallable,
+def run(app: App,
         host: str='127.0.0.1',
         port: int=8080,
         debug=True,

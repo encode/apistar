@@ -75,7 +75,7 @@ def test_no_args_subcommand_help():
     ret = app.main(['no_args', '--help'], standalone_mode=False)
     lines = _get_help_lines(ret)
     assert lines == [
-        "Usage: <progname> no_args",
+        "Usage: <progname> no_args [OPTIONS]",
         "",
         "Options:",
         "  --help  Show this message and exit."
@@ -86,7 +86,7 @@ def test_required_args_subcommand_help():
     ret = app.main(['required_args', '--help'], standalone_mode=False)
     lines = _get_help_lines(ret)
     assert lines == [
-        "Usage: <progname> required_args",
+        "Usage: <progname> required_args A B [OPTIONS]",
         "",
         "  Returns the values for a and b.",
         "",
@@ -99,7 +99,7 @@ def test_default_args_subcommand_help():
     ret = app.main(['default_args', '--help'], standalone_mode=False)
     lines = _get_help_lines(ret)
     assert lines == [
-        "Usage: <progname> default_args",
+        "Usage: <progname> default_args [OPTIONS]",
         "",
         "  Returns the values for a, b, c, and d, which have default values.",
         "",

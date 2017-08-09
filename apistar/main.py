@@ -5,7 +5,8 @@ import importlib.util
 import os
 import sys
 
-from apistar import App, exceptions
+from apistar import exceptions
+from apistar.frameworks.cli import CliApp
 
 
 def load_app():
@@ -21,10 +22,10 @@ def load_app():
 
 
 def default_app():
-    return App()
+    return CliApp()
 
 
-if __name__ == '__main__':  # pragma: nocover
+def main():  # pragma: nocover
     if os.path.exists('app.py'):
         app = load_app()
     else:

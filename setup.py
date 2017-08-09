@@ -7,8 +7,6 @@ import sys
 
 from setuptools import setup
 
-sys.dont_write_bytecode = True
-
 
 def get_version(package):
     """
