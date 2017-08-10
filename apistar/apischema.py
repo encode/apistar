@@ -15,6 +15,7 @@ from apistar.decorators import exclude_from_schema
 from apistar.routing import (
     Route, RoutesConfig, primitive_types, schema_types, walk
 )
+from apistar.settings import Settings
 from apistar.templating import Templates
 
 
@@ -24,7 +25,11 @@ class APISchema(Document):
         routes = app.routes
         url = get_schema_url(routes, base_url)
         content = get_schema_content(routes)
-        return cls(url=url, content=content)
+        settings = Settings(app.settings or {})
+        schema = settings.get('SCHEMA', {})
+        title = schema.get('TITLE', None)
+        description = schema.get('DESCRIPTION', None)
+        return cls(url=url, content=content, title=title, description=description)
 
 
 def get_schema_url(routes: RoutesConfig, base_url: http.URL=None) -> Optional[str]:
