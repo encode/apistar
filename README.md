@@ -644,7 +644,7 @@ A few common configurations are listed below.
 Database   | Driver                      | URL format
 ---------- | --------------------------- | ----------------
 PostgreSQL | `psycopg2`                  | `postgresql://<username>:<password>@localhost/example`
-MySQL      | `mysql-python`              | `mysql://<username>:<password>@localhost/example`
+MySQL      | `pymysql`                   | `mysql+pymysql://<username>:<password>@localhost/example`
 SQLite     | `sqlite3` (Python built-in) | `sqlite:///example.db`
 
 **Creating the database tables**
