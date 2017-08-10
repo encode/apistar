@@ -46,7 +46,7 @@ class URLPathArg(object):
     schema = None  # type: type
 
     @classmethod
-    def build(cls, args: URLPathArgs, arg_name: ArgName):
+    def build(cls, args: URLPathArgs, arg_name: ArgName) -> Any:
         value = args.get(arg_name)
         if cls.schema is not None and not isinstance(value, cls.schema):
             try:
@@ -169,7 +169,7 @@ class Router(object):
         (view, pipeline) = self.views[name]
         return (view, pipeline, kwargs)
 
-    def reverse_url(self, view_name: str, **url_params) -> str:
+    def reverse_url(self, view_name: str, **url_params: Dict[str, Any]) -> str:
         endpoint = self.views.get(view_name)
         if not endpoint:
             raise exceptions.NoReverseMatch

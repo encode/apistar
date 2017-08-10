@@ -22,25 +22,25 @@ class WSGIEnviron(ImmutableDict):
 
 class Method(str):
     @classmethod
-    def build(cls, environ: WSGIEnviron):
+    def build(cls, environ: WSGIEnviron) -> "Method":
         return cls(environ['REQUEST_METHOD'])
 
 
 class Scheme(str):
     @classmethod
-    def build(cls, environ: WSGIEnviron):
+    def build(cls, environ: WSGIEnviron) -> "Scheme":
         return cls(environ['wsgi.url_scheme'])
 
 
 class Host(str):
     @classmethod
-    def build(cls, environ: WSGIEnviron):
+    def build(cls, environ: WSGIEnviron) -> "Host":
         return cls(environ.get('HTTP_HOST') or environ['SERVER_NAME'])
 
 
 class Port(int):
     @classmethod
-    def build(cls, environ: WSGIEnviron):
+    def build(cls, environ: WSGIEnviron) -> "Port":
         if environ['wsgi.url_scheme'] == 'https':
             return cls(environ.get('SERVER_PORT') or 443)
         return cls(environ.get('SERVER_PORT') or 80)
@@ -48,33 +48,33 @@ class Port(int):
 
 class MountPath(str):
     @classmethod
-    def build(cls, environ: WSGIEnviron):
+    def build(cls, environ: WSGIEnviron) -> "MountPath":
         return cls(quote(environ.get('SCRIPT_NAME', '')))
 
 
 class RelativePath(str):
     @classmethod
-    def build(cls, environ: WSGIEnviron):
+    def build(cls, environ: WSGIEnviron) -> "RelativePath":
         return cls(quote(environ.get('PATH_INFO', '')))
 
 
 class Path(str):
     @classmethod
-    def build(cls, environ: WSGIEnviron):
+    def build(cls, environ: WSGIEnviron) -> "Path":
         path = environ.get('SCRIPT_NAME', '') + environ.get('PATH_INFO', '')
         return cls(quote(path))
 
 
 class QueryString(str):
     @classmethod
-    def build(cls, environ: WSGIEnviron):
+    def build(cls, environ: WSGIEnviron) -> "QueryString":
         query_string = environ.get('QUERY_STRING', '')
         return cls(query_string)
 
 
 class URL(str):
     @classmethod
-    def build(cls, environ: WSGIEnviron):
+    def build(cls, environ: WSGIEnviron) -> "URL":
         # https://www.python.org/dev/peps/pep-0333/#url-reconstruction
         url = environ['wsgi.url_scheme'] + '://'
 
@@ -100,30 +100,30 @@ class URL(str):
 
 class Body(bytes):
     @classmethod
-    def build(cls, environ: WSGIEnviron):
+    def build(cls, environ: WSGIEnviron) -> "Body":
         return get_input_stream(environ).read()
 
 
 class Headers(ImmutableHeadersMixin, WerkzeugHeaders):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Dict[str, Any]) -> None:
         if len(args) == 1 and isinstance(args[0], dict):
             args = [list(args[0].items())]
         super().__init__(*args, **kwargs)
 
     @classmethod
-    def build(cls, environ: WSGIEnviron):
+    def build(cls, environ: WSGIEnviron) -> "Headers":
         return cls(EnvironHeaders(environ))
 
 
 class Header(str):
     @classmethod
-    def build(cls, headers: Headers, arg_name: ArgName):
+    def build(cls, headers: Headers, arg_name: ArgName) -> "Header":
         return headers.get(arg_name.replace('_', '-'))
 
 
 class QueryParams(ImmutableMultiDict):
     @classmethod
-    def build(cls, environ: WSGIEnviron):
+    def build(cls, environ: WSGIEnviron) -> "QueryParams":
         query_string = environ.get('QUERY_STRING', '')
         return cls(url_decode(query_string))
 
@@ -132,7 +132,7 @@ class QueryParam(str):
     schema = None  # type: type
 
     @classmethod
-    def build(cls, params: QueryParams, arg_name: ArgName):
+    def build(cls, params: QueryParams, arg_name: ArgName) -> "QueryParam":
         value = params.get(arg_name)
         if value is None or cls.schema is None:
             return value
@@ -155,7 +155,7 @@ class RequestData(object):
     schema = None  # type: type
 
     @classmethod
-    def build(cls, environ: WSGIEnviron):
+    def build(cls, environ: WSGIEnviron) -> Union[Dict, type]:
         if not bool(environ.get('CONTENT_TYPE')):
             mimetype = None
         else:
@@ -183,7 +183,7 @@ class RequestField(object):
     schema = None  # type: type
 
     @classmethod
-    def build(cls, data: RequestData, arg_name: ArgName):
+    def build(cls, data: RequestData, arg_name: ArgName) -> Union[type, None]:
         value = data[arg_name]  # type: ignore
 
         if value is None or cls.schema is None:
@@ -205,7 +205,7 @@ class Request(object):
     def build(cls,
               method: Method,
               url: URL,
-              headers: Headers):
+              headers: Headers) -> "Request":
         return cls(method=method, url=url, headers=headers)
 
 
@@ -259,5 +259,5 @@ class Response(object):
         self.headers = Headers(headers_list)
 
     @classmethod
-    def build(cls, data: ResponseData):
+    def build(cls, data: ResponseData) -> "Response":
         return cls(data=data)

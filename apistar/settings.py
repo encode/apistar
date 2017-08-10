@@ -6,7 +6,7 @@ from apistar.core import ArgName
 
 class Settings(dict):
     @classmethod
-    def build(cls, app: app.App):
+    def build(cls, app: app.App) -> "Settings":
         return cls(app.settings)
 
     def get(self, indexes: Union[str, List[str]], default: Any=None) -> Any:
@@ -22,10 +22,10 @@ class Settings(dict):
 
 
 class Setting(object):
-    def __new__(cls, *args):
+    def __new__(cls, *args: Any) -> Any:
         assert len(args) == 1
         return args[0]
 
     @classmethod
-    def build(cls, arg_name: ArgName, settings: Settings):
+    def build(cls, arg_name: ArgName, settings: Settings) -> "Setting":
         return settings.get(arg_name)

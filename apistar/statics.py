@@ -22,7 +22,7 @@ class Statics(object):
         self.whitenoise.add_files(PACKAGE_STATICS, prefix='apistar')
 
     @classmethod
-    def build(cls, settings: Settings):
+    def build(cls, settings: Settings) -> "Statics":
         root_dir = settings.get(['STATICS', 'DIR'])
         return cls(root_dir)
 
