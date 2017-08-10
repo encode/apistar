@@ -220,7 +220,8 @@ def test_body(client):
     assert response.json() == {'body': 'content'}
 
 
-def test_data():
+@pytest.mark.parametrize('client', [client, async_client])
+def test_data(client):
     response = client.post('http://example.com/data/', json={"hello": 123})
     assert response.json() == {'data': {'hello': 123}}
 

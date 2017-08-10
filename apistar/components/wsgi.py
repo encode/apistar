@@ -3,7 +3,7 @@ from wsgiref.util import request_uri
 
 import werkzeug
 from werkzeug.datastructures import ImmutableMultiDict
-from werkzeug.formparser import parse_form_data
+from werkzeug.formparser import FormDataParser
 from werkzeug.http import parse_options_header
 from werkzeug.wsgi import get_input_stream
 
@@ -84,7 +84,8 @@ def get_request_data(environ: WSGIEnviron):
         body = get_input_stream(environ).read()
         value = json.loads(body.decode('utf-8'))
     elif mimetype in ('multipart/form-data', 'application/x-www-form-urlencoded'):
-        stream, form, files = parse_form_data(environ)
+        parser = FormDataParser()
+        stream, form, files = parser.parse_from_environ(environ)
         value = ImmutableMultiDict(list(form.items()) + list(files.items()))
     else:
         raise exceptions.UnsupportedMediaType()

@@ -1,6 +1,13 @@
-import werkzeug
+import io
+import json
+import typing
 
-from apistar import http
+import werkzeug
+from werkzeug.datastructures import ImmutableMultiDict
+from werkzeug.formparser import FormDataParser
+from werkzeug.http import parse_options_header
+
+from apistar import exceptions, http
 from apistar.interfaces import ParamName, UMIChannels, UMIMessage
 
 
@@ -78,21 +85,36 @@ async def get_body(message: UMIMessage, channels: UMIChannels):
     return body
 
 
-# def get_request_data(environ: WSGIEnviron):
-#     if not bool(environ.get('CONTENT_TYPE')):
-#         mimetype = None
-#     else:
-#         mimetype, _ = parse_options_header(environ['CONTENT_TYPE'])
-#
-#     if mimetype is None:
-#         value = None
-#     elif mimetype == 'application/json':
-#         body = get_input_stream(environ).read()
-#         value = json.loads(body.decode('utf-8'))
-#     elif mimetype in ('multipart/form-data', 'application/x-www-form-urlencoded'):
-#         stream, form, files = parse_form_data(environ)
-#         value = ImmutableMultiDict(list(form.items()) + list(files.items()))
-#     else:
-#         raise exceptions.UnsupportedMediaType()
-#
-#     return value
+def _get_content_length(headers: http.Headers) -> typing.Optional[int]:
+    content_length = headers.get('Content-Length')
+    if content_length is not None:
+        try:
+            return max(0, int(content_length))
+        except (ValueError, TypeError):
+            pass
+    return None
+
+
+async def get_request_data(headers: http.Headers, message: UMIMessage, channels: UMIChannels):
+    content_type = headers.get('Content-Type')
+    if content_type:
+        mimetype, options = parse_options_header(content_type)
+    else:
+        mimetype, options = None, {}
+
+    if mimetype is None:
+        value = None
+    elif mimetype == 'application/json':
+        body = await get_body(message, channels)
+        value = json.loads(body.decode('utf-8'))
+    elif mimetype in ('multipart/form-data', 'application/x-www-form-urlencoded'):
+        body = await get_body(message, channels)
+        stream = io.BytesIO(body)
+        content_length = _get_content_length(headers)
+        parser = FormDataParser()
+        stream, form, files = parser.parse(stream, mimetype, content_length, options)
+        value = ImmutableMultiDict(list(form.items()) + list(files.items()))
+    else:
+        raise exceptions.UnsupportedMediaType()
+
+    return value

@@ -44,7 +44,7 @@ class ASyncIOApp(CliApp):
         http.QueryParams: umi.get_queryparams,
         http.QueryParam: umi.get_queryparam,
         http.Body: umi.get_body,
-        # http.RequestData: umi.get_request_data,
+        http.RequestData: umi.get_request_data,
     }  # type: typing.Dict[type, typing.Callable]
 
     def __init__(self, **kwargs):
