@@ -6,6 +6,7 @@ import requests
 from click.testing import CliRunner
 
 from apistar.cli import get_current_app
+from apistar.compat import urllib3
 
 
 class WSGIAdapter(requests.adapters.HTTPAdapter):
@@ -77,7 +78,7 @@ class WSGIAdapter(requests.adapters.HTTPAdapter):
 
         # Build the underlying urllib3.HTTPResponse
         raw_kwargs['body'] = io.BytesIO(b''.join(wsgi_response))
-        raw = requests.packages.urllib3.HTTPResponse(**raw_kwargs)
+        raw = urllib3.HTTPResponse(**raw_kwargs)
 
         # Build the requests.Response
         return self.build_response(request, raw)
