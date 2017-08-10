@@ -45,8 +45,11 @@ def get_querystring(message: UMIMessage):
     return message['query_string'].decode()
 
 
-def get_queryparams(message: UMIMessage):
-    return werkzeug.urls.url_decode(message['query_string'])
+def get_queryparams(message: UMIMessage) -> http.QueryParams:
+    return werkzeug.urls.url_decode(
+        message['query_string'],
+        cls=http.QueryParams
+    )
 
 
 def get_queryparam(name: ParamName, queryparams: http.QueryParams):

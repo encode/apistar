@@ -41,8 +41,11 @@ def get_querystring(environ: WSGIEnviron):
     return environ.get('QUERY_STRING', '')
 
 
-def get_queryparams(environ: WSGIEnviron):
-    return werkzeug.urls.url_decode(environ.get('QUERY_STRING', ''))
+def get_queryparams(environ: WSGIEnviron) -> http.QueryParams:
+    return werkzeug.urls.url_decode(
+        environ.get('QUERY_STRING', ''),
+        cls=http.QueryParams
+    )
 
 
 def get_queryparam(name: ParamName, queryparams: http.QueryParams):

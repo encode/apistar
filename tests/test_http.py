@@ -45,8 +45,8 @@ def get_query_string(query_string: http.QueryString) -> http.Response:
     return http.Response({'query_string': query_string})
 
 
-def get_query_params(query_params: http.QueryParams) -> http.Response:
-    return http.Response({'query_params': query_params})
+def get_query_params(query_string: http.QueryString, query_params: http.QueryParams) -> http.Response:
+    return http.Response({'query_params': dict(query_params)})
 
 
 def get_page_query_param(page: http.QueryParam) -> http.Response:
@@ -307,3 +307,43 @@ def test_unknown_status_code(client):
 def test_response_headers(client):
     response = client.get('/response_headers/')
     assert response.headers['Content-Language'] == 'de'
+
+
+def test_headers_type():
+    h = http.Headers([('a', '123'), ('A', '456'), ('b', '789')])
+    assert 'a' in h
+    assert 'A' in h
+    assert 'c' not in h
+    assert h['a'] == '123'
+    assert h.get_list('a') == ['123', '456']
+    assert h.keys() == ['a', 'a', 'b']
+    assert h.values() == ['123', '456', '789']
+    assert h.items() == [('a', '123'), ('a', '456'), ('b', '789')]
+    assert list(h) == [('a', '123'), ('a', '456'), ('b', '789')]
+    assert dict(h) == {'a': '123', 'b': '789'}
+    assert repr(h) == "Headers([('a', '123'), ('a', '456'), ('b', '789')])"
+    assert http.Headers({'a': '123', 'b': '456'}) == http.Headers([('a', '123'), ('b', '456')])
+    assert http.Headers({'a': '123', 'b': '456'}) == {'B': '456', 'a': '123'}
+    assert http.Headers({'a': '123', 'b': '456'}) == [('B', '456'), ('a', '123')]
+    assert {'B': '456', 'a': '123'} == http.Headers({'a': '123', 'b': '456'})
+    assert [('B', '456'), ('a', '123')] == http.Headers({'a': '123', 'b': '456'})
+
+
+def test_queryparams_type():
+    q = http.QueryParams([('a', '123'), ('a', '456'), ('b', '789')])
+    assert 'a' in q
+    assert 'A' not in q
+    assert 'c' not in q
+    assert q['a'] == '123'
+    assert q.get_list('a') == ['123', '456']
+    assert q.keys() == ['a', 'a', 'b']
+    assert q.values() == ['123', '456', '789']
+    assert q.items() == [('a', '123'), ('a', '456'), ('b', '789')]
+    assert list(q) == [('a', '123'), ('a', '456'), ('b', '789')]
+    assert dict(q) == {'a': '123', 'b': '789'}
+    assert repr(q) == "QueryParams([('a', '123'), ('a', '456'), ('b', '789')])"
+    assert http.QueryParams({'a': '123', 'b': '456'}) == http.QueryParams([('a', '123'), ('b', '456')])
+    assert http.QueryParams({'a': '123', 'b': '456'}) == {'b': '456', 'a': '123'}
+    assert http.QueryParams({'a': '123', 'b': '456'}) == [('b', '456'), ('a', '123')]
+    assert {'b': '456', 'a': '123'} == http.QueryParams({'a': '123', 'b': '456'})
+    assert [('b', '456'), ('a', '123')] == http.QueryParams({'a': '123', 'b': '456'})
