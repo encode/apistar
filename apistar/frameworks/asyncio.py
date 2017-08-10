@@ -31,7 +31,7 @@ class ASyncIOApp(CliApp):
         Console: console.PrintConsole
     }  # type: typing.Dict[type, typing.Callable]
 
-    UMI_COMPONENTS = {
+    HTTP_COMPONENTS = {
         http.Method: umi.get_method,
         http.URL: umi.get_url,
         http.Scheme: umi.get_scheme,
@@ -52,9 +52,9 @@ class ASyncIOApp(CliApp):
 
         # Setup everything that we need in order to run `self.__call__()`
         self.router = self.preloaded_state[Router]
-        self.async_injector = self.create_async_injector()
+        self.http_injector = self.create_http_injector()
 
-    def create_async_injector(self) -> Injector:
+    def create_http_injector(self) -> Injector:
         """
         Create the dependency injector for running handlers in response to
         incoming HTTP requests.
@@ -64,7 +64,7 @@ class ASyncIOApp(CliApp):
             initial_state: Any preloaded components and other initial state.
         """
         return self.INJECTOR_CLS(
-            components={**self.UMI_COMPONENTS, **self.components},
+            components={**self.HTTP_COMPONENTS, **self.components},
             initial_state=self.preloaded_state,
             required_state={
                 UMIMessage: 'message',
@@ -89,10 +89,10 @@ class ASyncIOApp(CliApp):
         try:
             handler, kwargs = self.router.lookup(path, method)
             state['kwargs'] = kwargs
-            response = await self.async_injector.run_async(handler, state=state)
+            response = await self.http_injector.run_async(handler, state=state)
         except Exception as exc:
             state['exc'] = exc  # type: ignore
-            response = await self.async_injector.run_async(self.exception_handler, state=state)
+            response = await self.http_injector.run_async(self.exception_handler, state=state)
 
         if getattr(response, 'content_type', None) is None:
             response = self.finalize_response(response)

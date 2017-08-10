@@ -242,22 +242,22 @@ def test_data():
 def test_headers(client):
     response = client.get('http://example.com/headers/')
     assert response.json() == {'headers': {
-        'Accept': '*/*',
-        'Accept-Encoding': 'gzip, deflate',
-        'Connection': 'keep-alive',
-        'Host': 'example.com',
-        'User-Agent': 'testclient'
+        'accept': '*/*',
+        'accept-encoding': 'gzip, deflate',
+        'connection': 'keep-alive',
+        'host': 'example.com',
+        'user-agent': 'testclient'
     }}
     response = client.get('http://example.com/headers/', headers={
         'X-Example-Header': 'example'
     })
     assert response.json() == {'headers': {
-        'Accept': '*/*',
-        'Accept-Encoding': 'gzip, deflate',
-        'Connection': 'keep-alive',
-        'Host': 'example.com',
-        'User-Agent': 'testclient',
-        'X-Example-Header': 'example'
+        'accept': '*/*',
+        'accept-encoding': 'gzip, deflate',
+        'connection': 'keep-alive',
+        'host': 'example.com',
+        'user-agent': 'testclient',
+        'x-example-header': 'example'
     }}
 
 

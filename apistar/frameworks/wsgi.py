@@ -38,7 +38,7 @@ class WSGIApp(CliApp):
         Console: console.PrintConsole
     }  # type: typing.Dict[type, typing.Callable]
 
-    WSGI_COMPONENTS = {
+    HTTP_COMPONENTS = {
         http.Method: wsgi.get_method,
         http.URL: wsgi.get_url,
         http.Scheme: wsgi.get_scheme,
@@ -59,9 +59,9 @@ class WSGIApp(CliApp):
 
         # Setup everything that we need in order to run `self.__call__()`
         self.router = self.preloaded_state[Router]
-        self.wsgi_injector = self.create_wsgi_injector()
+        self.http_injector = self.create_http_injector()
 
-    def create_wsgi_injector(self) -> Injector:
+    def create_http_injector(self) -> Injector:
         """
         Create the dependency injector for running handlers in response to
         incoming HTTP requests.
@@ -71,7 +71,7 @@ class WSGIApp(CliApp):
             initial_state: Any preloaded components and other initial state.
         """
         return self.INJECTOR_CLS(
-            components={**self.WSGI_COMPONENTS, **self.components},
+            components={**self.HTTP_COMPONENTS, **self.components},
             initial_state=self.preloaded_state,
             required_state={
                 WSGIEnviron: 'wsgi_environ',
@@ -94,10 +94,10 @@ class WSGIApp(CliApp):
         try:
             handler, kwargs = self.router.lookup(path, method)
             state['kwargs'] = kwargs
-            response = self.wsgi_injector.run(handler, state=state)
+            response = self.http_injector.run(handler, state=state)
         except Exception as exc:
             state['exc'] = exc  # type: ignore
-            response = self.wsgi_injector.run(self.exception_handler, state=state)
+            response = self.http_injector.run(self.exception_handler, state=state)
 
         if getattr(response, 'content_type', None) is None:
             response = self.finalize_response(response)

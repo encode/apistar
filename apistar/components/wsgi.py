@@ -49,8 +49,16 @@ def get_queryparam(name: ParamName, queryparams: http.QueryParams):
     return queryparams.get(name)
 
 
-def get_headers(environ: WSGIEnviron):
-    return werkzeug.datastructures.EnvironHeaders(environ)
+def get_headers(environ: WSGIEnviron) -> http.Headers:
+    header_items = []
+    for key, value in environ.items():
+        if key.startswith('HTTP_'):
+            header = (key[5:].lower().replace('_', '-'), value)
+            header_items.append(header)
+        elif key in ('CONTENT_TYPE', 'CONTENT_LENGTH'):
+            header = (key.lower().replace('_', '-'), value)
+            header_items.append(header)
+    return http.Headers(header_items)
 
 
 def get_header(name: ParamName, headers: http.Headers):

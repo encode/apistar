@@ -53,15 +53,15 @@ def get_queryparam(name: ParamName, queryparams: http.QueryParams):
     return queryparams.get(name)
 
 
-def get_headers(message: UMIMessage):
-    return dict([
+def get_headers(message: UMIMessage) -> http.Headers:
+    return http.Headers([
         (key.decode(), value.decode())
         for key, value in message['headers']
     ])
 
 
 def get_header(name: ParamName, headers: http.Headers):
-    return headers.get(name.title().replace('_', '-'))
+    return headers.get(name.replace('_', '-'))
 
 
 async def get_body(message: UMIMessage, channels: UMIChannels):

@@ -145,7 +145,7 @@ class _UMIAdapter(requests.adapters.HTTPAdapter):
             ]
 
         message['headers'] = [
-            [b'Host', url_components.hostname.encode()]
+            [b'host', url_components.hostname.encode()]
         ] + [
             [_coerce_to_bytes(key), _coerce_to_bytes(value)]
             for key, value in request.headers.items()
