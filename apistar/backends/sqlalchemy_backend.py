@@ -1,14 +1,17 @@
+from apistar.backends.alembic import AlembicMigration
 from apistar.settings import Settings
 
 
-class SQLAlchemy(object):
+class SQLAlchemy(AlembicMigration, object):
     __slots__ = ('engine', 'session_class', 'metadata')
     preload = True
 
-    def __init__(self, engine, session_class, metadata=None):
+    def __init__(self, engine, session_class, db_url=None, metadata=None):
+        AlembicMigration.__init__(self)
         self.engine = engine
         self.session_class = session_class
         self.metadata = metadata
+        self.db_url = db_url
 
     @classmethod
     def build(cls, settings: Settings):
@@ -25,7 +28,7 @@ class SQLAlchemy(object):
 
         engine = create_engine(url, **kwargs)
         session_class = sessionmaker(bind=engine)
-        return cls(engine, session_class, metadata)
+        return cls(engine, session_class, url, metadata)
 
     def create_tables(self):
         self.metadata.create_all(self.engine)
