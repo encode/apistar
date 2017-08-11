@@ -32,14 +32,14 @@ class ConfigurationError(Exception):
 
 
 class CommandLineError(Exception):
-    def __init__(self, message, exit_code: int=1) -> None:
+    def __init__(self, message: str, exit_code: int=1) -> None:
         self.exit_code = exit_code
         self.message = message
         super().__init__(message)
 
 
 class CommandLineExit(Exception):
-    def __init__(self, message) -> None:
+    def __init__(self, message: str) -> None:
         self.message = message
         super().__init__(message)
 

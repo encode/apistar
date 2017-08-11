@@ -116,6 +116,7 @@ routes = [
     Route('/body/', 'POST', get_body),
     Route('/data/', 'POST', get_data),
     Route('/headers/', 'GET', get_headers),
+    Route('/headers/', 'POST', get_headers, name='post_headers'),
     Route('/accept_header/', 'GET', get_accept_header),
     Route('/binary/', 'GET', binary_response),
     Route('/text/', 'GET', text_response),
@@ -235,7 +236,7 @@ def test_data(client):
     response = client.post('http://example.com/data/', files={'file': csv_file})
     assert response.json() == {'data': {'file': '1,2,3\n4,5,6\n'}}
 
-    response = client.post('http://example.com/data/', headers={'content-type': 'unknown'})
+    response = client.post('http://example.com/data/', headers={b'content-type': b'unknown'})
     assert response.status_code == 415
 
 
@@ -259,6 +260,17 @@ def test_headers(client):
         'host': 'example.com',
         'user-agent': 'testclient',
         'x-example-header': 'example'
+    }}
+
+    response = client.post('http://example.com/headers/', data={'a': 1})
+    assert response.json() == {'headers': {
+        'accept': '*/*',
+        'accept-encoding': 'gzip, deflate',
+        'connection': 'keep-alive',
+        'content-length': '3',
+        'content-type': 'application/x-www-form-urlencoded',
+        'host': 'example.com',
+        'user-agent': 'testclient'
     }}
 
 

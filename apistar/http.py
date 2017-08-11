@@ -16,7 +16,10 @@ RequestData = typing.TypeVar('RequestData')
 
 
 class QueryParams(collections.Mapping):
-    """An immutable multidict."""
+    """
+    An immutable multidict.
+    """
+
     def __init__(self, value):
         if hasattr(value, 'items'):
             items = list(value.items())
@@ -62,7 +65,10 @@ class QueryParams(collections.Mapping):
 
 
 class Headers(collections.Mapping):
-    """An immutable, case-insensitive multidict."""
+    """
+    An immutable, case-insensitive multidict.
+    """
+
     def __init__(self, value):
         if hasattr(value, 'items'):
             items = [(k.lower(), v) for k, v in list(value.items())]

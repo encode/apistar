@@ -7,6 +7,25 @@ from urllib.parse import unquote, urlparse
 import requests
 
 
+def _get_reason_phrase(status_code: int) -> str:
+    try:
+        return HTTPStatus(status_code).phrase
+    except ValueError:
+        return ''
+
+
+def _coerce_to_str(item: typing.Union[str, bytes]):
+    if isinstance(item, bytes):
+        return item.decode()
+    return item
+
+
+def _coerce_to_bytes(item: typing.Union[str, bytes]):
+    if isinstance(item, str):
+        return item.encode()
+    return item
+
+
 class _WSGIAdapter(requests.adapters.HTTPAdapter):
     """
     A transport adapter for `requests` that makes requests directly to a
@@ -47,7 +66,7 @@ class _WSGIAdapter(requests.adapters.HTTPAdapter):
             key = key.upper().replace('-', '_')
             if key not in ('CONTENT_LENGTH', 'CONTENT_TYPE'):
                 key = 'HTTP_' + key
-            environ[key] = value
+            environ[key] = _coerce_to_str(value)
 
         return environ
 
@@ -91,19 +110,6 @@ class _MockReplyChannel():
             self.headers = message['headers']
         if 'content' in message:
             self.body += message['content']
-
-
-def _get_reason_phrase(status_code: int) -> str:
-    try:
-        return HTTPStatus(status_code).phrase
-    except ValueError:
-        return ''
-
-
-def _coerce_to_bytes(item: typing.Union[str, bytes]):
-    if isinstance(item, str):
-        return item.encode()
-    return item
 
 
 class _UMIAdapter(requests.adapters.HTTPAdapter):

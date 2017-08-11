@@ -4,7 +4,7 @@ import typing
 import coreapi
 import coreschema
 
-from apistar import Response, exceptions
+from apistar import Response, Route, exceptions
 from apistar.interfaces import Schema, StaticFiles, Templates, WSGIEnviron
 from apistar.routing import PathWildcard
 
@@ -51,7 +51,7 @@ def javascript_schema(schema: Schema, templates: Templates) -> Response:
     return Response(content, content_type='application/javascript')
 
 
-def serve_static(path: PathWildcard, statics: StaticFiles, environ: WSGIEnviron):
+def serve_static(path: PathWildcard, statics: StaticFiles, environ: WSGIEnviron) -> Response:
     static_file = statics.get_file(path)
     if static_file is None:
         raise exceptions.NotFound()
@@ -62,3 +62,14 @@ setattr(api_documentation, 'exclude_from_schema', True)
 setattr(corejson_schema, 'exclude_from_schema', True)
 setattr(javascript_schema, 'exclude_from_schema', True)
 setattr(serve_static, 'exclude_from_schema', True)
+
+
+docs_urls = [
+    Route('/', 'GET', api_documentation),
+    Route('/schema/', 'GET', corejson_schema),
+    Route('/schema.js', 'GET', javascript_schema),
+]
+
+static_urls = [
+    Route('/{path}', 'GET', serve_static)
+]

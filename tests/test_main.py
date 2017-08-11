@@ -22,10 +22,19 @@ def test_load_app():
         assert isinstance(loaded, App)
 
 
-def test_load_misconfigured_app():
+def test_load_missing_app():
     with tempfile.TemporaryDirectory() as tempdir:
         os.chdir(tempdir)
         with open('app.py', 'w') as app_file:
             app_file.write('')
+        with pytest.raises(exceptions.ConfigurationError):
+            load_app()
+
+
+def test_load_invalid_app():
+    with tempfile.TemporaryDirectory() as tempdir:
+        os.chdir(tempdir)
+        with open('app.py', 'w') as app_file:
+            app_file.write('app = 123\n')
         with pytest.raises(exceptions.ConfigurationError):
             load_app()
