@@ -18,7 +18,7 @@ class ASyncIOApp(CliApp):
 
     BUILTIN_COMMANDS = [
         Command('new', commands.new),
-        Command('run', commands.run),
+        Command('run', commands.run_asyncio),
         Command('schema', commands.schema)
     ]
 
