@@ -10,8 +10,8 @@ from apistar.components import (
 )
 from apistar.frameworks.cli import CliApp
 from apistar.interfaces import (
-    CommandLineClient, Console, Injector, KeywordArgs, Router, Schema,
-    StaticFiles, Templates, WSGIEnviron
+    CommandLineClient, Console, FileWrapper, Injector, KeywordArgs, Router,
+    Schema, StaticFiles, Templates, WSGIEnviron
 )
 
 STATUS_TEXT = {
@@ -52,6 +52,7 @@ class WSGIApp(CliApp):
         http.QueryParam: wsgi.get_queryparam,
         http.Body: wsgi.get_body,
         http.RequestData: wsgi.get_request_data,
+        FileWrapper: wsgi.get_file_wrapper
     }  # type: typing.Dict[type, typing.Callable]
 
     def __init__(self, **kwargs):

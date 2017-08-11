@@ -15,6 +15,9 @@ def schema(schema: Schema,
 
     Args:
       format:  The format for the API Schema output.
+
+    Returns:
+      The API schema.
     """
     codec = codecs[format]
     return codec.encode(schema)

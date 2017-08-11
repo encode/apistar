@@ -1,12 +1,11 @@
 import os
 from importlib.util import find_spec
-from wsgiref.util import FileWrapper
 
 import whitenoise
 
 from apistar import exceptions, http
 from apistar.interfaces import (
-    Router, Settings, StaticFile, StaticFiles, WSGIEnviron
+    FileWrapper, Router, Settings, StaticFile, StaticFiles
 )
 
 
@@ -14,19 +13,24 @@ class WhiteNoiseStaticFile(StaticFile):
     def __init__(self, whitenoise_file) -> None:
         self._file = whitenoise_file
 
-    def get_response(self, environ: WSGIEnviron):
-        method = environ['REQUEST_METHOD']
-        response = self._file.get_response(method, environ)
+    def get_response(self,
+                     method: http.Method,
+                     headers: http.Headers,
+                     file_wrapper: FileWrapper) -> http.Response:
+        wsgi_style_headers = {
+            'HTTP_' + k.upper().replace('-', '_'): v
+            for k, v in headers.items()
+        }
+        response = self._file.get_response(method, wsgi_style_headers)
         if response.file is not None:
-            file_wrapper = environ.get('wsgi.file_wrapper', FileWrapper)
             content = file_wrapper(response.file)
         else:
             # We hit this branch for HEAD requests
-            content = []
+            content = b''
 
-        headers = dict(response.headers)
-        content_type = headers.pop('Content-Type')
-        return http.Response(content, status=response.status, headers=headers, content_type=content_type)
+        response_headers = dict(response.headers)
+        content_type = response_headers.pop('Content-Type', None)
+        return http.Response(content, status=response.status, headers=response_headers, content_type=content_type)
 
 
 class WhiteNoiseStaticFiles(StaticFiles):

@@ -4,7 +4,7 @@ import typing
 
 import coreapi
 
-from apistar import cli, routing
+from apistar import cli, http, routing
 
 # Common
 
@@ -60,9 +60,15 @@ class Templates(metaclass=abc.ABCMeta):
 
 # Statics
 
+class FileWrapper(metaclass=abc.ABCMeta):
+    @abc.abstractmethod
+    def __call__(self, file: typing.Any) -> typing.Iterable:
+        raise NotImplementedError
+
+
 class StaticFile(metaclass=abc.ABCMeta):
     @abc.abstractmethod
-    def get_response(self, environ):
+    def get_response(self, method: http.Method, headers: http.Headers, file_wrapper: FileWrapper):
         raise NotImplementedError
 
 

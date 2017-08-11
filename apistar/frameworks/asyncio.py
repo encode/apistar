@@ -8,8 +8,8 @@ from apistar.components import (
 )
 from apistar.frameworks.cli import CliApp
 from apistar.interfaces import (
-    CommandLineClient, Console, Injector, KeywordArgs, Router, Schema,
-    StaticFiles, Templates, UMIChannels, UMIMessage
+    CommandLineClient, Console, FileWrapper, Injector, KeywordArgs, Router,
+    Schema, StaticFiles, Templates, UMIChannels, UMIMessage
 )
 
 
@@ -45,6 +45,7 @@ class ASyncIOApp(CliApp):
         http.QueryParam: umi.get_queryparam,
         http.Body: umi.get_body,
         http.RequestData: umi.get_request_data,
+        FileWrapper: umi.get_file_wrapper
     }  # type: typing.Dict[type, typing.Callable]
 
     def __init__(self, **kwargs):
@@ -58,10 +59,6 @@ class ASyncIOApp(CliApp):
         """
         Create the dependency injector for running handlers in response to
         incoming HTTP requests.
-
-        Args:
-            components: Any components that are created per-request.
-            initial_state: Any preloaded components and other initial state.
         """
         return self.INJECTOR_CLS(
             components={**self.HTTP_COMPONENTS, **self.components},

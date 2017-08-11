@@ -6,12 +6,13 @@ from apistar.interfaces import App
 def run(app: App,
         host: str='127.0.0.1',
         port: int=8080,
-        debug=True,
-        reloader=True) -> None:  # pragma: nocover
+        debug: bool=True,
+        reloader: bool=True) -> None:  # pragma: nocover
     """
     Run the development server.
 
     Args:
+      app: The application instance, which should be a WSGI callable.
       host: The host of the server.
       port: The port of the server.
       debug: Turn the debugger [on|off].

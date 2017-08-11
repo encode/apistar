@@ -118,3 +118,11 @@ async def get_request_data(headers: http.Headers, message: UMIMessage, channels:
         raise exceptions.UnsupportedMediaType()
 
     return value
+
+
+def get_file_wrapper():
+    # The Uvicorn Messaging Interface doesn't yet support any equivelent
+    # to wsgi.file_wrapper.
+    def _wrapper(file):
+        return file.read()
+    return _wrapper

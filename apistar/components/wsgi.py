@@ -1,5 +1,5 @@
 import json
-from wsgiref.util import request_uri
+from wsgiref.util import FileWrapper, request_uri
 
 import werkzeug
 from werkzeug.datastructures import ImmutableMultiDict
@@ -91,3 +91,7 @@ def get_request_data(environ: WSGIEnviron):
         raise exceptions.UnsupportedMediaType()
 
     return value
+
+
+def get_file_wrapper(environ: WSGIEnviron):
+    return environ.get('wsgi.file_wrapper', FileWrapper)

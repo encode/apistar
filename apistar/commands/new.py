@@ -11,11 +11,15 @@ LAYOUT_CHOICES = os.listdir(LAYOUTS_DIR)
 IGNORED_DIRECTORIES = ['__pycache__']
 
 
-def new(console: Console, target_dir: str, layout: str='minimal', force: bool=False) -> None:
+def new(console: Console,
+        target_dir: str,
+        layout: str='minimal',
+        force: bool=False) -> None:
     """
     Create a new project in TARGET_DIR.
 
     Args:
+      console: The console to write output about file creation.
       target_dir: The directory to use when creating the project.
       layout: Select the project layout to use.
       force: Overwrite any existing project files.

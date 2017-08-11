@@ -4,12 +4,13 @@ import typing
 import coreapi
 import coreschema
 
-from apistar import Response, Route, exceptions
-from apistar.interfaces import Schema, StaticFiles, Templates, WSGIEnviron
+from apistar import Response, Route, exceptions, http
+from apistar.interfaces import FileWrapper, Schema, StaticFiles, Templates
 from apistar.routing import PathWildcard
 
 
-def api_documentation(schema: Schema, templates: Templates) -> Response:
+def api_documentation(schema: Schema,
+                      templates: Templates) -> Response:
     index = templates.get_template('apistar/docs/index.html')
     langs = ['python', 'javascript', 'shell']
 
@@ -43,7 +44,8 @@ def corejson_schema(schema: Schema) -> Response:
     return Response(content, content_type='application/coreapi+json')
 
 
-def javascript_schema(schema: Schema, templates: Templates) -> Response:
+def javascript_schema(schema: Schema,
+                      templates: Templates) -> Response:
     codec = coreapi.codecs.CoreJSONCodec()
     base64_schema = base64.b64encode(codec.encode(schema)).decode('latin1')
     template = templates.get_template('apistar/schema.js')
@@ -51,11 +53,15 @@ def javascript_schema(schema: Schema, templates: Templates) -> Response:
     return Response(content, content_type='application/javascript')
 
 
-def serve_static(path: PathWildcard, statics: StaticFiles, environ: WSGIEnviron) -> Response:
+def serve_static(statics: StaticFiles,
+                 path: PathWildcard,
+                 method: http.Method,
+                 headers: http.Headers,
+                 file_wrapper: FileWrapper) -> Response:
     static_file = statics.get_file(path)
     if static_file is None:
         raise exceptions.NotFound()
-    return static_file.get_response(environ)
+    return static_file.get_response(method, headers, file_wrapper)
 
 
 setattr(api_documentation, 'exclude_from_schema', True)
