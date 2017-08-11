@@ -1,7 +1,5 @@
-from apistar import App, Route
-
-# from apistar.docs import docs_routes
-# from apistar.statics import static_routes
+from apistar import App, Include, Route
+from apistar.handlers import docs_urls, static_urls
 
 
 def welcome(name=None):
@@ -12,8 +10,8 @@ def welcome(name=None):
 
 routes = [
     Route('/', 'GET', welcome),
-    # Include('/docs', docs_routes),
-    # Include('/static', static_routes)
+    Include('/docs', docs_urls),
+    Include('/static', static_urls)
 ]
 
 app = App(routes=routes)
