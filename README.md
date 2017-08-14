@@ -19,8 +19,8 @@ Why should you consider using API Star for your next Web API project?
 
 * **API documentation** - Interactive API documentation, that's guaranteed to always
 be in sync with your codebase.
-* **Client libraries** - JavaScript and Python client libraries, driven by the schemas that API Star generates.
-* **Schema generation** - Support for generating Swagger or RAML API schemas.
+* **Client libraries** - JavaScript and Python client libraries, driven by the typesystems that API Star generates.
+* **Schema generation** - Support for generating Swagger or RAML API typesystems.
 * **Expressive** - Type annotated views, that make for expressive, testable code.
 * **Performance** - Dynamic behavior for determining how to run each view makes API Star incredibly efficient.
 
@@ -33,7 +33,7 @@ be in sync with your codebase.
     - [Requests](#requests)
     - [Responses](#responses)
     - [URL Routing](#url-routing)
-- [Schemas](#schemas)
+- [Type System](#type-system)
     - [Data Validation](#data-validation)
     - [Serialization](#serialization)
     - [Generating API Schemas](#generating-api-schemas)
@@ -70,9 +70,9 @@ Create a new project:
     app.py
     tests.py
     $ cat app.py
-    from apistar import App, Include, Route
-    from apistar.docs import docs_routes
-    from apistar.statics import static_routes
+    from apistar.frameworks.wsgi import WSGIApp as App
+    from apistar import Include, Route
+    from apistar.handlers import docs_urls, static_urls
 
 
     def welcome(name=None):
@@ -83,8 +83,8 @@ Create a new project:
 
     routes = [
         Route('/', 'GET', welcome),
-        Include('/docs', docs_routes),
-        Include('/static', static_routes)
+        Include('/docs', docs_urls),
+        Include('/static', static_urls)
     ]
 
     app = App(routes=routes)
@@ -240,43 +240,46 @@ def get_player_details(player_name):
 def get_all_players(router: routing.Router):
     players = get_players()
     player_list = [
-        {'name': player.name, 'url': router.reverse_url('get_player_details', player_name=player.name)}
+        {
+            'name': player.name,
+            'url': router.reverse_url('get_player_details', player_name=player.name)
+        }
         for player in players
     ]
     return {'players': player_list}
 
 app = App(routes=[
     Route('/players/', 'GET', get_all_players),
-    Route('/players/{name}', 'GET', get_player_details),
+    Route('/players/{name}/', 'GET', get_player_details),
 ])
 ```
 
 ---
 
-# Schemas
+# Type System
 
 API Star comes with a type system that allows you to express constraints on the
 expected inputs and outputs of your interface.
 
-Here’s a quick example of what the schema type system in API Star looks like:
+Here’s a quick example of what the type system in API Star looks like:
 
 ```python
-from apistar import schema
+from apistar import typesystem
 
-class Rating(schema.Integer):
+class Rating(typesystem.Integer):
     minimum = 1
     maximum = 5
 
 
-class ProductSize(schema.Enum):
+class ProductSize(typesystem.Enum):
     enum = ['small', 'medium', 'large']
 
 
-class Product(schema.Object):
+class Product(typesystem.Object):
     properties = {
-        'name': schema.String(max_length=100),
+        'name': typesystem.String(max_length=100),
         'rating': Rating,
-        'in_stock': schema.Boolean,
+        'in_stock': typesystem.Boolean,
         'size': ProductSize,
     }
 ```
@@ -297,7 +300,7 @@ routes = [
 
 ## Serialization
 
-In addition to using the schema types for input validation, you can also use
+In addition to using the typesystem types for input validation, you can also use
 them to serialize the return values of your handler functions.
 
 ```python
@@ -308,13 +311,13 @@ def list_products() -> List[Product]
 
 ## API Reference
 
-The following schema types are currently supported:
+The following typesystem types are currently supported:
 
 ### String
 
 Validates string data. A subclass of `str`.
 
-* `default` - A default to be used if a field using this schema is missing from a parent `Object`.
+* `default` - A default to be used if a field using this typesystem is missing from a parent `Object`.
 * `max_length` - A maximum valid length for the data.
 * `min_length` - A minimum valid length for the data.
 * `pattern` - A string or compiled regex that the data must match.
@@ -325,7 +328,7 @@ Validates string data. A subclass of `str`.
 
 Validates numeric data. A subclass of `float`.
 
-* `default` - A default to be used if a field using this schema is missing from a parent `Object`.
+* `default` - A default to be used if a field using this typesystem is missing from a parent `Object`.
 * `maximum` - A float representing the maximum valid value for the data.
 * `minimum` - A float representing the minimum valid value for the data.
 * `exclusive_maximum` - `True` for an exclusive maximum limit. Defaults to `False`.
@@ -336,7 +339,7 @@ Validates numeric data. A subclass of `float`.
 
 Validates integer data. A subclass of `int`.
 
-* `default` - A default to be used if a field using this schema is missing from a parent `Object`.
+* `default` - A default to be used if a field using this typesystem is missing from a parent `Object`.
 * `maximum` - An int representing the maximum valid value for the data.
 * `minimum` - An int representing the minimum valid value for the data.
 * `exclusive_maximum` - `True` for an exclusive maximum limit. Defaults to `False`.
@@ -347,21 +350,21 @@ Validates integer data. A subclass of `int`.
 
 Validates boolean input. Returns either `True` or `False`.
 
-* `default` - A default to be used if a field using this schema is missing from a parent `Object`.
+* `default` - A default to be used if a field using this typesystem is missing from a parent `Object`.
 
 ### Enum
 
 Validates string input, against a list of valid choices. A subclass of `str`.
 
-* `default` - A default to be used if a field using this schema is missing from a parent `Object`.
+* `default` - A default to be used if a field using this typesystem is missing from a parent `Object`.
 * `enum` - A list of valid string values for the data.
 
 ### Object
 
 Validates dictionary or object input. A subclass of `dict`.
 
-* `default` - A default to be used if a field using this schema is missing from a parent `Object`.
-* `properties` - A dictionary mapping string key names to schema or type values.
+* `default` - A default to be used if a field using this typesystem is missing from a parent `Object`.
+* `properties` - A dictionary mapping string key names to typesystem or type values.
 
 Note that child properties are considered to be required if they do not have a `default` value.
 
@@ -369,8 +372,8 @@ Note that child properties are considered to be required if they do not have a `
 
 Validates list or tuple input. A subclass of `list`.
 
-* `items` - A schema or type or a list of schemas or types.
-* `additional_items` - Whether additional items past the end of the listed schema types are permitted.
+* `items` - A typesystem or type or a list of typesystems or types.
+* `additional_items` - Whether additional items past the end of the listed typesystem types are permitted.
 * `min_items` - The minimum number of items the array must contain.
 * `max_items` - The maximum number of items the array must contain.
 * `unique_items` - Whether repeated items are permitted in the array.
@@ -379,7 +382,7 @@ Validates list or tuple input. A subclass of `list`.
 
 API Star is designed to be able to map well onto API description formats, known as "API Schemas".
 
-There is currently *provisional* support for writing Swagger, RAML, or CoreJSON schemas.
+There is currently *provisional* support for writing Swagger, RAML, or CoreJSON typesystems.
 See [#69](https://github.com/tomchristie/apistar/issues/69) for more details on work still to be done here.
 
 The default output format is the built-in CoreJSON support:
@@ -566,13 +569,13 @@ API Star provides an `Environment` class that allows you to load the environment
 and ensure that it is correctly configured.
 
 ```python
-from apistar import environment, schema
+from apistar import environment, typesystem
 
 
 class Env(environment.Environment):
     properties = {
-        'DEBUG': schema.Boolean(default=False),
-        'DATABASE_URL': schema.String(default='sqlite://')
+        'DEBUG': typesystem.Boolean(default=False),
+        'DATABASE_URL': typesystem.String(default='sqlite://')
     }
 
 env = Env()
@@ -660,7 +663,7 @@ To access the database in your view, include the `SQLAlchemy` component.
 This has the following attributes:
 
 - `engine` - The global [`Engine`](http://docs.sqlalchemy.org/en/latest/core/connections.html#sqlalchemy.engine.Engine) instance.
-- `metadata` - The [`MetaData`](http://docs.sqlalchemy.org/en/latest/core/metadata.html#sqlalchemy.schema.MetaData) object passed into the settings.
+- `metadata` - The [`MetaData`](http://docs.sqlalchemy.org/en/latest/core/metadata.html#sqlalchemy.typesystem.MetaData) object passed into the settings.
 - `session_class` - A bound [`sessionmaker`](http://docs.sqlalchemy.org/en/latest/orm/session_api.html#session-and-sessionmaker) factory.
 
 ```python
@@ -742,7 +745,7 @@ This has the following attributes:
 ```python
 from apistar.backends import DjangoBackend
 
-def create_star(orm: DjangoBackend, star: schemas.Star):
+def create_star(orm: DjangoBackend, star: typesystems.Star):
     """Create a new star object"""
     star = orm.Star(**star)
     star.save()
