@@ -4,14 +4,17 @@ import tempfile
 
 import pytest
 
-from apistar import App, Route, TestClient, exceptions
+from apistar import Route, TestClient, exceptions
 from apistar.components.router import WerkzeugRouter
 from apistar.components.statics import WhiteNoiseStaticFiles
+from apistar.frameworks.asyncio import ASyncIOApp
+from apistar.frameworks.wsgi import WSGIApp
 from apistar.handlers import serve_static
 from apistar.interfaces import Settings
 
 
-def test_static_files() -> None:
+@pytest.mark.parametrize('app_class', [WSGIApp, ASyncIOApp])
+def test_static_files(app_class) -> None:
     with tempfile.TemporaryDirectory() as tempdir:
         path = os.path.join(tempdir, 'example.csv')
         with open(path, 'w') as example_file:
@@ -24,7 +27,7 @@ def test_static_files() -> None:
             'STATICS': {'ROOT_DIR': tempdir, 'PACKAGE_DIRS': ['apistar']}
         }
 
-        app = App(routes=routes, settings=settings)
+        app = app_class(routes=routes, settings=settings)
         client = TestClient(app)
 
         response = client.get('/static/example.csv')
