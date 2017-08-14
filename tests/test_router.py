@@ -88,11 +88,11 @@ routes = [
 wsgi_app = WSGIApp(routes=routes)
 async_app = ASyncIOApp(routes=routes)
 
-client = TestClient(wsgi_app)
+wsgi_client = TestClient(wsgi_app)
 async_client = TestClient(async_app)
 
 
-@pytest.mark.parametrize('client', [client, async_client])
+@pytest.mark.parametrize('client', [wsgi_client, async_client])
 def test_200(client):
     response = client.get('/found/')
     assert response.status_code == 200
@@ -101,7 +101,7 @@ def test_200(client):
     }
 
 
-@pytest.mark.parametrize('client', [client, async_client])
+@pytest.mark.parametrize('client', [wsgi_client, async_client])
 def test_404(client):
     response = client.get('/404/')
     assert response.status_code == 404
@@ -110,7 +110,7 @@ def test_404(client):
     }
 
 
-@pytest.mark.parametrize('client', [client, async_client])
+@pytest.mark.parametrize('client', [wsgi_client, async_client])
 def test_405(client):
     response = client.post('/found/')
     assert response.status_code == 405
@@ -119,7 +119,7 @@ def test_405(client):
     }
 
 
-@pytest.mark.parametrize('client', [client, async_client])
+@pytest.mark.parametrize('client', [wsgi_client, async_client])
 def test_found_no_slash(client):
     response = client.get('/found', allow_redirects=False)
     assert response.status_code == 302
@@ -130,42 +130,48 @@ def test_found_no_slash(client):
     assert response.url == 'http://testserver/found/'
 
 
-def test_path_params():
+@pytest.mark.parametrize('client', [wsgi_client, async_client])
+def test_path_params(client):
     response = client.get('/path_params/1/')
     assert response.json() == {
         'args': {'var': 1}
     }
 
 
-def test_path_param():
+@pytest.mark.parametrize('client', [wsgi_client, async_client])
+def test_path_param(client):
     response = client.get('/path_param/abc/')
     assert response.json() == {
         'var': 'abc'
     }
 
 
-def test_int_path_param():
+@pytest.mark.parametrize('client', [wsgi_client, async_client])
+def test_int_path_param(client):
     response = client.get('/int/1/')
     assert response.json() == {
         'var': 1
     }
 
 
-def test_subpath():
+@pytest.mark.parametrize('client', [wsgi_client, async_client])
+def test_subpath(client):
     response = client.get('/subpath/123/')
     assert response.json() == {
         'var': 123
     }
 
 
-def test_full_path_param():
+@pytest.mark.parametrize('client', [wsgi_client, async_client])
+def test_full_path_param(client):
     response = client.get('/full_path/abc/def/ghi/')
     assert response.json() == {
         'var': 'abc/def/ghi/'
     }
 
 
-def test_valid_max_length():
+@pytest.mark.parametrize('client', [wsgi_client, async_client])
+def test_valid_max_length(client):
     response = client.get('/max_length/abcde/')
     assert response.status_code == 200
     assert response.json() == {
@@ -173,7 +179,8 @@ def test_valid_max_length():
     }
 
 
-def test_invalid_max_length():
+@pytest.mark.parametrize('client', [wsgi_client, async_client])
+def test_invalid_max_length(client):
     response = client.get('/max_length/abcdef/')
     assert response.status_code == 404
     assert response.json() == {
@@ -181,7 +188,8 @@ def test_invalid_max_length():
     }
 
 
-def test_valid_number():
+@pytest.mark.parametrize('client', [wsgi_client, async_client])
+def test_valid_number(client):
     response = client.get('/number/1.23/')
     assert response.status_code == 200
     assert response.json() == {
@@ -189,7 +197,8 @@ def test_valid_number():
     }
 
 
-def test_invalid_number():
+@pytest.mark.parametrize('client', [wsgi_client, async_client])
+def test_invalid_number(client):
     response = client.get('/number/abc/')
     assert response.status_code == 404
     assert response.json() == {
@@ -197,7 +206,8 @@ def test_invalid_number():
     }
 
 
-def test_valid_integer():
+@pytest.mark.parametrize('client', [wsgi_client, async_client])
+def test_valid_integer(client):
     response = client.get('/integer/123/')
     assert response.status_code == 200
     assert response.json() == {
@@ -205,7 +215,8 @@ def test_valid_integer():
     }
 
 
-def test_invalid_integer():
+@pytest.mark.parametrize('client', [wsgi_client, async_client])
+def test_invalid_integer(client):
     response = client.get('/integer/abc/')
     assert response.status_code == 404
     assert response.json() == {
@@ -213,7 +224,8 @@ def test_invalid_integer():
     }
 
 
-def test_valid_string():
+@pytest.mark.parametrize('client', [wsgi_client, async_client])
+def test_valid_string(client):
     response = client.get('/string/hello world/')
     assert response.status_code == 200
     assert response.json() == {

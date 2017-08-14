@@ -3,8 +3,10 @@ import tempfile
 
 import pytest
 
-from apistar import App, Route, TestClient
+from apistar import Route, TestClient
 from apistar.exceptions import TemplateNotFound
+from apistar.frameworks.asyncio import ASyncIOApp
+from apistar.frameworks.wsgi import WSGIApp
 from apistar.interfaces import Templates
 
 
@@ -18,7 +20,8 @@ routes = [
 ]
 
 
-def test_get_and_render_template():
+@pytest.mark.parametrize('app_class', [WSGIApp, ASyncIOApp])
+def test_get_and_render_template(app_class):
     with tempfile.TemporaryDirectory() as tempdir:
         path = os.path.join(tempdir, 'index.html')
         with open(path, 'w') as index:
@@ -30,7 +33,7 @@ def test_get_and_render_template():
                 'ROOT_DIR': [tempdir]
             }
         }
-        app = App(routes=routes, settings=settings)
+        app = app_class(routes=routes, settings=settings)
         client = TestClient(app)
         response = client.get('/get_and_render_template/?username=tom')
 
@@ -38,14 +41,15 @@ def test_get_and_render_template():
         assert response.text == '<html><body>Hello, tom</body><html>'
 
 
-def test_template_not_found():
+@pytest.mark.parametrize('app_class', [WSGIApp, ASyncIOApp])
+def test_template_not_found(app_class):
     settings = {
         'TEMPLATES': {
             'PACKAGE_DIRS': [],
             'ROOT_DIR': []
         }
     }
-    app = App(routes=routes, settings=settings)
+    app = app_class(routes=routes, settings=settings)
     client = TestClient(app)
     with pytest.raises(TemplateNotFound):
         client.get('/get_and_render_template/?username=tom')

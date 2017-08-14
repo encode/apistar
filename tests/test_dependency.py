@@ -2,8 +2,9 @@ from typing import List
 
 import pytest
 
-from apistar import App, Route, TestClient, exceptions, typesystem
-from apistar.interfaces import WSGIEnviron
+from apistar import Route, TestClient, exceptions, http, typesystem
+from apistar.frameworks.asyncio import ASyncIOApp
+from apistar.frameworks.wsgi import WSGIApp
 
 
 class KittenName(typesystem.String):
@@ -56,16 +57,20 @@ def add_favorite_kitten(name: KittenName) -> Kitten:
     return Kitten({'name': name, 'color': 'black', 'cuteness': 0.0})
 
 
-app = App(routes=[
+routes = [
     Route('/list_favorite_kittens/', 'GET', list_favorite_kittens),
     Route('/add_favorite_kitten/', 'POST', add_favorite_kitten),
-])
+]
+
+wsgi_app = WSGIApp(routes=routes)
+async_app = ASyncIOApp(routes=routes)
+
+wsgi_client = TestClient(wsgi_app)
+async_client = TestClient(async_app)
 
 
-client = TestClient(app)
-
-
-def test_list_kittens():
+@pytest.mark.parametrize('client', [wsgi_client, async_client])
+def test_list_kittens(client):
     response = client.get('/list_favorite_kittens/?color=white')
     assert response.status_code == 200
     assert response.json() == [
@@ -74,7 +79,8 @@ def test_list_kittens():
     ]
 
 
-def test_add_kitten():
+@pytest.mark.parametrize('client', [wsgi_client, async_client])
+def test_add_kitten(client):
     response = client.post('/add_favorite_kitten/?name=charlie')
     assert response.status_code == 200
     assert response.json() == {
@@ -82,7 +88,8 @@ def test_add_kitten():
     }
 
 
-def test_invalid_list_kittens():
+@pytest.mark.parametrize('client', [wsgi_client, async_client])
+def test_invalid_list_kittens(client):
     response = client.get('/list_favorite_kittens/?color=invalid')
     assert response.status_code == 400
     assert response.json() == {
@@ -90,14 +97,15 @@ def test_invalid_list_kittens():
     }
 
 
-def test_empty_arg_as_query_param():
+@pytest.mark.parametrize('app_cls', [WSGIApp, ASyncIOApp])
+def test_empty_arg_as_query_param(app_cls):
     def view(arg):
         return {'arg': arg}
 
     routes = [
         Route('/', 'GET', view)
     ]
-    app = App(routes=routes)
+    app = app_cls(routes=routes)
     client = TestClient(app)
     response = client.get('/?arg=123')
     assert response.json() == {
@@ -105,14 +113,15 @@ def test_empty_arg_as_query_param():
     }
 
 
-def test_cannot_coerce_query_param():
+@pytest.mark.parametrize('app_cls', [WSGIApp, ASyncIOApp])
+def test_cannot_coerce_query_param(app_cls):
     def view(arg: int):
         raise NotImplementedError
 
     routes = [
         Route('/', 'GET', view)
     ]
-    app = App(routes=routes)
+    app = app_cls(routes=routes)
     client = TestClient(app)
     response = client.get('/?arg=abc')
     assert response.status_code == 400
@@ -121,14 +130,15 @@ def test_cannot_coerce_query_param():
     }
 
 
-def test_arg_as_composite_param():
+@pytest.mark.parametrize('app_cls', [WSGIApp, ASyncIOApp])
+def test_arg_as_composite_param(app_cls):
     def view(arg: dict):
         return {'arg': arg}
 
     routes = [
         Route('/', 'POST', view)
     ]
-    app = App(routes=routes)
+    app = app_cls(routes=routes)
     client = TestClient(app)
     response = client.post('/', json={'a': 123})
     assert response.json() == {
@@ -136,14 +146,15 @@ def test_arg_as_composite_param():
     }
 
 
-def test_cannot_coerce_body_param():
+@pytest.mark.parametrize('app_cls', [WSGIApp, ASyncIOApp])
+def test_cannot_coerce_body_param(app_cls):
     def view(arg: dict):
         raise NotImplementedError
 
     routes = [
         Route('/', 'POST', view)
     ]
-    app = App(routes=routes)
+    app = app_cls(routes=routes)
     client = TestClient(app)
     response = client.post('/', json=123)
     assert response.status_code == 400
@@ -152,7 +163,8 @@ def test_cannot_coerce_body_param():
     }
 
 
-def test_cannot_inject_unkown_component():
+@pytest.mark.parametrize('app_cls', [WSGIApp, ASyncIOApp])
+def test_cannot_inject_unkown_component(app_cls):
     class A():
         pass
 
@@ -162,17 +174,18 @@ def test_cannot_inject_unkown_component():
     routes = [
         Route('/', 'GET', view)
     ]
-    app = App(routes=routes)
+    app = app_cls(routes=routes)
     client = TestClient(app)
     with pytest.raises(exceptions.CouldNotResolveDependency):
         client.get('/')
 
 
-def test_component_injected_twice_runs_once():
+@pytest.mark.parametrize('app_cls', [WSGIApp, ASyncIOApp])
+def test_component_injected_twice_runs_once(app_cls):
     log = []
 
     class LoggingComponent():
-        def __init__(self, environ: WSGIEnviron) -> None:
+        def __init__(self, method: http.Method, path: http.Path) -> None:
             nonlocal log
             log.append('logging component injected')
 
@@ -183,17 +196,18 @@ def test_component_injected_twice_runs_once():
         Route('/', 'GET', view)
     ]
     components = {LoggingComponent: LoggingComponent}
-    app = App(routes=routes, components=components)
+    app = app_cls(routes=routes, components=components)
     client = TestClient(app)
     client.get('/')
     assert log == ['logging component injected']
 
 
-def test_context_manager_component():
+@pytest.mark.parametrize('app_cls', [WSGIApp, ASyncIOApp])
+def test_context_manager_component(app_cls):
     log = []
 
     class ContextManagerComponent():
-        def __init__(self, environ: WSGIEnviron) -> None:
+        def __init__(self, method: http.Method, path: http.Path) -> None:
             pass
 
         def __enter__(self):
@@ -213,7 +227,7 @@ def test_context_manager_component():
         Route('/', 'GET', view)
     ]
     components = {ContextManagerComponent: ContextManagerComponent}
-    app = App(routes=routes, components=components)
+    app = app_cls(routes=routes, components=components)
     client = TestClient(app)
     client.get('/')
     assert log == ['context manager enter', 'view', 'context manager exit']

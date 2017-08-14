@@ -1,6 +1,7 @@
 import pytest
 
-from apistar import App, Command, exceptions
+from apistar import Command, exceptions
+from apistar.frameworks.cli import CliApp
 
 
 def no_args():
@@ -32,7 +33,7 @@ commands = [
     Command('required_args', required_args),
     Command('default_args', default_args)
 ]
-app = App(commands=commands)
+app = CliApp(commands=commands)
 
 
 def _get_help_lines(content):
@@ -63,8 +64,6 @@ def test_help():
         "",
         "Commands:",
         "  new            Create a new project in TARGET_DIR.",
-        "  run            Run the development server.",
-        "  schema         Generate an API schema.",
         "  no_args        ",
         "  required_args  Returns the values for a and b.",
         "  default_args   Returns the values for a, b, c, and d, which have default values."
