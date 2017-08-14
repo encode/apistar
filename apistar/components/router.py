@@ -93,7 +93,7 @@ class WerkzeugRouter(Router):
 
         self._lookup_cache[lookup_key] = (view, kwargs)
         if len(self._lookup_cache) > self._lookup_cache_size:
-            self._lookup_cache.pop(next(iter(self._lookup_cache)))
+            self._lookup_cache.pop(next(iter(self._lookup_cache)))  # pragma: nocover
 
         return (view, kwargs)
 

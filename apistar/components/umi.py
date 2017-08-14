@@ -76,7 +76,7 @@ def get_header(name: ParamName, headers: http.Headers):
 
 async def get_body(message: UMIMessage, channels: UMIChannels):
     body = message.get('body', b'')
-    if 'body' in channels:
+    if 'body' in channels:  # pragma: nocover
         while True:
             message_chunk = await channels['body'].receive()
             body += message_chunk['content']
@@ -90,9 +90,9 @@ def _get_content_length(headers: http.Headers) -> typing.Optional[int]:
     if content_length is not None:
         try:
             return max(0, int(content_length))
-        except (ValueError, TypeError):
+        except (ValueError, TypeError):  # pragma: nocover
             pass
-    return None
+    return None  # pragma: nocover
 
 
 async def get_request_data(headers: http.Headers, message: UMIMessage, channels: UMIChannels):
