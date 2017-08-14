@@ -277,7 +277,7 @@ class ProductSize(typesystem.Enum):
 
 class Product(typesystem.Object):
     properties = {
-        'name': typesystem.String(max_length=100),
+        'name': typesystem.newtype('String', max_length=100),
         'rating': Rating,
         'in_stock': typesystem.Boolean,
         'size': ProductSize,
@@ -574,8 +574,8 @@ from apistar import environment, typesystem
 
 class Env(environment.Environment):
     properties = {
-        'DEBUG': typesystem.Boolean(default=False),
-        'DATABASE_URL': typesystem.String(default='sqlite://')
+        'DEBUG': typesystem.newtype('Boolean', default=False),
+        'DATABASE_URL': typesystem.newtype('String', default='sqlite://')
     }
 
 env = Env()
