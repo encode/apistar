@@ -38,7 +38,7 @@ def api_documentation(schema: Schema,
     return Response(content, content_type='text/html; charset=utf-8')
 
 
-def corejson_schema(schema: Schema) -> Response:
+def serve_schema(schema: Schema) -> Response:
     codec = coreapi.codecs.CoreJSONCodec()
     content = codec.encode(schema)
     return Response(content, content_type='application/coreapi+json')
@@ -65,14 +65,14 @@ def serve_static(statics: StaticFiles,
 
 
 setattr(api_documentation, 'exclude_from_schema', True)
-setattr(corejson_schema, 'exclude_from_schema', True)
+setattr(serve_schema, 'exclude_from_schema', True)
 setattr(javascript_schema, 'exclude_from_schema', True)
 setattr(serve_static, 'exclude_from_schema', True)
 
 
 docs_urls = [
     Route('/', 'GET', api_documentation),
-    Route('/schema/', 'GET', corejson_schema),
+    Route('/schema/', 'GET', serve_schema),
     Route('/schema.js', 'GET', javascript_schema),
 ]
 

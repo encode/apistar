@@ -6,8 +6,8 @@ import coreapi
 import coreschema
 import uritemplate
 
-from apistar import routing, typesystem
-from apistar.interfaces import RouteConfig, Schema
+from apistar import exceptions, routing, typesystem
+from apistar.interfaces import RouteConfig, Router, Schema
 
 PRIMITIVE_TYPES = (
     str, int, float, bool, list, dict
@@ -20,13 +20,19 @@ SCHEMA_TYPES = (
 
 
 class CoreAPISchema(Schema):
-    def __init__(self, routes: RouteConfig) -> None:
+    def __init__(self, router: Router, routes: RouteConfig) -> None:
+        try:
+            url = router.reverse_url('serve_schema')
+        except exceptions.NoReverseMatch:
+            url = None
+
         content = {}
         for route in routing.flatten_routes(routes):
             if getattr(route.view, 'exclude_from_schema', False):
                 continue
             content[route.name] = get_link(route)
-        super().__init__(url='/', content=content)
+
+        super().__init__(url=url, content=content)
 
 
 def get_link(route: routing.Route) -> coreapi.Link:

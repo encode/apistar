@@ -4,7 +4,7 @@ from coreapi.codecs import CoreJSONCodec
 
 from apistar import App, Route, TestClient, typesystem
 from apistar.handlers import (
-    api_documentation, corejson_schema, javascript_schema, serve_static
+    api_documentation, javascript_schema, serve_schema, serve_static
 )
 from apistar.interfaces import Schema, Settings
 
@@ -62,7 +62,7 @@ routes = [
     Route('/todo/{ident}/percent_complete', 'PUT', set_percent_complete),
     Route('/todo/{ident}/category', 'PUT', set_category),
     Route('/docs/', 'GET', api_documentation),
-    Route('/schema/', 'GET', corejson_schema),
+    Route('/schema/', 'GET', serve_schema),
     Route('/schema.js', 'GET', javascript_schema),
     Route('/static/{path}', 'GET', serve_static)
 ]
@@ -116,11 +116,11 @@ expected = Schema(url='/schema/', content={
 })
 
 
-def test_corejson_schema():
+def test_serve_schema():
     response = client.get('/schema/')
     codec = CoreJSONCodec()
     document = codec.decode(response.content)
-    assert document.url == '/'
+    assert document.url == '/schema/'
     for name, link in expected.links.items():
         assert name in document
         assert link.action == document[name].action
