@@ -7,11 +7,12 @@
 """
 from apistar.app import App
 from apistar.cli import Command
+from apistar.components import Component
 from apistar.http import Response
 from apistar.routing import Include, Route
 from apistar.test import TestClient
 
 __version__ = '0.2.0'
 __all__ = [
-    'App', 'Command', 'Response', 'Route', 'Include', 'TestClient'
+    'App', 'Command', 'Component', 'Response', 'Route', 'Include', 'TestClient'
 ]

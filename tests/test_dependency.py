@@ -2,7 +2,7 @@ from typing import List
 
 import pytest
 
-from apistar import Route, TestClient, exceptions, http, typesystem
+from apistar import Component, Route, TestClient, exceptions, http, typesystem
 from apistar.frameworks.asyncio import ASyncIOApp
 from apistar.frameworks.wsgi import WSGIApp
 
@@ -195,7 +195,9 @@ def test_component_injected_twice_runs_once(app_cls):
     routes = [
         Route('/', 'GET', view)
     ]
-    components = {LoggingComponent: LoggingComponent}
+    components = [
+        Component(LoggingComponent)
+    ]
     app = app_cls(routes=routes, components=components)
     client = TestClient(app)
     client.get('/')
@@ -226,7 +228,9 @@ def test_context_manager_component(app_cls):
     routes = [
         Route('/', 'GET', view)
     ]
-    components = {ContextManagerComponent: ContextManagerComponent}
+    components = [
+        Component(ContextManagerComponent)
+    ]
     app = app_cls(routes=routes, components=components)
     client = TestClient(app)
     client.get('/')

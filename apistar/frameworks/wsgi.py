@@ -6,7 +6,8 @@ from werkzeug.http import HTTP_STATUS_CODES
 from apistar import commands, exceptions, http
 from apistar.cli import Command
 from apistar.components import (
-    commandline, console, dependency, router, schema, statics, templates, wsgi
+    Component, commandline, console, dependency, router, schema, statics,
+    templates, wsgi
 )
 from apistar.frameworks.cli import CliApp
 from apistar.interfaces import (
@@ -29,31 +30,31 @@ class WSGIApp(CliApp):
         Command('schema', commands.schema)
     ]
 
-    BUILTIN_COMPONENTS = {
-        Schema: schema.CoreAPISchema,
-        Templates: templates.Jinja2Templates,
-        StaticFiles: statics.WhiteNoiseStaticFiles,
-        Router: router.WerkzeugRouter,
-        CommandLineClient: commandline.ArgParseCommandLineClient,
-        Console: console.PrintConsole
-    }  # type: typing.Dict[type, typing.Callable]
+    BUILTIN_COMPONENTS = [
+        Component(Schema, init=schema.CoreAPISchema),
+        Component(Templates, init=templates.Jinja2Templates),
+        Component(StaticFiles, init=statics.WhiteNoiseStaticFiles),
+        Component(Router, init=router.WerkzeugRouter),
+        Component(CommandLineClient, init=commandline.ArgParseCommandLineClient),
+        Component(Console, init=console.PrintConsole)
+    ]
 
-    HTTP_COMPONENTS = {
-        http.Method: wsgi.get_method,
-        http.URL: wsgi.get_url,
-        http.Scheme: wsgi.get_scheme,
-        http.Host: wsgi.get_host,
-        http.Port: wsgi.get_port,
-        http.Path: wsgi.get_path,
-        http.Headers: wsgi.get_headers,
-        http.Header: wsgi.get_header,
-        http.QueryString: wsgi.get_querystring,
-        http.QueryParams: wsgi.get_queryparams,
-        http.QueryParam: wsgi.get_queryparam,
-        http.Body: wsgi.get_body,
-        http.RequestData: wsgi.get_request_data,
-        FileWrapper: wsgi.get_file_wrapper
-    }  # type: typing.Dict[type, typing.Callable]
+    HTTP_COMPONENTS = [
+        Component(http.Method, init=wsgi.get_method),
+        Component(http.URL, init=wsgi.get_url),
+        Component(http.Scheme, init=wsgi.get_scheme),
+        Component(http.Host, init=wsgi.get_host),
+        Component(http.Port, init=wsgi.get_port),
+        Component(http.Path, init=wsgi.get_path),
+        Component(http.Headers, init=wsgi.get_headers),
+        Component(http.Header, init=wsgi.get_header),
+        Component(http.QueryString, init=wsgi.get_querystring),
+        Component(http.QueryParams, init=wsgi.get_queryparams),
+        Component(http.QueryParam, init=wsgi.get_queryparam),
+        Component(http.Body, init=wsgi.get_body),
+        Component(http.RequestData, init=wsgi.get_request_data),
+        Component(FileWrapper, init=wsgi.get_file_wrapper)
+    ]
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -71,8 +72,13 @@ class WSGIApp(CliApp):
             components: Any components that are created per-request.
             initial_state: Any preloaded components and other initial state.
         """
+        http_components = {
+            component.cls: component.init
+            for component in self.HTTP_COMPONENTS
+        }
+
         return self.INJECTOR_CLS(
-            components={**self.HTTP_COMPONENTS, **self.components},
+            components={**http_components, **self.components},
             initial_state=self.preloaded_state,
             required_state={
                 WSGIEnviron: 'wsgi_environ',

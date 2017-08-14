@@ -3,7 +3,7 @@ import typing
 
 from apistar import commands, exceptions
 from apistar.cli import Command
-from apistar.components import commandline, console, dependency
+from apistar.components import Component, commandline, console, dependency
 from apistar.interfaces import (
     App, CommandConfig, CommandLineClient, Console, Injector, KeywordArgs,
     RouteConfig, Settings
@@ -17,27 +17,27 @@ class CliApp(App):
         Command('new', commands.new),
     ]
 
-    BUILTIN_COMPONENTS = {
-        CommandLineClient: commandline.ArgParseCommandLineClient,
-        Console: console.PrintConsole
-    }  # type: typing.Dict[type, typing.Callable]
+    BUILTIN_COMPONENTS = [
+        Component(CommandLineClient, init=commandline.ArgParseCommandLineClient),
+        Component(Console, init=console.PrintConsole)
+    ]
 
     def __init__(self,
                  routes: RouteConfig=None,
                  commands: CommandConfig=None,
-                 components: typing.Dict[type, typing.Callable]=None,
+                 components: typing.List[Component]=None,
                  settings: typing.Dict[str, typing.Any]=None) -> None:
         if routes is None:
             routes = []
         if commands is None:
             commands = []
         if components is None:
-            components = {}
+            components = []
         if settings is None:
             settings = {}
 
         commands = [*self.BUILTIN_COMMANDS, *commands]
-        components = {**self.BUILTIN_COMPONENTS, **components}
+        components = [*self.BUILTIN_COMPONENTS, *components]
 
         initial_state = {
             RouteConfig: routes,
@@ -47,7 +47,7 @@ class CliApp(App):
         }
 
         self.components, self.preloaded_state = self.preload_components(
-            components=components,
+            component_config=components,
             initial_state=initial_state
         )
 
@@ -57,7 +57,7 @@ class CliApp(App):
         self.cli_injector = self.create_cli_injector()
 
     def preload_components(self,
-                           components: typing.Dict[type, typing.Callable],
+                           component_config: typing.List[Component],
                            initial_state: typing.Dict[type, typing.Any]) -> typing.Tuple[
                                                                                 typing.Dict[type, typing.Callable],
                                                                                 typing.Dict[type, typing.Any]
@@ -76,15 +76,25 @@ class CliApp(App):
             A tuple of the components that could not be preloaded,
             and the initial state, which may include preloaded components.
         """
+        components = {
+            cls: init for cls, init, preload in component_config
+        }
+        should_preload = {
+            cls: preload for cls, init, preload in component_config
+        }
+
         injector = self.INJECTOR_CLS(components, initial_state)
 
-        for interface, func in list(components.items()):
+        for cls, func in list(components.items()):
+            if not should_preload[cls]:
+                continue
+
             try:
                 component = injector.run(func)
             except exceptions.CouldNotResolveDependency:
                 continue
-            del components[interface]
-            initial_state[interface] = component
+            del components[cls]
+            initial_state[cls] = component
             injector = self.INJECTOR_CLS(components, initial_state)
 
         return (components, initial_state)

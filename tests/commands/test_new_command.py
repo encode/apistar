@@ -4,12 +4,13 @@ import tempfile
 import pytest
 
 from apistar import App, exceptions
+from apistar.components import Component
 from apistar.components.console import BufferConsole
 from apistar.interfaces import Console
 
-components = {
-    Console: BufferConsole
-}
+components = [
+    Component(Console, init=BufferConsole)
+]
 app = App(components=components)
 
 

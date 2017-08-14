@@ -4,7 +4,8 @@ import typing
 from apistar import commands, exceptions, http
 from apistar.cli import Command
 from apistar.components import (
-    commandline, console, dependency, router, schema, statics, templates, umi
+    Component, commandline, console, dependency, router, schema, statics,
+    templates, umi
 )
 from apistar.frameworks.cli import CliApp
 from apistar.interfaces import (
@@ -22,31 +23,31 @@ class ASyncIOApp(CliApp):
         Command('schema', commands.schema)
     ]
 
-    BUILTIN_COMPONENTS = {
-        Schema: schema.CoreAPISchema,
-        Templates: templates.Jinja2Templates,
-        StaticFiles: statics.WhiteNoiseStaticFiles,
-        Router: router.WerkzeugRouter,
-        CommandLineClient: commandline.ArgParseCommandLineClient,
-        Console: console.PrintConsole
-    }  # type: typing.Dict[type, typing.Callable]
+    BUILTIN_COMPONENTS = [
+        Component(Schema, init=schema.CoreAPISchema),
+        Component(Templates, init=templates.Jinja2Templates),
+        Component(StaticFiles, init=statics.WhiteNoiseStaticFiles),
+        Component(Router, init=router.WerkzeugRouter),
+        Component(CommandLineClient, init=commandline.ArgParseCommandLineClient),
+        Component(Console, init=console.PrintConsole)
+    ]
 
-    HTTP_COMPONENTS = {
-        http.Method: umi.get_method,
-        http.URL: umi.get_url,
-        http.Scheme: umi.get_scheme,
-        http.Host: umi.get_host,
-        http.Port: umi.get_port,
-        http.Path: umi.get_path,
-        http.Headers: umi.get_headers,
-        http.Header: umi.get_header,
-        http.QueryString: umi.get_querystring,
-        http.QueryParams: umi.get_queryparams,
-        http.QueryParam: umi.get_queryparam,
-        http.Body: umi.get_body,
-        http.RequestData: umi.get_request_data,
-        FileWrapper: umi.get_file_wrapper
-    }  # type: typing.Dict[type, typing.Callable]
+    HTTP_COMPONENTS = [
+        Component(http.Method, init=umi.get_method),
+        Component(http.URL, init=umi.get_url),
+        Component(http.Scheme, init=umi.get_scheme),
+        Component(http.Host, init=umi.get_host),
+        Component(http.Port, init=umi.get_port),
+        Component(http.Path, init=umi.get_path),
+        Component(http.Headers, init=umi.get_headers),
+        Component(http.Header, init=umi.get_header),
+        Component(http.QueryString, init=umi.get_querystring),
+        Component(http.QueryParams, init=umi.get_queryparams),
+        Component(http.QueryParam, init=umi.get_queryparam),
+        Component(http.Body, init=umi.get_body),
+        Component(http.RequestData, init=umi.get_request_data),
+        Component(FileWrapper, init=umi.get_file_wrapper)
+    ]
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -60,8 +61,13 @@ class ASyncIOApp(CliApp):
         Create the dependency injector for running handlers in response to
         incoming HTTP requests.
         """
+        http_components = {
+            component.cls: component.init
+            for component in self.HTTP_COMPONENTS
+        }
+
         return self.INJECTOR_CLS(
-            components={**self.HTTP_COMPONENTS, **self.components},
+            components={**http_components, **self.components},
             initial_state=self.preloaded_state,
             required_state={
                 UMIMessage: 'message',

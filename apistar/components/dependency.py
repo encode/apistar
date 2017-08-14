@@ -109,8 +109,8 @@ class DependencyInjector(Injector):
                 # Run the function, possibly entering it into the context
                 # stack in order to handle context managers.
                 ret = step.func(**kwargs)
-                if step.is_context_manager:
-                    stack.enter_context(ret)
+                if hasattr(ret, '__enter__') and hasattr(ret, '__exit__'):
+                    ret = stack.enter_context(ret)
                 state[step.output_key] = ret
 
         return ret
@@ -282,8 +282,8 @@ class AsyncDependencyInjector(DependencyInjector):
                 else:
                     ret = step.func(**kwargs)
 
-                if step.is_context_manager:
-                    stack.enter_context(ret)
+                if hasattr(ret, '__enter__') and hasattr(ret, '__exit__'):
+                    ret = stack.enter_context(ret)
                 state[step.output_key] = ret
 
         return ret
