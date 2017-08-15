@@ -1,4 +1,5 @@
 import contextlib
+import typing
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
@@ -30,7 +31,7 @@ class SQLAlchemyBackend(object):
 
 
 @contextlib.contextmanager
-def get_session(backend: SQLAlchemyBackend) -> Session:
+def get_session(backend: SQLAlchemyBackend) -> typing.Generator[Session, None, None]:
     """
     Create a new context-managed database session, which automatically
     handles rollback or commit behavior.

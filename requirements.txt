@@ -1,15 +1,14 @@
 # Core requirements
 coreapi
 jinja2
-pytest
 requests
 werkzeug
+whitenoise
 
 # Optional
 django
 psycopg2
 sqlalchemy
-whitenoise
 dj-database-url
 
 # Testing requirements
@@ -17,4 +16,5 @@ codecov
 flake8
 isort
 mypy
+pytest
 pytest-cov

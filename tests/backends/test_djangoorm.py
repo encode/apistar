@@ -1,21 +1,12 @@
 import os
 import typing
 
+import dj_database_url
 import pytest
-from sqlalchemy import Column, Integer, String
-from sqlalchemy.ext.declarative import declarative_base
 
 from apistar import App, Route, TestClient, http, typesystem
-from apistar.backends import sqlalchemy_backend
-from apistar.backends.sqlalchemy_backend import Session
-
-Base = declarative_base()
-
-
-class KittenRecord(Base):  # type: ignore
-    __tablename__ = "Kitten"
-    id = Column(Integer, primary_key=True)
-    name = Column(String)
+from apistar.backends import django_orm
+from apistar.backends.django_orm import Session
 
 
 class Kitten(typesystem.Object):
@@ -26,14 +17,13 @@ class Kitten(typesystem.Object):
 
 
 def list_kittens(session: Session) -> typing.List[Kitten]:
-    records = session.query(KittenRecord).all()
+    records = session.Kitten.objects.all()
     return [Kitten(record) for record in records]
 
 
 def create_kitten(session: Session, name: http.QueryParam, force_fail: http.QueryParam) -> Kitten:
-    record = KittenRecord(name=name)
-    session.add(record)
-    session.flush()
+    record = session.Kitten(name=name)
+    record.save()
     if force_fail:
         raise Exception
     return Kitten(record)
@@ -45,31 +35,27 @@ routes = [
 ]
 
 settings = {
-    "DATABASE": {
-        "URL": os.environ.get('DB_URL', 'sqlite://'),
-        "METADATA": Base.metadata
-    }
+    'DATABASES': {
+        'default': dj_database_url.config(
+            default=os.environ.get('DB_URL', 'sqlite://')
+        )
+    },
+    'INSTALLED_APPS': ['django_app']
 }
 
 app = App(
     routes=routes,
     settings=settings,
-    commands=sqlalchemy_backend.commands,
-    components=sqlalchemy_backend.components
+    commands=django_orm.commands,
+    components=django_orm.components
 )
-
 
 client = TestClient(app)
 
-
-@pytest.fixture
-def setup_tables(scope="function"):
-    app.main(['create_tables'])
-    yield
-    app.main(['drop_tables'])
+app.main(['migrate'])
 
 
-def test_list_create(setup_tables):
+def test_list_create():
     # Successfully create a new record.
     response = client.post('/kittens/?name=minky')
     assert response.status_code == 200

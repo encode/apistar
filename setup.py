@@ -57,7 +57,6 @@ setup(
     install_requires=[
         'coreapi',
         'jinja2',
-        'pytest',
         'requests',
         'werkzeug',
         'whitenoise'
