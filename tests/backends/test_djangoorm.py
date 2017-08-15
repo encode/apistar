@@ -1,4 +1,3 @@
-import os
 import typing
 
 import dj_database_url
@@ -36,9 +35,7 @@ routes = [
 
 settings = {
     'DATABASES': {
-        'default': dj_database_url.config(
-            default=os.environ.get('DB_URL', 'sqlite://')
-        )
+        'default': dj_database_url.config(default='sqlite://')
     },
     'INSTALLED_APPS': ['django_app']
 }

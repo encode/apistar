@@ -1,4 +1,3 @@
-import os
 import typing
 
 import pytest
@@ -46,7 +45,7 @@ routes = [
 
 settings = {
     "DATABASE": {
-        "URL": os.environ.get('DB_URL', 'sqlite://'),
+        "URL": 'sqlite://',
         "METADATA": Base.metadata
     }
 }
