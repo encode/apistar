@@ -14,11 +14,12 @@ from apistar.interfaces import Settings
 
 class DjangoORM(object):
     def __init__(self, settings: Settings) -> None:
-        django_settings.configure(
-            INSTALLED_APPS=settings.get('INSTALLED_APPS'),
-            DATABASES=settings.get('DATABASES'),
-            AUTH_USER_MODEL=settings.get('AUTH_USER_MODEL')
-        )
+        config = {
+            'INSTALLED_APPS': settings.get('INSTALLED_APPS', []),
+            'DATABASES': settings.get('DATABASES', {}),
+            'AUTH_USER_MODEL': settings.get('AUTH_USER_MODEL', 'auth.User')
+        }
+        django_settings.configure(**config)
         django.setup()
         self.models = {
             model.__name__: model
@@ -58,6 +59,10 @@ def get_session(backend: DjangoORM) -> typing.Generator[Session, None, None]:
     atomic.__exit__(exc_type, exc_value, exc_traceback)
 
 
+def flush():  # pragma: nocover
+    call_command('flush', '--no-input')
+
+
 def makemigrations():  # pragma: nocover
     call_command('makemigrations')
 
@@ -76,6 +81,7 @@ components = [
 ]
 
 commands = [
+    Command('flush', flush),
     Command('makemigrations', makemigrations),
     Command('migrate', migrate),
     Command('showmigrations', showmigrations)

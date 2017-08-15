@@ -52,10 +52,15 @@ app = App(
 
 client = TestClient(app)
 
-app.main(['migrate'])
+
+@pytest.fixture
+def setup_tables(scope="function"):
+    app.main(['migrate'])
+    yield
+    app.main(['flush'])
 
 
-def test_list_create():
+def test_list_create(setup_tables):
     # Successfully create a new record.
     response = client.post('/kittens/?name=minky')
     assert response.status_code == 200
