@@ -1,7 +1,6 @@
-import click
 from coreapi.utils import get_installed_codecs
 
-from apistar import schema
+from apistar.interfaces import Schema
 
 codecs = {
     name: codec for name, codec in get_installed_codecs().items()
@@ -9,20 +8,16 @@ codecs = {
 }
 
 
-class Format(schema.String):
-    description = 'The format for the API Schema output.'
-    default = 'corejson'
-    choices = list(codecs.keys())
-
-
-def schema(format: Format) -> None:  # pragma: nocover
+def schema(schema: Schema,
+           format: str='corejson') -> bytes:
     """
-    Output an API Schema.
+    Generate an API schema.
+
+    Args:
+      format:  The format for the API Schema output.
+
+    Returns:
+      The API schema.
     """
-    from apistar.cli import get_current_app
-    from apistar.apischema import APISchema
-    app = get_current_app()
-    schema = APISchema.build(app)
     codec = codecs[format]
-    output = codec.encode(schema)
-    click.echo(output)
+    return codec.encode(schema)

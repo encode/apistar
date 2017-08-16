@@ -1,12 +1,12 @@
 import pytest
 
-from apistar import environment, exceptions, schema
+from apistar import environment, exceptions, typesystem
 
 
 class Env(environment.Environment):
     properties = {
-        'DEBUG': schema.Boolean(default=False),
-        'DATABASE_URL': schema.String
+        'DEBUG': typesystem.boolean(default=False),
+        'DATABASE_URL': typesystem.string()
     }
 
 

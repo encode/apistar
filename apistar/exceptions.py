@@ -1,32 +1,67 @@
 from typing import Union
 
 
-class ConfigurationError(Exception):
-    pass
+class TypeSystemError(Exception):
+    def __init__(self,
+                 detail: Union[str, dict]=None,
+                 cls: type=None,
+                 code: str=None) -> None:
 
+        if cls is not None and code is not None:
+            errors = getattr(cls, 'errors')
+            detail = errors[code].format(**cls.__dict__)
 
-class SchemaError(Exception):
-    def __init__(self, detail: Union[str, dict]) -> None:
         self.detail = detail
         super().__init__(detail)
 
 
-# Handled exceptions
+class NoReverseMatch(Exception):
+    pass
 
-class APIException(Exception):
-    default_status_code = 500
-    default_detail = 'Server error'
+
+class TemplateNotFound(Exception):
+    pass
+
+
+class CouldNotResolveDependency(Exception):
+    pass
+
+
+class ConfigurationError(Exception):
+    pass
+
+
+class CommandLineError(Exception):
+    def __init__(self, message: str, exit_code: int=1) -> None:
+        self.exit_code = exit_code
+        self.message = message
+        super().__init__(message)
+
+
+class CommandLineExit(Exception):
+    def __init__(self, message: str) -> None:
+        self.message = message
+        super().__init__(message)
+
+
+# HTTP exceptions
+
+class HTTPException(Exception):
+    default_status_code = None  # type: int
+    default_detail = None  # type: str
 
     def __init__(self,
                  detail: Union[str, dict]=None,
                  status_code: int=None) -> None:
         self.detail = self.default_detail if (detail is None) else detail
         self.status_code = self.default_status_code if (status_code is None) else status_code
+        assert self.detail is not None, '"detail" is required.'
+        assert self.status_code is not None, '"status_code" is required.'
 
 
-class Found(APIException):
+class Found(HTTPException):
     default_status_code = 302
-    default_detail = ''
+    default_detail = 'Found'
 
     def __init__(self,
                  location: str,
@@ -36,29 +71,21 @@ class Found(APIException):
         super().__init__(detail, status_code)
 
 
-class ValidationError(APIException):
+class ValidationError(HTTPException):
     default_status_code = 400
-    default_detail = 'Invalid request'
+    default_detail = 'Validation error'
 
 
-class NotFound(APIException):
+class NotFound(HTTPException):
     default_status_code = 404
     default_detail = 'Not found'
 
 
-class MethodNotAllowed(APIException):
+class MethodNotAllowed(HTTPException):
     default_status_code = 405
     default_detail = 'Method not allowed'
 
 
-class UnsupportedMediaType(APIException):
+class UnsupportedMediaType(HTTPException):
     default_status_code = 415
-    default_detail = 'Unsupported media type in request'
-
-
-class NoReverseMatch(APIException):
-    """Exception for when no route was found when reversing a view to a URL.
-    Triggered by routing.Router.reverse_url() on a method not mapped to a view or route.
-    """
-    default_status_code = 500
-    default_detail = 'No reverse match found for view'
+    default_detail = 'Unsupported media type'

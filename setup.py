@@ -7,8 +7,6 @@ import sys
 
 from setuptools import setup
 
-sys.dont_write_bytecode = True
-
 
 def get_version(package):
     """
@@ -57,7 +55,6 @@ setup(
     packages=get_packages('apistar'),
     package_data=get_package_data('apistar'),
     install_requires=[
-        'click',
         'coreapi',
         'jinja2',
         'pytest',
@@ -65,6 +62,9 @@ setup(
         'werkzeug',
         'whitenoise'
     ],
+    extras_require={
+        'asyncio': ['uvicorn', 'uvitools']
+    },
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Environment :: Web Environment',
@@ -78,7 +78,7 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'apistar=apistar.cli:main'
+            'apistar=apistar.main:main'
         ],
     },
 )

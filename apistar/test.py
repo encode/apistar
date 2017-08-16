@@ -1,31 +1,46 @@
+import asyncio
 import io
-from typing import Callable, Dict, Mapping, Optional, Union  # noqa
+import typing
+from http import HTTPStatus
 from urllib.parse import unquote, urlparse
 
 import requests
-from click.testing import CliRunner
-
-from apistar.cli import get_current_app
 
 
-class WSGIAdapter(requests.adapters.HTTPAdapter):
+def _get_reason_phrase(status_code: int) -> str:
+    try:
+        return HTTPStatus(status_code).phrase
+    except ValueError:
+        return ''
+
+
+def _coerce_to_str(item: typing.Union[str, bytes]):
+    if isinstance(item, bytes):
+        return item.decode()
+    return item
+
+
+def _coerce_to_bytes(item: typing.Union[str, bytes]):
+    if isinstance(item, str):
+        return item.encode()
+    return item
+
+
+class _WSGIAdapter(requests.adapters.HTTPAdapter):
     """
     A transport adapter for `requests` that makes requests directly to a
     WSGI app, rather than making actual HTTP requests over the network.
     """
-    def __init__(self, wsgi_app: Callable, root_path: str=None,
-                 raise_500_exc: bool=True) -> None:
-        self.wsgi_app = wsgi_app
-        self.root_path = ('/' + root_path.strip('/')) if root_path else ''
-        self.raise_500_exc = raise_500_exc
+    def __init__(self, app: typing.Callable) -> None:
+        self.app = app
 
-    def get_environ(self, request: requests.PreparedRequest) -> Mapping:
+    def get_environ(self, request: requests.PreparedRequest) -> typing.Dict[str, typing.Any]:
         """
         Given a `requests.PreparedRequest` instance, return a WSGI environ dict.
         """
         body = request.body
         if isinstance(body, str):
-            body_bytes = body.encode("utf-8")  # type: Optional[bytes]
+            body_bytes = body.encode("utf-8")  # type: bytes
         else:
             body_bytes = body
 
@@ -33,11 +48,10 @@ class WSGIAdapter(requests.adapters.HTTPAdapter):
         environ = {
             'REQUEST_METHOD': request.method,
             'wsgi.url_scheme': url_components.scheme,
-            'SCRIPT_NAME': self.root_path,
+            'SCRIPT_NAME': '',
             'PATH_INFO': unquote(url_components.path),
             'wsgi.input': io.BytesIO(body_bytes),
-            'APISTAR_RAISE_500_EXC': self.raise_500_exc
-        }  # type: Dict[str, Union[bool, str, bytes, io.BytesIO]]
+        }  # type: typing.Dict[str, typing.Any]
 
         if url_components.query:
             environ['QUERY_STRING'] = url_components.query
@@ -52,7 +66,7 @@ class WSGIAdapter(requests.adapters.HTTPAdapter):
             key = key.upper().replace('-', '_')
             if key not in ('CONTENT_LENGTH', 'CONTENT_TYPE'):
                 key = 'HTTP_' + key
-            environ[key] = value
+            environ[key] = _coerce_to_str(value)
 
         return environ
 
@@ -73,7 +87,7 @@ class WSGIAdapter(requests.adapters.HTTPAdapter):
 
         # Make the outgoing request via WSGI.
         environ = self.get_environ(request)
-        wsgi_response = self.wsgi_app(environ, start_response)
+        wsgi_response = self.app(environ, start_response)
 
         # Build the underlying urllib3.HTTPResponse
         raw_kwargs['body'] = io.BytesIO(b''.join(wsgi_response))
@@ -83,16 +97,116 @@ class WSGIAdapter(requests.adapters.HTTPAdapter):
         return self.build_response(request, raw)
 
 
-class _TestClient(requests.Session):
-    def __init__(self, app=None, root_path=None, raise_500_exc=True, hostname='testserver'):
-        super(_TestClient, self).__init__()
-        if app is None:
-            app = get_current_app()
+class _MockReplyChannel():
+    def __init__(self):
+        self.status = None
+        self.headers = None
+        self.body = b''
 
-        adapter = WSGIAdapter(app.wsgi, root_path=root_path, raise_500_exc=raise_500_exc)
+    async def send(self, message):
+        if 'status' in message:
+            self.status = message['status']
+        if 'headers' in message:
+            self.headers = message['headers']
+        if 'content' in message:
+            self.body += message['content']
+
+
+class _UMIAdapter(requests.adapters.HTTPAdapter):
+    """
+    A transport adapter for `requests` that makes requests directly to a
+    asyncio app, rather than making actual HTTP requests over the network.
+    """
+    def __init__(self, app: typing.Callable) -> None:
+        self.app = app
+
+    def get_message(self, request: requests.PreparedRequest) -> typing.Dict[str, typing.Any]:
+        """
+        Given a `requests.PreparedRequest` instance, return a WSGI environ dict.
+        """
+        body = request.body
+        if isinstance(body, str):
+            body_bytes = body.encode("utf-8")  # type: bytes
+        else:
+            body_bytes = body
+
+        url_components = urlparse(request.url)
+        message = {
+            'method': request.method,
+            'scheme': url_components.scheme,
+            'path': unquote(url_components.path),
+            'body': body_bytes,
+            'query_string': url_components.query.encode()
+        }  # type: typing.Dict[str, typing.Any]
+
+        if url_components.port:
+            message['server'] = [
+                url_components.hostname,
+                url_components.port
+            ]
+        else:
+            message['server'] = [
+                url_components.hostname,
+                443 if (url_components.scheme == 'https') else 80
+            ]
+
+        message['headers'] = [
+            [b'host', url_components.hostname.encode()]
+        ] + [
+            [_coerce_to_bytes(key), _coerce_to_bytes(value)]
+            for key, value in request.headers.items()
+        ]
+
+        return message
+
+    def send(self, request, *args, **kwargs):
+        """
+        Make an outgoing request to a WSGI application.
+        """
+        # Make the outgoing request via WSGI.
+        reply = _MockReplyChannel()
+        message = self.get_message(request)
+        channels = {'reply': reply}
+
+        task = self.app(message, channels)
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(task)
+
+        status = reply.status
+        headers = reply.headers
+        body = reply.body
+
+        assert status is not None
+        assert headers is not None
+
+        raw_kwargs = {
+            'status': status,
+            'reason': _get_reason_phrase(status),
+            'headers': [(key.decode(), value.decode()) for key, value in headers],
+            'version': 11,
+            'preload_content': False,
+            'original_response': None,
+            'body': io.BytesIO(body)
+        }
+
+        # Build the underlying urllib3.HTTPResponse
+        raw = requests.packages.urllib3.HTTPResponse(**raw_kwargs)
+
+        # Build the requests.Response
+        return self.build_response(request, raw)
+
+
+class _TestClient(requests.Session):
+    def __init__(self, app, scheme='http', hostname='testserver'):
+        super(_TestClient, self).__init__()
+        if asyncio.iscoroutinefunction(app.__call__):
+            adapter = _UMIAdapter(app)
+        else:
+            adapter = _WSGIAdapter(app)
         self.mount('http://', adapter)
         self.mount('https://', adapter)
-        self.headers.update({'User-Agent': 'requests_client'})
+        self.headers.update({'User-Agent': 'testclient'})
+        self.scheme = scheme
         self.hostname = hostname
 
     def request(self, method, url, **kwargs):
@@ -102,7 +216,7 @@ class _TestClient(requests.Session):
                 "an absolute URL starting 'http:' / 'https:', "
                 "or a relative URL starting with '/'. URL was '%s'." % url
             )
-            url = 'http://' + self.hostname + url
+            url = '%s://%s%s' % (self.scheme, self.hostname, url)
         return super().request(method, url, **kwargs)
 
 
@@ -112,13 +226,3 @@ def TestClient(*args, **kwargs) -> _TestClient:
     the `TestClient` class, by declaring this as a function.
     """
     return _TestClient(*args, **kwargs)
-
-
-class CommandLineRunner(CliRunner):
-    def __init__(self, app):
-        self.click_client = app.click
-        super(CommandLineRunner, self).__init__()
-
-    def invoke(self, *args, **kwargs):
-        args = [self.click_client] + list(args)
-        return super(CommandLineRunner, self).invoke(*args, **kwargs)

@@ -1,34 +1,79 @@
-from apistar.settings import Settings
+import contextlib
+import typing
+
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session, sessionmaker
+
+from apistar import Command, Component, Settings
 
 
-class SQLAlchemy(object):
-    __slots__ = ('engine', 'session_class', 'metadata')
-    preload = True
+class SQLAlchemyBackend(object):
+    def __init__(self, settings: Settings) -> None:
+        """
+        Configure a new database backend.
 
-    def __init__(self, engine, session_class, metadata=None):
-        self.engine = engine
-        self.session_class = session_class
-        self.metadata = metadata
-
-    @classmethod
-    def build(cls, settings: Settings):
-        config = settings['DATABASE']
-        url = config['URL']
-        metadata = config['METADATA']
+        Args:
+          settings: The application settings dictionary.
+        """
+        database_config = settings['DATABASE']
+        url = database_config['URL']
+        metadata = database_config['METADATA']
 
         kwargs = {}
-        if url.startswith('postgresql'):  # pragma: no cover
-            kwargs['pool_size'] = config.get('POOL_SIZE', 5)
+        if url.startswith('postgresql'):  # pragma: nocover
+            kwargs['pool_size'] = database_config.get('POOL_SIZE', 5)
 
-        from sqlalchemy import create_engine
-        from sqlalchemy.orm import sessionmaker
+        self.metadata = metadata
+        self.engine = create_engine(url, **kwargs)
+        self.Session = sessionmaker(bind=self.engine)
 
-        engine = create_engine(url, **kwargs)
-        session_class = sessionmaker(bind=engine)
-        return cls(engine, session_class, metadata)
 
-    def create_tables(self):
-        self.metadata.create_all(self.engine)
+@contextlib.contextmanager
+def get_session(backend: SQLAlchemyBackend) -> typing.Generator[Session, None, None]:
+    """
+    Create a new context-managed database session, which automatically
+    handles rollback or commit behavior.
 
-    def drop_tables(self):
-        self.metadata.drop_all(self.engine)
+    Args:
+      backend: The configured database backend.
+    """
+    session = backend.Session()
+    try:
+        yield session
+        session.commit()
+    except:
+        session.rollback()
+        raise
+    finally:
+        session.close()
+
+
+def create_tables(backend: SQLAlchemyBackend):
+    """
+    Create all database tables.
+
+    Args:
+      backend: The configured database backend.
+    """
+    backend.metadata.create_all(backend.engine)
+
+
+def drop_tables(backend: SQLAlchemyBackend):
+    """
+    Drop all database tables.
+
+    Args:
+      backend: The configured database backend.
+    """
+    backend.metadata.drop_all(backend.engine)
+
+
+components = [
+    Component(SQLAlchemyBackend),
+    Component(Session, init=get_session, preload=False)
+]
+
+commands = [
+    Command('create_tables', create_tables),
+    Command('drop_tables', drop_tables)
+]

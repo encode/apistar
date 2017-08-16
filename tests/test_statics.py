@@ -1,13 +1,19 @@
+
 import os
 import tempfile
 
-from apistar.app import App
-from apistar.routing import Route
-from apistar.statics import serve_static
-from apistar.test import TestClient
+import pytest
+
+from apistar import Route, Settings, TestClient, exceptions
+from apistar.components.router import WerkzeugRouter
+from apistar.components.statics import WhiteNoiseStaticFiles
+from apistar.frameworks.asyncio import ASyncIOApp
+from apistar.frameworks.wsgi import WSGIApp
+from apistar.handlers import serve_static
 
 
-def test_static_files() -> None:
+@pytest.mark.parametrize('app_class', [WSGIApp, ASyncIOApp])
+def test_static_files(app_class) -> None:
     with tempfile.TemporaryDirectory() as tempdir:
         path = os.path.join(tempdir, 'example.csv')
         with open(path, 'w') as example_file:
@@ -17,11 +23,10 @@ def test_static_files() -> None:
             Route('/static/{path}', 'GET', serve_static)
         ]
         settings = {
-            'STATICS': {
-                'DIR': tempdir
-            }
+            'STATICS': {'ROOT_DIR': tempdir, 'PACKAGE_DIRS': ['apistar']}
         }
-        app = App(routes=routes, settings=settings)
+
+        app = app_class(routes=routes, settings=settings)
         client = TestClient(app)
 
         response = client.get('/static/example.csv')
@@ -37,3 +42,13 @@ def test_static_files() -> None:
 
         response = client.head('/static/404')
         assert response.status_code == 404
+
+
+def test_misconfigured_static_files() -> None:
+    router = WerkzeugRouter([])
+    settings = Settings({
+        'STATICS': {'ROOT_DIR': None, 'PACKAGE_DIRS': ['apistar']}
+    })
+    statics = WhiteNoiseStaticFiles(router=router, settings=settings)
+    with pytest.raises(exceptions.ConfigurationError):
+        statics.get_url('/apistar/css/base.css')

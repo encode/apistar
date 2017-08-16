@@ -6,7 +6,7 @@ import pytest
 from apistar.exceptions import ConfigurationError
 
 
-def test() -> None:
+def test() -> None:  # pragma: nocover
     """
     Run the test suite.
     """

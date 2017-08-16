@@ -1,263 +1,129 @@
-from typing import Any, Callable, Dict, List, Tuple, TypeVar, Union  # noqa
-from urllib.parse import quote
+import collections
+import typing
 
-from werkzeug.datastructures import Headers as WerkzeugHeaders
-from werkzeug.datastructures import (
-    EnvironHeaders, ImmutableDict, ImmutableHeadersMixin, ImmutableMultiDict
-)
-from werkzeug.formparser import parse_form_data
-from werkzeug.http import parse_options_header
-from werkzeug.urls import url_decode
-from werkzeug.wsgi import get_input_stream
+Method = typing.NewType('Method', str)
+URL = typing.NewType('URL', str)
+Scheme = typing.NewType('Scheme', str)
+Host = typing.NewType('Host', str)
+Port = typing.NewType('Port', int)
+Path = typing.NewType('Path', str)
+QueryString = typing.NewType('QueryString', str)
+QueryParam = typing.NewType('QueryParam', str)
+Header = typing.NewType('Header', str)
+Body = typing.NewType('Body', bytes)
 
-from apistar import exceptions
-from apistar.compat import json
-from apistar.core import ArgName
-from apistar.schema import validate
-
-
-class WSGIEnviron(ImmutableDict):
-    pass
+RequestData = typing.TypeVar('RequestData')
 
 
-class Method(str):
-    @classmethod
-    def build(cls, environ: WSGIEnviron):
-        return cls(environ['REQUEST_METHOD'])
+class QueryParams(collections.Mapping):
+    """
+    An immutable multidict.
+    """
 
-
-class Scheme(str):
-    @classmethod
-    def build(cls, environ: WSGIEnviron):
-        return cls(environ['wsgi.url_scheme'])
-
-
-class Host(str):
-    @classmethod
-    def build(cls, environ: WSGIEnviron):
-        return cls(environ.get('HTTP_HOST') or environ['SERVER_NAME'])
-
-
-class Port(int):
-    @classmethod
-    def build(cls, environ: WSGIEnviron):
-        if environ['wsgi.url_scheme'] == 'https':
-            return cls(environ.get('SERVER_PORT') or 443)
-        return cls(environ.get('SERVER_PORT') or 80)
-
-
-class MountPath(str):
-    @classmethod
-    def build(cls, environ: WSGIEnviron):
-        return cls(quote(environ.get('SCRIPT_NAME', '')))
-
-
-class RelativePath(str):
-    @classmethod
-    def build(cls, environ: WSGIEnviron):
-        return cls(quote(environ.get('PATH_INFO', '')))
-
-
-class Path(str):
-    @classmethod
-    def build(cls, environ: WSGIEnviron):
-        path = environ.get('SCRIPT_NAME', '') + environ.get('PATH_INFO', '')
-        return cls(quote(path))
-
-
-class QueryString(str):
-    @classmethod
-    def build(cls, environ: WSGIEnviron):
-        query_string = environ.get('QUERY_STRING', '')
-        return cls(query_string)
-
-
-class URL(str):
-    @classmethod
-    def build(cls, environ: WSGIEnviron):
-        # https://www.python.org/dev/peps/pep-0333/#url-reconstruction
-        url = environ['wsgi.url_scheme'] + '://'
-
-        if environ.get('HTTP_HOST'):
-            url += environ['HTTP_HOST']
+    def __init__(self, value):
+        if hasattr(value, 'items'):
+            items = list(value.items())
         else:
-            url += environ['SERVER_NAME']
+            items = list(value)
+        self._dict = {k: v for k, v in reversed(items)}
+        self._list = items
 
-            if environ['wsgi.url_scheme'] == 'https':
-                if environ['SERVER_PORT'] != '443':
-                    url += ':' + environ['SERVER_PORT']
-            else:
-                if environ['SERVER_PORT'] != '80':
-                    url += ':' + environ['SERVER_PORT']
+    def get_list(self, key):
+        return [
+            item_value for item_key, item_value in self._list
+            if item_key == key
+        ]
 
-        url += quote(environ.get('SCRIPT_NAME', ''))
-        url += quote(environ.get('PATH_INFO', ''))
-        if environ.get('QUERY_STRING'):
-            url += '?' + environ['QUERY_STRING']
+    def keys(self):
+        return [key for key, value in self._list]
 
-        return cls(url)
+    def values(self):
+        return [value for key, value in self._list]
 
+    def items(self):
+        return list(self._list)
 
-class Body(bytes):
-    @classmethod
-    def build(cls, environ: WSGIEnviron):
-        return get_input_stream(environ).read()
+    def __getitem__(self, key):
+        return self._dict[key]
 
+    def __contains__(self, key):
+        return key in self._dict
 
-class Headers(ImmutableHeadersMixin, WerkzeugHeaders):
-    def __init__(self, *args, **kwargs):
-        if len(args) == 1 and isinstance(args[0], dict):
-            args = [list(args[0].items())]
-        super().__init__(*args, **kwargs)
+    def __iter__(self):
+        return iter(self._list)
 
-    @classmethod
-    def build(cls, environ: WSGIEnviron):
-        return cls(EnvironHeaders(environ))
+    def __len__(self):
+        return len(self._list)
 
+    def __eq__(self, other):
+        if not isinstance(other, QueryParams):
+            other = QueryParams(other)
+        return sorted(self._list) == sorted(other._list)
 
-class Header(str):
-    @classmethod
-    def build(cls, headers: Headers, arg_name: ArgName):
-        return headers.get(arg_name.replace('_', '-'))
-
-
-class QueryParams(ImmutableMultiDict):
-    @classmethod
-    def build(cls, environ: WSGIEnviron):
-        query_string = environ.get('QUERY_STRING', '')
-        return cls(url_decode(query_string))
+    def __repr__(self):
+        return 'QueryParams(%s)' % repr(self._list)
 
 
-class QueryParam(str):
-    schema = None  # type: type
+class Headers(collections.Mapping):
+    """
+    An immutable, case-insensitive multidict.
+    """
 
-    @classmethod
-    def build(cls, params: QueryParams, arg_name: ArgName):
-        value = params.get(arg_name)
-        if value is None or cls.schema is None:
-            return value
-        if not isinstance(value, cls.schema):
-            value = validate(cls.schema, value, key=arg_name)
-        return value
-
-
-HeadersType = Union[
-    List[Tuple[str, str]],
-    Dict[str, str],
-    Headers
-]
-
-
-ResponseData = TypeVar('ResponseData')
-
-
-class RequestData(object):
-    schema = None  # type: type
-
-    @classmethod
-    def build(cls, environ: WSGIEnviron):
-        if not bool(environ.get('CONTENT_TYPE')):
-            mimetype = None
+    def __init__(self, value):
+        if hasattr(value, 'items'):
+            items = [(k.lower(), v) for k, v in list(value.items())]
         else:
-            mimetype, _ = parse_options_header(environ['CONTENT_TYPE'])
+            items = [(k.lower(), v) for k, v in list(value)]
+        self._dict = {k: v for k, v in reversed(items)}
+        self._list = items
 
-        if mimetype is None:
-            value = None
-        elif mimetype == 'application/json':
-            body = get_input_stream(environ).read()
-            value = json.loads(body.decode('utf-8'))
-        elif mimetype in ('multipart/form-data', 'application/x-www-form-urlencoded'):
-            stream, form, files = parse_form_data(environ)
-            value = ImmutableMultiDict(list(form.items()) + list(files.items()))
-        else:
-            raise exceptions.UnsupportedMediaType()
+    def get_list(self, key):
+        key_lower = key.lower()
+        return [
+            item_value for item_key, item_value in self._list
+            if item_key == key_lower
+        ]
 
-        if cls.schema is None:
-            return value
-        if not isinstance(value, cls.schema):
-            value = validate(cls.schema, value)
-        return value
+    def keys(self):
+        return [key for key, value in self._list]
 
+    def values(self):
+        return [value for key, value in self._list]
 
-class RequestField(object):
-    schema = None  # type: type
+    def items(self):
+        return list(self._list)
 
-    @classmethod
-    def build(cls, data: RequestData, arg_name: ArgName):
-        value = data[arg_name]  # type: ignore
+    def __getitem__(self, key):
+        return self._dict[key.lower()]
 
-        if value is None or cls.schema is None:
-            return value
-        if not isinstance(value, cls.schema):
-            value = validate(cls.schema, value, key=arg_name)
-        return value
+    def __contains__(self, key):
+        return key.lower() in self._dict
 
+    def __iter__(self):
+        return iter(self._list)
 
-class Request(object):
-    __slots__ = ('method', 'url', 'headers')
+    def __len__(self):
+        return len(self._list)
 
-    def __init__(self, method: str, url: str, headers: HeadersType=None) -> None:
-        self.method = method
-        self.url = url
-        self.headers = Headers(headers)
+    def __eq__(self, other):
+        if not isinstance(other, Headers):
+            other = Headers(other)
+        return sorted(self._list) == sorted(other._list)
 
-    @classmethod
-    def build(cls,
-              method: Method,
-              url: URL,
-              headers: Headers):
-        return cls(method=method, url=url, headers=headers)
+    def __repr__(self):
+        return 'Headers(%s)' % repr(self._list)
 
 
-class Response(object):
-    __slots__ = ('data', 'content', 'status', 'headers')
-
+class Response(collections.abc.Iterable):
     def __init__(self,
-                 data: Any,
-                 status: int=None,
-                 headers: HeadersType=None) -> None:
-        if headers is None:
-            headers_dict = {}  # type: Union[Dict[str, str], Headers]
-            headers_list = []  # type: List[Tuple[str, str]]
-        elif isinstance(headers, dict):
-            headers_dict = headers
-            headers_list = list(headers.items())
-        elif isinstance(headers, list):
-            headers_dict = dict(headers)
-            headers_list = headers
-        else:
-            headers_dict = headers
-            headers_list = headers.to_list()
-
-        if isinstance(data, str):
-            content = data.encode('utf-8')
-            if content:
-                content_type = 'text/html; charset=utf-8'
-            else:
-                content_type = None
-        elif isinstance(data, bytes):
-            content = data
-            if content:
-                content_type = 'text/html; charset=utf-8'
-            else:
-                content_type = None
-        else:
-            content = json.dumps(data).encode('utf-8')
-            content_type = 'application/json'
-
-        if 'Content-Length' not in headers_dict:
-            headers_list += [('Content-Length', str(len(content)))]
-        if content_type and 'Content-Type' not in headers_dict:
-            headers_list += [('Content-Type', content_type)]
-
-        if status is None:
-            status = 200 if content_type else 204
-
-        self.data = data
+                 content: typing.Any,
+                 status: int=200,
+                 headers: typing.Dict[str, str]=None,
+                 content_type: str=None) -> None:
         self.content = content
         self.status = status
-        self.headers = Headers(headers_list)
+        self.headers = headers or {}
+        self.content_type = content_type
 
-    @classmethod
-    def build(cls, data: ResponseData):
-        return cls(data=data)
+    def __iter__(self) -> typing.Iterator:
+        return iter((self.content, self.status, self.headers, self.content_type))

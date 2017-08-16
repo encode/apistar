@@ -161,7 +161,7 @@ function lookupLink(node, keys) {
         node = node[key];
       }
       if (node === undefined) {
-        throw new errors.LinkLookupError('Invalid link lookup: ' + JSON.stringify(keys));
+        throw new errors.LinkHandlerLookupError('Invalid link lookup: ' + JSON.stringify(keys));
       }
     }
   } catch (err) {
@@ -180,7 +180,7 @@ function lookupLink(node, keys) {
   }
 
   if (!(node instanceof document.Link)) {
-    throw new errors.LinkLookupError('Invalid link lookup: ' + JSON.stringify(keys));
+    throw new errors.LinkHandlerLookupError('Invalid link lookup: ' + JSON.stringify(keys));
   }
   return node;
 }
@@ -534,20 +534,20 @@ var ParameterError = function (_Error) {
   return ParameterError;
 }(Error);
 
-var LinkLookupError = function (_Error2) {
-  _inherits(LinkLookupError, _Error2);
+var LinkHandlerLookupError = function (_Error2) {
+  _inherits(LinkHandlerLookupError, _Error2);
 
-  function LinkLookupError(message) {
-    _classCallCheck(this, LinkLookupError);
+  function LinkHandlerLookupError(message) {
+    _classCallCheck(this, LinkHandlerLookupError);
 
-    var _this2 = _possibleConstructorReturn(this, (LinkLookupError.__proto__ || Object.getPrototypeOf(LinkLookupError)).call(this, message));
+    var _this2 = _possibleConstructorReturn(this, (LinkHandlerLookupError.__proto__ || Object.getPrototypeOf(LinkHandlerLookupError)).call(this, message));
 
     _this2.message = message;
-    _this2.name = 'LinkLookupError';
+    _this2.name = 'LinkHandlerLookupError';
     return _this2;
   }
 
-  return LinkLookupError;
+  return LinkHandlerLookupError;
 }(Error);
 
 var ErrorMessage = function (_Error3) {
@@ -569,7 +569,7 @@ var ErrorMessage = function (_Error3) {
 
 module.exports = {
   ParameterError: ParameterError,
-  LinkLookupError: LinkLookupError,
+  LinkHandlerLookupError: LinkHandlerLookupError,
   ErrorMessage: ErrorMessage
 };
 
