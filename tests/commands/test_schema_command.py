@@ -1,4 +1,5 @@
-from apistar import App, Route
+from apistar import Route
+from apistar.frameworks.wsgi import WSGIApp as App
 from apistar.handlers import serve_schema
 
 

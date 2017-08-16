@@ -4,9 +4,8 @@ from importlib.util import find_spec
 import whitenoise
 
 from apistar import exceptions, http
-from apistar.interfaces import (
-    FileWrapper, Router, Settings, StaticFile, StaticFiles
-)
+from apistar.interfaces import FileWrapper, Router, StaticFile, StaticFiles
+from apistar.types import Settings
 
 
 class WhiteNoiseStaticFile(StaticFile):

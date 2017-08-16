@@ -4,9 +4,10 @@ import pytest
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
 
-from apistar import App, Route, TestClient, http, typesystem
+from apistar import Route, TestClient, http, typesystem
 from apistar.backends import sqlalchemy_backend
 from apistar.backends.sqlalchemy_backend import Session
+from apistar.frameworks.wsgi import WSGIApp as App
 
 Base = declarative_base()
 

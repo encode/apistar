@@ -8,8 +8,9 @@ import werkzeug
 from werkzeug.routing import Map, Rule
 
 from apistar import exceptions
-from apistar.interfaces import HandlerLookup, RouteConfig, Router
-from apistar.routing import PathWildcard, flatten_routes
+from apistar.core import flatten_routes
+from apistar.interfaces import Router
+from apistar.types import HandlerLookup, PathWildcard, RouteConfig
 
 
 class WerkzeugRouter(Router):

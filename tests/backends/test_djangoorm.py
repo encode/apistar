@@ -3,9 +3,10 @@ import typing
 import dj_database_url
 import pytest
 
-from apistar import App, Route, TestClient, http, typesystem
+from apistar import Route, TestClient, http, typesystem
 from apistar.backends import django_orm
 from apistar.backends.django_orm import Session
+from apistar.frameworks.wsgi import WSGIApp as App
 
 
 class Kitten(typesystem.Object):

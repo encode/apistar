@@ -4,7 +4,8 @@ import re
 import typing
 
 from apistar import exceptions
-from apistar.interfaces import CommandConfig, CommandLineClient, HandlerLookup
+from apistar.interfaces import CommandLineClient
+from apistar.types import CommandConfig, HandlerLookup
 
 
 def main(usage):

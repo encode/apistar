@@ -1,8 +1,6 @@
 import collections
 import typing
 
-from apistar import typesystem
-
 
 class Route(collections.abc.Iterable):
     def __init__(self,
@@ -34,6 +32,33 @@ class Include(collections.abc.Iterable):
         return iter((self.path, self.routes, self.namespace))
 
 
+class Command(collections.abc.Iterable):
+    def __init__(self,
+                 name: str,
+                 handler: typing.Callable) -> None:
+        self.name = name
+        self.handler = handler
+
+    def __iter__(self) -> typing.Iterator:
+        return iter((self.name, self.handler))
+
+
+class Component(collections.abc.Iterable):
+    def __init__(self,
+                 cls: type,
+                 init: typing.Callable=None,
+                 preload: bool=True) -> None:
+        self.cls = cls
+        if init is not None:
+            self.init = init
+        else:
+            self.init = cls  # type: ignore
+        self.preload = preload
+
+    def __iter__(self) -> typing.Iterator:
+        return iter((self.cls, self.init, self.preload))
+
+
 def flatten_routes(routes: typing.Sequence[typing.Union[Route, Include]],
                    path_prefix: str=None,
                    namespace_prefix: str=None) -> typing.Sequence[Route]:
@@ -59,7 +84,3 @@ def flatten_routes(routes: typing.Sequence[typing.Union[Route, Include]],
                 flattened_routes.append(route)
 
     return flattened_routes
-
-
-class PathWildcard(typesystem.String):
-    pass

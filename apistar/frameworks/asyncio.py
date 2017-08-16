@@ -2,16 +2,16 @@ import json
 import typing
 
 from apistar import commands, exceptions, http
-from apistar.cli import Command
 from apistar.components import (
-    Component, commandline, console, dependency, router, schema, statics,
-    templates, umi
+    commandline, console, dependency, router, schema, statics, templates, umi
 )
+from apistar.core import Command, Component
 from apistar.frameworks.cli import CliApp
 from apistar.interfaces import (
-    CommandLineClient, Console, FileWrapper, Injector, KeywordArgs, Router,
-    Schema, StaticFiles, Templates, UMIChannels, UMIMessage
+    CommandLineClient, Console, FileWrapper, Injector, Router, Schema,
+    StaticFiles, Templates
 )
+from apistar.types import KeywordArgs, UMIChannels, UMIMessage
 
 
 class ASyncIOApp(CliApp):

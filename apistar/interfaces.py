@@ -1,32 +1,16 @@
+"""
+Component interfaces, as abstract base classes.
+
+These interfaces my be used as type annotations in handler methods.
+"""
 import abc
 import inspect
 import typing
 
 import coreapi
 
-from apistar import cli, http, routing
-
-# Common
-
-KeywordArgs = typing.Dict[str, typing.Any]
-HandlerLookup = typing.Tuple[typing.Callable, KeywordArgs]
-
-
-# WSGI, UMI
-
-WSGIEnviron = typing.NewType('WSGIEnviron', dict)
-UMIMessage = typing.NewType('UMIMessage', dict)
-UMIChannels = typing.NewType('UMIChannels', dict)
-
-# Settings
-
-Settings = typing.NewType('Settings', dict)
-
-
-# Routing
-
-RouteConfig = typing.Sequence[typing.Union[routing.Route, routing.Include]]
-RouteConfig.__name__ = 'RouteConfig'
+from apistar import http
+from apistar.types import HandlerLookup
 
 
 class Router(metaclass=abc.ABCMeta):
@@ -84,16 +68,8 @@ class StaticFiles(metaclass=abc.ABCMeta):
 
 # Command Line Parser
 
-CommandConfig = typing.Sequence[cli.Command]
-CommandConfig.__name__ = 'CommandConfig'
-
 
 class CommandLineClient(metaclass=abc.ABCMeta):
-    @abc.abstractmethod
-    def __init__(self,
-                 commands: CommandConfig) -> None:
-        raise NotImplementedError
-
     @abc.abstractmethod
     def parse(self,
               args: typing.Sequence[str]) -> HandlerLookup:
@@ -101,10 +77,6 @@ class CommandLineClient(metaclass=abc.ABCMeta):
 
 
 # Dependency Injection
-
-ParamName = typing.NewType('ParamName', str)
-ParamAnnotation = typing.NewType('ParamAnnotation', type)
-
 
 class Resolver(metaclass=abc.ABCMeta):
     @abc.abstractmethod

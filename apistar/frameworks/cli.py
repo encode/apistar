@@ -2,12 +2,10 @@ import sys
 import typing
 
 from apistar import commands, exceptions
-from apistar.cli import Command
-from apistar.components import Component, commandline, console, dependency
-from apistar.interfaces import (
-    App, CommandConfig, CommandLineClient, Console, Injector, KeywordArgs,
-    RouteConfig, Settings
-)
+from apistar.components import commandline, console, dependency
+from apistar.core import Command, Component
+from apistar.interfaces import App, CommandLineClient, Console, Injector
+from apistar.types import CommandConfig, KeywordArgs, RouteConfig, Settings
 
 
 class CliApp(App):

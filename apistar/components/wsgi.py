@@ -8,7 +8,7 @@ from werkzeug.http import parse_options_header
 from werkzeug.wsgi import get_input_stream
 
 from apistar import exceptions, http
-from apistar.interfaces import ParamName, WSGIEnviron
+from apistar.types import ParamName, WSGIEnviron
 
 
 def get_method(environ: WSGIEnviron):

@@ -4,13 +4,12 @@ import tempfile
 
 import pytest
 
-from apistar import Route, TestClient, exceptions
+from apistar import Route, Settings, TestClient, exceptions
 from apistar.components.router import WerkzeugRouter
 from apistar.components.statics import WhiteNoiseStaticFiles
 from apistar.frameworks.asyncio import ASyncIOApp
 from apistar.frameworks.wsgi import WSGIApp
 from apistar.handlers import serve_static
-from apistar.interfaces import Settings
 
 
 @pytest.mark.parametrize('app_class', [WSGIApp, ASyncIOApp])

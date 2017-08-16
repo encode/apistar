@@ -8,8 +8,7 @@ from django.conf import settings as django_settings
 from django.core.management import call_command
 from django.db import connections, transaction
 
-from apistar import Command, Component
-from apistar.interfaces import Settings
+from apistar import Command, Component, Settings
 
 
 class DjangoORM(object):

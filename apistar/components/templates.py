@@ -3,9 +3,8 @@ import typing  # noqa
 import jinja2
 
 from apistar import exceptions
-from apistar.interfaces import (
-    Router, Settings, StaticFiles, Template, Templates
-)
+from apistar.interfaces import Router, StaticFiles, Template, Templates
+from apistar.types import Settings
 
 
 class Jinja2Template(Template):

@@ -4,16 +4,16 @@ import typing
 from werkzeug.http import HTTP_STATUS_CODES
 
 from apistar import commands, exceptions, http
-from apistar.cli import Command
 from apistar.components import (
-    Component, commandline, console, dependency, router, schema, statics,
-    templates, wsgi
+    commandline, console, dependency, router, schema, statics, templates, wsgi
 )
+from apistar.core import Command, Component
 from apistar.frameworks.cli import CliApp
 from apistar.interfaces import (
-    CommandLineClient, Console, FileWrapper, Injector, KeywordArgs, Router,
-    Schema, StaticFiles, Templates, WSGIEnviron
+    CommandLineClient, Console, FileWrapper, Injector, Router, Schema,
+    StaticFiles, Templates
 )
+from apistar.types import KeywordArgs, WSGIEnviron
 
 STATUS_TEXT = {
     code: "%d %s" % (code, msg)

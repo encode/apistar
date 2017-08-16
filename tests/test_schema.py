@@ -2,11 +2,12 @@ import coreschema
 from coreapi import Field, Link
 from coreapi.codecs import CoreJSONCodec
 
-from apistar import App, Route, TestClient, typesystem
+from apistar import Route, Settings, TestClient, typesystem
+from apistar.frameworks.wsgi import WSGIApp as App
 from apistar.handlers import (
     api_documentation, javascript_schema, serve_schema, serve_static
 )
-from apistar.interfaces import Schema, Settings
+from apistar.interfaces import Schema
 
 
 class Category(typesystem.Enum):

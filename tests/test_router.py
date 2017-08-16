@@ -3,8 +3,7 @@ import pytest
 from apistar import Include, Route, TestClient, exceptions, typesystem
 from apistar.frameworks.asyncio import ASyncIOApp
 from apistar.frameworks.wsgi import WSGIApp
-from apistar.interfaces import KeywordArgs
-from apistar.routing import PathWildcard
+from apistar.types import KeywordArgs, PathWildcard
 
 
 class MaxLength(typesystem.String):

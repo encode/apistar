@@ -6,7 +6,7 @@ import coreschema
 
 from apistar import Response, Route, exceptions, http
 from apistar.interfaces import FileWrapper, Schema, StaticFiles, Templates
-from apistar.routing import PathWildcard
+from apistar.types import PathWildcard
 
 
 def api_documentation(schema: Schema,

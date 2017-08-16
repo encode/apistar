@@ -4,9 +4,7 @@ import typing
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
-from apistar.cli import Command
-from apistar.components import Component
-from apistar.interfaces import Settings
+from apistar import Command, Component, Settings
 
 
 class SQLAlchemyBackend(object):

@@ -6,8 +6,10 @@ import coreapi
 import coreschema
 import uritemplate
 
-from apistar import exceptions, routing, typesystem
-from apistar.interfaces import RouteConfig, Router, Schema
+from apistar import Route, exceptions, typesystem
+from apistar.core import flatten_routes
+from apistar.interfaces import Router, Schema
+from apistar.types import RouteConfig
 
 PRIMITIVE_TYPES = (
     str, int, float, bool, list, dict
@@ -27,7 +29,7 @@ class CoreAPISchema(Schema):
             url = None
 
         content = {}
-        for route in routing.flatten_routes(routes):
+        for route in flatten_routes(routes):
             if getattr(route.view, 'exclude_from_schema', False):
                 continue
             content[route.name] = get_link(route)
@@ -35,7 +37,7 @@ class CoreAPISchema(Schema):
         super().__init__(url=url, content=content)
 
 
-def get_link(route: routing.Route) -> coreapi.Link:
+def get_link(route: Route) -> coreapi.Link:
     """
     Given a single route, return a Link instance containing all the information
     needed to expose that route in an API Schema.

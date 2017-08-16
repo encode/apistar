@@ -1,6 +1,7 @@
 import pytest
 
-from apistar import App, Route, TestClient, exceptions, typesystem
+from apistar import Route, TestClient, exceptions, typesystem
+from apistar.frameworks.wsgi import WSGIApp as App
 
 
 class UntypedList(typesystem.Array):

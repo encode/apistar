@@ -1,4 +1,5 @@
-from apistar import App, Route, TestClient, typesystem
+from apistar import Route, TestClient, typesystem
+from apistar.frameworks.wsgi import WSGIApp as App
 
 
 class MinMaxInteger(typesystem.Integer):

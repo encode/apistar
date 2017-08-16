@@ -3,9 +3,9 @@ import tempfile
 
 import pytest
 
-from apistar import App, exceptions
-from apistar.components import Component
+from apistar import Component, exceptions
 from apistar.components.console import BufferConsole
+from apistar.frameworks.wsgi import WSGIApp as App
 from apistar.interfaces import Console
 
 components = [

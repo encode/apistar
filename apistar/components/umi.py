@@ -8,7 +8,7 @@ from werkzeug.formparser import FormDataParser
 from werkzeug.http import parse_options_header
 
 from apistar import exceptions, http
-from apistar.interfaces import ParamName, UMIChannels, UMIMessage
+from apistar.types import ParamName, UMIChannels, UMIMessage
 
 
 def get_method(message: UMIMessage):

@@ -4,9 +4,8 @@ import typing
 from contextlib import ExitStack
 
 from apistar import exceptions, http, typesystem
-from apistar.interfaces import (
-    Injector, KeywordArgs, ParamAnnotation, ParamName, Resolver
-)
+from apistar.interfaces import Injector, Resolver
+from apistar.types import KeywordArgs, ParamAnnotation, ParamName
 
 Step = typing.NamedTuple('Step', [
     ('func', typing.Callable),
