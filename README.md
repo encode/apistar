@@ -523,6 +523,7 @@ from apistar import Route
 from apistar.interfaces import Templates
 from apistar.frameworks.wsgi import WSGIApp as App
 
+
 def hello(username: str, templates: Templates):
     index = templates.get_template('index.html')
     return index.render(username=username)
@@ -757,7 +758,7 @@ A few common driver configurations are listed below.
 Database   | Driver                      | URL format
 ---------- | --------------------------- | ----------------
 PostgreSQL | `psycopg2`                  | `postgresql://<username>:<password>@localhost/example`
-MySQL      | `mysql-python`              | `mysql://<username>:<password>@localhost/example`
+MySQL      | `pymysql`                   | `mysql+pymysql://<username>:<password>@localhost/example`
 SQLite     | `sqlite3` (Python built-in) | `sqlite:///example.db`
 
 **Creating the database tables**
