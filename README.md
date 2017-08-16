@@ -534,7 +534,8 @@ routes = [
 
 settings = {
     'TEMPLATES': {
-        'DIRS': ['templates']
+        'ROOT_DIR': 'templates',     # Include the 'templates/' directory.
+        'PACKAGE_DIRS': ['apistar']  # Include the built-in apistar templates.
     }
 }
 
@@ -574,7 +575,8 @@ in your settings, like so:
 ```python
 settings = {
     'STATICS': {
-        'DIR': 'statics'
+        'ROOT_DIR': 'statics',       # Include the 'statics/' directory.
+        'PACKAGE_DIRS': ['apistar']  # Include the built-in apistar static files.
     }
 }
 
@@ -597,7 +599,8 @@ routes = [
 
 settings = {
     'TEMPLATES': {
-        'DIRS': ['templates']
+        'ROOT_DIR': 'templates',
+        'PACKAGE_DIRS': ['apistar']
     }
 }
 
@@ -1110,6 +1113,7 @@ To successfully run `zappa deploy` you will need an IAM user on your AWS account
 * Dropped unneccessary `ResponseData` annotation.
 * Dropped `WSGIResponse`. Either return data or a `Response`.
 * Dropped `build()` method on components. See the docs for information on creating and registering components.
+* Rationalized the 'TEMPLATES' and 'STATICS' settings.
 
 ---
 

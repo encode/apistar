@@ -22,19 +22,19 @@ class Jinja2Templates(Templates):
     }
 
     def __init__(self, router: Router, statics: StaticFiles, settings: Settings) -> None:
-        settings = settings.get('TEMPLATES', self.DEFAULT_SETTINGS)
+        template_settings = settings.get('TEMPLATES', self.DEFAULT_SETTINGS)
 
         loaders = []  # type: typing.List[jinja2.BaseLoader]
-        if settings['PACKAGE_DIRS']:
+        if template_settings.get('PACKAGE_DIRS'):
             loaders.extend([
                 jinja2.PrefixLoader({
                     package_dir: jinja2.PackageLoader(package_dir, 'templates')
                 })
-                for package_dir in settings['PACKAGE_DIRS']
+                for package_dir in template_settings['PACKAGE_DIRS']
             ])
-        if settings['ROOT_DIR']:
+        if template_settings.get('ROOT_DIR'):
             loaders.append(
-                jinja2.FileSystemLoader(settings['ROOT_DIR'])
+                jinja2.FileSystemLoader(template_settings['ROOT_DIR'])
             )
 
         loader = jinja2.ChoiceLoader(loaders)

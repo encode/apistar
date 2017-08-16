@@ -39,9 +39,9 @@ class WhiteNoiseStaticFiles(StaticFiles):
     }
 
     def __init__(self, router: Router, settings: Settings) -> None:
-        settings = settings.get('STATICS', self.DEFAULT_SETTINGS)
-        app = whitenoise.WhiteNoise(application=None, root=settings['ROOT_DIR'])
-        for package in settings['PACKAGE_DIRS']:
+        static_settings = settings.get('STATICS', self.DEFAULT_SETTINGS)
+        app = whitenoise.WhiteNoise(application=None, root=static_settings.get('ROOT_DIR', None))
+        for package in static_settings.get('PACKAGE_DIRS', []):
             package_dir = os.path.dirname(find_spec(package).origin)
             package_statics = os.path.join(package_dir, 'static')
             app.add_files(package_statics, prefix=package)

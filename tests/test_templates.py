@@ -30,7 +30,7 @@ def test_get_and_render_template(app_class):
         settings = {
             'TEMPLATES': {
                 'PACKAGE_DIRS': ['apistar'],
-                'ROOT_DIR': [tempdir]
+                'ROOT_DIR': tempdir
             }
         }
         app = app_class(routes=routes, settings=settings)
@@ -46,7 +46,7 @@ def test_template_not_found(app_class):
     settings = {
         'TEMPLATES': {
             'PACKAGE_DIRS': [],
-            'ROOT_DIR': []
+            'ROOT_DIR': None
         }
     }
     app = app_class(routes=routes, settings=settings)
