@@ -6,17 +6,21 @@ from apistar.frameworks.wsgi import WSGIApp as App
 
 class Location(typesystem.Object):
     properties = {
-        'latitude': typesystem.newtype('Number', minimum=-90.0, maximum=90.0),
-        'longitude': typesystem.newtype('Number', minimum=-180.0, maximum=180.0)
+        'latitude': typesystem.number(minimum=-90.0, maximum=90.0),
+        'longitude': typesystem.number(minimum=-180.0, maximum=180.0)
     }
+
+
+class Difficulty(typesystem.Enum):
+    enum = ['easy', 'medium', 'hard']
 
 
 class HighScore(typesystem.Object):
     properties = {
-        'name': typesystem.newtype('String', max_length=100),
-        'score': typesystem.newtype('Integer', minimum=0, maximum=100),
-        'completed': typesystem.newtype('Boolean', default=False),
-        'difficulty': typesystem.newtype('Enum', enum=['easy', 'medium', 'hard']),
+        'name': typesystem.string(max_length=100),
+        'score': typesystem.integer(minimum=0, maximum=100),
+        'completed': typesystem.boolean(default=False),
+        'difficulty': typesystem.enum(enum=['easy', 'medium', 'hard']),
         'location': typesystem.newtype(Location, default={'latitude': 0.0, 'longitude': 0.0})
     }
 

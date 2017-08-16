@@ -5,8 +5,8 @@ from apistar import environment, exceptions, typesystem
 
 class Env(environment.Environment):
     properties = {
-        'DEBUG': typesystem.newtype('Boolean', default=False),
-        'DATABASE_URL': typesystem.String
+        'DEBUG': typesystem.boolean(default=False),
+        'DATABASE_URL': typesystem.string()
     }
 
 

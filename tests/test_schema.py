@@ -16,10 +16,10 @@ class Category(typesystem.Enum):
 
 class ToDoNote(typesystem.Object):
     properties = {
-        'id': typesystem.newtype('Integer', minimum=0),
-        'text': typesystem.newtype('String', max_length=100),
-        'complete': typesystem.Boolean,
-        'percent_complete': typesystem.Number,
+        'id': typesystem.integer(minimum=0),
+        'text': typesystem.string(max_length=100),
+        'complete': typesystem.boolean(),
+        'percent_complete': typesystem.number(),
         'category': Category
     }
 

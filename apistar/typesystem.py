@@ -15,22 +15,6 @@ from apistar.exceptions import TypeSystemError
 # TODO: Blank booleans as False?
 
 
-def newtype(name_or_type: typing.Union[str, type], **kwargs) -> typing.Type:
-    if isinstance(name_or_type, str):
-        cls = {
-            'String': String,
-            'Number': Number,
-            'Integer': Integer,
-            'Boolean': Boolean,
-            'Enum': Enum,
-            'Object': Object,
-            'Array': Array
-        }[name_or_type]
-    else:
-        cls = name_or_type
-    return type(cls.__name__, (cls,), kwargs)
-
-
 class String(str):
     native_type = str
     errors = {
@@ -271,3 +255,27 @@ class Array(list):
 
         if errors:
             raise TypeSystemError(errors)
+
+
+def string(**kwargs) -> typing.Type:
+    return type('String', (String,), kwargs)
+
+
+def integer(**kwargs) -> typing.Type:
+    return type('Integer', (Integer,), kwargs)
+
+
+def number(**kwargs) -> typing.Type:
+    return type('Number', (Number,), kwargs)
+
+
+def boolean(**kwargs) -> typing.Type:
+    return type('Boolean', (Boolean,), kwargs)
+
+
+def enum(**kwargs) -> typing.Type:
+    return type('Enum', (Enum,), kwargs)
+
+
+def newtype(cls, **kwargs) -> typing.Type:
+    return type(cls.__name__, (cls,), kwargs)
