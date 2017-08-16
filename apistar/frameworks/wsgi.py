@@ -27,7 +27,8 @@ class WSGIApp(CliApp):
     BUILTIN_COMMANDS = [
         Command('new', commands.new),
         Command('run', commands.run_wsgi),
-        Command('schema', commands.schema)
+        Command('schema', commands.schema),
+        Command('test', commands.test)
     ]
 
     BUILTIN_COMPONENTS = [
