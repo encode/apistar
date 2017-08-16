@@ -17,7 +17,7 @@ def test_load_app():
     with tempfile.TemporaryDirectory() as tempdir:
         os.chdir(tempdir)
         app = default_app()
-        app.main(['new', '.', '--layout', 'minimal'], standalone_mode=False)
+        app.main(['new', '.'], standalone_mode=False)
         loaded = load_app()
         assert isinstance(loaded, App)
 

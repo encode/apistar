@@ -17,7 +17,7 @@ app = App(components=components)
 def test_new():
     with tempfile.TemporaryDirectory() as tempdir:
         os.chdir(tempdir)
-        app.main(['new', 'myproject', '--layout', 'minimal'], standalone_mode=False)
+        app.main(['new', 'myproject', '--framework', 'wsgi'], standalone_mode=False)
         assert os.path.exists('myproject')
         assert os.path.exists(os.path.join('myproject', 'app.py'))
         assert os.path.exists(os.path.join('myproject', 'tests.py'))
@@ -30,6 +30,11 @@ def test_new():
 def test_do_not_overwrite_existing_project():
     with tempfile.TemporaryDirectory() as tempdir:
         os.chdir(tempdir)
-        app.main(['new', 'myproject', '--layout', 'minimal'], standalone_mode=False)
+        app.main(['new', 'myproject', '--framework', 'wsgi'], standalone_mode=False)
         with pytest.raises(exceptions.CommandLineError):
-            app.main(['new', 'myproject', '--layout', 'minimal'], standalone_mode=False)
+            app.main(['new', 'myproject', '--framework', 'wsgi'], standalone_mode=False)
+
+
+def test_invalid_framework():
+    with pytest.raises(exceptions.CommandLineError):
+        app.main(['new', 'myproject', '--framework', 'invalid'], standalone_mode=False)

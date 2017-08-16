@@ -13,7 +13,7 @@ IGNORED_DIRECTORIES = ['__pycache__']
 
 def new(console: Console,
         target_dir: str,
-        layout: str='minimal',
+        framework: str='wsgi',
         force: bool=False) -> None:
     """
     Create a new project in TARGET_DIR.
@@ -24,7 +24,11 @@ def new(console: Console,
       layout: Select the project layout to use.
       force: Overwrite any existing project files.
     """
-    source_dir = os.path.join(LAYOUTS_DIR, layout)
+    if framework not in ('wsgi', 'asyncio'):
+        message = "Invalid framework option. Use 'wsgi' or 'asyncio'."
+        raise exceptions.CommandLineError(message)
+
+    source_dir = os.path.join(LAYOUTS_DIR, framework)
 
     copy_paths = []
     for dir_path, dirs, filenames in os.walk(source_dir):
