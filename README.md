@@ -57,6 +57,8 @@ be in sync with your codebase.
     - [The Development Server](#the-development-server)
     - [Running in Production](#running-in-production)
     - ["Serverless" Deployments](#serverless-deployments)
+- [Changelog](#changelog)
+    - [0.2 Release](#02-release)
 - [Development](#development)
 
 ---
