@@ -23,6 +23,7 @@ be in sync with your codebase.
 * **Schema generation** - Support for generating Swagger or RAML API typesystems.
 * **Expressive** - Type annotated views, that make for expressive, testable code.
 * **Performance** - Dynamic behavior for determining how to run each view makes API Star incredibly efficient.
+* **Throughput** - Support for asyncio to allow for building high-throughput non-blocking applications.
 
 ---
 
