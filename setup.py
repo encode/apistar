@@ -57,10 +57,14 @@ setup(
     install_requires=[
         'coreapi',
         'jinja2',
+        'pytest',
         'requests',
         'werkzeug',
         'whitenoise'
     ],
+    extras_require={
+        'asyncio': ['uvicorn', 'uvitools']
+    },
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Environment :: Web Environment',
