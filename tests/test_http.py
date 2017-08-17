@@ -22,6 +22,15 @@ def to_native(obj):  # pragma: nocover  (Some cases only included for completene
 
 # HTTP Components as parameters
 
+def get_request(request: http.Request) -> http.Response:
+    return http.Response({
+        'method': request.method,
+        'url': request.url,
+        'headers': dict(request.headers),
+        'body': request.body.decode('utf-8')
+    })
+
+
 def get_method(method: http.Method) -> http.Response:
     return http.Response({'method': method})
 
@@ -104,6 +113,7 @@ def response_headers() -> http.Response:
 
 
 routes = [
+    Route('/request/', 'GET', get_request),
     Route('/method/', 'GET', get_method),
     Route('/method/', 'POST', get_method, name='post_method'),
     Route('/scheme/', 'GET', get_scheme),
@@ -132,6 +142,23 @@ wsgi_client = TestClient(wsgi_app)
 
 async_app = ASyncIOApp(routes=routes)
 async_client = TestClient(async_app)
+
+
+@pytest.mark.parametrize('client', [wsgi_client, async_client])
+def test_request(client):
+    response = client.get('http://example.com/request/')
+    assert response.json() == {
+        'method': 'GET',
+        'url': 'http://example.com/request/',
+        'headers': {
+            'accept': '*/*',
+            'accept-encoding': 'gzip, deflate',
+            'connection': 'keep-alive',
+            'host': 'example.com',
+            'user-agent': 'testclient'
+        },
+        'body': ''
+    }
 
 
 @pytest.mark.parametrize('client', [wsgi_client, async_client])
