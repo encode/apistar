@@ -6,7 +6,8 @@ class Route(collections.abc.Iterable):
     def __init__(self,
                  path: str,
                  method: str,
-                 view: typing.Callable, name: str=None) -> None:
+                 view: typing.Callable,
+                 name: str=None) -> None:
         self.path = path
         self.method = method
         self.view = view
