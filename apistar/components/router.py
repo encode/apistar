@@ -27,7 +27,7 @@ class WerkzeugRouter(Router):
                 raise exceptions.ConfigurationError(msg)
 
             template = uritemplate.URITemplate(path)
-            werkzeug_path = path[:]
+            werkzeug_path = str(path)
 
             parameters = inspect.signature(view).parameters
 
