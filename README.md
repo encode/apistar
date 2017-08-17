@@ -51,7 +51,6 @@ be in sync with your codebase.
   - [SQLAlchemy](#sqlalchemy)
   - [Django ORM](#django-orm)
 - [Components](#components)
-- [WSGI](#wsgi)
 - [Performance](#performance)
 - [Deployment](#deployment)
     - [The Development Server](#the-development-server)
