@@ -53,6 +53,7 @@ class WSGIApp(CliApp):
         Component(http.QueryParams, init=wsgi.get_queryparams),
         Component(http.QueryParam, init=wsgi.get_queryparam),
         Component(http.Body, init=wsgi.get_body),
+        Component(http.Request, init=http.Request),
         Component(http.RequestData, init=wsgi.get_request_data),
         Component(FileWrapper, init=wsgi.get_file_wrapper)
     ]

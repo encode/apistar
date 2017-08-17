@@ -114,6 +114,19 @@ class Headers(collections.Mapping):
         return 'Headers(%s)' % repr(self._list)
 
 
+class Request(object):
+    def __init__(self, method: Method, url: URL, headers: Headers=None, body: Body=None):
+        if headers is None:  # pragma: nocover
+            headers = Headers()
+        if body is None:  # pragma: nocover
+            body = b''
+
+        self.method = method
+        self.url = url
+        self.headers = headers
+        self.body = body
+
+
 class Response(collections.abc.Iterable):
     def __init__(self,
                  content: typing.Any,
