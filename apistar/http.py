@@ -15,20 +15,28 @@ Body = typing.NewType('Body', bytes)
 RequestData = typing.TypeVar('RequestData')
 
 
-class QueryParams(collections.Mapping):
+# Type annotations for valid `__init__` values to QueryParams and Headers.
+StringPairsSequence = typing.Sequence[typing.Tuple[str, str]]
+StringPairsMapping = typing.Mapping[str, str]
+StringPairs = typing.Union[StringPairsSequence, StringPairsMapping]
+
+
+class QueryParams(typing.Mapping[str, str]):
     """
     An immutable multidict.
     """
 
-    def __init__(self, value):
+    def __init__(self, value: StringPairs) -> None:
         if hasattr(value, 'items'):
+            value = typing.cast(StringPairsMapping, value)
             items = list(value.items())
         else:
+            value = typing.cast(StringPairsSequence, value)
             items = list(value)
         self._dict = {k: v for k, v in reversed(items)}
         self._list = items
 
-    def get_list(self, key):
+    def get_list(self, key: str) -> typing.List[str]:
         return [
             item_value for item_key, item_value in self._list
             if item_key == key
@@ -64,20 +72,22 @@ class QueryParams(collections.Mapping):
         return 'QueryParams(%s)' % repr(self._list)
 
 
-class Headers(collections.Mapping):
+class Headers(typing.Mapping[str, str]):
     """
     An immutable, case-insensitive multidict.
     """
 
-    def __init__(self, value):
+    def __init__(self, value: StringPairs) -> None:
         if hasattr(value, 'items'):
+            value = typing.cast(StringPairsMapping, value)
             items = [(k.lower(), v) for k, v in list(value.items())]
         else:
+            value = typing.cast(StringPairsSequence, value)
             items = [(k.lower(), v) for k, v in list(value)]
         self._dict = {k: v for k, v in reversed(items)}
         self._list = items
 
-    def get_list(self, key):
+    def get_list(self, key: str) -> typing.List[str]:
         key_lower = key.lower()
         return [
             item_value for item_key, item_value in self._list
@@ -93,7 +103,7 @@ class Headers(collections.Mapping):
     def items(self):
         return list(self._list)
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: str):
         return self._dict[key.lower()]
 
     def __contains__(self, key):
@@ -114,7 +124,7 @@ class Headers(collections.Mapping):
         return 'Headers(%s)' % repr(self._list)
 
 
-class Request(object):
+class Request():
     def __init__(self, method: Method, url: URL, headers: Headers=None, body: Body=None) -> None:
         if headers is None:  # pragma: nocover
             headers = Headers({})

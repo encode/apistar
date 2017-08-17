@@ -127,7 +127,7 @@ class ASyncIOApp(CliApp):
 
         raise
 
-    def finalize_response(self, response):
+    def finalize_response(self, response: http.Response) -> http.Response:
         if isinstance(response, http.Response):
             data, status, headers, content_type = response
         else:

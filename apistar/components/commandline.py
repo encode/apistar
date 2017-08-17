@@ -71,8 +71,8 @@ class ArgParseCommandLineClient(CommandLineClient):
 
         self._parser = parser
 
-    def get_descriptions(self, handler):
-        doc = handler.__doc__
+    def get_descriptions(self, handler: typing.Callable):
+        doc = getattr(handler, '__doc__')
 
         if doc is None:
             return ('', {})
@@ -126,18 +126,18 @@ class MainArgumentParser(argparse.ArgumentParser):
     prog = ''
     description = ''
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.commands = []
+    def __init__(self, description: str, add_help: bool) -> None:
+        super().__init__(description=description, add_help=add_help)
+        self.commands = []  # type: typing.List[typing.Tuple[str, str]]
         self.subparsers = self.add_subparsers(parser_class=CommandArgumentParser)
 
-    def add_command(self, name, **kwargs):
+    def add_command(self, name: str, **kwargs):
         first = name
         second = kwargs.get('description', '')
         self.commands.append((first, second))
         return self.subparsers.add_parser(name, **kwargs)
 
-    def error(self, message):
+    def error(self, message: str) -> None:
         raise exceptions.CommandLineError(message)
 
     def format_usage(self) -> str:
@@ -171,18 +171,18 @@ class CommandArgumentParser(argparse.ArgumentParser):
     prog = ''
     description = ''
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
-        self.positionals = []
-        self.options = []
+        self.positionals = []  # type: typing.List[typing.Tuple[str, str]]
+        self.options = []  # type: typing.List[typing.Tuple[str, str]]
 
-    def add_positional(self, name, **kwargs):
+    def add_positional(self, name: str, **kwargs) -> None:
         first = name
         second = kwargs.get('help', '')
         self.positionals.append((first, second))
         self.add_argument(name, **kwargs)
 
-    def add_option(self, name, **kwargs):
+    def add_option(self, name: str, **kwargs) -> None:
         if 'type' in kwargs:
             first = name + ' ' + self.format_type(kwargs['type'])
         else:
@@ -191,10 +191,10 @@ class CommandArgumentParser(argparse.ArgumentParser):
         self.options.append((first, second))
         self.add_argument(name, **kwargs)
 
-    def error(self, message):
+    def error(self, message: str) -> None:
         raise exceptions.CommandLineError(message)
 
-    def format_type(self, cls) -> str:
+    def format_type(self, cls: type) -> str:
         if issubclass(cls, int):
             return 'INTEGER'
         elif issubclass(cls, float):

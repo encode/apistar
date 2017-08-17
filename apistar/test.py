@@ -6,6 +6,8 @@ from urllib.parse import unquote, urlparse
 
 import requests
 
+from apistar.interfaces import App
+
 
 def _get_reason_phrase(status_code: int) -> str:
     try:
@@ -197,19 +199,20 @@ class _UMIAdapter(requests.adapters.HTTPAdapter):
 
 
 class _TestClient(requests.Session):
-    def __init__(self, app, scheme='http', hostname='testserver'):
+    def __init__(self, app: App, scheme: str, hostname: str) -> None:
         super(_TestClient, self).__init__()
-        if asyncio.iscoroutinefunction(app.__call__):
-            adapter = _UMIAdapter(app)
+        app_callable = typing.cast(typing.Callable, app)
+        if asyncio.iscoroutinefunction(getattr(app, '__call__')):
+            adapter = _UMIAdapter(app_callable)  # type: requests.adapters.HTTPAdapter
         else:
-            adapter = _WSGIAdapter(app)
+            adapter = _WSGIAdapter(app_callable)
         self.mount('http://', adapter)
         self.mount('https://', adapter)
         self.headers.update({'User-Agent': 'testclient'})
         self.scheme = scheme
         self.hostname = hostname
 
-    def request(self, method, url, **kwargs):
+    def request(self, method: str, url: str, **kwargs) -> requests.Response:  # type: ignore
         if not (url.startswith('http:') or url.startswith('https:')):
             assert url.startswith('/'), (
                 "TestClient expected either "
@@ -220,9 +223,9 @@ class _TestClient(requests.Session):
         return super().request(method, url, **kwargs)
 
 
-def TestClient(*args, **kwargs) -> _TestClient:
+def TestClient(app: App, scheme: str='http', hostname: str='testserver') -> _TestClient:
     """
     We have to work around py.test discovery attempting to pick up
     the `TestClient` class, by declaring this as a function.
     """
-    return _TestClient(*args, **kwargs)
+    return _TestClient(app, scheme, hostname)
