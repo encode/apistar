@@ -115,11 +115,11 @@ class Headers(collections.Mapping):
 
 
 class Request(object):
-    def __init__(self, method: Method, url: URL, headers: Headers=None, body: Body=None):
+    def __init__(self, method: Method, url: URL, headers: Headers=None, body: Body=None) -> None:
         if headers is None:  # pragma: nocover
-            headers = Headers()
+            headers = Headers({})
         if body is None:  # pragma: nocover
-            body = b''
+            body = Body(b'')
 
         self.method = method
         self.url = url
