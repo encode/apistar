@@ -2,8 +2,8 @@
 
 A smart Web API framework, designed for Python 3.
 
-[![Build Status](https://travis-ci.org/tomchristie/apistar.svg?branch=master)](https://travis-ci.org/tomchristie/apistar)
-[![codecov](https://codecov.io/gh/tomchristie/apistar/branch/master/graph/badge.svg)](https://codecov.io/gh/tomchristie/apistar)
+[![Build Status](https://travis-ci.org/encode/apistar.svg?branch=master)](https://travis-ci.org/encode/apistar)
+[![codecov](https://codecov.io/gh/encode/apistar/branch/master/graph/badge.svg)](https://codecov.io/gh/encode/apistar)
 [![Package version](https://badge.fury.io/py/apistar.svg)](https://pypi.python.org/pypi/apistar)
 [![Python versions](https://img.shields.io/pypi/pyversions/apistar.svg)](https://www.python.org/doc/versions/)
 
