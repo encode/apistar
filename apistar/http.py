@@ -1,8 +1,8 @@
 import collections
 import typing
+from urllib.parse import urlparse
 
 Method = typing.NewType('Method', str)
-URL = typing.NewType('URL', str)
 Scheme = typing.NewType('Scheme', str)
 Host = typing.NewType('Host', str)
 Port = typing.NewType('Port', int)
@@ -13,6 +13,19 @@ Header = typing.NewType('Header', str)
 Body = typing.NewType('Body', bytes)
 
 RequestData = typing.TypeVar('RequestData')
+
+
+class URL(str):
+    """
+    A string that also supports accessing the parsed URL components.
+    eg. `url.components.query`
+    """
+
+    @property
+    def components(self):
+        if not hasattr(self, '_components'):
+            self._components = urlparse(self)
+        return self._components
 
 
 # Type annotations for valid `__init__` values to QueryParams and Headers.
@@ -125,7 +138,11 @@ class Headers(typing.Mapping[str, str]):
 
 
 class Request():
-    def __init__(self, method: Method, url: URL, headers: Headers=None, body: Body=None) -> None:
+    def __init__(self,
+                 method: Method,
+                 url: URL,
+                 headers: Headers=None,
+                 body: Body=None) -> None:
         if headers is None:  # pragma: nocover
             headers = Headers({})
         if body is None:  # pragma: nocover

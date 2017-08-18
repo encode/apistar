@@ -16,7 +16,7 @@ def get_method(environ: WSGIEnviron):
 
 
 def get_url(environ: WSGIEnviron):
-    return request_uri(environ)
+    return http.URL(request_uri(environ))
 
 
 def get_scheme(environ: WSGIEnviron):

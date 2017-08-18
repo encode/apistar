@@ -64,7 +64,7 @@ def get_page_query_param(page: http.QueryParam) -> http.Response:
 
 
 def get_url(url: http.URL) -> http.Response:
-    return http.Response({'url': url})
+    return http.Response({'url': url, 'url.components': url.components})
 
 
 def get_body(body: http.Body) -> http.Response:
@@ -232,15 +232,30 @@ def test_single_query_param(client):
 @pytest.mark.parametrize('client', [wsgi_client, async_client])
 def test_url(client):
     response = client.get('http://example.com/url/')
-    assert response.json() == {'url': 'http://example.com/url/'}
+    assert response.json() == {
+        'url': 'http://example.com/url/',
+        'url.components': ['http', 'example.com', '/url/', '', '', '']
+    }
     response = client.get('https://example.com/url/')
-    assert response.json() == {'url': 'https://example.com/url/'}
+    assert response.json() == {
+        'url': 'https://example.com/url/',
+        'url.components': ['https', 'example.com', '/url/', '', '', '']
+    }
     response = client.get('http://example.com:123/url/')
-    assert response.json() == {'url': 'http://example.com:123/url/'}
+    assert response.json() == {
+        'url': 'http://example.com:123/url/',
+        'url.components': ['http', 'example.com:123', '/url/', '', '', '']
+    }
     response = client.get('https://example.com:123/url/')
-    assert response.json() == {'url': 'https://example.com:123/url/'}
+    assert response.json() == {
+        'url': 'https://example.com:123/url/',
+        'url.components': ['https', 'example.com:123', '/url/', '', '', '']
+    }
     response = client.get('http://example.com/url/?a=1')
-    assert response.json() == {'url': 'http://example.com/url/?a=1'}
+    assert response.json() == {
+        'url': 'http://example.com/url/?a=1',
+        'url.components': ['http', 'example.com', '/url/', '', 'a=1', '']
+    }
 
 
 @pytest.mark.parametrize('client', [wsgi_client, async_client])
