@@ -29,7 +29,7 @@ def get_url(message: UMIMessage):
     if query_string:
         url += '?' + query_string.decode()
 
-    return url
+    return http.URL(url)
 
 
 def get_scheme(message: UMIMessage):
