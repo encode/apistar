@@ -7,3 +7,5 @@ coverage:
     project: yes
     patch: no
     changes: no
+
+comment: off
