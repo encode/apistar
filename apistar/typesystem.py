@@ -277,5 +277,9 @@ def enum(**kwargs) -> typing.Type:
     return type('Enum', (Enum,), kwargs)
 
 
+def array(**kwargs) -> typing.Type:
+    return type('Array', (Array,), kwargs)
+
+
 def newtype(cls, **kwargs) -> typing.Type:
     return type(cls.__name__, (cls,), kwargs)
