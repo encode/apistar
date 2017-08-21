@@ -2,6 +2,7 @@ import json
 import typing
 
 from werkzeug.http import HTTP_STATUS_CODES
+from werkzeug.datastructures import Headers
 
 from apistar import commands, exceptions, http
 from apistar.components import (
