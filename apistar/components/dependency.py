@@ -193,11 +193,11 @@ class DependencyInjector(Injector):
 
         # Add the steps required to satisfy each parameter in the function.
         for param in inspect.signature(func).parameters.values():
-            if param.annotation is ParamName:
+            if param.annotation is ParamName and parent_param:
                 input_values[param.name] = parent_param.name
                 continue
 
-            if param.annotation is ParamAnnotation:
+            if param.annotation is ParamAnnotation and parent_param:
                 input_values[param.name] = parent_param.annotation
                 continue
 

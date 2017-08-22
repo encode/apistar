@@ -1,8 +1,10 @@
-from typing import List
+from typing import List, NewType
 
 import pytest
 
-from apistar import Component, Route, TestClient, exceptions, http, typesystem
+from apistar import (
+    Component, Route, TestClient, exceptions, http, types, typesystem
+)
 from apistar.frameworks.asyncio import ASyncIOApp
 from apistar.frameworks.wsgi import WSGIApp
 
@@ -234,3 +236,27 @@ def test_context_manager_component(app_cls):
     client = TestClient(app)
     client.get('/')
     assert log == ['context manager enter', 'view', 'context manager exit']
+
+
+@pytest.mark.parametrize('app_cls', [WSGIApp, ASyncIOApp])
+def test_param_name_component(app_cls):
+    """
+    Test for issue #246 (allow ParamName to be used in top-level component)
+    https://github.com/encode/apistar/issues/246
+    """
+
+    def get_value(name: types.ParamName):
+        values = {'foo': 'bar'}
+        return values[name]
+
+    GetValue = NewType('GetValue', str)
+
+    def print_value(foo: GetValue):
+        return foo
+
+    app = app_cls(
+        routes=[Route('/', 'GET', print_value)],
+        components=[Component(GetValue, init=get_value)])
+    client = TestClient(app)
+
+    assert client.get('/').content == b'bar'
