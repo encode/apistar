@@ -37,7 +37,8 @@ class WSGIApp(CliApp):
         Component(StaticFiles, init=statics.WhiteNoiseStaticFiles),
         Component(Router, init=router.WerkzeugRouter),
         Component(CommandLineClient, init=commandline.ArgParseCommandLineClient),
-        Component(Console, init=console.PrintConsole)
+        Component(Console, init=console.PrintConsole),
+        Component(dependency.InjectionCaller, preload=False)
     ]
 
     HTTP_COMPONENTS = [

@@ -51,6 +51,9 @@ class DependencyInjector(Injector):
         if resolvers is None:
             resolvers = []  # pragma: nocover
 
+        # make this injector available to components
+        initial_state[Injector] = self
+
         self.components = components
         self.initial_state = initial_state
         self.required_state = required_state
@@ -92,6 +95,9 @@ class DependencyInjector(Injector):
 
         # Combine any preconfigured initial state with any explicit per-call state.
         state = {**self._setup_state, **state}
+
+        # recursively store state
+        state['__injector_state__'] = state
 
         ret = None
         with ExitStack() as stack:
@@ -152,6 +158,13 @@ class DependencyInjector(Injector):
             # don't run any function. The value must be passed explicitly
             # in the `state` dictionary when calling `run()`.
             key = self.required_state[annotation]
+            func = None
+            return (key, func)
+
+        elif annotation is InjectorState:
+            # InjectionState requires special handling since its value depends
+            # on the context of this call
+            key = '__injector_state__'
             func = None
             return (key, func)
 
@@ -236,6 +249,7 @@ class DependencyInjector(Injector):
 
 
 class AsyncDependencyInjector(DependencyInjector):
+
     async def run_async(self,
                         func: typing.Callable,
                         state: typing.Dict[str, typing.Any]={}) -> typing.Any:
@@ -261,6 +275,9 @@ class AsyncDependencyInjector(DependencyInjector):
 
         # Combine any preconfigured initial state with any explicit per-call state.
         state = {**self._setup_state, **state}
+
+        # recursively store state
+        state['__injector_state__'] = state
 
         ret = None
         with ExitStack() as stack:
@@ -450,3 +467,26 @@ class HTTPResolver(Resolver):
             detail = str(exc)
 
         raise exceptions.ValidationError(detail=detail)
+
+
+InjectorState = typing.NewType('InjectorState', dict)
+
+
+class InjectionCaller:
+
+    def __init__(self, injector: Injector, state: InjectorState) -> None:
+        self.injector = injector
+        self.state = state
+        self.is_async = isinstance(injector, AsyncDependencyInjector)
+
+    def __call__(self, func):
+        if asyncio.iscoroutinefunction(func):
+            return self.run_async(func)
+        else:
+            return self.run(func)
+
+    def run(self, func):
+        return self.injector.run(func, state=self.state)
+
+    async def run_async(self, func):
+        return await self.injector.run_async(func, state=self.state)
