@@ -78,10 +78,13 @@ def flatten_routes(routes: typing.Sequence[typing.Union[Route, Include]],
             flattened_routes.append(route)
         elif isinstance(item, Include):
             path, routes, namespace = item
-            path_prefix += path
+            includes_path_prefix = path_prefix + path
             if namespace is not None:
-                namespace_prefix += namespace + ':'
-            for route in flatten_routes(routes, path_prefix, namespace_prefix):
+                includes_namespace_prefix = namespace_prefix + namespace + ':'
+            else:
+                includes_namespace_prefix = namespace_prefix
+            for route in flatten_routes(
+                    routes, includes_path_prefix, includes_namespace_prefix):
                 flattened_routes.append(route)
 
     return flattened_routes

@@ -1,6 +1,6 @@
 import pytest
 
-from apistar import Include, Route, TestClient, exceptions, typesystem
+from apistar import Include, Route, TestClient, core, exceptions, typesystem
 from apistar.frameworks.asyncio import ASyncIOApp
 from apistar.frameworks.wsgi import WSGIApp
 from apistar.types import KeywordArgs, PathWildcard
@@ -83,6 +83,8 @@ routes = [
     Include('/subpath', [
         Route('/{var}/', 'GET', subpath),
     ], namespace='included'),
+    Route('/x', 'GET', lambda: 1, name='x'),
+    Include('/another_subpath', [Route('/x', 'GET', lambda: 1, name='x2')]),
 ]
 wsgi_app = WSGIApp(routes=routes)
 async_app = ASyncIOApp(routes=routes)
@@ -277,3 +279,13 @@ def test_misconfigured_routes():
             Route('/', 'GET', view),
             Route('/another', 'POST', view)
         ])
+
+
+def test_flatten_routes_not_order_sensitive():
+    """
+    Tests that prefixes from Includes don't affect later Routes
+    https://github.com/encode/apistar/issues/247
+    """
+    flat_routes = core.flatten_routes(routes)
+    assert flat_routes[10].path == '/x'
+    assert flat_routes[11].path == '/another_subpath/x'
