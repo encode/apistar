@@ -3,6 +3,7 @@ from typing import List
 import pytest
 
 from apistar import Component, Route, TestClient, exceptions, http, typesystem
+from apistar.components.dependency import InjectionCaller
 from apistar.frameworks.asyncio import ASyncIOApp
 from apistar.frameworks.wsgi import WSGIApp
 
@@ -56,9 +57,31 @@ def add_favorite_kitten(name: KittenName) -> Kitten:
     return Kitten({'name': name, 'color': 'black', 'cuteness': 0.0})
 
 
+def doubly_nested_list_favorite_kittens(
+        call_with_injection: InjectionCaller) -> List[Kitten]:
+    """
+    Returns a list of kittens, optionally filtered by color.
+    (Double nested injection call)
+    """
+    return call_with_injection(nested_list_favorite_kittens)
+
+
+def nested_list_favorite_kittens(
+        call_with_injection: InjectionCaller) -> List[Kitten]:
+    """
+    Returns a list of kittens, optionally filtered by color.
+    (Single nested injection call)
+    """
+    return call_with_injection(list_favorite_kittens)
+
+
 routes = [
     Route('/list_favorite_kittens/', 'GET', list_favorite_kittens),
     Route('/add_favorite_kitten/', 'POST', add_favorite_kitten),
+    Route(
+        '/doubly_nested_list_favorite_kittens/',
+        'GET',
+        doubly_nested_list_favorite_kittens),
 ]
 
 wsgi_app = WSGIApp(routes=routes)
@@ -234,3 +257,18 @@ def test_context_manager_component(app_cls):
     client = TestClient(app)
     client.get('/')
     assert log == ['context manager enter', 'view', 'context manager exit']
+
+
+@pytest.mark.parametrize('client', [wsgi_client, async_client])
+def test_nested_injection(client):
+    """
+    Tests the InjectionCaller type, which allows calling nested injection
+    contexts
+    """
+
+    response = client.get('/doubly_nested_list_favorite_kittens/?color=white')
+    assert response.status_code == 200
+    assert response.json() == [
+        {'name': 'fluffums', 'color': 'white', 'cuteness': 9.8},
+        {'name': 'meowster', 'color': 'white', 'cuteness': 7.8}
+    ]
