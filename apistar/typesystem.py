@@ -4,16 +4,6 @@ import typing
 
 from apistar.exceptions import TypeSystemError
 
-# TODO: Error on unknown attributes
-# TODO: allow_blank?
-# TODO: input_type (check type at start and allow, coerce, .native)
-# TODO: default=empty
-# TODO: check 'required' exists in 'properties'
-# TODO: smarter ordering
-# TODO: extra_properties=False by default
-# TODO: Overriding errors
-# TODO: Blank booleans as False?
-
 
 class String(str):
     native_type = str
