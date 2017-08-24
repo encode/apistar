@@ -17,7 +17,7 @@
         <code>{{ link.url }}</code>
     </div>
 
-    <p>{{ link.description }}</p>
+    {% if link.description %}<p class="description">{{ link.description }}</p>{% endif %}
 
 {% if get_fields(link, 'path') %}
     <h4>Path Parameters</h4>

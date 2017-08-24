@@ -228,6 +228,10 @@ body {
   font-size: inherit;
 }
 
+.docs-content .description {
+    margin-top: 10px
+}
+
 .code-samples pre {
   margin-top: 20px;
 }
