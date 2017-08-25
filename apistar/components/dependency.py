@@ -367,38 +367,47 @@ class HTTPResolver(Resolver):
     def empty(self,
               name: ParamName,
               kwargs: KeywordArgs,
-              query_params: http.QueryParams) -> str:
+              query_params: http.QueryParams,
+              data: http.RequestData) -> str:
         """
         Handles unannotated parameters for HTTP requests.
-        These types use either a matched URL keyword argument, or else
-        a query parameter.
+        First the URL keywords are checked for a match, then the query
+        parameters, and finally the request data (if it is a dictionary).
 
         Args:
             name: The name of the parameter.
             kwargs: The URL keyword arguments, as returned by the router.
             query_params: The query parameters of the incoming HTTP request.
+            data: The incoming HTTP request's data payload.
 
         Returns:
             The value that should be used for the handler function.
         """
         if name in kwargs:
             return kwargs[name]
-        return query_params.get(name)
+        elif name in query_params:
+            return query_params[name]
+        elif isinstance(data, dict):
+            return data.get(name)
+        else:
+            return None
 
     def scalar_type(self,
                     name: ParamName,
                     kwargs: KeywordArgs,
                     query_params: http.QueryParams,
+                    data: http.RequestData,
                     coerce: ParamAnnotation) -> typing.Any:
         """
         Handles `str`, `int`, `float`, or `bool` annotations for HTTP requests.
-        These types use either a matched URL keyword argument, or else
-        a query parameter.
+        First the URL keywords are checked for a match, then the query
+        parameters, and finally the request data (if it is a dictionary).
 
         Args:
             name: The name of the parameter.
             kwargs: The URL keyword arguments, as returned by the router.
             query_params: The query parameters of the incoming HTTP request.
+            data: The incoming HTTP request's data payload.
             coerce: The type of the parameter.
 
         Returns:
@@ -407,9 +416,14 @@ class HTTPResolver(Resolver):
         if name in kwargs:
             value = kwargs[name]
             is_url_arg = True
-        else:
-            value = query_params.get(name)
+        elif name in query_params:
+            value = query_params[name]
             is_url_arg = False
+        elif isinstance(data, dict):
+            value = data.get(name)
+            is_url_arg = False
+        else:
+            value = None
 
         if value is None or isinstance(value, coerce):
             return value

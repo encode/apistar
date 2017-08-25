@@ -71,6 +71,14 @@ def get_scalar_page_query_param(page: int) -> http.Response:
     return http.Response({'page': page})
 
 
+def get_untyped_page_request_data(page) -> http.Response:
+    return http.Response({'page': page})
+
+
+def get_scalar_page_request_data(page: int) -> http.Response:
+    return http.Response({'page': page})
+
+
 def get_url(url: http.URL) -> http.Response:
     return http.Response({'url': url, 'url.components': url.components})
 
@@ -133,6 +141,8 @@ routes = [
     Route('/page_query_param/', 'GET', get_page_query_param),
     Route('/untyped_page_query_param/', 'GET', get_untyped_page_query_param),
     Route('/scalar_page_query_param/', 'GET', get_scalar_page_query_param),
+    Route('/untyped_page_request_data/', 'POST', get_untyped_page_request_data),
+    Route('/scalar_page_request_data/', 'POST', get_scalar_page_request_data),
     Route('/url/', 'GET', get_url),
     Route('/body/', 'POST', get_body),
     Route('/data/', 'POST', get_data),
@@ -270,6 +280,30 @@ def test_single_scalar_query_param(client):
     assert response.json() == {'page': 123}
     response = client.get(
         'http://example.com/scalar_page_query_param/?page=123&page=456')
+    assert response.json() == {'page': 123}
+
+
+@pytest.mark.parametrize('client', [wsgi_client, async_client])
+def test_single_untyped_request_data(client):
+    """
+    Tests a route where the `page` arg is not annotated
+    """
+    response = client.post('http://example.com/untyped_page_request_data/')
+    assert response.json() == {'page': None}
+    response = client.post(
+        'http://example.com/untyped_page_request_data/', data={'page': 123})
+    assert response.json() == {'page': '123'}
+
+
+@pytest.mark.parametrize('client', [wsgi_client, async_client])
+def test_single_scalar_request_data(client):
+    """
+    Tests a route where the `page` arg is annotated as an int
+    """
+    response = client.post('http://example.com/scalar_page_request_data/')
+    assert response.json() == {'page': None}
+    response = client.post(
+        'http://example.com/scalar_page_request_data/', data={'page': 123})
     assert response.json() == {'page': 123}
 
 
