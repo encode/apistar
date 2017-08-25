@@ -6,7 +6,6 @@ from apistar import exceptions, http
 from apistar.types import Settings
 
 Token = typing.NewType('Token', str)
-JSON = typing.NewType('JSON', typing.Dict[str, typing.Any])
 Algorithm = typing.NewType('Algorithm', str)
 
 
@@ -49,7 +48,7 @@ class EncodedJWT():
     }
 
     def __init__(self,
-                 payload: JSON,
+                 payload: typing.Dict[str, typing.Any],
                  settings: Settings,
                  algorithm: Algorithm=None) -> None:
         authorization_settings = settings.get('AUTHORIZATION', self.DEFAULT_SETTINGS)

@@ -3,7 +3,7 @@ import pytest
 
 from apistar import Route, Settings, TestClient, exceptions, http
 from apistar.components.authorization import (
-    JSON, Algorithm, DecodedJWT, EncodedJWT, Token
+    Algorithm, DecodedJWT, EncodedJWT, Token
 )
 from apistar.frameworks.asyncio import ASyncIOApp
 from apistar.frameworks.wsgi import WSGIApp
@@ -56,7 +56,7 @@ def test_decoded_jwt(app_class) -> None:
 
 
 def test_encoded_jwt() -> None:
-    payload = JSON({'email': 'test@example.com'})
+    payload = {'email': 'test@example.com'}
     token = jwt.encode(payload, 'jwt-secret', algorithm='HS256').decode(encoding='UTF-8')
     settings = Settings({
         'AUTHORIZATION': {'JWT_SECRET': 'jwt-secret'}
@@ -76,7 +76,7 @@ def test_misconfigured_jwt_settings() -> None:
         'AUTHORIZATION': {},
     })
     token = Token('abc')
-    payload = JSON({'some': 'payload'})
+    payload = {'some': 'payload'}
 
     with pytest.raises(exceptions.ConfigurationError):
         DecodedJWT(token=token, settings=settings)
