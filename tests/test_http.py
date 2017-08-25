@@ -63,6 +63,14 @@ def get_page_query_param(page: http.QueryParam) -> http.Response:
     return http.Response({'page': page})
 
 
+def get_untyped_page_query_param(page) -> http.Response:
+    return http.Response({'page': page})
+
+
+def get_scalar_page_query_param(page: int) -> http.Response:
+    return http.Response({'page': page})
+
+
 def get_url(url: http.URL) -> http.Response:
     return http.Response({'url': url, 'url.components': url.components})
 
@@ -123,6 +131,8 @@ routes = [
     Route('/query_string/', 'GET', get_query_string),
     Route('/query_params/', 'GET', get_query_params),
     Route('/page_query_param/', 'GET', get_page_query_param),
+    Route('/untyped_page_query_param/', 'GET', get_untyped_page_query_param),
+    Route('/scalar_page_query_param/', 'GET', get_scalar_page_query_param),
     Route('/url/', 'GET', get_url),
     Route('/body/', 'POST', get_body),
     Route('/data/', 'POST', get_data),
@@ -221,12 +231,46 @@ def test_query_params(client):
 
 @pytest.mark.parametrize('client', [wsgi_client, async_client])
 def test_single_query_param(client):
+    """
+    Tests a route where the `page` arg is annotated as a QueryParam
+    """
     response = client.get('http://example.com/page_query_param/')
     assert response.json() == {'page': None}
     response = client.get('http://example.com/page_query_param/?page=123')
     assert response.json() == {'page': '123'}
-    response = client.get('http://example.com/page_query_param/?page=123&page=456')
+    response = client.get(
+        'http://example.com/page_query_param/?page=123&page=456')
     assert response.json() == {'page': '123'}
+
+
+@pytest.mark.parametrize('client', [wsgi_client, async_client])
+def test_single_untyped_query_param(client):
+    """
+    Tests a route where the `page` arg is not annotated
+    """
+    response = client.get('http://example.com/untyped_page_query_param/')
+    assert response.json() == {'page': None}
+    response = client.get(
+        'http://example.com/untyped_page_query_param/?page=123')
+    assert response.json() == {'page': '123'}
+    response = client.get(
+        'http://example.com/untyped_page_query_param/?page=123&page=456')
+    assert response.json() == {'page': '123'}
+
+
+@pytest.mark.parametrize('client', [wsgi_client, async_client])
+def test_single_scalar_query_param(client):
+    """
+    Tests a route where the `page` arg is annotated as an int
+    """
+    response = client.get('http://example.com/scalar_page_query_param/')
+    assert response.json() == {'page': None}
+    response = client.get(
+        'http://example.com/scalar_page_query_param/?page=123')
+    assert response.json() == {'page': 123}
+    response = client.get(
+        'http://example.com/scalar_page_query_param/?page=123&page=456')
+    assert response.json() == {'page': 123}
 
 
 @pytest.mark.parametrize('client', [wsgi_client, async_client])
