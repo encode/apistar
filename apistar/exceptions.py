@@ -76,6 +76,16 @@ class ValidationError(HTTPException):
     default_detail = 'Validation error'
 
 
+class AuthenticationFailed(HTTPException):
+    default_status_code = 401
+    default_detail = 'Incorrect authentication credentials.'
+
+
+class NotAuthenticated(HTTPException):
+    default_status_code = 401
+    default_detail = 'Authentication credentials were not provided.'
+
+
 class NotFound(HTTPException):
     default_status_code = 404
     default_detail = 'Not found'

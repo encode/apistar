@@ -3,7 +3,8 @@ import typing
 
 from apistar import commands, exceptions, http
 from apistar.components import (
-    commandline, console, dependency, router, schema, statics, templates, umi
+    authorization, commandline, console, dependency, router, schema, statics,
+    templates, umi
 )
 from apistar.core import Command, Component
 from apistar.frameworks.cli import CliApp
@@ -30,7 +31,8 @@ class ASyncIOApp(CliApp):
         Component(StaticFiles, init=statics.WhiteNoiseStaticFiles),
         Component(Router, init=router.WerkzeugRouter),
         Component(CommandLineClient, init=commandline.ArgParseCommandLineClient),
-        Component(Console, init=console.PrintConsole)
+        Component(Console, init=console.PrintConsole),
+        Component(authorization.EncodedJWT, init=authorization.EncodedJWT),
     ]
 
     HTTP_COMPONENTS = [
@@ -48,7 +50,8 @@ class ASyncIOApp(CliApp):
         Component(http.Body, init=umi.get_body),
         Component(http.Request, init=http.Request),
         Component(http.RequestData, init=umi.get_request_data),
-        Component(FileWrapper, init=umi.get_file_wrapper)
+        Component(FileWrapper, init=umi.get_file_wrapper),
+        Component(authorization.DecodedJWT, init=authorization.get_decoded_jwt),
     ]
 
     def __init__(self, **kwargs):

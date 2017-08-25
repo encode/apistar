@@ -4,6 +4,7 @@ jinja2
 requests
 werkzeug
 whitenoise
+PyJWT
 
 # Optional
 django
