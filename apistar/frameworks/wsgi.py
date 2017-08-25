@@ -38,7 +38,8 @@ class WSGIApp(CliApp):
         Component(StaticFiles, init=statics.WhiteNoiseStaticFiles),
         Component(Router, init=router.WerkzeugRouter),
         Component(CommandLineClient, init=commandline.ArgParseCommandLineClient),
-        Component(Console, init=console.PrintConsole)
+        Component(Console, init=console.PrintConsole),
+        Component(authorization.EncodedJWT, init=authorization.EncodedJWT),
     ]
 
     HTTP_COMPONENTS = [
@@ -57,7 +58,7 @@ class WSGIApp(CliApp):
         Component(http.Request, init=http.Request),
         Component(http.RequestData, init=wsgi.get_request_data),
         Component(FileWrapper, init=wsgi.get_file_wrapper),
-        Component(authorization.JWT, init=authorization.get_decoded_jwt),
+        Component(authorization.DecodedJWT, init=authorization.get_decoded_jwt),
     ]
 
     def __init__(self, **kwargs):

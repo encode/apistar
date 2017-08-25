@@ -2,17 +2,19 @@ import jwt
 import pytest
 
 from apistar import Route, Settings, TestClient, exceptions, http
-from apistar.components.authorization import JWT, Token
+from apistar.components.authorization import (
+    JSON, Algorithm, DecodedJWT, EncodedJWT, Token
+)
 from apistar.frameworks.asyncio import ASyncIOApp
 from apistar.frameworks.wsgi import WSGIApp
 
 
-def auth_required(request: http.Request, token: JWT):
+def auth_required(request: http.Request, token: DecodedJWT):
     return token.payload
 
 
 @pytest.mark.parametrize('app_class', [WSGIApp, ASyncIOApp])
-def test_jwt(app_class) -> None:
+def test_decoded_jwt(app_class) -> None:
     routes = [
         Route('/auth-required-route', 'GET', auth_required),
     ]
@@ -53,9 +55,37 @@ def test_jwt(app_class) -> None:
     assert response.status_code == 401
 
 
+def test_encoded_jwt() -> None:
+    payload = JSON({'email': 'test@example.com'})
+    token = jwt.encode(payload, 'jwt-secret', algorithm='HS256').decode(encoding='UTF-8')
+    settings = Settings({
+        'AUTHORIZATION': {'JWT_SECRET': 'jwt-secret'}
+    })
+
+    encoded_jwt = EncodedJWT(payload=payload, settings=settings)
+    assert encoded_jwt.token == token
+
+    encoded_jwt = EncodedJWT(payload=payload, settings=settings, algorithm=Algorithm('HS512'))
+    assert encoded_jwt.token != token
+    token = jwt.encode(payload, 'jwt-secret', algorithm='HS512').decode(encoding='UTF-8')
+    assert encoded_jwt.token == token
+
+
 def test_misconfigured_jwt_settings() -> None:
     settings = Settings({
         'AUTHORIZATION': {},
     })
+    token = Token('abc')
+    payload = JSON({'some': 'payload'})
+
     with pytest.raises(exceptions.ConfigurationError):
-        JWT(token=Token('abc'), settings=settings)
+        DecodedJWT(token=token, settings=settings)
+    with pytest.raises(exceptions.ConfigurationError):
+        EncodedJWT(payload=payload, settings=settings)
+
+    settings = Settings({
+        'AUTHORIZATION': {'JWT_SECRET': 'jwt-secret', 'JWT_ALGORITHMS': ['unknown-algo']}
+    })
+
+    with pytest.raises(exceptions.ConfigurationError):
+        EncodedJWT(payload=payload, settings=settings)
