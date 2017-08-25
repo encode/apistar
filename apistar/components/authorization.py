@@ -31,8 +31,11 @@ class JWT():
 
 def get_decoded_jwt(authorization: http.Header, settings: Settings):
     if authorization is None:
-        raise exceptions.NotAuthenticated() from None
-    scheme, token = authorization.split()
+        raise exceptions.NotAuthenticated('Authorization header is missing.') from None
+    try:
+        scheme, token = authorization.split()
+    except ValueError:
+        raise exceptions.AuthenticationFailed('Could not seperate Authorization scheme and token.') from None
     if scheme.lower() != 'bearer':
-        raise exceptions.AuthenticationFailed() from None
+        raise exceptions.AuthenticationFailed('Authorization scheme not supported, try Bearer') from None
     return JWT(token=Token(token), settings=settings)
