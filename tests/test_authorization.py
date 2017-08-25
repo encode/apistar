@@ -28,10 +28,15 @@ def test_jwt(app_class) -> None:
 
     payload = {'user': 1}
     secret = settings['AUTHORIZATION']['JWT_SECRET']
-    encoded_jwt = jwt.encode(payload, secret)
+    encoded_jwt = jwt.encode(payload, secret, algorithm='HS256').decode(encoding='UTF-8')
 
-    response = client.get('auth-required-route', headers={
-        'Authorization': 'Basic',
+    response = client.get('/auth-required-route', headers={
+        'Authorization': 'Bearer',
+    })
+    assert response.status_code == 401
+
+    response = client.get('/auth-required-route', headers={
+        'Authorization': 'Basic username',
     })
     assert response.status_code == 401
 
@@ -41,7 +46,7 @@ def test_jwt(app_class) -> None:
     assert response.status_code == 200
     assert response.json() == payload
 
-    encoded_jwt = jwt.encode(payload, 'wrong-secret')
+    encoded_jwt = jwt.encode(payload, 'wrong-secret').decode(encoding='UTF-8')
     response = client.get('/auth-required-route', headers={
         'Authorization': 'Bearer {token}'.format(token=encoded_jwt),
     })
