@@ -5,7 +5,8 @@ from werkzeug.http import HTTP_STATUS_CODES
 
 from apistar import commands, exceptions, http
 from apistar.components import (
-    commandline, console, dependency, router, schema, statics, templates, wsgi
+    authorization, commandline, console, dependency, router, schema, statics,
+    templates, wsgi
 )
 from apistar.core import Command, Component
 from apistar.frameworks.cli import CliApp
@@ -55,7 +56,8 @@ class WSGIApp(CliApp):
         Component(http.Body, init=wsgi.get_body),
         Component(http.Request, init=http.Request),
         Component(http.RequestData, init=wsgi.get_request_data),
-        Component(FileWrapper, init=wsgi.get_file_wrapper)
+        Component(FileWrapper, init=wsgi.get_file_wrapper),
+        Component(authorization.JWT, init=authorization.get_decoded_jwt),
     ]
 
     def __init__(self, **kwargs):
