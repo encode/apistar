@@ -298,7 +298,7 @@ def get_all_players(router: Router):
     player_list = [
         {
             'name': player.name,
-            'url': router.reverse_url('get_player_details', player_name=player.name)
+            'url': router.reverse_url('get_player_details', {'player_name': player.name})
         }
         for player in players
     ]
@@ -306,7 +306,7 @@ def get_all_players(router: Router):
 
 app = App(routes=[
     Route('/players/', 'GET', get_all_players),
-    Route('/players/{name}/', 'GET', get_player_details),
+    Route('/players/{player_name}/', 'GET', get_player_details),
 ])
 ```
 
