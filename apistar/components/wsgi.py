@@ -34,7 +34,7 @@ def get_port(environ: WSGIEnviron):
 
 
 def get_path(environ: WSGIEnviron):
-    return environ['PATH_INFO']
+    return environ['SCRIPT_NAME'] + environ['PATH_INFO']
 
 
 def get_querystring(environ: WSGIEnviron):
