@@ -99,7 +99,7 @@ class WSGIApp(CliApp):
             'exc': None
         }
         method = environ['REQUEST_METHOD'].upper()
-        path = environ['SCRIPT_NAME'] + environ['PATH_INFO']
+        path = environ['PATH_INFO']
         try:
             handler, kwargs = self.router.lookup(path, method)
             state['kwargs'] = kwargs
