@@ -2,6 +2,7 @@ import json
 import typing
 
 from werkzeug.http import HTTP_STATUS_CODES
+from werkzeug.datastructures import Headers
 
 from apistar import commands, exceptions, http
 from apistar.components import (
@@ -93,6 +94,14 @@ class WSGIApp(CliApp):
     def __call__(self,
                  environ: typing.Dict[str, typing.Any],
                  start_response: typing.Callable):
+        def add_cors_headers(status, headers, exc_info=None):
+            headers = Headers(headers)
+            headers.add('Access-Control-Allow-Origin', '*')
+            headers.add('Access-Control-Allow-Credentials', True)
+            headers.add('Access-Control-Allow-Headers', 'Access-Control-Allow-Origin')
+            headers.add('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS, POST, PUT')
+            return start_response(status, headers.to_list(), exc_info)
+        
         state = {
             'wsgi_environ': environ,
             'kwargs': None,
@@ -101,6 +110,9 @@ class WSGIApp(CliApp):
         method = environ['REQUEST_METHOD'].upper()
         path = environ['PATH_INFO']
         try:
+            if method == "OPTIONS":
+                add_cors_headers("200 Ok", [("Content-Type", "text/plain")])
+                return [b'200 Ok']
             handler, kwargs = self.router.lookup(path, method)
             state['kwargs'] = kwargs
             response = self.http_injector.run(handler, state=state)
@@ -118,7 +130,11 @@ class WSGIApp(CliApp):
             status_text = str(response.status)
 
         headers = list(response.headers.items())
-        headers.append(('content-type', response.content_type))
+        headers.append(('Access-Control-Allow-Origin', '*'))
+        headers.append(('Access-Control-Allow-Credentials', True))
+        headers.append(('Access-Control-Allow-Headers', 'Access-Control-Allow-Origin'))
+        headers.append(('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS, POST, PUT'))
+        headers.append(('Content-Type', response.content_type))
 
         if isinstance(response.content, (bytes, str)):
             content = [response.content]
