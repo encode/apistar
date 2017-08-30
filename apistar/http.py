@@ -90,7 +90,9 @@ class Headers(typing.Mapping[str, str]):
     An immutable, case-insensitive multidict.
     """
 
-    def __init__(self, value: StringPairs) -> None:
+    def __init__(self, value: StringPairs=None) -> None:
+        if value is None:
+            value = []
         if hasattr(value, 'items'):
             value = typing.cast(StringPairsMapping, value)
             items = [(k.lower(), v) for k, v in list(value.items())]
@@ -137,6 +139,64 @@ class Headers(typing.Mapping[str, str]):
         return 'Headers(%s)' % repr(self._list)
 
 
+class ResponseHeaders(Headers):
+    def __setitem__(self, key: str, value: str) -> None:
+        """
+        Add or update a header.
+        """
+        key_lower = key.lower()
+        if key_lower in self._dict:
+            # Drop any existing occurances from the list.
+            self._list = [
+                (item_key, item_value) for item_key, item_value in self._list
+                if item_key != key_lower
+            ]
+        self._dict[key_lower] = value
+        self._list.append((key_lower, value))
+
+    def append(self, key: str, value: str) -> None:
+        """
+        Add a header, preserving any existing occurances.
+        """
+        key_lower = key.lower()
+        if key_lower not in self._dict:
+            self._dict[key_lower] = value
+        self._list.append((key_lower, value))
+
+    def update(self, other: StringPairs) -> None:
+        if hasattr(other, 'items'):
+            other = typing.cast(StringPairsMapping, other)
+            for key, value in other.items():
+                self[key] = value
+        else:
+            other = typing.cast(StringPairsSequence, other)
+            for key, value in other:
+                self[key] = value
+
+
+class Session(object):
+    def __init__(self, session_id: str, data: typing.Dict[str, typing.Any]=None) -> None:
+        if data is not None:
+            self.data = data
+            self.is_new = False
+        else:
+            self.data = {}
+            self.is_new = True
+
+        self.is_modified = False
+        self.session_id = session_id
+
+    def __getitem__(self, key: str) -> typing.Any:
+        return self.data[key]
+
+    def get(self, key: str, default=None) -> typing.Any:
+        return self.data.get(key, default)
+
+    def __setitem__(self, key: str, value: typing.Any) -> None:
+        self.data[key] = value
+        self.modified = True
+
+
 class Request():
     def __init__(self,
                  method: Method,
@@ -156,13 +216,13 @@ class Request():
 
 class Response(collections.abc.Iterable):
     def __init__(self,
-                 content: typing.Any,
+                 content: typing.Any=b'',
                  status: int=200,
-                 headers: typing.Dict[str, str]=None,
+                 headers: StringPairs=None,
                  content_type: str=None) -> None:
         self.content = content
         self.status = status
-        self.headers = headers or {}
+        self.headers = ResponseHeaders(headers) or ResponseHeaders()
         self.content_type = content_type
 
     def __iter__(self) -> typing.Iterator:

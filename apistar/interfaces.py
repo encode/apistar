@@ -66,6 +66,23 @@ class StaticFiles(metaclass=abc.ABCMeta):
         raise NotImplementedError
 
 
+# Sessions
+
+
+class SessionStore(metaclass=abc.ABCMeta):
+    @abc.abstractmethod
+    def new(self) -> http.Session:
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def load(self, session_id: str) -> http.Session:
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def save(self, session: http.Session) -> typing.Dict[str, str]:
+        raise NotImplementedError
+
+
 # Command Line Parser
 
 

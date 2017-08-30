@@ -3,13 +3,14 @@ import typing
 
 from apistar import commands, exceptions, http
 from apistar.components import (
-    commandline, console, dependency, router, schema, statics, templates, umi
+    commandline, console, dependency, router, schema, sessions, statics,
+    templates, umi
 )
 from apistar.core import Command, Component
 from apistar.frameworks.cli import CliApp
 from apistar.interfaces import (
     CommandLineClient, Console, FileWrapper, Injector, Router, Schema,
-    StaticFiles, Templates
+    SessionStore, StaticFiles, Templates
 )
 from apistar.types import KeywordArgs, UMIChannels, UMIMessage
 
@@ -30,7 +31,8 @@ class ASyncIOApp(CliApp):
         Component(StaticFiles, init=statics.WhiteNoiseStaticFiles),
         Component(Router, init=router.WerkzeugRouter),
         Component(CommandLineClient, init=commandline.ArgParseCommandLineClient),
-        Component(Console, init=console.PrintConsole)
+        Component(Console, init=console.PrintConsole),
+        Component(SessionStore, init=sessions.LocalMemorySessionStore),
     ]
 
     HTTP_COMPONENTS = [
@@ -48,7 +50,8 @@ class ASyncIOApp(CliApp):
         Component(http.Body, init=umi.get_body),
         Component(http.Request, init=http.Request),
         Component(http.RequestData, init=umi.get_request_data),
-        Component(FileWrapper, init=umi.get_file_wrapper)
+        Component(FileWrapper, init=umi.get_file_wrapper),
+        Component(http.Session, init=sessions.get_session),
     ]
 
     def __init__(self, **kwargs):
@@ -75,7 +78,8 @@ class ASyncIOApp(CliApp):
                 UMIMessage: 'message',
                 UMIChannels: 'channels',
                 KeywordArgs: 'kwargs',
-                Exception: 'exc'
+                Exception: 'exc',
+                http.ResponseHeaders: 'response_headers'
             },
             resolvers=[dependency.HTTPResolver()]
         )
@@ -83,11 +87,13 @@ class ASyncIOApp(CliApp):
     async def __call__(self,
                        message: typing.Dict[str, typing.Any],
                        channels: typing.Dict[str, typing.Any]):
+        headers = http.ResponseHeaders()
         state = {
             'message': message,
             'channels': channels,
             'kwargs': None,
-            'exc': None
+            'exc': None,
+            'response_headers': headers
         }
         method = message['method'].upper()
         path = message['path']
@@ -102,13 +108,14 @@ class ASyncIOApp(CliApp):
         if getattr(response, 'content_type', None) is None:
             response = self.finalize_response(response)
 
+        headers.update(response.headers)
+        headers['content-type'] = response.content_type
+
         response_message = {
             'status': response.status,
             'headers': [
                 [key.encode(), value.encode()]
-                for key, value in response.headers.items()
-            ] + [
-                [b'content-type', response.content_type.encode()]
+                for key, value in headers
             ],
             'content': response.content
         }
