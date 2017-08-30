@@ -7,17 +7,18 @@ from apistar.frameworks.wsgi import WSGIApp
 
 def homepage(session: http.Session):
     return {
-        'user': session.get('user')
+        'username': session.get('username')
     }
 
 
 def login(username: str, session: http.Session):
-    session['user'] = username
+    session['username'] = username
     return Response(status=302, headers={'location': '/'})
 
 
 def logout(session: http.Session):
-    session['user'] = None
+    if 'username' in session:
+        del session['username']
     return Response(status=302, headers={'location': '/'})
 
 
@@ -36,16 +37,16 @@ def test_session(app):
     client = TestClient(app)
 
     response = client.get('/')
-    assert response.json() == {'user': None}
+    assert response.json() == {'username': None}
 
     response = client.post('/login?username=tom')
-    assert response.json() == {'user': 'tom'}
+    assert response.json() == {'username': 'tom'}
 
     response = client.get('/')
-    assert response.json() == {'user': 'tom'}
+    assert response.json() == {'username': 'tom'}
 
     response = client.post('/logout')
-    assert response.json() == {'user': None}
+    assert response.json() == {'username': None}
 
     response = client.get('/')
-    assert response.json() == {'user': None}
+    assert response.json() == {'username': None}

@@ -43,6 +43,7 @@ be in sync with your codebase.
 - [Building Websites](#building-websites)
     - [Templates](#templates)
     - [Static Files](#static-files)
+    - [HTTP Sessions](#http-sessions)
 - [Settings & Environment](#settings--environment)
     - [Application settings](#application-settings)
     - [Environment](#environment)
@@ -584,6 +585,49 @@ settings = {
 
 app = App(routes=routes, settings=settings)
 ```
+
+## HTTP Sessions
+
+API Star supports persistent HTTP sessions. You can access the session
+as a dictionary-like object. The session is made available by including
+the `http.Session` class as an annotation on a handler. For example:
+
+    from apistar import Response, http
+
+    def login(username: str, password: str, session: http.Session):
+        if authenticate(username, password):
+            session['username'] = username
+            return Response(status=302, headers={'location': '/'})
+        else:
+            ...
+
+    def logout(session: http.Session):
+        if 'username' in session:
+            del session['username']
+        return Response(status=302, headers={'location': '/'})
+
+    def homepage(session: http.Session):
+        username = session.get('username')
+        ...
+
+The default implementation stores the session information in local memory,
+which isn't suitable for anything other than development and testing. For
+production you'll need to implement a session store that integrates with
+some kind of persistent storage.
+
+    from apistar import Component
+    from apistar.interfaces import SessionStore
+    from myproject import RedisSessionStore  # A SessionStore implementation.
+
+    routes = [
+        ...
+    ]
+
+    components = [
+        Component(SessionStore, init=RedisSessionStore)
+    ]
+
+    app = App(routes=routes, components=components)
 
 ---
 

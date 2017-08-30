@@ -189,11 +189,18 @@ class Session(object):
     def __getitem__(self, key: str) -> typing.Any:
         return self.data[key]
 
+    def __contains__(self, key: str) -> bool:
+        return key in self.data
+
     def get(self, key: str, default=None) -> typing.Any:
         return self.data.get(key, default)
 
     def __setitem__(self, key: str, value: typing.Any) -> None:
         self.data[key] = value
+        self.modified = True
+
+    def __delitem__(self, key: str):
+        del self.data[key]
         self.modified = True
 
 
