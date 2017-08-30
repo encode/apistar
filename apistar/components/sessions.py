@@ -1,6 +1,7 @@
 import contextlib
 import hashlib
 import os
+import random
 import time
 import typing
 
@@ -9,18 +10,15 @@ from werkzeug.http import dump_cookie, parse_cookie
 from apistar import http
 from apistar.interfaces import SessionStore
 
-# TODO: salt from SECRET_KEY.
-# TODO: Environment to become a component.
-# TODO: 'session_id' as configuration.
-# TODO: Metadata, expiry etc...
-
 
 local_memory_sessions = {}  # type: typing.Dict[str, typing.Dict[str, typing.Any]]
 
 
 class LocalMemorySessionStore(SessionStore):
+    cookie_name = 'session_id'
+
     def new(self) -> http.Session:
-        session_id = self.generate_key(salt=b'abc')
+        session_id = self.generate_key()
         return http.Session(session_id=session_id)
 
     def load(self, session_id: str) -> http.Session:
@@ -33,17 +31,17 @@ class LocalMemorySessionStore(SessionStore):
     def save(self, session: http.Session) -> typing.Dict[str, str]:
         headers = {}
         if session.is_new:
-            cookie = dump_cookie('session_id', session.session_id)
+            cookie = dump_cookie(self.cookie_name, session.session_id)
             headers['set-cookie'] = cookie
-        local_memory_sessions[session.session_id] = session.data
+        if session.is_modified:
+            local_memory_sessions[session.session_id] = session.data
         return headers
 
-    def generate_key(self, salt: bytes) -> str:
-        return hashlib.sha1(b''.join([
-            salt,
-            str(time.time()).encode('ascii'),
-            os.urandom(30)
-        ])).hexdigest()
+    def generate_key(self) -> str:
+        length = 30
+        allowed_chars = 'abcdefghijklmnopqrstuvwxyz0123456789'
+        random = random.SystemRandom()
+        return ''.join(random.choice(allowed_chars) for i in range(length))
 
 
 @contextlib.contextmanager
