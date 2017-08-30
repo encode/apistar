@@ -5,13 +5,14 @@ from werkzeug.http import HTTP_STATUS_CODES
 
 from apistar import commands, exceptions, http
 from apistar.components import (
-    commandline, console, dependency, router, schema, statics, templates, wsgi
+    commandline, console, dependency, router, schema, sessions, statics,
+    templates, wsgi
 )
 from apistar.core import Command, Component
 from apistar.frameworks.cli import CliApp
 from apistar.interfaces import (
     CommandLineClient, Console, FileWrapper, Injector, Router, Schema,
-    StaticFiles, Templates
+    SessionStore, StaticFiles, Templates
 )
 from apistar.types import KeywordArgs, WSGIEnviron
 
@@ -37,7 +38,8 @@ class WSGIApp(CliApp):
         Component(StaticFiles, init=statics.WhiteNoiseStaticFiles),
         Component(Router, init=router.WerkzeugRouter),
         Component(CommandLineClient, init=commandline.ArgParseCommandLineClient),
-        Component(Console, init=console.PrintConsole)
+        Component(Console, init=console.PrintConsole),
+        Component(SessionStore, init=sessions.LocalMemorySessionStore),
     ]
 
     HTTP_COMPONENTS = [
@@ -55,7 +57,8 @@ class WSGIApp(CliApp):
         Component(http.Body, init=wsgi.get_body),
         Component(http.Request, init=http.Request),
         Component(http.RequestData, init=wsgi.get_request_data),
-        Component(FileWrapper, init=wsgi.get_file_wrapper)
+        Component(FileWrapper, init=wsgi.get_file_wrapper),
+        Component(http.Session, init=sessions.get_session),
     ]
 
     def __init__(self, **kwargs):
@@ -85,7 +88,8 @@ class WSGIApp(CliApp):
             required_state={
                 WSGIEnviron: 'wsgi_environ',
                 KeywordArgs: 'kwargs',
-                Exception: 'exc'
+                Exception: 'exc',
+                http.ResponseHeaders: 'response_headers'
             },
             resolvers=[dependency.HTTPResolver()]
         )
@@ -93,10 +97,12 @@ class WSGIApp(CliApp):
     def __call__(self,
                  environ: typing.Dict[str, typing.Any],
                  start_response: typing.Callable):
+        headers = http.ResponseHeaders()
         state = {
             'wsgi_environ': environ,
             'kwargs': None,
-            'exc': None
+            'exc': None,
+            'response_headers': headers
         }
         method = environ['REQUEST_METHOD'].upper()
         path = environ['PATH_INFO']
@@ -117,8 +123,8 @@ class WSGIApp(CliApp):
         except KeyError:
             status_text = str(response.status)
 
-        headers = list(response.headers.items())
-        headers.append(('content-type', response.content_type))
+        headers.update(response.headers)
+        headers['content-type'] = response.content_type
 
         if isinstance(response.content, (bytes, str)):
             content = [response.content]
@@ -126,7 +132,7 @@ class WSGIApp(CliApp):
             content = response.content
 
         # Return the WSGI response.
-        start_response(status_text, headers)
+        start_response(status_text, list(headers))
         return content
 
     def exception_handler(self, exc: Exception) -> http.Response:

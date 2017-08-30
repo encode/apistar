@@ -28,6 +28,27 @@ def _coerce_to_bytes(item: typing.Union[str, bytes]):
     return item
 
 
+class _HeaderDict(requests.packages.urllib3._collections.HTTPHeaderDict):
+    def get_all(self, key, default):
+        return self.getheaders(key)
+
+
+class _MockOriginalResponse(object):
+    """
+    We have to jump through some hoops to present the response as if
+    it was made using urllib3.
+    """
+    def __init__(self, headers):
+        self.msg = _HeaderDict(headers)
+        self.closed = False
+
+    def isclosed(self):
+        return self.closed
+
+    def close(self):
+        self.closed = True
+
+
 class _WSGIAdapter(requests.adapters.HTTPAdapter):
     """
     A transport adapter for `requests` that makes requests directly to a
@@ -85,7 +106,7 @@ class _WSGIAdapter(requests.adapters.HTTPAdapter):
             raw_kwargs['headers'] = wsgi_headers
             raw_kwargs['version'] = 11
             raw_kwargs['preload_content'] = False
-            raw_kwargs['original_response'] = None
+            raw_kwargs['original_response'] = _MockOriginalResponse(wsgi_headers)
 
         # Make the outgoing request via WSGI.
         environ = self.get_environ(request)
@@ -181,13 +202,18 @@ class _UMIAdapter(requests.adapters.HTTPAdapter):
         assert status is not None
         assert headers is not None
 
+        string_headers = [
+            (key.decode(), value.decode())
+            for key, value in headers
+        ]
+
         raw_kwargs = {
             'status': status,
             'reason': _get_reason_phrase(status),
-            'headers': [(key.decode(), value.decode()) for key, value in headers],
+            'headers': string_headers,
             'version': 11,
             'preload_content': False,
-            'original_response': None,
+            'original_response': _MockOriginalResponse(string_headers),
             'body': io.BytesIO(body)
         }
 
