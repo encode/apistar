@@ -197,11 +197,11 @@ class Session(object):
 
     def __setitem__(self, key: str, value: typing.Any) -> None:
         self.data[key] = value
-        self.modified = True
+        self.is_modified = True
 
     def __delitem__(self, key: str):
         del self.data[key]
-        self.modified = True
+        self.is_modified = True
 
 
 class Request():
