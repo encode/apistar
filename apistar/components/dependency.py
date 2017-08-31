@@ -131,7 +131,7 @@ class DependencyInjector(Injector):
         if annotation in self.components:
             # If the type annotation is one of our components, then
             # use the function that is installed for creating that component.
-            key = annotation.__name__.lower()
+            key = '%s:%d' % (annotation.__name__.lower(), id(annotation))
             func = self.components[annotation]
 
             params = inspect.signature(func).parameters.values()
