@@ -11,7 +11,6 @@ from apistar.core import flatten_routes
 from apistar.interfaces import Router, Schema
 from apistar.types import RouteConfig
 
-
 SCHEMA_SCALAR_TYPES = (
     typesystem.String, typesystem.Integer, typesystem.Number,
     typesystem.Boolean, typesystem.Enum
@@ -106,6 +105,8 @@ def get_field(param: inspect.Parameter,
             required=False,
             schema=get_param_schema(field_type)
         )
+
+    return None
 
 
 def get_param_schema(annotated_type: typing.Type) -> coreschema.schemas.Schema:
