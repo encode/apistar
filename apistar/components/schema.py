@@ -119,13 +119,17 @@ def get_fields(param: inspect.Parameter,
 
 
 def get_param_schema(annotated_type: typing.Type) -> coreschema.schemas.Schema:
+    schema_kwargs = {
+        'description': getattr(annotated_type, 'description', '')
+    }
+
     if issubclass(annotated_type, (bool, typesystem.Boolean)):
-        return coreschema.Boolean()
+        return coreschema.Boolean(**schema_kwargs)
     elif issubclass(annotated_type, int):
-        return coreschema.Integer()
+        return coreschema.Integer(**schema_kwargs)
     elif issubclass(annotated_type, float):
-        return coreschema.Number()
+        return coreschema.Number(**schema_kwargs)
     elif issubclass(annotated_type, typesystem.Enum):
         enum = typing.cast(typing.Type[typesystem.Enum], annotated_type)
-        return coreschema.Enum(enum=enum.enum)
-    return coreschema.String()
+        return coreschema.Enum(enum=enum.enum, **schema_kwargs)
+    return coreschema.String(**schema_kwargs)
