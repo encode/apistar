@@ -11,14 +11,30 @@ from apistar.core import flatten_routes
 from apistar.interfaces import Router, Schema
 from apistar.types import RouteConfig
 
-PRIMITIVE_TYPES = (
-    str, int, float, bool, list, dict
+
+SCHEMA_SCALAR_TYPES = (
+    typesystem.String, typesystem.Integer, typesystem.Number,
+    typesystem.Boolean, typesystem.Enum
 )
 
-SCHEMA_TYPES = (
-    typesystem.String, typesystem.Integer, typesystem.Number, typesystem.Boolean,
-    typesystem.Enum, typesystem.Object, typesystem.Array
+SCHEMA_CONTAINER_TYPES = (
+    typesystem.Object, typesystem.Array
 )
+
+PRIMITIVE_TYPES_TO_SCHEMA_TYPES = {
+    dict: typesystem.Object,
+    list: typesystem.Array,
+    int: typesystem.Integer,
+    float: typesystem.Number,
+    str: typesystem.String,
+    bool: typesystem.Boolean
+}
+
+
+def annotation_to_type(annotation):
+    if annotation is inspect.Signature.empty:
+        return typesystem.String
+    return PRIMITIVE_TYPES_TO_SCHEMA_TYPES.get(annotation, annotation)
 
 
 class CoreAPISchema(Schema):
@@ -62,12 +78,9 @@ def get_link(route: Route) -> coreapi.Link:
 def get_field(param: inspect.Parameter,
               method: str,
               path_names: typing.Set[str]) -> typing.Optional[coreapi.Field]:
-    if param.annotation is inspect.Signature.empty:
-        annotated_type = str
-    else:
-        annotated_type = param.annotation
+    field_type = annotation_to_type(param.annotation)
 
-    if not inspect.isclass(annotated_type):
+    if not inspect.isclass(field_type):
         return None  # Ignore type annotations
 
     if param.name in path_names:
@@ -75,23 +88,24 @@ def get_field(param: inspect.Parameter,
             name=param.name,
             location='path',
             required=True,
-            schema=get_param_schema(annotated_type)
+            schema=get_param_schema(field_type)
         )
 
-    if issubclass(annotated_type, (dict, list)):
+    elif issubclass(field_type, SCHEMA_CONTAINER_TYPES):
         return coreapi.Field(
             name=param.name,
             location='body',
             required=True,
-            schema=get_param_schema(annotated_type)
+            schema=get_param_schema(field_type)
         )
 
-    return coreapi.Field(
-        name=param.name,
-        location='query',
-        required=False,
-        schema=get_param_schema(annotated_type)
-    )
+    elif issubclass(field_type, SCHEMA_SCALAR_TYPES):
+        return coreapi.Field(
+            name=param.name,
+            location='query',
+            required=False,
+            schema=get_param_schema(field_type)
+        )
 
 
 def get_param_schema(annotated_type: typing.Type) -> coreschema.schemas.Schema:
