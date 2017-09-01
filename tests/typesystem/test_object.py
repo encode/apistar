@@ -61,6 +61,26 @@ def test_valid_object():
     }
 
 
+def test_valid_object_with_form_data():
+    response = client.post('/basic_object/', data={
+        'name': 'tom',
+        'score': '87',
+        'difficulty': 'easy',
+        'completed': 'True'
+    })
+    assert response.status_code == 200
+    assert response.json() == {
+        'name': 'tom',
+        'score': 87,
+        'difficulty': 'easy',
+        'completed': True,
+        'location': {
+            'latitude': 0.0,
+            'longitude': 0.0
+        }
+    }
+
+
 def test_invalid_object():
     response = client.post('/basic_object/', json={
         'score': 105,

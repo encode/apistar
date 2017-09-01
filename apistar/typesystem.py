@@ -149,13 +149,16 @@ class Object(dict):
     properties = {}  # type: typing.Dict[str, typing.Any]
 
     def __init__(self, *args, **kwargs):
-        try:
-            value = dict(*args, **kwargs)
-        except TypeError:
-            if len(args) == 1 and not kwargs and hasattr(args[0], '__dict__'):
-                value = dict(args[0].__dict__)
-            else:
-                raise TypeSystemError(cls=self.__class__, code='type') from None
+        if len(args) == 1 and not kwargs and isinstance(args[0], dict):
+            value = args[0]
+        else:
+            try:
+                value = dict(*args, **kwargs)
+            except TypeError:
+                if len(args) == 1 and not kwargs and hasattr(args[0], '__dict__'):
+                    value = dict(args[0].__dict__)
+                else:
+                    raise TypeSystemError(cls=self.__class__, code='type') from None
 
         # Ensure all property keys are strings.
         errors = {}
