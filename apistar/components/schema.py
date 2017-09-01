@@ -62,9 +62,7 @@ def get_link(route: Route) -> coreapi.Link:
     fields = []
     path_names = set(uritemplate.URITemplate(path).variable_names)
     for param in inspect.signature(view).parameters.values():
-        field = get_field(param, method, path_names)
-        if field is not None:
-            fields.append(field)
+        fields += get_fields(param, method, path_names)
 
     if view.__doc__:
         description = textwrap.dedent(view.__doc__).strip()
@@ -74,39 +72,50 @@ def get_link(route: Route) -> coreapi.Link:
     return coreapi.Link(url=path, action=method, description=description, fields=fields)
 
 
-def get_field(param: inspect.Parameter,
-              method: str,
-              path_names: typing.Set[str]) -> typing.Optional[coreapi.Field]:
+def get_fields(param: inspect.Parameter,
+               method: str,
+               path_names: typing.Set[str]) -> typing.Optional[coreapi.Field]:
     field_type = annotation_to_type(param.annotation)
 
     if not inspect.isclass(field_type):
-        return None  # Ignore type annotations
+        return []  # Ignore type annotations
 
     if param.name in path_names:
-        return coreapi.Field(
+        return [coreapi.Field(
             name=param.name,
             location='path',
             required=True,
             schema=get_param_schema(field_type)
-        )
+        )]
 
-    elif issubclass(field_type, SCHEMA_CONTAINER_TYPES):
-        return coreapi.Field(
+    elif issubclass(field_type, typesystem.Object):
+        return [
+            coreapi.Field(
+                name=name,
+                location='form',
+                required=False,
+                schema=get_param_schema(value)
+            )
+            for name, value in field_type.properties.items()
+        ]
+
+    elif issubclass(field_type, typesystem.Array):
+        return [coreapi.Field(
             name=param.name,
             location='body',
             required=True,
             schema=get_param_schema(field_type)
-        )
+        )]
 
     elif issubclass(field_type, SCHEMA_SCALAR_TYPES):
-        return coreapi.Field(
+        return [coreapi.Field(
             name=param.name,
             location='query',
             required=False,
             schema=get_param_schema(field_type)
-        )
+        )]
 
-    return None
+    return []
 
 
 def get_param_schema(annotated_type: typing.Type) -> coreschema.schemas.Schema:

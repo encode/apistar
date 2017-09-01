@@ -83,7 +83,13 @@ expected = Schema(url='/schema/', content={
         url='/todo/',
         action='POST',
         description='add_todo description\nMultiple indented lines',
-        fields=[Field(name='note', location='body', required=True, schema=coreschema.String())]
+        fields=[
+            Field(name='id', required=False, location='form', schema=coreschema.Integer()),
+            Field(name='text', required=False, location='form', schema=coreschema.String()),
+            Field(name='complete', required=False, location='form', schema=coreschema.Boolean()),
+            Field(name='percent_complete', required=False, location='form', schema=coreschema.Number()),
+            Field(name='category', required=False, location='form', schema=coreschema.Enum(enum=['shop', 'chore']))
+        ]
     ),
     'show_todo': Link(
         url='/todo/{ident}/',
