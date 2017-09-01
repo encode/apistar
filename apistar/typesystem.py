@@ -49,8 +49,6 @@ class Optional:
     Wraps another type to indicate that it may be None or omitted from
     an object.
     """
-    wrapped_type: typing.Any
-
     def __init__(self, wrapped_type: typing.Any) -> None:
         self.wrapped_type = wrapped_type
 
