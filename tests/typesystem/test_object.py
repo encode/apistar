@@ -25,6 +25,13 @@ class HighScore(typesystem.Object):
     }
 
 
+class ObjectWithOptionalValues(typesystem.Object):
+    properties = {
+        'name': typesystem.string(),
+        'some_optional_number': typesystem.Optional(typesystem.number())
+    }
+
+
 def basic_object(score: HighScore):
     return score
 
@@ -97,6 +104,23 @@ class test_object_default():
         'completed': True
     })
     assert value['location'] == {'latitude': 0.0, 'longitude': 0.0}
+
+
+class test_optional_keys():
+    value = ObjectWithOptionalValues({
+        'name': 'steve'
+    })
+    assert value['name'] == 'steve'
+
+
+class test_optional_keys_are_still_validated():
+    with pytest.raises(exceptions.TypeSystemError) as exc:
+        value = ObjectWithOptionalValues({
+            'name': 'steve',
+            'some_optional_number': 'hello'
+        })
+    assert str(exc.value) \
+        == '{\'some_optional_number\': \'Must be a valid number.\'}'
 
 
 class test_raw_instance():

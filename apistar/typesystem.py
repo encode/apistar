@@ -44,6 +44,17 @@ class String(str):
         return value
 
 
+class Optional:
+    """
+    Wraps another type to indicate that it may be None or omitted from
+    an object.
+    """
+    wrapped_type: typing.Any
+
+    def __init__(self, wrapped_type: typing.Any) -> None:
+        self.wrapped_type = wrapped_type
+
+
 class _NumericType(object):
     """
     Base class for both `Number` and `Integer`.
@@ -171,10 +182,13 @@ class Object(dict):
                     # If a key is missing but has a default, then use that.
                     self[key] = child_schema.default
                 else:
-                    exc = TypeSystemError(cls=self.__class__, code='required')
-                    errors[key] = exc.detail
+                    if not isinstance(child_schema, Optional):
+                        exc = TypeSystemError(cls=self.__class__, code='required')
+                        errors[key] = exc.detail
             else:
                 # Coerce value into the given schema type if needed.
+                if isinstance(child_schema, Optional):
+                    child_schema = child_schema.wrapped_type
                 if isinstance(item, child_schema):
                     self[key] = item
                 else:
