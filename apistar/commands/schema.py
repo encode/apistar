@@ -1,5 +1,6 @@
 from coreapi.utils import get_installed_codecs
 
+from apistar import exceptions
 from apistar.interfaces import Schema
 
 codecs = {
@@ -19,7 +20,12 @@ def schema(schema: Schema,
     Returns:
       The API schema.
     """
-    codec = codecs[format]
+    try:
+        codec = codecs[format]
+    except KeyError:
+        message = 'Unsupported format: %s\nSupported formats are: %s' % (
+                format, ', '.join(codecs.keys()))
+        raise exceptions.CommandLineError(message)
     output = codec.encode(schema)
     if isinstance(output, bytes):
         output = output.decode('utf_8')
