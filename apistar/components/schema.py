@@ -59,7 +59,7 @@ def get_link(route: Route) -> coreapi.Link:
     """
     path, method, view, name = route
 
-    fields = []
+    fields = []  # type: typing.List[coreapi.Field]
     path_names = set(uritemplate.URITemplate(path).variable_names)
     for param in inspect.signature(view).parameters.values():
         fields += get_fields(param, method, path_names)
