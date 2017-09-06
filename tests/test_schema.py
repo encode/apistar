@@ -131,7 +131,7 @@ def test_serve_schema():
     for name, link in expected.links.items():
         assert name in document
         assert link.action == document[name].action
-        assert link.fields == document[name].fields
+        assert sorted(link.fields) == sorted(document[name].fields)
 
 
 def test_javascript_schema():
