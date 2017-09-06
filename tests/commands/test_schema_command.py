@@ -17,6 +17,6 @@ app = App(routes=routes)
 def test_schema():
     ret = app.main(['schema'], standalone_mode=False)
     assert ret == (
-        b'{"_type":"document","_meta":{"url":"/schema/"},'
-        b'"hello_world":{"_type":"link","url":"/","action":"GET"}}'
+        '{"_type":"document","_meta":{"url":"/schema/"},'
+        '"hello_world":{"_type":"link","url":"/","action":"GET"}}'
     )
