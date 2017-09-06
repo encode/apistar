@@ -269,8 +269,8 @@ app = App(routes=[
 ```
 
 Parameters which do not correspond to a URL path parameter will be treated as
-query parameters for `GET` and `DELETE` requests, or part of the request body
-for `POST`, `PUT`, and `PATCH` requests.
+query parameters for scalar types such as `int` or `str`, or part of the
+request body for composite types of `dict` and `list`.
 
 ```python
 def echo_username(username):
