@@ -68,11 +68,17 @@ routes = [
     Route('/static/{path}', 'GET', serve_static)
 ]
 
-app = App(routes=routes)
+settings = {
+    'SCHEMA': {
+        'TITLE': 'My API'
+    }
+}
+
+app = App(routes=routes, settings=settings)
 
 client = TestClient(app)
 
-expected = Schema(url='/schema/', content={
+expected = Schema(title='My API', url='/schema/', content={
     'list_todo': Link(
         url='/todo/',
         action='GET',
@@ -128,6 +134,7 @@ def test_serve_schema():
     codec = CoreJSONCodec()
     document = codec.decode(response.content)
     assert document.url == '/schema/'
+    assert document.title == expected.title
     for name, link in expected.links.items():
         assert name in document
         assert link.action == document[name].action

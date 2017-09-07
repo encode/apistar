@@ -6,7 +6,7 @@ import coreapi
 import coreschema
 import uritemplate
 
-from apistar import Route, exceptions, typesystem
+from apistar import Route, Settings, exceptions, typesystem
 from apistar.core import flatten_routes
 from apistar.interfaces import Router, Schema
 from apistar.types import RouteConfig
@@ -37,7 +37,7 @@ def annotation_to_type(annotation):
 
 
 class CoreAPISchema(Schema):
-    def __init__(self, router: Router, routes: RouteConfig) -> None:
+    def __init__(self, router: Router, routes: RouteConfig, settings: Settings) -> None:
         try:
             url = router.reverse_url('serve_schema')
         except exceptions.NoReverseMatch:
@@ -49,7 +49,12 @@ class CoreAPISchema(Schema):
                 continue
             content[route.name] = get_link(route)
 
-        super().__init__(url=url, content=content)
+        schema_settings = settings.get('SCHEMA', {})
+        title = schema_settings.get('TITLE', '')
+        description = schema_settings.get('DESCRIPTION', '')
+        url = schema_settings.get('URL', url)
+
+        super().__init__(title=title, description=description, url=url, content=content)
 
 
 def get_link(route: Route) -> coreapi.Link:
