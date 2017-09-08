@@ -66,53 +66,55 @@ be in sync with your codebase.
 # Quickstart
 
 Install API Star:
-
-    $ pip3 install apistar
-
+```bash
+$ pip3 install apistar
+```
 Create a new project:
-
-    $ apistar new .
-    app.py
-    tests.py
-    $ cat app.py
-    from apistar import Include, Route
-    from apistar.frameworks.wsgi import WSGIApp as App
-    from apistar.handlers import docs_urls, static_urls
-
-
-    def welcome(name=None):
-        if name is None:
-            return {'message': 'Welcome to API Star!'}
-        return {'message': 'Welcome to API Star, %s!' % name}
+```bash
+$ apistar new .
+app.py
+tests.py
+$ cat app.py
+```
+```python
+from apistar import Include, Route
+from apistar.frameworks.wsgi import WSGIApp as App
+from apistar.handlers import docs_urls, static_urls
 
 
-    routes = [
-        Route('/', 'GET', welcome),
-        Include('/docs', docs_urls),
-        Include('/static', static_urls)
-    ]
-
-    app = App(routes=routes)
+def welcome(name=None):
+    if name is None:
+        return {'message': 'Welcome to API Star!'}
+    return {'message': 'Welcome to API Star, %s!' % name}
 
 
-    if __name__ == '__main__':
-        app.main()
+routes = [
+    Route('/', 'GET', welcome),
+    Include('/docs', docs_urls),
+    Include('/static', static_urls)
+]
 
+app = App(routes=routes)
+
+
+if __name__ == '__main__':
+    app.main()
+```
 Run the application:
-
-    $ apistar run
-    Running at http://localhost:8080/
-
+```bash
+$ apistar run
+Running at http://localhost:8080/
+```
 Run the tests:
-
-    $ apistar test
-    tests.py ..
-    ===== 2 passed in 0.05 seconds =====
-
+```bash
+$ apistar test
+tests.py ..
+===== 2 passed in 0.05 seconds =====
+```
 View the interactive API documentation:
-
-    $ open http://localhost:8080/docs/
-
+```bash
+$ open http://localhost:8080/docs/
+```
 ![screenshot](docs/img/apistar.png)
 
 ## Choosing a framework
@@ -126,14 +128,14 @@ ecosystem support. The SQLAlchemy and Django ORM backends are available,
 and you can use a large range of existing Python libraries.
 
 To start a new `wsgi` project use:
-
-    $ pip install apistar
-    $ apistar new .
-
+```bash
+$ pip install apistar
+$ apistar new .
+```
 The application import line in the code will look like this:
-
-    from apistar.frameworks.wsgi import WSGIApp as App
-
+```python
+from apistar.frameworks.wsgi import WSGIApp as App
+```
 ### ASyncIO
 
 The benefit of an asyncio application is the potential for higher throughput,
@@ -143,24 +145,24 @@ for any blocking operations, such as calls to the database, reading from disk, o
 making a network request.
 
 To start a new `asyncio` project use:
-
-    $ pip install apistar[asyncio]
-    $ apistar new . --framework asyncio
-
+```bash
+$ pip install apistar[asyncio]
+$ apistar new . --framework asyncio
+```
 The application import line in the code will look like this:
-
-    from apistar.frameworks.asyncio import ASyncIOApp as App
-
+```python
+from apistar.frameworks.asyncio import ASyncIOApp as App
+```
 You may now include either regular or async handler functions...
+```python
+def welcome(name=None):
+    # A regular handler function that contains no asynchronous operations.
+    ...
 
-    def welcome(name=None):
-        # A regular handler function that contains no asynchronous operations.
-        ...
-
-    async def welcome(name=None):
-        # An async handler, that may use `async/await` syntax for performing asynchronous operations.
-        ...
-
+async def welcome(name=None):
+    # An async handler, that may use `async/await` syntax for performing asynchronous operations.
+    ...
+```
 ---
 
 # HTTP
@@ -472,7 +474,7 @@ See [#69](https://github.com/tomchristie/apistar/issues/69) for more details on 
 
 The default output format is the built-in CoreJSON support:
 
-```shell
+```bash
 $ apistar schema
 {"_type":"document", ...}
 ```
@@ -481,7 +483,7 @@ The OpenAPI (Swagger) and RAML codecs are optional, and require installation of 
 
 #### Swagger
 
-```shell
+```bash
 $ pip install openapi-codec
 $ apistar schema --format openapi
 {"swagger": "2.0", "info": ...}
@@ -489,7 +491,7 @@ $ apistar schema --format openapi
 
 #### RAML
 
-```shell
+```bash
 $ pip install raml-codec
 $ apistar schema --format raml
 #%RAML 0.8
@@ -555,7 +557,7 @@ For serving static files, API Star uses [whitenoise](http://whitenoise.evans.io/
 
 First make sure to install the `whitenoise` package.
 
-```
+```bash
 $ pip install whitenoise
 ```
 
@@ -591,44 +593,44 @@ app = App(routes=routes, settings=settings)
 API Star supports persistent HTTP sessions. You can access the session
 as a dictionary-like object. The session is made available by including
 the `http.Session` class as an annotation on a handler. For example:
+```python
+from apistar import Response, http
 
-    from apistar import Response, http
-
-    def login(username: str, password: str, session: http.Session):
-        if authenticate(username, password):
-            session['username'] = username
-            return Response(status=302, headers={'location': '/'})
-        else:
-            ...
-
-    def logout(session: http.Session):
-        if 'username' in session:
-            del session['username']
+def login(username: str, password: str, session: http.Session):
+    if authenticate(username, password):
+        session['username'] = username
         return Response(status=302, headers={'location': '/'})
-
-    def homepage(session: http.Session):
-        username = session.get('username')
+    else:
         ...
 
+def logout(session: http.Session):
+    if 'username' in session:
+        del session['username']
+    return Response(status=302, headers={'location': '/'})
+
+def homepage(session: http.Session):
+    username = session.get('username')
+    ...
+```
 The default implementation stores the session information in local memory,
 which isn't suitable for anything other than development and testing. For
 production you'll need to implement a session store that integrates with
 some kind of persistent storage.
+```python
+from apistar import Component
+from apistar.interfaces import SessionStore
+from myproject import RedisSessionStore  # A SessionStore implementation.
 
-    from apistar import Component
-    from apistar.interfaces import SessionStore
-    from myproject import RedisSessionStore  # A SessionStore implementation.
+routes = [
+    ...
+]
 
-    routes = [
-        ...
-    ]
+components = [
+    Component(SessionStore, init=RedisSessionStore)
+]
 
-    components = [
-        Component(SessionStore, init=RedisSessionStore)
-    ]
-
-    app = App(routes=routes, components=components)
-
+app = App(routes=routes, components=components)
+```
 ---
 
 # Settings & Environment
@@ -1054,33 +1056,33 @@ both performance and for productivity.
 ## The Development Server
 
 A development server is available, using the `run` command:
-
-    $ apistar run
-    # Specify the port or interface via --port and --host
-    # Serve on port 9001 and use IPv6 only
-    $ apistar run --port 9001 --host ::1
-    # If you don't like the Werkzeug web debugger, turn it off
-    $ apistar run --no-debugger
-
+```bash
+$ apistar run
+# Specify the port or interface via --port and --host
+# Serve on port 9001 and use IPv6 only
+$ apistar run --port 9001 --host ::1
+# If you don't like the Werkzeug web debugger, turn it off
+$ apistar run --no-debugger
+```
 ## Running in Production
 
 ### Running a WSGIApp project
 
 For WSGI applications, the recommended production deployment is Gunicorn,
 using the Meinheld worker.
-
-    $ pip install gunicorn
-    $ pip install meinheld
-    $ gunicorn app:app --workers=4 --bind=0.0.0.0:5000 --pid=pid --worker-class=meinheld.gmeinheld.MeinheldWorker
-
+```bash
+$ pip install gunicorn
+$ pip install meinheld
+$ gunicorn app:app --workers=4 --bind=0.0.0.0:5000 --pid=pid --worker-class=meinheld.gmeinheld.MeinheldWorker
+```
 Typically you'll want to run as many workers as you have CPU cores on the server.
 
 ### Running an ASyncIOApp project
 
 For asyncio applications, use `uvicorn`.
-
-    $ uvicorn app:app --workers=4 --bind=0.0.0.0:5000 --pid=pid
-
+```bash
+$ uvicorn app:app --workers=4 --bind=0.0.0.0:5000 --pid=pid
+```
 Again, you'll typically want to run as many workers as you have CPU cores on the server.
 
 ## "Serverless" deployments
@@ -1101,7 +1103,7 @@ app = App(routes=routes, settings=settings)
 
 Your `zappa_settings.json` configuration file should then look something like this:
 
-```
+```json
 {
     "dev": {
         "app_function": "app.app",
@@ -1130,7 +1132,7 @@ See [Zappa's installation instructions](https://github.com/Miserlou/Zappa#instal
 - `keep_warm` is a four minute callback to AWS to ensure your function stays loaded in AWS, decreasing the initial response time. When doing development work you don't really need the function to stay 'warm' 24/7 so by setting it to `false` in `dev` it will save you some AWS invocation requests. The free tier at AWS gives you [1,000,000 free requests](https://aws.amazon.com/s/dm/optimization/server-side-test/free-tier/free_np/) so it shouldn't matter too much.
 - `profile_name` specifies which alias to use in your [AWS Credentials](https://aws.amazon.com/blogs/security/a-new-and-standardized-way-to-manage-credentials-in-the-aws-sdks/) file. This is usually located at `~/.aws/credentials`.
 
-```
+```INI
 [default]
 aws_access_key_id = 'xxx'
 aws_secret_access_key = 'xxx'
@@ -1167,16 +1169,16 @@ To successfully run `zappa deploy` you will need an IAM user on your AWS account
 
 To work on the API Star codebase, you'll want to clone the repository,
 and create a Python virtualenv with the project requirements installed:
-
-    $ git clone git@github.com:tomchristie/apistar.git
-    $ cd apistar
-    $ ./scripts/setup
-
+```bash
+$ git clone git@github.com:tomchristie/apistar.git
+$ cd apistar
+$ ./scripts/setup
+```
 To run the continuous integration tests and code linting:
-
-    $ ./scripts/test
-    $ ./scripts/lint
-
+```bash
+$ ./scripts/test
+$ ./scripts/lint
+```
 ---
 
 <p align="center"><i>API Star is <a href="https://github.com/tomchristie/apistar/blob/master/LICENSE.md">BSD licensed</a> code.<br/>Designed & built in Brighton, England.</i><br/>&mdash; ⭐️ &mdash;</p>
