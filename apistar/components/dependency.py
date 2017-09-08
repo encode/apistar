@@ -83,13 +83,15 @@ class DependencyInjector(Injector):
         Returns:
             The return value of the given function.
         """
+        steps = []  # type: typing.List[Step]
         for func in funcs:
             try:
                 # We cache the steps that are required to run a given function.
-                steps = self._steps_cache[func]
+                func_steps = self._steps_cache[func]
             except KeyError:
-                steps = self._create_steps(func)
-                self._steps_cache[func] = steps
+                func_steps = self._create_steps(func)
+                self._steps_cache[func] = func_steps
+            steps += func_steps
 
         # Combine any preconfigured initial state with any explicit per-call state.
         state = {**self._setup_state, **state}
@@ -259,13 +261,15 @@ class AsyncDependencyInjector(DependencyInjector):
         Returns:
             The return value of the given function.
         """
+        steps = []  # type: typing.List[Step]
         for func in funcs:
             try:
                 # We cache the steps that are required to run a given function.
-                steps = self._steps_cache[func]
+                func_steps = self._steps_cache[func]
             except KeyError:
-                steps = self._create_steps(func)
-                self._steps_cache[func] = steps
+                func_steps = self._create_steps(func)
+                self._steps_cache[func] = func_steps
+            steps += func_steps
 
         # Combine any preconfigured initial state with any explicit per-call state.
         state = {**self._setup_state, **state}

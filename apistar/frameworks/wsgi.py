@@ -14,7 +14,7 @@ from apistar.interfaces import (
     CommandLineClient, Console, FileWrapper, Injector, Router, Schema,
     SessionStore, StaticFiles, Templates
 )
-from apistar.types import KeywordArgs, WSGIEnviron
+from apistar.types import KeywordArgs, ReturnValue, WSGIEnviron
 
 STATUS_TEXT = {
     code: "%d %s" % (code, msg)
@@ -109,13 +109,12 @@ class WSGIApp(CliApp):
         try:
             handler, kwargs = self.router.lookup(path, method)
             state['kwargs'] = kwargs
-            response = self.http_injector.run([handler], state=state)
+            funcs = [handler, self.finalize_response]
+            response = self.http_injector.run(funcs, state=state)
         except Exception as exc:
             state['exc'] = exc  # type: ignore
-            response = self.http_injector.run([self.exception_handler], state=state)
-
-        if getattr(response, 'content_type', None) is None:
-            response = self.finalize_response(response)
+            funcs = [self.exception_handler, self.finalize_response]
+            response = self.http_injector.run(funcs, state=state)
 
         # Get the WSGI response information, given the Response instance.
         try:
@@ -148,11 +147,13 @@ class WSGIApp(CliApp):
 
         raise
 
-    def finalize_response(self, response: http.Response) -> http.Response:
-        if isinstance(response, http.Response):
-            data, status, headers, content_type = response
+    def finalize_response(self, ret: ReturnValue) -> http.Response:
+        if isinstance(ret, http.Response):
+            data, status, headers, content_type = ret
+            if content_type is not None:
+                return ret
         else:
-            data, status, headers, content_type = response, 200, {}, None
+            data, status, headers, content_type = ret, 200, {}, None
 
         if data is None:
             content = b''
