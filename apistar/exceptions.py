@@ -89,3 +89,13 @@ class MethodNotAllowed(HTTPException):
 class UnsupportedMediaType(HTTPException):
     default_status_code = 415
     default_detail = 'Unsupported media type'
+
+
+class InvalidJSON(HTTPException):
+    default_status_code = 400
+    default_detail = 'Invalid JSON'
+
+
+class EmptyJSON(HTTPException):
+    default_status_code = 400
+    default_detail = 'Empty JSON'
