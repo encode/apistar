@@ -352,6 +352,27 @@ def test_empty_response(client):
 
 
 @pytest.mark.parametrize('client', [wsgi_client, async_client])
+def test_request_with_invalid_json(client):
+    response = client.post(
+        'http://example.com/data/',
+        headers={'Content-Type': 'application/json'},
+        data='"hello": 123}'
+    )
+    assert response.status_code == 400
+    assert response.json() == {'message': 'Invalid JSON'}
+
+
+@pytest.mark.parametrize('client', [wsgi_client, async_client])
+def test_request_with_empty_json(client):
+    response = client.post(
+        'http://example.com/data/',
+        headers={'Content-Type': 'application/json'}
+    )
+    assert response.status_code == 400
+    assert response.json() == {'message': 'Empty JSON'}
+
+
+@pytest.mark.parametrize('client', [wsgi_client, async_client])
 def test_unknown_status_code(client):
     response = client.get('/unknown_status_code/')
     assert response.status_code == 600
