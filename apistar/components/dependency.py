@@ -5,7 +5,7 @@ from contextlib import ExitStack
 
 from apistar import exceptions, http, typesystem
 from apistar.interfaces import Injector, Resolver
-from apistar.types import KeywordArgs, ParamAnnotation, ParamName
+from apistar.types import KeywordArgs, ParamAnnotation, ParamName, ReturnValue
 
 Step = typing.NamedTuple('Step', [
     ('func', typing.Callable),
@@ -128,7 +128,10 @@ class DependencyInjector(Injector):
         """
         annotation = param.annotation
 
-        if annotation in self.components:
+        if annotation is ReturnValue:
+            return ('return_value', None)
+
+        elif annotation in self.components:
             # If the type annotation is one of our components, then
             # use the function that is installed for creating that component.
             key = '%s:%d' % (annotation.__name__.lower(), id(annotation))
@@ -214,7 +217,7 @@ class DependencyInjector(Injector):
 
         # Add the step for the function itself.
         if parent_param is None:
-            output_key = ''
+            output_key = 'return_value'
             context_manager = False
         else:
             output_key, _ = self._resolve_parameter(parent_param)
@@ -265,6 +268,9 @@ class AsyncDependencyInjector(DependencyInjector):
         ret = None
         with ExitStack() as stack:
             for step in steps:
+                if step.output_key in state:
+                    continue
+
                 # Keyword arguments are usually "input_key" references to state
                 # that's been generated. In the case of `ParamName` or
                 # `ParamAnnotation` they will be a pre-provided "input_value".
