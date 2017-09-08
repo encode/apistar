@@ -109,10 +109,10 @@ class WSGIApp(CliApp):
         try:
             handler, kwargs = self.router.lookup(path, method)
             state['kwargs'] = kwargs
-            response = self.http_injector.run(handler, state=state)
+            response = self.http_injector.run([handler], state=state)
         except Exception as exc:
             state['exc'] = exc  # type: ignore
-            response = self.http_injector.run(self.exception_handler, state=state)
+            response = self.http_injector.run([self.exception_handler], state=state)
 
         if getattr(response, 'content_type', None) is None:
             response = self.finalize_response(response)

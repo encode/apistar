@@ -100,10 +100,10 @@ class ASyncIOApp(CliApp):
         try:
             handler, kwargs = self.router.lookup(path, method)
             state['kwargs'] = kwargs
-            response = await self.http_injector.run_async(handler, state=state)
+            response = await self.http_injector.run_async([handler], state=state)
         except Exception as exc:
             state['exc'] = exc  # type: ignore
-            response = await self.http_injector.run_async(self.exception_handler, state=state)
+            response = await self.http_injector.run_async([self.exception_handler], state=state)
 
         if getattr(response, 'content_type', None) is None:
             response = self.finalize_response(response)

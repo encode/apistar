@@ -68,7 +68,7 @@ class DependencyInjector(Injector):
         self._steps_cache = {}  # type: typing.Dict[typing.Callable, typing.List[Step]]
 
     def run(self,
-            func: typing.Callable,
+            funcs: typing.List[typing.Callable],
             state: typing.Dict[str, typing.Any]={}) -> typing.Any:
         """
         Run a function, using dependency inject to resolve any parameters
@@ -83,12 +83,13 @@ class DependencyInjector(Injector):
         Returns:
             The return value of the given function.
         """
-        try:
-            # We cache the steps that are required to run a given function.
-            steps = self._steps_cache[func]
-        except KeyError:
-            steps = self._create_steps(func)
-            self._steps_cache[func] = steps
+        for func in funcs:
+            try:
+                # We cache the steps that are required to run a given function.
+                steps = self._steps_cache[func]
+            except KeyError:
+                steps = self._create_steps(func)
+                self._steps_cache[func] = steps
 
         # Combine any preconfigured initial state with any explicit per-call state.
         state = {**self._setup_state, **state}
@@ -96,6 +97,9 @@ class DependencyInjector(Injector):
         ret = None
         with ExitStack() as stack:
             for step in steps:
+                if step.output_key in state and step.output_key != 'return_value':
+                    continue
+
                 # Keyword arguments are usually "input_key" references to state
                 # that's been generated. In the case of `ParamName` or
                 # `ParamAnnotation` they will be a pre-provided "input_value".
@@ -240,7 +244,7 @@ class DependencyInjector(Injector):
 
 class AsyncDependencyInjector(DependencyInjector):
     async def run_async(self,
-                        func: typing.Callable,
+                        funcs: typing.List[typing.Callable],
                         state: typing.Dict[str, typing.Any]={}) -> typing.Any:
         """
         Run a function, using dependency inject to resolve any parameters
@@ -255,12 +259,13 @@ class AsyncDependencyInjector(DependencyInjector):
         Returns:
             The return value of the given function.
         """
-        try:
-            # We cache the steps that are required to run a given function.
-            steps = self._steps_cache[func]
-        except KeyError:
-            steps = self._create_steps(func)
-            self._steps_cache[func] = steps
+        for func in funcs:
+            try:
+                # We cache the steps that are required to run a given function.
+                steps = self._steps_cache[func]
+            except KeyError:
+                steps = self._create_steps(func)
+                self._steps_cache[func] = steps
 
         # Combine any preconfigured initial state with any explicit per-call state.
         state = {**self._setup_state, **state}
@@ -268,7 +273,7 @@ class AsyncDependencyInjector(DependencyInjector):
         ret = None
         with ExitStack() as stack:
             for step in steps:
-                if step.output_key in state:
+                if step.output_key in state and step.output_key != 'return_value':
                     continue
 
                 # Keyword arguments are usually "input_key" references to state
