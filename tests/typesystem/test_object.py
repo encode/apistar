@@ -119,8 +119,7 @@ class test_optional_keys_are_still_validated():
             'name': 'steve',
             'some_optional_number': 'hello'
         })
-    assert str(exc.value) \
-        == '{\'some_optional_number\': \'Must be a valid number.\'}'
+    assert str(exc.value) == "{'some_optional_number': 'Must be a valid number.'}"
 
 
 class test_raw_instance():
