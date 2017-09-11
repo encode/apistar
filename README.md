@@ -1023,6 +1023,7 @@ Component                      | Description
 `interfaces.App`               | The current application.
 `interfaces.Console`           | The console interface. Supports the `.echo(message)` interface.
 `interfaces.CommandLineClient` | The command line parsing component. Supports the `.parse(args)` interface.
+`interfaces.Injector`          | Makes the dependency injection available to handler. Supports the `.run(func)` interface.
 `interfaces.Router`            | The router for the application instance. Supports the `reverse_url(name, **kwargs)` interface.
 `interfaces.Schema`            | The CoreAPI schema used to represent the API.
 `interfaces.StaticFiles`       | The static files component. Supports the `get_url(path)` interface.
