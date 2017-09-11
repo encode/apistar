@@ -71,6 +71,10 @@ def get_body(body: http.Body) -> http.Response:
     return http.Response({'body': body.decode('utf-8')})
 
 
+def get_stream(stream: http.RequestStream) -> http.Response:
+    return http.Response({'stream': stream.read().decode('utf-8')})
+
+
 def get_data(data: http.RequestData) -> http.Response:
     return http.Response({'data': to_native(data)})
 
@@ -125,6 +129,7 @@ routes = [
     Route('/page_query_param/', 'GET', get_page_query_param),
     Route('/url/', 'GET', get_url),
     Route('/body/', 'POST', get_body),
+    Route('/stream/', 'POST', get_stream),
     Route('/data/', 'POST', get_data),
     Route('/headers/', 'GET', get_headers),
     Route('/headers/', 'POST', get_headers, name='post_headers'),
@@ -262,6 +267,12 @@ def test_url(client):
 def test_body(client):
     response = client.post('http://example.com/body/', data="content")
     assert response.json() == {'body': 'content'}
+
+
+@pytest.mark.parametrize('client', [wsgi_client, async_client])
+def test_stream(client):
+    response = client.post('http://example.com/stream/', data="content")
+    assert response.json() == {'stream': 'content'}
 
 
 @pytest.mark.parametrize('client', [wsgi_client, async_client])

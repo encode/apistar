@@ -49,6 +49,7 @@ class ASyncIOApp(CliApp):
         Component(http.QueryParam, init=umi.get_queryparam),
         Component(http.Body, init=umi.get_body),
         Component(http.Request, init=http.Request),
+        Component(http.RequestStream, init=umi.get_stream),
         Component(http.RequestData, init=umi.get_request_data),
         Component(FileWrapper, init=umi.get_file_wrapper),
         Component(http.Session, init=sessions.get_session),

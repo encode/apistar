@@ -72,6 +72,10 @@ def get_body(environ: WSGIEnviron):
     return get_input_stream(environ).read()
 
 
+def get_stream(environ: WSGIEnviron):
+    return get_input_stream(environ)
+
+
 def get_request_data(environ: WSGIEnviron):
     if not bool(environ.get('CONTENT_TYPE')):
         mimetype = None

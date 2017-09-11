@@ -1,4 +1,5 @@
 import collections
+import io
 import typing
 from urllib.parse import urlparse
 
@@ -12,6 +13,7 @@ QueryParam = typing.NewType('QueryParam', str)
 Header = typing.NewType('Header', str)
 Body = typing.NewType('Body', bytes)
 
+RequestStream = typing.NewType('RequestStream', io.BufferedIOBase)
 RequestData = typing.TypeVar('RequestData')
 
 
