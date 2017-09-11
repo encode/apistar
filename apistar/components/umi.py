@@ -85,6 +85,10 @@ async def get_body(message: UMIMessage, channels: UMIChannels):
     return body
 
 
+async def get_stream(body: http.Body):
+    return io.BytesIO(body)
+
+
 def _get_content_length(headers: http.Headers) -> typing.Optional[int]:
     content_length = headers.get('Content-Length')
     if content_length is not None:
