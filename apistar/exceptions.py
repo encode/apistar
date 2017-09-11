@@ -76,6 +76,11 @@ class ValidationError(HTTPException):
     default_detail = 'Validation error'
 
 
+class BadRequest(HTTPException):
+    default_status_code = 400
+    default_detail = 'Bad request'
+
+
 class NotFound(HTTPException):
     default_status_code = 404
     default_detail = 'Not found'

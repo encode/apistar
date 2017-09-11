@@ -81,8 +81,13 @@ def get_request_data(environ: WSGIEnviron):
     if mimetype is None:
         value = None
     elif mimetype == 'application/json':
-        body = get_input_stream(environ).read()
-        value = json.loads(body.decode('utf-8'))
+        body = get_body(environ)
+        if not body:
+            raise exceptions.BadRequest(detail='Empty JSON')
+        try:
+            value = json.loads(body.decode('utf-8'))
+        except json.JSONDecodeError:
+            raise exceptions.BadRequest(detail='Invalid JSON')
     elif mimetype in ('multipart/form-data', 'application/x-www-form-urlencoded'):
         parser = FormDataParser()
         stream, form, files = parser.parse_from_environ(environ)

@@ -106,7 +106,12 @@ async def get_request_data(headers: http.Headers, message: UMIMessage, channels:
         value = None
     elif mimetype == 'application/json':
         body = await get_body(message, channels)
-        value = json.loads(body.decode('utf-8'))
+        if not body:
+            raise exceptions.BadRequest(detail='Empty JSON')
+        try:
+            value = json.loads(body.decode('utf-8'))
+        except json.JSONDecodeError:
+            raise exceptions.BadRequest(detail='Invalid JSON')
     elif mimetype in ('multipart/form-data', 'application/x-www-form-urlencoded'):
         body = await get_body(message, channels)
         stream = io.BytesIO(body)
