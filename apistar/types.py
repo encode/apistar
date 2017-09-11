@@ -55,6 +55,7 @@ Settings = typing.NewType('Settings', dict)
 
 ParamName = typing.NewType('ParamName', str)
 ParamAnnotation = typing.NewType('ParamAnnotation', type)
+ReturnValue = typing.TypeVar('ReturnValue')
 
 
 # Routing

@@ -5,7 +5,7 @@ from contextlib import ExitStack
 
 from apistar import exceptions, http, typesystem
 from apistar.interfaces import Injector, Resolver
-from apistar.types import KeywordArgs, ParamAnnotation, ParamName
+from apistar.types import KeywordArgs, ParamAnnotation, ParamName, ReturnValue
 
 Step = typing.NamedTuple('Step', [
     ('func', typing.Callable),
@@ -51,8 +51,10 @@ class DependencyInjector(Injector):
         if resolvers is None:
             resolvers = []  # pragma: nocover
 
+        builtin = {ReturnValue: None, Injector: None}
+
         self.components = components
-        self.initial_state = initial_state
+        self.initial_state = {**initial_state, **builtin}
         self.required_state = required_state
         self.resolvers = resolvers
 
@@ -67,35 +69,55 @@ class DependencyInjector(Injector):
         # injection steps for any given function.
         self._steps_cache = {}  # type: typing.Dict[typing.Callable, typing.List[Step]]
 
-    def run(self,
-            func: typing.Callable,
-            state: typing.Dict[str, typing.Any]={}) -> typing.Any:
+    def run(self, func: typing.Callable) -> typing.Any:
         """
-        Run a function, using dependency inject to resolve any parameters
+        Run a functions, using dependency inject to resolve any parameters
         that it requires.
 
         Args:
             func: The function to run.
+
+        Returns:
+            The return value of the function.
+        """
+        return self.run_all([func], {})
+
+    def run_all(self,
+                funcs: typing.List[typing.Callable],
+                state: typing.Dict[str, typing.Any]={}) -> typing.Any:
+        """
+        Run some functions, using dependency inject to resolve any parameters
+        that they require.
+
+        Args:
+            funcs: The functions to run.
             state: A dictionary of any per-call state that can differ on each
                    run. For example, this might include any base information
                    associated with an incoming HTTP request.
 
         Returns:
-            The return value of the given function.
+            The return value of the final function.
         """
-        try:
-            # We cache the steps that are required to run a given function.
-            steps = self._steps_cache[func]
-        except KeyError:
-            steps = self._create_steps(func)
-            self._steps_cache[func] = steps
+        steps = []  # type: typing.List[Step]
+        for func in funcs:
+            try:
+                # We cache the steps that are required to run a given function.
+                func_steps = self._steps_cache[func]
+            except KeyError:
+                func_steps = self._create_steps(func)
+                self._steps_cache[func] = func_steps
+            steps += func_steps
 
         # Combine any preconfigured initial state with any explicit per-call state.
         state = {**self._setup_state, **state}
 
         ret = None
         with ExitStack() as stack:
+            state['injector'] = BoundInjector(self, state, stack)
             for step in steps:
+                if step.output_key in state and step.output_key != 'returnvalue':
+                    continue
+
                 # Keyword arguments are usually "input_key" references to state
                 # that's been generated. In the case of `ParamName` or
                 # `ParamAnnotation` they will be a pre-provided "input_value".
@@ -214,7 +236,7 @@ class DependencyInjector(Injector):
 
         # Add the step for the function itself.
         if parent_param is None:
-            output_key = ''
+            output_key = 'returnvalue'
             context_manager = False
         else:
             output_key, _ = self._resolve_parameter(parent_param)
@@ -235,36 +257,125 @@ class DependencyInjector(Injector):
         return steps
 
 
-class AsyncDependencyInjector(DependencyInjector):
-    async def run_async(self,
-                        func: typing.Callable,
-                        state: typing.Dict[str, typing.Any]={}) -> typing.Any:
+class BoundInjector(Injector):
+    """
+    This injector is available to functions when running inside a dependency
+    injected context. It is automatically provided by DependencyInjector.
+
+    To use it, include the `Injector` component as an annotation in the
+    function. For example:
+
+    def my_function(injector: Injector):
+        injector.run(some_function)
+    """
+    def __init__(self, bound_to, state, stack):
+        self.bound_to = bound_to
+        self.state = state
+        self.stack = stack
+
+    def run(self, func: typing.Callable) -> typing.Any:
         """
         Run a function, using dependency inject to resolve any parameters
         that it requires.
 
         Args:
             func: The function to run.
-            state: A dictionary of any per-call state that can differ on each
-                   run. For example, this might include any base information
-                   associated with an incoming HTTP request.
 
         Returns:
             The return value of the given function.
         """
         try:
             # We cache the steps that are required to run a given function.
-            steps = self._steps_cache[func]
+            steps = self.bound_to._steps_cache[func]
         except KeyError:
-            steps = self._create_steps(func)
-            self._steps_cache[func] = steps
+            steps = self.bound_to._create_steps(func)
+            self.bound_to._steps_cache[func] = steps
+
+        ret = None
+
+        for step in steps:
+            if step.output_key in self.state and step.output_key != 'returnvalue':
+                continue
+
+            # Keyword arguments are usually "input_key" references to state
+            # that's been generated. In the case of `ParamName` or
+            # `ParamAnnotation` they will be a pre-provided "input_value".
+            kwargs = {
+                argname: self.state[state_key]
+                for (argname, state_key) in step.input_keys.items()
+            }
+            kwargs.update(step.input_values)
+
+            # Run the function, possibly entering it into the context
+            # stack in order to handle context managers.
+            ret = step.func(**kwargs)
+            if hasattr(ret, '__enter__') and hasattr(ret, '__exit__'):
+                ret = self.stack.enter_context(ret)
+            self.state[step.output_key] = ret
+
+        return ret
+
+    def run_all(self,
+                funcs: typing.List[typing.Callable],
+                state: typing.Dict[str, typing.Any]={}) -> typing.Any:
+        raise NotImplementedError(
+            '.run_all() is not available in this context. '
+            'Use .run() instead.'
+        )
+
+
+# asyncio flavoured dependency injector...
+
+class AsyncDependencyInjector(DependencyInjector):
+    async def run_async(self, func: typing.Callable) -> typing.Any:
+        """
+        Run a function, using dependency inject to resolve any parameters
+        that it requires.
+
+        Args:
+            func: The function to run.
+
+        Returns:
+            The return value of the given function.
+        """
+        return await self.run_all_async([func], {})
+
+    async def run_all_async(self,
+                            funcs: typing.List[typing.Callable],
+                            state: typing.Dict[str, typing.Any]={}) -> typing.Any:
+        """
+        Run some functions, using dependency inject to resolve any parameters
+        that they require.
+
+        Args:
+            funcs: The functions to run.
+            state: A dictionary of any per-call state that can differ on each
+                   run. For example, this might include any base information
+                   associated with an incoming HTTP request.
+
+        Returns:
+            The return value of the final function.
+        """
+        steps = []  # type: typing.List[Step]
+        for func in funcs:
+            try:
+                # We cache the steps that are required to run a given function.
+                func_steps = self._steps_cache[func]
+            except KeyError:
+                func_steps = self._create_steps(func)
+                self._steps_cache[func] = func_steps
+            steps += func_steps
 
         # Combine any preconfigured initial state with any explicit per-call state.
         state = {**self._setup_state, **state}
 
         ret = None
         with ExitStack() as stack:
+            state['injector'] = AsyncBoundInjector(self, state, stack)
             for step in steps:
+                if step.output_key in state and step.output_key != 'returnvalue':
+                    continue
+
                 # Keyword arguments are usually "input_key" references to state
                 # that's been generated. In the case of `ParamName` or
                 # `ParamAnnotation` they will be a pre-provided "input_value".
@@ -287,6 +398,79 @@ class AsyncDependencyInjector(DependencyInjector):
 
         return ret
 
+
+class AsyncBoundInjector(BoundInjector):
+    """
+    This injector is available to functions when running inside a dependency
+    injected context. It is automatically provided by AsyncDependencyInjector.
+
+    To use it, include the `Injector` component as an annotation in the
+    function. For example:
+
+    async def my_function(injector: Injector):
+        await injector.run_async(some_function)
+    """
+    def __init__(self, bound_to, state, stack):
+        self.bound_to = bound_to
+        self.state = state
+        self.stack = stack
+
+    async def run_sync(self, func: typing.Callable) -> typing.Any:
+        """
+        Run a function, using dependency inject to resolve any parameters
+        that it requires.
+
+        Args:
+            func: The function to run.
+
+        Returns:
+            The return value of the given function.
+        """
+        try:
+            # We cache the steps that are required to run a given function.
+            steps = self.bound_to._steps_cache[func]
+        except KeyError:
+            steps = self.bound_to._create_steps(func)
+            self.bound_to._steps_cache[func] = steps
+
+        ret = None
+
+        for step in steps:
+            if step.output_key in self.state and step.output_key != 'returnvalue':
+                continue
+
+            # Keyword arguments are usually "input_key" references to state
+            # that's been generated. In the case of `ParamName` or
+            # `ParamAnnotation` they will be a pre-provided "input_value".
+            kwargs = {
+                argname: self.state[state_key]
+                for (argname, state_key) in step.input_keys.items()
+            }
+            kwargs.update(step.input_values)
+
+            # Run the function, possibly entering it into the context
+            # stack in order to handle context managers.
+            if step.is_async:
+                ret = await step.func(**kwargs)
+            else:
+                ret = step.func(**kwargs)
+
+            if hasattr(ret, '__enter__') and hasattr(ret, '__exit__'):
+                ret = self.stack.enter_context(ret)
+            self.state[step.output_key] = ret
+
+        return ret
+
+    async def run_all_async(self,
+                            funcs: typing.List[typing.Callable],
+                            state: typing.Dict[str, typing.Any]={}) -> typing.Any:
+        raise NotImplementedError(
+            '.run_all_async() is not available in this context. '
+            'Use .run_async() instead.'
+        )
+
+
+# The Resolver subclasses below handle mapping annotations to component instances.
 
 class CliResolver(Resolver):
     """

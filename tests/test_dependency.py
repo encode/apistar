@@ -5,6 +5,7 @@ import pytest
 from apistar import Component, Route, TestClient, exceptions, http, typesystem
 from apistar.frameworks.asyncio import ASyncIOApp
 from apistar.frameworks.wsgi import WSGIApp
+from apistar.interfaces import Injector
 
 
 class KittenName(typesystem.String):
@@ -234,3 +235,22 @@ def test_context_manager_component(app_cls):
     client = TestClient(app)
     client.get('/')
     assert log == ['context manager enter', 'view', 'context manager exit']
+
+
+@pytest.mark.parametrize('app_cls', [WSGIApp, ASyncIOApp])
+def test_use_injector(app_cls):
+    log = []
+
+    def func(method: http.Method, path: http.Path) -> None:
+        log.append({'method': method, 'path': path})
+
+    def view(injector: Injector):
+        injector.run(func)
+
+    routes = [
+        Route('/', 'GET', view)
+    ]
+    app = app_cls(routes=routes)
+    client = TestClient(app)
+    client.get('/')
+    assert log == [{'method': 'GET', 'path': '/'}]

@@ -12,7 +12,7 @@ from apistar.interfaces import (
     CommandLineClient, Console, FileWrapper, Injector, Router, Schema,
     SessionStore, StaticFiles, Templates
 )
-from apistar.types import KeywordArgs, UMIChannels, UMIMessage
+from apistar.types import KeywordArgs, ReturnValue, UMIChannels, UMIMessage
 
 
 class ASyncIOApp(CliApp):
@@ -100,13 +100,12 @@ class ASyncIOApp(CliApp):
         try:
             handler, kwargs = self.router.lookup(path, method)
             state['kwargs'] = kwargs
-            response = await self.http_injector.run_async(handler, state=state)
+            funcs = [handler, self.finalize_response]
+            response = await self.http_injector.run_all_async(funcs, state=state)
         except Exception as exc:
             state['exc'] = exc  # type: ignore
-            response = await self.http_injector.run_async(self.exception_handler, state=state)
-
-        if getattr(response, 'content_type', None) is None:
-            response = self.finalize_response(response)
+            funcs = [self.exception_handler, self.finalize_response]
+            response = await self.http_injector.run_all_async(funcs, state=state)
 
         headers.update(response.headers)
         headers['content-type'] = response.content_type
@@ -134,11 +133,13 @@ class ASyncIOApp(CliApp):
 
         raise
 
-    def finalize_response(self, response: http.Response) -> http.Response:
-        if isinstance(response, http.Response):
-            data, status, headers, content_type = response
+    def finalize_response(self, ret: ReturnValue) -> http.Response:
+        if isinstance(ret, http.Response):
+            data, status, headers, content_type = ret
+            if content_type is not None:
+                return ret
         else:
-            data, status, headers, content_type = response, 200, {}, None
+            data, status, headers, content_type = ret, 200, {}, None
 
         if data is None:
             content = b''
