@@ -110,11 +110,11 @@ class WSGIApp(CliApp):
             handler, kwargs = self.router.lookup(path, method)
             state['kwargs'] = kwargs
             funcs = [handler, self.finalize_response]
-            response = self.http_injector.run(funcs, state=state)
+            response = self.http_injector.run_all(funcs, state=state)
         except Exception as exc:
             state['exc'] = exc  # type: ignore
             funcs = [self.exception_handler, self.finalize_response]
-            response = self.http_injector.run(funcs, state=state)
+            response = self.http_injector.run_all(funcs, state=state)
 
         # Get the WSGI response information, given the Response instance.
         try:

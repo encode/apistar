@@ -112,8 +112,13 @@ class Injector(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def run(self,
-            funcs: typing.List[typing.Callable],
-            state: typing.Dict[str, typing.Any]) -> typing.Any:
+            func: typing.Callable) -> typing.Any:
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def run_all(self,
+                funcs: typing.List[typing.Callable],
+                state: typing.Dict[str, typing.Any]) -> typing.Any:
         raise NotImplementedError
 
 

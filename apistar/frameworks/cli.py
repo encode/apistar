@@ -88,7 +88,7 @@ class CliApp(App):
                 continue
 
             try:
-                component = injector.run([func])
+                component = injector.run(func)
             except exceptions.CouldNotResolveDependency:
                 continue
             del components[cls]
@@ -125,7 +125,7 @@ class CliApp(App):
         try:
             handler, kwargs = self.commandline.parse(args)
             state['kwargs'] = kwargs
-            ret = self.cli_injector.run([handler], state=state)
+            ret = self.cli_injector.run_all([handler], state=state)
         except exceptions.CommandLineExit as exc:
             ret = exc.message
         except exceptions.CommandLineError as exc:

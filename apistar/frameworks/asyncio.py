@@ -101,11 +101,11 @@ class ASyncIOApp(CliApp):
             handler, kwargs = self.router.lookup(path, method)
             state['kwargs'] = kwargs
             funcs = [handler, self.finalize_response]
-            response = await self.http_injector.run_async(funcs, state=state)
+            response = await self.http_injector.run_all_async(funcs, state=state)
         except Exception as exc:
             state['exc'] = exc  # type: ignore
             funcs = [self.exception_handler, self.finalize_response]
-            response = await self.http_injector.run_async(funcs, state=state)
+            response = await self.http_injector.run_all_async(funcs, state=state)
 
         headers.update(response.headers)
         headers['content-type'] = response.content_type
