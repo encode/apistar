@@ -410,6 +410,7 @@ Validates string data. A subclass of `str`.
 * `pattern` - A string or compiled regex that the data must match.
 * `format` - An identifier indicating a complex datatype with a string representation. For example `"date"`, to represent an ISO 8601 formatted date string.
 * `trim_whitespace` - `True ` if leading and trailing whitespace should be stripped from the data. Defaults to `True`.
+* `description` - A description for online documentation
 
 ### Number
 
@@ -421,6 +422,7 @@ Validates numeric data. A subclass of `float`.
 * `exclusive_maximum` - `True` for an exclusive maximum limit. Defaults to `False`.
 * `exclusive_minimum` - `True` for an exclusive minimum limit. Defaults to `False`.
 * `multiple_of` - A float that the data must be strictly divisible by, in order to be valid.
+* `description` - A description for online documentation
 
 ### Integer
 
@@ -432,12 +434,14 @@ Validates integer data. A subclass of `int`.
 * `exclusive_maximum` - `True` for an exclusive maximum limit. Defaults to `False`.
 * `exclusive_minimum` - `True` for an exclusive minimum limit. Defaults to `False`.
 * `multiple_of` - An integer that the data must be strictly divisible by, in order to be valid.
+* `description` - A description for online documentation
 
 ### Boolean
 
 Validates boolean input. Returns either `True` or `False`.
 
 * `default` - A default to be used if a field using this typesystem is missing from a parent `Object`.
+* `description` - A description for online documentation
 
 ### Enum
 
@@ -445,6 +449,7 @@ Validates string input, against a list of valid choices. A subclass of `str`.
 
 * `default` - A default to be used if a field using this typesystem is missing from a parent `Object`.
 * `enum` - A list of valid string values for the data.
+* `description` - A description for online documentation
 
 ### Object
 
@@ -452,6 +457,7 @@ Validates dictionary or object input. A subclass of `dict`.
 
 * `default` - A default to be used if a field using this typesystem is missing from a parent `Object`.
 * `properties` - A dictionary mapping string key names to typesystem or type values.
+* `description` - A description for online documentation
 
 Note that child properties are considered to be required if they do not have a `default` value.
 
@@ -464,6 +470,7 @@ Validates list or tuple input. A subclass of `list`.
 * `min_items` - The minimum number of items the array must contain.
 * `max_items` - The maximum number of items the array must contain.
 * `unique_items` - Whether repeated items are permitted in the array.
+* `description` - A description for online documentation
 
 ## Generating API Schemas
 
