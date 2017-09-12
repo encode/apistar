@@ -121,6 +121,17 @@ class Injector(metaclass=abc.ABCMeta):
                 state: typing.Dict[str, typing.Any]) -> typing.Any:
         raise NotImplementedError
 
+    @abc.abstractmethod
+    async def run_async(self,
+                        func: typing.Callable) -> typing.Any:
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    async def run_all_async(self,
+                            funcs: typing.List[typing.Callable],
+                            state: typing.Dict[str, typing.Any]) -> typing.Any:
+        raise NotImplementedError
+
 
 # Console
 

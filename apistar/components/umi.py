@@ -1,13 +1,11 @@
 import io
-import json
 import typing
 
 import werkzeug
-from werkzeug.datastructures import ImmutableMultiDict
-from werkzeug.formparser import FormDataParser
 from werkzeug.http import parse_options_header
 
-from apistar import exceptions, http
+from apistar import Settings, exceptions, http, parsers
+from apistar.interfaces import Injector
 from apistar.types import ParamName, UMIChannels, UMIMessage
 
 
@@ -99,34 +97,22 @@ def _get_content_length(headers: http.Headers) -> typing.Optional[int]:
     return None  # pragma: nocover
 
 
-async def get_request_data(headers: http.Headers, message: UMIMessage, channels: UMIChannels):
+async def get_request_data(headers: http.Headers, injector: Injector, settings: Settings):
     content_type = headers.get('Content-Type')
-    if content_type:
-        mimetype, options = parse_options_header(content_type)
-    else:
-        mimetype, options = None, {}
+    if not content_type:
+        return None
 
-    if mimetype is None:
-        value = None
-    elif mimetype == 'application/json':
-        body = await get_body(message, channels)
-        if not body:
-            raise exceptions.BadRequest(detail='Empty JSON')
-        try:
-            value = json.loads(body.decode('utf-8'))
-        except json.JSONDecodeError:
-            raise exceptions.BadRequest(detail='Invalid JSON')
-    elif mimetype in ('multipart/form-data', 'application/x-www-form-urlencoded'):
-        body = await get_body(message, channels)
-        stream = io.BytesIO(body)
-        content_length = _get_content_length(headers)
-        parser = FormDataParser()
-        stream, form, files = parser.parse(stream, mimetype, content_length, options)
-        value = ImmutableMultiDict(list(form.items()) + list(files.items()))
-    else:
+    media_type, _ = parse_options_header(content_type)
+    parser_mapping = {
+        parser.media_type: parser
+        for parser in settings.get('PARSERS', parsers.DEFAULT_PARSERS)
+    }
+
+    if media_type not in parser_mapping:
         raise exceptions.UnsupportedMediaType()
 
-    return value
+    parser = parser_mapping[media_type]
+    return await injector.run_async(parser.parse)
 
 
 def get_file_wrapper():
