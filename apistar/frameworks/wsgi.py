@@ -14,7 +14,7 @@ from apistar.interfaces import (
     Auth, CommandLineClient, Console, FileWrapper, Injector, Router, Schema,
     SessionStore, StaticFiles, Templates
 )
-from apistar.types import KeywordArgs, ReturnValue, WSGIEnviron
+from apistar.types import Handler, KeywordArgs, ReturnValue, WSGIEnviron
 
 STATUS_TEXT = {
     code: "%d %s" % (code, msg)
@@ -89,6 +89,7 @@ class WSGIApp(CliApp):
             initial_state=self.preloaded_state,
             required_state={
                 WSGIEnviron: 'wsgi_environ',
+                Handler: 'handler',
                 KeywordArgs: 'kwargs',
                 Exception: 'exc',
                 http.ResponseHeaders: 'response_headers'
@@ -102,6 +103,7 @@ class WSGIApp(CliApp):
         headers = http.ResponseHeaders()
         state = {
             'wsgi_environ': environ,
+            'handler': None,
             'kwargs': None,
             'exc': None,
             'response_headers': headers
@@ -110,7 +112,7 @@ class WSGIApp(CliApp):
         path = environ['PATH_INFO']
         try:
             handler, kwargs = self.router.lookup(path, method)
-            state['kwargs'] = kwargs
+            state['handler'], state['kwargs'] = handler, kwargs
             funcs = [self.check_permissions, handler, self.finalize_response]
             response = self.http_injector.run_all(funcs, state=state)
         except Exception as exc:
@@ -150,8 +152,12 @@ class WSGIApp(CliApp):
 
         raise
 
-    def check_permissions(self, injector: Injector, settings: Settings):
-        permissions = settings.get('PERMISSIONS', [])
+    def check_permissions(self, handler: Handler, injector: Injector, settings: Settings):
+        default_permissions = settings.get('PERMISSIONS', None)
+        permissions = getattr(handler, 'permissions', default_permissions)
+        if permissions is None:
+            return
+
         for permission in permissions:
             if not injector.run(permission.has_permission):
                 raise exceptions.Forbidden()

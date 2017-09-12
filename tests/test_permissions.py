@@ -2,7 +2,7 @@ import base64
 
 import pytest
 
-from apistar import Route, TestClient, http
+from apistar import Route, TestClient, annotate, http
 from apistar.authentication import Authenticated
 from apistar.frameworks.asyncio import ASyncIOApp
 from apistar.frameworks.wsgi import WSGIApp
@@ -11,6 +11,15 @@ from apistar.permissions import IsAuthenticated
 
 
 def get_auth(auth: Auth):
+    return {
+        'user_id': auth.get_user_id(),
+        'display_name': auth.get_display_name(),
+        'is_authenticated': auth.is_authenticated()
+    }
+
+
+@annotate(permissions=[])
+def public(auth: Auth):
     return {
         'user_id': auth.get_user_id(),
         'display_name': auth.get_display_name(),
@@ -36,6 +45,7 @@ class BasicAuthentication():
 
 routes = [
     Route('/auth/', 'GET', get_auth),
+    Route('/public/', 'GET', public),
 ]
 settings = {
     'AUTHENTICATION': [BasicAuthentication()],
@@ -55,6 +65,17 @@ def test_unauthenticated_request(client):
     assert response.status_code == 403
     assert response.json() == {
         'message': 'Forbidden'
+    }
+
+
+@pytest.mark.parametrize('client', [wsgi_client, async_client])
+def test_unauthenticated_request_to_public_url(client):
+    response = client.get('http://example.com/public/')
+    assert response.status_code == 200
+    assert response.json() == {
+        'display_name': '',
+        'user_id': '',
+        'is_authenticated': False
     }
 
 

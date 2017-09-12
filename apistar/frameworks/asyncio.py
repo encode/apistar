@@ -12,7 +12,9 @@ from apistar.interfaces import (
     Auth, CommandLineClient, Console, FileWrapper, Injector, Router, Schema,
     SessionStore, StaticFiles, Templates
 )
-from apistar.types import KeywordArgs, ReturnValue, UMIChannels, UMIMessage
+from apistar.types import (
+    Handler, KeywordArgs, ReturnValue, UMIChannels, UMIMessage
+)
 
 
 class ASyncIOApp(CliApp):
@@ -80,6 +82,7 @@ class ASyncIOApp(CliApp):
                 UMIMessage: 'message',
                 UMIChannels: 'channels',
                 KeywordArgs: 'kwargs',
+                Handler: 'handler',
                 Exception: 'exc',
                 http.ResponseHeaders: 'response_headers'
             },
@@ -93,6 +96,7 @@ class ASyncIOApp(CliApp):
         state = {
             'message': message,
             'channels': channels,
+            'handler': None,
             'kwargs': None,
             'exc': None,
             'response_headers': headers
@@ -101,7 +105,7 @@ class ASyncIOApp(CliApp):
         path = message['path']
         try:
             handler, kwargs = self.router.lookup(path, method)
-            state['kwargs'] = kwargs
+            state['handler'], state['kwargs'] = handler, kwargs
             funcs = [self.check_permissions, handler, self.finalize_response]
             response = await self.http_injector.run_all_async(funcs, state=state)
         except Exception as exc:
@@ -136,8 +140,12 @@ class ASyncIOApp(CliApp):
 
         raise
 
-    async def check_permissions(self, injector: Injector, settings: Settings):
-        permissions = settings.get('PERMISSIONS', [])
+    async def check_permissions(self, handler: Handler, injector: Injector, settings: Settings):
+        default_permissions = settings.get('PERMISSIONS', None)
+        permissions = getattr(handler, 'permissions', default_permissions)
+        if permissions is None:
+            return
+
         for permission in permissions:
             if not await injector.run_async(permission.has_permission):
                 raise exceptions.Forbidden()
