@@ -1,7 +1,7 @@
 import json
 import typing
 
-from apistar import commands, exceptions, http
+from apistar import Settings, commands, exceptions, http
 from apistar.components import (
     commandline, console, dependency, router, schema, sessions, statics,
     templates, umi
@@ -102,7 +102,7 @@ class ASyncIOApp(CliApp):
         try:
             handler, kwargs = self.router.lookup(path, method)
             state['kwargs'] = kwargs
-            funcs = [handler, self.finalize_response]
+            funcs = [self.check_permissions, handler, self.finalize_response]
             response = await self.http_injector.run_all_async(funcs, state=state)
         except Exception as exc:
             state['exc'] = exc  # type: ignore
@@ -135,6 +135,12 @@ class ASyncIOApp(CliApp):
             return http.Response(content, exc.status_code, {})
 
         raise
+
+    async def check_permissions(self, injector: Injector, settings: Settings):
+        permissions = settings.get('PERMISSIONS', [])
+        for permission in permissions:
+            if not await injector.run_async(permission.has_permission):
+                raise exceptions.Forbidden()
 
     def finalize_response(self, ret: ReturnValue) -> http.Response:
         if isinstance(ret, http.Response):
