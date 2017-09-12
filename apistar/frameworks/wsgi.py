@@ -11,7 +11,7 @@ from apistar.components import (
 from apistar.core import Command, Component
 from apistar.frameworks.cli import CliApp
 from apistar.interfaces import (
-    CommandLineClient, Console, FileWrapper, Injector, Router, Schema,
+    Auth, CommandLineClient, Console, FileWrapper, Injector, Router, Schema,
     SessionStore, StaticFiles, Templates
 )
 from apistar.types import KeywordArgs, ReturnValue, WSGIEnviron
@@ -60,6 +60,7 @@ class WSGIApp(CliApp):
         Component(http.RequestData, init=wsgi.get_request_data),
         Component(FileWrapper, init=wsgi.get_file_wrapper),
         Component(http.Session, init=sessions.get_session),
+        Component(Auth, init=wsgi.get_auth)
     ]
 
     def __init__(self, **kwargs):
@@ -124,7 +125,8 @@ class WSGIApp(CliApp):
             status_text = str(response.status)
 
         headers.update(response.headers)
-        headers['content-type'] = response.content_type
+        if response.content_type is not None:
+            headers['content-type'] = response.content_type
 
         if isinstance(response.content, (bytes, str)):
             content = [response.content]
@@ -158,7 +160,7 @@ class WSGIApp(CliApp):
 
         if data is None:
             content = b''
-            content_type = 'text/plain'
+            content_type = None
         elif isinstance(data, str):
             content = data.encode('utf-8')
             content_type = 'text/html; charset=utf-8'
@@ -171,6 +173,6 @@ class WSGIApp(CliApp):
 
         if not content and status == 200:
             status = 204
-            content_type = 'text/plain'
+            content_type = None
 
         return http.Response(content, status, headers, content_type)

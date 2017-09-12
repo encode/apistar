@@ -5,6 +5,7 @@ import werkzeug
 from werkzeug.http import parse_options_header
 
 from apistar import Settings, exceptions, http, parsers
+from apistar.authentication import Unauthenticated
 from apistar.interfaces import Injector
 from apistar.types import ParamName, UMIChannels, UMIMessage
 
@@ -113,6 +114,15 @@ async def get_request_data(headers: http.Headers, injector: Injector, settings: 
 
     parser = parser_mapping[media_type]
     return await injector.run_async(parser.parse)
+
+
+async def get_auth(injector: Injector, settings: Settings):
+    authentication = settings.get('AUTHENTICATION', [])
+    for authenticator in authentication:
+        auth = await injector.run_async(authenticator.authenticate)
+        if auth is not None:
+            return auth
+    return Unauthenticated()
 
 
 def get_file_wrapper():

@@ -5,6 +5,7 @@ from werkzeug.http import parse_options_header
 from werkzeug.wsgi import get_input_stream
 
 from apistar import Settings, exceptions, http, parsers
+from apistar.authentication import Unauthenticated
 from apistar.interfaces import Injector
 from apistar.types import ParamName, WSGIEnviron
 
@@ -90,6 +91,15 @@ def get_request_data(headers: http.Headers, injector: Injector, settings: Settin
 
     parser = parser_mapping[media_type]
     return injector.run(parser.parse)
+
+
+def get_auth(injector: Injector, settings: Settings):
+    authentication = settings.get('AUTHENTICATION', [])
+    for authenticator in authentication:
+        auth = injector.run(authenticator.authenticate)
+        if auth is not None:
+            return auth
+    return Unauthenticated()
 
 
 def get_file_wrapper(environ: WSGIEnviron):
