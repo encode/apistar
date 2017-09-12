@@ -203,7 +203,7 @@ Some of the components you might use most often:
 | `http.QueryParams` | The request query parameters, returned as a dictionary-like object. |
 | `http.QueryParam`  | Lookup a single query parameter, corresponding to the argument name.<br/>Returns a string or `None`. |
 | `http.Body`        | The request body. Returns a bytestring. |
-| `http.RequestData` | The request data, returned as a dictionary-like object. |
+| `http.RequestData` | The parsed request data. Data type will depend on the Content-Type of the request. |
 
 ## Responses
 

@@ -54,8 +54,8 @@ class MultiPartParser():
         return ImmutableMultiDict(list(form.items()) + list(files.items()))
 
 
-DEFAULT_PARSERS = {
-    'application/json': JSONParser(),
-    'application/x-www-form-urlencoded': URLEncodedParser(),
-    'multipart/form-data': MultiPartParser()
-}
+DEFAULT_PARSERS = [
+    JSONParser(),
+    URLEncodedParser(),
+    MultiPartParser()
+]
