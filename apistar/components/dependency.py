@@ -136,6 +136,15 @@ class DependencyInjector(Injector):
 
         return ret
 
+    async def run_async(self,
+                        func: typing.Callable) -> typing.Any:
+        raise NotImplementedError('Cannot use `run_async` when running with WSGI.')
+
+    async def run_all_async(self,
+                            funcs: typing.List[typing.Callable],
+                            state: typing.Dict[str, typing.Any]) -> typing.Any:
+        raise NotImplementedError('Cannot use `run_all_async` when running with WSGI.')
+
     def _resolve_parameter(self, param: inspect.Parameter) -> typing.Tuple[str, typing.Optional[typing.Callable]]:
         """
         Resolve a single function parameter, returning the information needed
@@ -323,6 +332,15 @@ class BoundInjector(Injector):
             'Use .run() instead.'
         )
 
+    async def run_async(self,
+                        func: typing.Callable) -> typing.Any:
+        raise NotImplementedError('Cannot use `run_async` when running with WSGI.')
+
+    async def run_all_async(self,
+                            funcs: typing.List[typing.Callable],
+                            state: typing.Dict[str, typing.Any]) -> typing.Any:
+        raise NotImplementedError('Cannot use `run_all_async` when running with WSGI.')
+
 
 # asyncio flavoured dependency injector...
 
@@ -415,7 +433,7 @@ class AsyncBoundInjector(BoundInjector):
         self.state = state
         self.stack = stack
 
-    async def run_sync(self, func: typing.Callable) -> typing.Any:
+    async def run_async(self, func: typing.Callable) -> typing.Any:
         """
         Run a function, using dependency inject to resolve any parameters
         that it requires.

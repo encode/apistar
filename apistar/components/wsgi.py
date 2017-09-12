@@ -1,13 +1,11 @@
-import json
 from wsgiref.util import FileWrapper, request_uri
 
 import werkzeug
-from werkzeug.datastructures import ImmutableMultiDict
-from werkzeug.formparser import FormDataParser
 from werkzeug.http import parse_options_header
 from werkzeug.wsgi import get_input_stream
 
-from apistar import exceptions, http
+from apistar import exceptions, http, parsers
+from apistar.interfaces import Injector
 from apistar.types import ParamName, WSGIEnviron
 
 
@@ -76,30 +74,19 @@ def get_stream(environ: WSGIEnviron):
     return get_input_stream(environ)
 
 
-def get_request_data(environ: WSGIEnviron):
-    if not bool(environ.get('CONTENT_TYPE')):
-        mimetype = None
-    else:
-        mimetype, _ = parse_options_header(environ['CONTENT_TYPE'])
+def get_request_data(headers: http.Headers, injector: Injector):
+    content_type = headers.get('Content-Type')
+    if not content_type:
+        return None
 
-    if mimetype is None:
-        value = None
-    elif mimetype == 'application/json':
-        body = get_body(environ)
-        if not body:
-            raise exceptions.BadRequest(detail='Empty JSON')
-        try:
-            value = json.loads(body.decode('utf-8'))
-        except json.JSONDecodeError:
-            raise exceptions.BadRequest(detail='Invalid JSON')
-    elif mimetype in ('multipart/form-data', 'application/x-www-form-urlencoded'):
-        parser = FormDataParser()
-        stream, form, files = parser.parse_from_environ(environ)
-        value = ImmutableMultiDict(list(form.items()) + list(files.items()))
-    else:
+    media_type, _ = parse_options_header(content_type)
+
+    if media_type not in parsers.DEFAULT_PARSERS:
         raise exceptions.UnsupportedMediaType()
 
-    return value
+    parser = parsers.DEFAULT_PARSERS[media_type]
+    func = getattr(parser, 'parse')
+    return injector.run(func)
 
 
 def get_file_wrapper(environ: WSGIEnviron):
