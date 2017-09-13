@@ -5,13 +5,13 @@
  /_  _\    / ___ \|  __/| |   ___) | || (_| | |      /_  _\
    \/     /_/   \_\_|  |___| |____/ \__\__,_|_|        \/
 """
-from apistar.core import Command, Component, Include, Route
+from apistar.core import Command, Component, Include, Route, annotate
 from apistar.http import Response
 from apistar.test import TestClient
 from apistar.types import Settings
 
-__version__ = '0.2.13'
+__version__ = '0.2.14'
 __all__ = [
-    'Command', 'Component', 'Response', 'Route', 'Include', 'Settings',
-    'TestClient'
+    'annotate', 'Command', 'Component', 'Response', 'Route', 'Include',
+    'Settings', 'TestClient'
 ]

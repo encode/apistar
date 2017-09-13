@@ -11,8 +11,9 @@ from apistar.core import Command, Include, Route
 
 # The handler and kwargs associated with a URL lookup or parsed CLI arguments.
 
+Handler = typing.TypeVar('Handler')
 KeywordArgs = typing.Dict[str, typing.Any]
-HandlerLookup = typing.Tuple[typing.Callable, KeywordArgs]
+HandlerLookup = typing.Tuple[Handler, KeywordArgs]
 
 
 # HTTP environment

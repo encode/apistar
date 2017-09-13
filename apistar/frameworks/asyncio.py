@@ -1,7 +1,7 @@
 import json
 import typing
 
-from apistar import commands, exceptions, http
+from apistar import Settings, commands, exceptions, http
 from apistar.components import (
     commandline, console, dependency, router, schema, sessions, statics,
     templates, umi
@@ -9,10 +9,12 @@ from apistar.components import (
 from apistar.core import Command, Component
 from apistar.frameworks.cli import CliApp
 from apistar.interfaces import (
-    CommandLineClient, Console, FileWrapper, Injector, Router, Schema,
+    Auth, CommandLineClient, Console, FileWrapper, Injector, Router, Schema,
     SessionStore, StaticFiles, Templates
 )
-from apistar.types import KeywordArgs, ReturnValue, UMIChannels, UMIMessage
+from apistar.types import (
+    Handler, KeywordArgs, ReturnValue, UMIChannels, UMIMessage
+)
 
 
 class ASyncIOApp(CliApp):
@@ -53,6 +55,7 @@ class ASyncIOApp(CliApp):
         Component(http.RequestData, init=umi.get_request_data),
         Component(FileWrapper, init=umi.get_file_wrapper),
         Component(http.Session, init=sessions.get_session),
+        Component(Auth, init=umi.get_auth)
     ]
 
     def __init__(self, **kwargs):
@@ -79,6 +82,7 @@ class ASyncIOApp(CliApp):
                 UMIMessage: 'message',
                 UMIChannels: 'channels',
                 KeywordArgs: 'kwargs',
+                Handler: 'handler',
                 Exception: 'exc',
                 http.ResponseHeaders: 'response_headers'
             },
@@ -92,6 +96,7 @@ class ASyncIOApp(CliApp):
         state = {
             'message': message,
             'channels': channels,
+            'handler': None,
             'kwargs': None,
             'exc': None,
             'response_headers': headers
@@ -100,8 +105,8 @@ class ASyncIOApp(CliApp):
         path = message['path']
         try:
             handler, kwargs = self.router.lookup(path, method)
-            state['kwargs'] = kwargs
-            funcs = [handler, self.finalize_response]
+            state['handler'], state['kwargs'] = handler, kwargs
+            funcs = [self.check_permissions, handler, self.finalize_response]
             response = await self.http_injector.run_all_async(funcs, state=state)
         except Exception as exc:
             state['exc'] = exc  # type: ignore
@@ -109,7 +114,8 @@ class ASyncIOApp(CliApp):
             response = await self.http_injector.run_all_async(funcs, state=state)
 
         headers.update(response.headers)
-        headers['content-type'] = response.content_type
+        if response.content_type is not None:
+            headers['content-type'] = response.content_type
 
         response_message = {
             'status': response.status,
@@ -134,6 +140,16 @@ class ASyncIOApp(CliApp):
 
         raise
 
+    async def check_permissions(self, handler: Handler, injector: Injector, settings: Settings):
+        default_permissions = settings.get('PERMISSIONS', None)
+        permissions = getattr(handler, 'permissions', default_permissions)
+        if permissions is None:
+            return
+
+        for permission in permissions:
+            if not await injector.run_async(permission.has_permission):
+                raise exceptions.Forbidden()
+
     def finalize_response(self, ret: ReturnValue) -> http.Response:
         if isinstance(ret, http.Response):
             data, status, headers, content_type = ret
@@ -144,7 +160,7 @@ class ASyncIOApp(CliApp):
 
         if data is None:
             content = b''
-            content_type = 'text/plain'
+            content_type = None
         elif isinstance(data, str):
             content = data.encode('utf-8')
             content_type = 'text/html; charset=utf-8'
@@ -157,6 +173,6 @@ class ASyncIOApp(CliApp):
 
         if not content and status == 200:
             status = 204
-            content_type = 'text/plain'
+            content_type = None
 
         return http.Response(content, status, headers, content_type)

@@ -83,6 +83,25 @@ class SessionStore(metaclass=abc.ABCMeta):
         raise NotImplementedError
 
 
+# Authentication
+
+class Auth(metaclass=abc.ABCMeta):
+    user = None  # type: typing.Any
+    token = None  # type: typing.Any
+
+    @abc.abstractmethod
+    def is_authenticated(self) -> bool:
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def get_display_name(self) -> typing.Optional[str]:
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def get_user_id(self) -> typing.Optional[str]:
+        raise NotImplementedError
+
+
 # Command Line Parser
 
 

@@ -81,6 +81,11 @@ class BadRequest(HTTPException):
     default_detail = 'Bad request'
 
 
+class Forbidden(HTTPException):
+    default_status_code = 403
+    default_detail = 'Forbidden'
+
+
 class NotFound(HTTPException):
     default_status_code = 404
     default_detail = 'Not found'

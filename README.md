@@ -44,6 +44,9 @@ be in sync with your codebase.
     - [Templates](#templates)
     - [Static Files](#static-files)
     - [HTTP Sessions](#http-sessions)
+- [Authentication & Permissions](#authentication-permissions)
+    - [Authentication](#authentication)
+    - [Permissions](#permissions)
 - [Settings & Environment](#settings--environment)
     - [Application settings](#application-settings)
     - [Environment](#environment)
@@ -638,6 +641,159 @@ components = [
 
 app = App(routes=routes, components=components)
 ```
+---
+
+# Authentication & Permissions
+
+Authentication is the mechanism of associating an incoming request with a set of
+identifying credentials, such as the user the request came from, or the token
+that it was signed with. Permissions are the processes of using those credentials
+to determine if the request should be permitted.
+
+## Authentication
+
+The `Auth` component provides information about the currently authenticated user.
+
+```python
+from apistar.interfaces import Auth
+
+def display_user(auth: Auth):
+    return {
+        'is_authenticated': auth.is_authenticated(),
+        'user': auth.get_display_name()
+    }
+```
+
+It provides the following interface:
+
+* `.get_display_name()` - Returns a string that should be used when displaying a username, or `None` for unauthenticated requests.
+* `.get_user_id()` - Returns a string that can be used to uniquely identify the user, or `None` for unauthenticated requests.
+* `.is_authenticated()` - Returns `True` for an authenticated request, `False` otherwise.
+* `.user` - A reference to any persistent user information.
+* `.token` - A reference to any other authentication information associated with the incoming request.
+
+In our example above we haven't yet configured any authentication policy,
+so our `auth` argument will always be set to an instance of `Unauthenticated`.
+
+Requests to our endpoint will currently return a response like this:
+
+```json
+{
+    "is_authenticated": false,
+    "user": null
+}
+```
+
+### Creating an authentication class
+
+In order to authenticate our incoming requests we need to create an authentication
+class.
+
+An authentication class must implement the `authenticate` method, and
+should return a subclass of `Auth`, or `None` if the request was not authenticated.
+
+The `authenticate` method can accept any installed components in its signature.
+
+```python
+import base64
+from apistar import http
+from apistar.auth import Authenticated
+
+class BasicAuthentication():
+    def authenticate(self, authorization: http.Header):
+        """
+        Determine the user associated with a request, using HTTP Basic Authentication.
+        """
+        if authorization is None:
+            return None
+
+        scheme, token = authorization.split()
+        if scheme.lower() != 'basic':
+            return None
+
+        username, password = base64.b64decode(token).decode('utf-8').split(':')
+        return Authenticated(username)
+```
+
+Note that the `Authenticated` class provides a shortcut which you can use
+instead of implementing a subclass of `Auth`.
+
+### Configuring the authentication policy
+
+We can install one or more authentication policies by adding them to our settings.
+The `AUTHENTICATION` setting should be a list. Each authentication policy will be
+attempted in turn.
+
+```python
+settings = {
+    'AUTHENTICATION': [BasicAuthentication()]
+}
+```
+
+Alternatively we can specify authentication policies on a specific handler function.
+
+```python
+from apistar import Auth, annotate
+from myproject.authentication import BasicAuthentication
+
+@annotate(authentication=[BasicAuthentication()])
+def display_user(auth: Auth):
+    # There are no required permissions set on this handler, so all requests
+    # will be allowed.
+    # Requests that have successfully authenticated using basic authentication
+    # will include user credentials in `auth`.
+    ...
+```
+
+## Permissions
+
+Typically you'll want to either permit or deny an incoming request, based on the
+authentication credentials provided.
+
+API Star provides a single built-in `IsAuthenticted` permission class, or you
+can implement your own for more complex cases.
+
+### Creating a permissions class
+
+A permissions class should implement a `has_permission()` method,
+and return either `True` or `False` depending on if the request should
+be permitted or not.
+
+For example, if our user model includes an `is_admin` field, we might want
+to allow certain operations only for those users.
+
+```python
+class IsAdminUser():
+    def has_permission(self, auth: Auth):
+        if not auth.is_authenticated():
+            return False
+        return auth.user.is_admin
+```
+
+### Configuring the permissions policy
+
+Configuring permissions is very similar to configuring authentication,
+you can do so globally, using the settings...
+
+```python
+settings = {
+    'AUTHENTICATION': [BasicAuthentication()],
+    'PERMISSIONS': [IsAuthenticted()]
+}
+```
+
+Or configure permissions on a specific handler...
+
+```python
+@annotate(
+    authentication=[BasicAuthentication()],
+    permissions=[IsAuthenticated()]
+)
+def display_user(auth: Auth):
+    # Only authenticated requests will be allowed to access this handler.
+    ...
+```
+
 ---
 
 # Settings & Environment

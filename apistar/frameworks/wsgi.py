@@ -3,7 +3,7 @@ import typing
 
 from werkzeug.http import HTTP_STATUS_CODES
 
-from apistar import commands, exceptions, http
+from apistar import Settings, commands, exceptions, http
 from apistar.components import (
     commandline, console, dependency, router, schema, sessions, statics,
     templates, wsgi
@@ -11,10 +11,10 @@ from apistar.components import (
 from apistar.core import Command, Component
 from apistar.frameworks.cli import CliApp
 from apistar.interfaces import (
-    CommandLineClient, Console, FileWrapper, Injector, Router, Schema,
+    Auth, CommandLineClient, Console, FileWrapper, Injector, Router, Schema,
     SessionStore, StaticFiles, Templates
 )
-from apistar.types import KeywordArgs, ReturnValue, WSGIEnviron
+from apistar.types import Handler, KeywordArgs, ReturnValue, WSGIEnviron
 
 STATUS_TEXT = {
     code: "%d %s" % (code, msg)
@@ -60,6 +60,7 @@ class WSGIApp(CliApp):
         Component(http.RequestData, init=wsgi.get_request_data),
         Component(FileWrapper, init=wsgi.get_file_wrapper),
         Component(http.Session, init=sessions.get_session),
+        Component(Auth, init=wsgi.get_auth)
     ]
 
     def __init__(self, **kwargs):
@@ -88,6 +89,7 @@ class WSGIApp(CliApp):
             initial_state=self.preloaded_state,
             required_state={
                 WSGIEnviron: 'wsgi_environ',
+                Handler: 'handler',
                 KeywordArgs: 'kwargs',
                 Exception: 'exc',
                 http.ResponseHeaders: 'response_headers'
@@ -101,6 +103,7 @@ class WSGIApp(CliApp):
         headers = http.ResponseHeaders()
         state = {
             'wsgi_environ': environ,
+            'handler': None,
             'kwargs': None,
             'exc': None,
             'response_headers': headers
@@ -109,8 +112,8 @@ class WSGIApp(CliApp):
         path = environ['PATH_INFO']
         try:
             handler, kwargs = self.router.lookup(path, method)
-            state['kwargs'] = kwargs
-            funcs = [handler, self.finalize_response]
+            state['handler'], state['kwargs'] = handler, kwargs
+            funcs = [self.check_permissions, handler, self.finalize_response]
             response = self.http_injector.run_all(funcs, state=state)
         except Exception as exc:
             state['exc'] = exc  # type: ignore
@@ -124,7 +127,8 @@ class WSGIApp(CliApp):
             status_text = str(response.status)
 
         headers.update(response.headers)
-        headers['content-type'] = response.content_type
+        if response.content_type is not None:
+            headers['content-type'] = response.content_type
 
         if isinstance(response.content, (bytes, str)):
             content = [response.content]
@@ -148,6 +152,16 @@ class WSGIApp(CliApp):
 
         raise
 
+    def check_permissions(self, handler: Handler, injector: Injector, settings: Settings):
+        default_permissions = settings.get('PERMISSIONS', None)
+        permissions = getattr(handler, 'permissions', default_permissions)
+        if permissions is None:
+            return
+
+        for permission in permissions:
+            if not injector.run(permission.has_permission):
+                raise exceptions.Forbidden()
+
     def finalize_response(self, ret: ReturnValue) -> http.Response:
         if isinstance(ret, http.Response):
             data, status, headers, content_type = ret
@@ -158,7 +172,7 @@ class WSGIApp(CliApp):
 
         if data is None:
             content = b''
-            content_type = 'text/plain'
+            content_type = None
         elif isinstance(data, str):
             content = data.encode('utf-8')
             content_type = 'text/html; charset=utf-8'
@@ -171,6 +185,6 @@ class WSGIApp(CliApp):
 
         if not content and status == 200:
             status = 204
-            content_type = 'text/plain'
+            content_type = None
 
         return http.Response(content, status, headers, content_type)
