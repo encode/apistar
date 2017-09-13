@@ -44,7 +44,7 @@ be in sync with your codebase.
     - [Templates](#templates)
     - [Static Files](#static-files)
     - [HTTP Sessions](#http-sessions)
-- [Authentication & Permissions](#authentication-permissions)
+- [Authentication & Permissions](#authentication--permissions)
     - [Authentication](#authentication)
     - [Permissions](#permissions)
 - [Settings & Environment](#settings--environment)
