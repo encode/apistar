@@ -94,11 +94,11 @@ class Auth(metaclass=abc.ABCMeta):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def get_display_name(self) -> str:
+    def get_display_name(self) -> typing.Optional[str]:
         raise NotImplementedError
 
     @abc.abstractmethod
-    def get_user_id(self) -> str:
+    def get_user_id(self) -> typing.Optional[str]:
         raise NotImplementedError
 
 

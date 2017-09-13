@@ -51,8 +51,8 @@ async_client = TestClient(async_app)
 def test_unauthenticated_request(client):
     response = client.get('http://example.com/auth/')
     assert response.json() == {
-        'display_name': '',
-        'user_id': '',
+        'display_name': None,
+        'user_id': None,
         'is_authenticated': False
     }
 

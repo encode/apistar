@@ -5,11 +5,11 @@ class Unauthenticated(Auth):
     def is_authenticated(self) -> bool:
         return False
 
-    def get_display_name(self) -> str:
-        return ''
+    def get_display_name(self) -> None:
+        return None
 
-    def get_user_id(self) -> str:
-        return ''
+    def get_user_id(self) -> None:
+        return None
 
 
 class Authenticated(Auth):

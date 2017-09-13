@@ -73,8 +73,8 @@ def test_unauthenticated_request_to_public_url(client):
     response = client.get('http://example.com/public/')
     assert response.status_code == 200
     assert response.json() == {
-        'display_name': '',
-        'user_id': '',
+        'display_name': None,
+        'user_id': None,
         'is_authenticated': False
     }
 
