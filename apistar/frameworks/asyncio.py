@@ -1,6 +1,6 @@
 import typing
 
-from apistar import Settings, commands, exceptions, http
+from apistar import commands, exceptions, hooks, http
 from apistar.components import (
     commandline, console, dependency, router, schema, sessions, statics,
     templates, umi
@@ -11,10 +11,7 @@ from apistar.interfaces import (
     Auth, CommandLineClient, Console, FileWrapper, Injector, Router, Schema,
     SessionStore, StaticFiles, Templates
 )
-from apistar.renderers import DEFAULT_RENDERERS, negotiate_renderer
-from apistar.types import (
-    Handler, KeywordArgs, ReturnValue, UMIChannels, UMIMessage
-)
+from apistar.types import Handler, KeywordArgs, UMIChannels, UMIMessage
 
 
 class ASyncIOApp(CliApp):
@@ -65,6 +62,18 @@ class ASyncIOApp(CliApp):
         self.router = self.preloaded_state[Router]
         self.http_injector = self.create_http_injector()
 
+        settings = kwargs.get('settings', None)
+
+        if settings and 'BEFORE_REQUEST' in settings:
+            self.before_request = settings['BEFORE_REQUEST']
+        else:
+            self.before_request = [hooks.check_permissions_async]
+
+        if settings and 'AFTER_REQUEST' in settings:
+            self.after_request = settings['AFTER_REQUEST']
+        else:
+            self.after_request = [hooks.render_response]
+
     def create_http_injector(self) -> Injector:
         """
         Create the dependency injector for running handlers in response to
@@ -106,11 +115,11 @@ class ASyncIOApp(CliApp):
         try:
             handler, kwargs = self.router.lookup(path, method)
             state['handler'], state['kwargs'] = handler, kwargs
-            funcs = [self.check_permissions, handler, self.render_response]
+            funcs = self.before_request + [handler] + self.after_request
             response = await self.http_injector.run_all_async(funcs, state=state)
         except Exception as exc:
             state['exc'] = exc  # type: ignore
-            funcs = [self.exception_handler, self.render_response]
+            funcs = [self.exception_handler] + self.after_request
             response = await self.http_injector.run_all_async(funcs, state=state)
 
         headers.update(response.headers)
@@ -139,43 +148,3 @@ class ASyncIOApp(CliApp):
             return http.Response(content, exc.status_code, {})
 
         raise
-
-    async def check_permissions(self, handler: Handler, injector: Injector, settings: Settings):
-        default_permissions = settings.get('PERMISSIONS', None)
-        permissions = getattr(handler, 'permissions', default_permissions)
-        if permissions is None:
-            return
-
-        for permission in permissions:
-            if not await injector.run_async(permission.has_permission):
-                raise exceptions.Forbidden()
-
-    def render_response(self,
-                        handler: Handler,
-                        settings: Settings,
-                        accept: http.Header,
-                        ret: ReturnValue) -> http.Response:
-        if isinstance(ret, http.Response):
-            data, status, headers, content_type = ret
-            if content_type is not None:
-                return ret
-        else:
-            data, status, headers, content_type = ret, 200, {}, None
-
-        if data is None:
-            content = b''
-            content_type = None
-        else:
-            default_renderers = settings.get('RENDERERS', DEFAULT_RENDERERS)
-            renderers = getattr(handler, 'renderers', default_renderers)
-            renderer = negotiate_renderer(accept, renderers)
-            if renderer is None:
-                raise exceptions.NotAcceptable()
-            content = renderer.render(data)
-            content_type = renderer.get_content_type()
-
-        if not content and status == 200:
-            status = 204
-            content_type = None
-
-        return http.Response(content, status, headers, content_type)
