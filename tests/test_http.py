@@ -1,8 +1,9 @@
 import pytest
 
-from apistar import Route, TestClient, http
+from apistar import Route, TestClient, annotate, http
 from apistar.frameworks.asyncio import ASyncIOApp
 from apistar.frameworks.wsgi import WSGIApp
+from apistar.renderers import HTMLRenderer
 
 
 def to_native(obj):  # pragma: nocover  (Some cases only included for completeness)
@@ -89,10 +90,12 @@ def get_accept_header(accept: http.Header) -> http.Response:
 
 # Different response types
 
+@annotate(renderers=[HTMLRenderer()])
 def binary_response():
     return b'<html><h1>Hello, world</h1></html>'
 
 
+@annotate(renderers=[HTMLRenderer()])
 def text_response():
     return '<html><h1>Hello, world</h1></html>'
 

@@ -225,7 +225,7 @@ class Request():
 
 class Response(collections.abc.Iterable):
     def __init__(self,
-                 content: typing.Any=b'',
+                 content: typing.Any=None,
                  status: int=200,
                  headers: StringPairs=None,
                  content_type: str=None) -> None:

@@ -1,4 +1,3 @@
-import json
 import typing
 
 from werkzeug.http import HTTP_STATUS_CODES
@@ -14,6 +13,7 @@ from apistar.interfaces import (
     Auth, CommandLineClient, Console, FileWrapper, Injector, Router, Schema,
     SessionStore, StaticFiles, Templates
 )
+from apistar.renderers import DEFAULT_RENDERERS, negotiate_renderer
 from apistar.types import Handler, KeywordArgs, ReturnValue, WSGIEnviron
 
 STATUS_TEXT = {
@@ -113,11 +113,11 @@ class WSGIApp(CliApp):
         try:
             handler, kwargs = self.router.lookup(path, method)
             state['handler'], state['kwargs'] = handler, kwargs
-            funcs = [self.check_permissions, handler, self.finalize_response]
+            funcs = [self.check_permissions, handler, self.render_response]
             response = self.http_injector.run_all(funcs, state=state)
         except Exception as exc:
             state['exc'] = exc  # type: ignore
-            funcs = [self.exception_handler, self.finalize_response]
+            funcs = [self.exception_handler, self.render_response]
             response = self.http_injector.run_all(funcs, state=state)
 
         # Get the WSGI response information, given the Response instance.
@@ -152,7 +152,10 @@ class WSGIApp(CliApp):
 
         raise
 
-    def check_permissions(self, handler: Handler, injector: Injector, settings: Settings):
+    def check_permissions(self,
+                          handler: Handler,
+                          injector: Injector,
+                          settings: Settings) -> None:
         default_permissions = settings.get('PERMISSIONS', None)
         permissions = getattr(handler, 'permissions', default_permissions)
         if permissions is None:
@@ -162,7 +165,11 @@ class WSGIApp(CliApp):
             if not injector.run(permission.has_permission):
                 raise exceptions.Forbidden()
 
-    def finalize_response(self, ret: ReturnValue) -> http.Response:
+    def render_response(self,
+                        handler: Handler,
+                        settings: Settings,
+                        accept: http.Header,
+                        ret: ReturnValue) -> http.Response:
         if isinstance(ret, http.Response):
             data, status, headers, content_type = ret
             if content_type is not None:
@@ -173,15 +180,14 @@ class WSGIApp(CliApp):
         if data is None:
             content = b''
             content_type = None
-        elif isinstance(data, str):
-            content = data.encode('utf-8')
-            content_type = 'text/html; charset=utf-8'
-        elif isinstance(data, bytes):
-            content = data
-            content_type = 'text/html; charset=utf-8'
         else:
-            content = json.dumps(data).encode('utf-8')
-            content_type = 'application/json'
+            default_renderers = settings.get('RENDERERS', DEFAULT_RENDERERS)
+            renderers = getattr(handler, 'renderers', default_renderers)
+            renderer = negotiate_renderer(accept, renderers)
+            if renderer is None:
+                raise exceptions.NotAcceptable()
+            content = renderer.render(data)
+            content_type = renderer.get_content_type()
 
         if not content and status == 200:
             status = 204

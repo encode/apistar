@@ -3,13 +3,15 @@ import tempfile
 
 import pytest
 
-from apistar import Route, TestClient
+from apistar import Route, TestClient, annotate
 from apistar.exceptions import TemplateNotFound
 from apistar.frameworks.asyncio import ASyncIOApp
 from apistar.frameworks.wsgi import WSGIApp
 from apistar.interfaces import Templates
+from apistar.renderers import HTMLRenderer
 
 
+@annotate(renderers=[HTMLRenderer()])
 def get_and_render_template(username: str, templates: Templates):
     index = templates.get_template('index.html')
     return index.render(username=username)
@@ -25,7 +27,7 @@ def test_get_and_render_template(app_class):
     with tempfile.TemporaryDirectory() as tempdir:
         path = os.path.join(tempdir, 'index.html')
         with open(path, 'w') as index:
-            index.write('<html><body>Hello, {{ username }}</body><html>')
+            index.write('<html><body>Hello, {{ username }}</body></html>')
 
         settings = {
             'TEMPLATES': {
@@ -38,7 +40,7 @@ def test_get_and_render_template(app_class):
         response = client.get('/get_and_render_template/?username=tom')
 
         assert response.status_code == 200
-        assert response.text == '<html><body>Hello, tom</body><html>'
+        assert response.text == '<html><body>Hello, tom</body></html>'
 
 
 @pytest.mark.parametrize('app_class', [WSGIApp, ASyncIOApp])
