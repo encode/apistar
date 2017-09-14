@@ -641,6 +641,93 @@ components = [
 
 app = App(routes=routes, components=components)
 ```
+
+---
+
+# Renderers & Parsers
+
+Renderers and parsers are responsible for handling the translation of incoming
+or outgoing bytestreams.
+
+For example, when returning a response we'll often simply return a native
+Python datastructure such as a `dict` or `list`. A renderer class is then
+responsible for generating the bytes that should be used for the response body.
+
+## Renderers
+
+API Star defaults to returning JSON responses. You can alter this behaviour
+by configuring the renderers that should be supported.
+
+### Configuring the installed renderers
+
+We can install one or more renderers by adding them to our settings.
+The `RENDERERS` setting should be a list. For example if most of our
+handlers return HTML responses, we might use the following:
+
+```python
+settings = {
+    'RENDERERS': [HTMLRenderer()]
+}
+```
+
+Alternatively we can specify the renderers to use on a specific handler function.
+
+```python
+from apistar import annotate
+from apistar.renderers import JSONRenderer
+from myproject.renderers import CSVRenderer
+
+@annotate(renderers=[JSONRenderer(), CSVRenderer()])
+def download_current_dataset():
+    # Return some data, formatted either as JSON or CSV,
+    # depending on the request Accept header.
+    ...
+```
+
+### How a renderer is determined
+
+API Star uses HTTP content negotiation to determine which renderer should
+be returned. The `Accept` header is inspected, and one of the available
+installed renderers is selected. If the Accept header doesn't match any of the
+installed renderers then a `406 Not Acceptable` response will be returned.
+
+You can disable the content negotiation by including an explicit `content_type`
+argument when returning a `Response`. For example...
+
+    content = template.render(...)
+    return http.Response(content, content_type='text/html')
+
+## Parsers
+
+Parsers are responsible for taking the incoming request body, and returning
+the data structure it represents, given the `Content-Type` of the request.
+
+By default API Star supports parsing JSON or form encoded requests.
+
+### Configuring the installed renderers
+
+We can install one or more parsers by adding them to our settings.
+The `PARSERS` setting should be a list. For example if we want to disable
+form parsing, and only support JSON requests, we can do the following:
+
+```python
+settings = {
+    'PARSERS': [JSONParser()]
+}
+```
+
+Alternatively we can specify the parsers to use on a specific handler function.
+
+```python
+from apistar import annotate
+from apistar.parsers import MultiPartRenderer
+
+@annotate(parsers=[MultiPartRenderer()])
+def file_upload():
+    # Handles a file upload, using a multipart encoded request.
+    ...
+```
+
 ---
 
 # Authentication & Permissions
@@ -1307,6 +1394,22 @@ To successfully run `zappa deploy` you will need an IAM user on your AWS account
 ---
 
 # Changelog
+
+## 0.3 Release
+
+* Added Authentication & Permissions support.
+* Added Parsers & Renderers support, with content negotiation.
+* Added HTTP Session support.
+* Added `BEFORE_REQUEST` / `AFTER_REQUEST` settings.
+* Added `SCHEMA` settings.
+* Added support for using `Injector` component inside a handler.
+
+Note: Because we now support configurable renderers, there's a difference in
+the behaviour of returning plain data, or a Response without a `content_type` set.
+Previously we would return HTML for strings/bytes, and JSON for anything else.
+Now, JSON is the default for everything, unless alternative renderers are
+specified. See the "Renderers & Parsers" and "Requests & Responses" section
+for more detail.
 
 ## 0.2 Release
 
