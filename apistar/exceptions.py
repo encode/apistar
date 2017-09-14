@@ -96,6 +96,11 @@ class MethodNotAllowed(HTTPException):
     default_detail = 'Method not allowed'
 
 
+class NotAcceptable(HTTPException):
+    default_status_code = 406
+    default_detail = 'Could not satisfy the request Accept header'
+
+
 class UnsupportedMediaType(HTTPException):
     default_status_code = 415
     default_detail = 'Unsupported media type'
