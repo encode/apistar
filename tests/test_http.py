@@ -284,7 +284,8 @@ def test_data(client):
     assert response.json() == {'data': {'hello': 123}}
 
     response = client.post('http://example.com/data/')
-    assert response.json() == {'data': None}
+    assert response.status_code == 400
+    assert response.json() == {'message': 'No content type specified'}
 
     response = client.post('http://example.com/data/', data={'abc': 123})
     assert response.json() == {'data': {'abc': '123'}}
