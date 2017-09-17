@@ -44,6 +44,9 @@ be in sync with your codebase.
     - [Templates](#templates)
     - [Static Files](#static-files)
     - [HTTP Sessions](#http-sessions)
+- [Renderers & Parsers](#renderers--parsers)
+    - [Renderers](#renderers)
+    - [Parsers](#parsers)
 - [Authentication & Permissions](#authentication--permissions)
     - [Authentication](#authentication)
     - [Permissions](#permissions)
@@ -61,6 +64,7 @@ be in sync with your codebase.
     - [Running in Production](#running-in-production)
     - ["Serverless" Deployments](#serverless-deployments)
 - [Changelog](#changelog)
+    - [0.3 Release](#03-release)
     - [0.2 Release](#02-release)
 - [Development](#development)
 
@@ -704,7 +708,7 @@ the data structure it represents, given the `Content-Type` of the request.
 
 By default API Star supports parsing JSON or form encoded requests.
 
-### Configuring the installed renderers
+### Configuring the installed parsers
 
 We can install one or more parsers by adding them to our settings.
 The `PARSERS` setting should be a list. For example if we want to disable
