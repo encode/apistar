@@ -155,7 +155,9 @@ class DependencyInjector(Injector):
                             state: typing.Dict[str, typing.Any]={}) -> typing.Any:
         raise NotImplementedError('Cannot use `run_all_async` when running with WSGI.')
 
-    def _resolve_parameter(self, param: inspect.Parameter) -> typing.Tuple[str, typing.Optional[typing.Callable]]:
+    def _resolve_parameter(self,
+                           param: inspect.Parameter,
+                           func: typing.Callable) -> typing.Tuple[str, typing.Optional[typing.Callable]]:
         """
         Resolve a single function parameter, returning the information needed
         to inject it to the function.
@@ -198,7 +200,7 @@ class DependencyInjector(Injector):
 
         for resolver in self.resolvers:
             # Try any custom resolvers that are installed.
-            ret = resolver.resolve(param)
+            ret = resolver.resolve(param, func)
             if ret is not None:
                 return ret
 
@@ -242,7 +244,7 @@ class DependencyInjector(Injector):
                 input_values[param.name] = parent_param.annotation
                 continue
 
-            key, provider_func = self._resolve_parameter(param)
+            key, provider_func = self._resolve_parameter(param, func)
             input_keys[param.name] = key
             if provider_func is None or (key in seen_keys):
                 continue
@@ -258,7 +260,7 @@ class DependencyInjector(Injector):
             output_key = 'returnvalue'
             context_manager = False
         else:
-            output_key, _ = self._resolve_parameter(parent_param)
+            output_key, _ = self._resolve_parameter(parent_param, None)
             context_manager = (
                 hasattr(parent_param.annotation, '__enter__') and
                 hasattr(parent_param.annotation, '__exit__')
@@ -516,7 +518,9 @@ class CliResolver(Resolver):
     Handles resolving parameters for running with the command line.
     """
 
-    def resolve(self, param: inspect.Parameter) -> typing.Optional[typing.Tuple[str, typing.Callable]]:
+    def resolve(self,
+                param: inspect.Parameter,
+                func: typing.Callable) -> typing.Optional[typing.Tuple[str, typing.Callable]]:
         """
         Resolve a single function parameter, returning the information needed
         to inject it to the function.
@@ -550,7 +554,9 @@ class HTTPResolver(Resolver):
     Handles resolving parameters for HTTP requests.
     """
 
-    def resolve(self, param: inspect.Parameter) -> typing.Optional[typing.Tuple[str, typing.Callable]]:
+    def resolve(self,
+                param: inspect.Parameter,
+                func: typing.Callable) -> typing.Optional[typing.Tuple[str, typing.Callable]]:
         """
         Resolve a single function parameter, returning the information needed
         to inject it to the function.
@@ -568,24 +574,38 @@ class HTTPResolver(Resolver):
         annotation = param.annotation
 
         key = ''
-        func = None  # type: typing.Callable
+        default_func = None  # type: typing.Callable
 
         if annotation is inspect.Parameter.empty:
             key = 'empty:' + param.name
-            func = self.empty
-            return (key, func)
+            default_func = self.empty
 
         elif issubclass(annotation, (str, int, float, bool, typesystem.Boolean)):
             key = '%s:%s' % (annotation.__name__.lower(), param.name)
-            func = self.scalar_type
-            return (key, func)
+            default_func = self.url_or_query_argument
 
         elif issubclass(annotation, (dict, list)):
             key = '%s:%s' % (annotation.__name__.lower(), param.name)
-            func = self.container_type
-            return (key, func)
+            default_func = self.body_argument
 
-        return None
+        else:
+            return None
+
+        # Allow a 'location' annotation on the function to override
+        # the default function.
+        locations = getattr(func, 'location', {})
+        location = locations.get(param.name)
+        if location is None:
+            resolved_func = default_func  # type: typing.Callable
+        else:
+            location_to_func = {
+                'query': self.query_argument,
+                'form': self.form_argument,
+                'body': self.body_argument,
+                'url': self.url_argument
+            }  # type: typing.Dict[str, typing.Callable]
+            resolved_func = location_to_func[location]
+        return (key, resolved_func)
 
     def empty(self,
               name: ParamName,
@@ -608,11 +628,11 @@ class HTTPResolver(Resolver):
             return kwargs[name]
         return query_params.get(name)
 
-    def scalar_type(self,
-                    name: ParamName,
-                    kwargs: KeywordArgs,
-                    query_params: http.QueryParams,
-                    coerce: ParamAnnotation) -> typing.Any:
+    def url_or_query_argument(self,
+                              name: ParamName,
+                              kwargs: KeywordArgs,
+                              query_params: http.QueryParams,
+                              coerce: ParamAnnotation) -> typing.Any:
         """
         Handles `str`, `int`, `float`, or `bool` annotations for HTTP requests.
         These types use either a matched URL keyword argument, or else
@@ -628,12 +648,14 @@ class HTTPResolver(Resolver):
             The value that should be used for the handler function.
         """
         if name in kwargs:
-            value = kwargs[name]
-            is_url_arg = True
-        else:
-            value = query_params.get(name)
-            is_url_arg = False
+            return self.url_argument(name, kwargs, coerce)
+        return self.query_argument(name, query_params, coerce)
 
+    def url_argument(self,
+                     name: ParamName,
+                     kwargs: KeywordArgs,
+                     coerce: ParamAnnotation) -> typing.Any:
+        value = kwargs[name]
         if value is None or isinstance(value, coerce):
             return value
 
@@ -644,24 +666,49 @@ class HTTPResolver(Resolver):
         except (TypeError, ValueError) as exc:
             detail = {name: str(exc)}
 
-        if is_url_arg:
-            raise exceptions.NotFound()
+        raise exceptions.NotFound(detail=detail)
+
+    def query_argument(self,
+                       name: ParamName,
+                       query_params: http.QueryParams,
+                       coerce: ParamAnnotation) -> typing.Any:
+        value = query_params.get(name)
+        if value is None or isinstance(value, coerce):
+            return value
+
+        try:
+            return coerce(value)
+        except exceptions.TypeSystemError as exc:
+            detail = {name: exc.detail}
+        except (TypeError, ValueError) as exc:
+            detail = {name: str(exc)}
         raise exceptions.ValidationError(detail=detail)
 
-    def container_type(self,
-                       data: http.RequestData,
-                       coerce: ParamAnnotation) -> typing.Any:
-        """
-        Handles `list` or `dict` annotations for HTTP requests.
-        These types use the parsed request body.
+    def form_argument(self,
+                      data: http.RequestData,
+                      name: ParamName,
+                      coerce: ParamAnnotation) -> typing.Any:
+        if not isinstance(data, dict):
+            raise exceptions.ValidationError(
+                detail='Request data must be an object.'
+            )
 
-        Args:
-            data: The parsed request data.
-            coerce: The type of the parameter that is being injected.
+        data = data.get(name)
+        if data is None or isinstance(data, coerce):
+            return data
 
-        Returns:
-            The value that should be used for the handler function.
-        """
+        try:
+            return coerce(data)
+        except exceptions.TypeSystemError as exc:
+            detail = exc.detail
+        except (TypeError, ValueError) as exc:
+            detail = str(exc)
+
+        raise exceptions.ValidationError(detail=detail)
+
+    def body_argument(self,
+                      data: http.RequestData,
+                      coerce: ParamAnnotation) -> typing.Any:
         if data is None or isinstance(data, coerce):
             return data
 

@@ -185,7 +185,7 @@ def test_invalid_max_length(client):
     response = client.get('/max_length/abcdef/')
     assert response.status_code == 404
     assert response.json() == {
-        'message': 'Not found'
+        'var': 'Must have no more than 5 characters.'
     }
 
 
