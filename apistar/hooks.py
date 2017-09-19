@@ -66,6 +66,8 @@ def render_response(handler: Handler,
         if renderer is None:
             raise exceptions.NotAcceptable()
         content = injector.run(renderer.render, {'response_data': data})
+        if isinstance(content, http.Response):
+            return content
         content_type = renderer.get_content_type()
 
     if not content and status == 200:
