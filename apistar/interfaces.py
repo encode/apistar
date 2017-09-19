@@ -116,7 +116,9 @@ class CommandLineClient(metaclass=abc.ABCMeta):
 
 class Resolver(metaclass=abc.ABCMeta):
     @abc.abstractmethod
-    def resolve(self, param: inspect.Parameter) -> typing.Optional[typing.Tuple[str, typing.Callable]]:
+    def resolve(self,
+                param: inspect.Parameter,
+                func: typing.Callable) -> typing.Optional[typing.Tuple[str, typing.Callable]]:
         raise NotImplementedError
 
 
