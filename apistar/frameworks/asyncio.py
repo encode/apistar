@@ -93,7 +93,8 @@ class ASyncIOApp(CliApp):
                 KeywordArgs: 'kwargs',
                 Handler: 'handler',
                 Exception: 'exc',
-                http.ResponseHeaders: 'response_headers'
+                http.ResponseHeaders: 'response_headers',
+                http.ResponseData: 'response_data'
             },
             resolvers=[dependency.HTTPResolver()]
         )

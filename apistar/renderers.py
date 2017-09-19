@@ -4,6 +4,8 @@ import typing
 
 from werkzeug.http import parse_accept_header
 
+from apistar import http
+
 subtype = re.compile('/[^/]*$')
 
 
@@ -11,7 +13,7 @@ class Renderer():
     media_type = 'text/plain'
     charset = 'utf-8'  # type: typing.Optional[str]
 
-    def render(self, data) -> bytes:
+    def render(self, data: http.ResponseData) -> bytes:
         pass
 
     def get_content_type(self) -> str:
@@ -24,7 +26,7 @@ class JSONRenderer(Renderer):
     media_type = 'application/json'
     charset = None
 
-    def render(self, data) -> bytes:
+    def render(self, data: http.ResponseData) -> bytes:
         return json.dumps(data).encode('utf-8')
 
 
@@ -32,10 +34,11 @@ class HTMLRenderer(Renderer):
     media_type = 'text/html'
     charset = 'utf-8'
 
-    def render(self, data) -> bytes:
+    def render(self, data: http.ResponseData) -> bytes:
+        assert isinstance(data, (str, bytes))
         if isinstance(data, str):
             return data.encode(self.charset)
-        return data
+        return typing.cast(bytes, data)
 
 
 def negotiate_renderer(accept: typing.Optional[str],

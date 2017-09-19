@@ -15,6 +15,7 @@ Body = typing.NewType('Body', bytes)
 
 RequestStream = typing.NewType('RequestStream', io.BufferedIOBase)
 RequestData = typing.TypeVar('RequestData')
+ResponseData = typing.TypeVar('ResponseData')
 
 
 class URL(str):

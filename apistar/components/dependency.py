@@ -17,6 +17,13 @@ Step = typing.NamedTuple('Step', [
 ])
 
 
+def include_kwargs(step: Step,
+                   kwargs: typing.Dict[str, typing.Any]={}):
+    func, input_keys, input_values, output_key, is_context_manager, is_async = step
+    input_values.update(kwargs)
+    return Step(func, input_keys, input_values, output_key, is_context_manager, is_async)
+
+
 class DependencyInjector(Injector):
     """
     Stores all the state required in order to handle running functions by
@@ -69,7 +76,9 @@ class DependencyInjector(Injector):
         # injection steps for any given function.
         self._steps_cache = {}  # type: typing.Dict[typing.Callable, typing.List[Step]]
 
-    def run(self, func: typing.Callable) -> typing.Any:
+    def run(self,
+            func: typing.Callable,
+            state: typing.Dict[str, typing.Any]={}) -> typing.Any:
         """
         Run a functions, using dependency inject to resolve any parameters
         that it requires.
@@ -80,7 +89,7 @@ class DependencyInjector(Injector):
         Returns:
             The return value of the function.
         """
-        return self.run_all([func], {})
+        return self.run_all([func], state)
 
     def run_all(self,
                 funcs: typing.List[typing.Callable],
@@ -137,12 +146,13 @@ class DependencyInjector(Injector):
         return ret
 
     async def run_async(self,
-                        func: typing.Callable) -> typing.Any:
+                        func: typing.Callable,
+                        state: typing.Dict[str, typing.Any]={}) -> typing.Any:
         raise NotImplementedError('Cannot use `run_async` when running with WSGI.')
 
     async def run_all_async(self,
                             funcs: typing.List[typing.Callable],
-                            state: typing.Dict[str, typing.Any]) -> typing.Any:
+                            state: typing.Dict[str, typing.Any]={}) -> typing.Any:
         raise NotImplementedError('Cannot use `run_all_async` when running with WSGI.')
 
     def _resolve_parameter(self, param: inspect.Parameter) -> typing.Tuple[str, typing.Optional[typing.Callable]]:
@@ -282,7 +292,9 @@ class BoundInjector(Injector):
         self.state = state
         self.stack = stack
 
-    def run(self, func: typing.Callable) -> typing.Any:
+    def run(self,
+            func: typing.Callable,
+            state: typing.Dict[str, typing.Any]={}) -> typing.Any:
         """
         Run a function, using dependency inject to resolve any parameters
         that it requires.
@@ -299,6 +311,8 @@ class BoundInjector(Injector):
         except KeyError:
             steps = self.bound_to._create_steps(func)
             self.bound_to._steps_cache[func] = steps
+
+        self.state.update(state)
 
         ret = None
 
@@ -333,19 +347,22 @@ class BoundInjector(Injector):
         )
 
     async def run_async(self,
-                        func: typing.Callable) -> typing.Any:
+                        func: typing.Callable,
+                        state: typing.Dict[str, typing.Any]={}) -> typing.Any:
         raise NotImplementedError('Cannot use `run_async` when running with WSGI.')
 
     async def run_all_async(self,
                             funcs: typing.List[typing.Callable],
-                            state: typing.Dict[str, typing.Any]) -> typing.Any:
+                            state: typing.Dict[str, typing.Any]={}) -> typing.Any:
         raise NotImplementedError('Cannot use `run_all_async` when running with WSGI.')
 
 
 # asyncio flavoured dependency injector...
 
 class AsyncDependencyInjector(DependencyInjector):
-    async def run_async(self, func: typing.Callable) -> typing.Any:
+    async def run_async(self,
+                        func: typing.Callable,
+                        state: typing.Dict[str, typing.Any]={}) -> typing.Any:
         """
         Run a function, using dependency inject to resolve any parameters
         that it requires.
@@ -356,7 +373,7 @@ class AsyncDependencyInjector(DependencyInjector):
         Returns:
             The return value of the given function.
         """
-        return await self.run_all_async([func], {})
+        return await self.run_all_async([func], state)
 
     async def run_all_async(self,
                             funcs: typing.List[typing.Callable],
@@ -433,7 +450,9 @@ class AsyncBoundInjector(BoundInjector):
         self.state = state
         self.stack = stack
 
-    async def run_async(self, func: typing.Callable) -> typing.Any:
+    async def run_async(self,
+                        func: typing.Callable,
+                        state: typing.Dict[str, typing.Any]={}) -> typing.Any:
         """
         Run a function, using dependency inject to resolve any parameters
         that it requires.
@@ -450,6 +469,8 @@ class AsyncBoundInjector(BoundInjector):
         except KeyError:
             steps = self.bound_to._create_steps(func)
             self.bound_to._steps_cache[func] = steps
+
+        self.state.update(state)
 
         ret = None
 

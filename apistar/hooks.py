@@ -39,6 +39,7 @@ async def check_permissions_async(handler: Handler,
 
 
 def render_response(handler: Handler,
+                    injector: Injector,
                     settings: Settings,
                     accept: http.Header,
                     ret: ReturnValue) -> http.Response:
@@ -64,7 +65,7 @@ def render_response(handler: Handler,
         renderer = negotiate_renderer(accept, renderers)
         if renderer is None:
             raise exceptions.NotAcceptable()
-        content = renderer.render(data)
+        content = injector.run(renderer.render, {'response_data': data})
         content_type = renderer.get_content_type()
 
     if not content and status == 200:

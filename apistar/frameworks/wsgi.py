@@ -103,7 +103,8 @@ class WSGIApp(CliApp):
                 Handler: 'handler',
                 KeywordArgs: 'kwargs',
                 Exception: 'exc',
-                http.ResponseHeaders: 'response_headers'
+                http.ResponseHeaders: 'response_headers',
+                http.ResponseData: 'response_data'
             },
             resolvers=[dependency.HTTPResolver()]
         )
