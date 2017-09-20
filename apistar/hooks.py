@@ -51,12 +51,12 @@ def render_response(handler: Handler,
     """
     if isinstance(ret, http.Response):
         data, status, headers, content_type = ret
-        if content_type is not None:
+        if content_type is not None or (status >= 300 and status <= 399):
             return ret
     else:
         data, status, headers, content_type = ret, 200, {}, None
 
-    if data is None:
+    if data is None or data == b'':
         content = b''
         content_type = None
     else:

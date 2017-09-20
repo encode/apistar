@@ -153,7 +153,10 @@ class WSGIApp(CliApp):
 
     def exception_handler(self, exc: Exception) -> http.Response:
         if isinstance(exc, exceptions.Found):
-            return http.Response('', exc.status_code, {'Location': exc.location})
+            return http.Response(
+                status=exc.status_code,
+                headers={'Location': exc.location}
+            )
 
         if isinstance(exc, exceptions.HTTPException):
             if isinstance(exc.detail, str):
