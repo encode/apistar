@@ -788,7 +788,7 @@ The `authenticate` method can accept any installed components in its signature.
 ```python
 import base64
 from apistar import http
-from apistar.auth import Authenticated
+from apistar.authentication import Authenticated
 
 class BasicAuthentication():
     def authenticate(self, authorization: http.Header):
@@ -824,7 +824,8 @@ settings = {
 Alternatively we can specify authentication policies on a specific handler function.
 
 ```python
-from apistar import Auth, annotate
+from apistar import annotate
+from apistar.interfaces import Auth
 from myproject.authentication import BasicAuthentication
 
 @annotate(authentication=[BasicAuthentication()])
