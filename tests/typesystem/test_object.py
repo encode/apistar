@@ -23,6 +23,7 @@ class HighScore(typesystem.Object):
         'difficulty': typesystem.enum(enum=['easy', 'medium', 'hard']),
         'location': typesystem.newtype(Location, default={'latitude': 0.0, 'longitude': 0.0})
     }
+    required = ['name']
 
 
 def basic_object(score: HighScore):

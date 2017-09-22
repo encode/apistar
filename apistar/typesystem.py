@@ -147,6 +147,7 @@ class Object(dict):
         'required': 'This field is required.',
     }
     properties = {}  # type: typing.Dict[str, typing.Any]
+    required = []  # type: typing.List[str]
 
     def __init__(self, *args, **kwargs):
         if len(args) == 1 and not kwargs and isinstance(args[0], dict):
@@ -173,7 +174,7 @@ class Object(dict):
                 if hasattr(child_schema, 'default'):
                     # If a key is missing but has a default, then use that.
                     self[key] = child_schema.default
-                else:
+                elif key in self.required:
                     exc = TypeSystemError(cls=self.__class__, code='required')
                     errors[key] = exc.detail
             else:
