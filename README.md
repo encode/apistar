@@ -842,7 +842,7 @@ def display_user(auth: Auth):
 Typically you'll want to either permit or deny an incoming request, based on the
 authentication credentials provided.
 
-API Star provides a single built-in `IsAuthenticted` permission class, or you
+API Star provides a single built-in `IsAuthenticated` permission class, or you
 can implement your own for more complex cases.
 
 ### Creating a permissions class
@@ -870,7 +870,7 @@ you can do so globally, using the settings...
 ```python
 settings = {
     'AUTHENTICATION': [BasicAuthentication()],
-    'PERMISSIONS': [IsAuthenticted()]
+    'PERMISSIONS': [IsAuthorized()]
 }
 ```
 
@@ -879,7 +879,7 @@ Or configure permissions on a specific handler...
 ```python
 @annotate(
     authentication=[BasicAuthentication()],
-    permissions=[IsAuthenticated()]
+    permissions=[IsAuthorized()]
 )
 def display_user(auth: Auth):
     # Only authenticated requests will be allowed to access this handler.
