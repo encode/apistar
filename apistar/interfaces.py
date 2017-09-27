@@ -68,7 +68,6 @@ class StaticFiles(metaclass=abc.ABCMeta):
 
 # Sessions
 
-
 class SessionStore(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def new(self) -> http.Session:
@@ -103,7 +102,6 @@ class Auth(metaclass=abc.ABCMeta):
 
 
 # Command Line Parser
-
 
 class CommandLineClient(metaclass=abc.ABCMeta):
     @abc.abstractmethod
