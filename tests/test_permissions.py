@@ -7,7 +7,7 @@ from apistar.authentication import Authenticated
 from apistar.frameworks.asyncio import ASyncIOApp
 from apistar.frameworks.wsgi import WSGIApp
 from apistar.interfaces import Auth
-from apistar.permissions import IsAuthenticated
+from apistar.permissions import IsAuthorized
 
 
 def get_auth(auth: Auth):
@@ -49,7 +49,7 @@ routes = [
 ]
 settings = {
     'AUTHENTICATION': [BasicAuthentication()],
-    'PERMISSIONS': [IsAuthenticated()]
+    'PERMISSIONS': [IsAuthorized()]
 }
 
 wsgi_app = WSGIApp(routes=routes, settings=settings)

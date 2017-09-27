@@ -870,7 +870,7 @@ you can do so globally, using the settings...
 ```python
 settings = {
     'AUTHENTICATION': [BasicAuthentication()],
-    'PERMISSIONS': [IsAuthenticted()]
+    'PERMISSIONS': [IsAuthorized()]
 }
 ```
 
@@ -879,7 +879,7 @@ Or configure permissions on a specific handler...
 ```python
 @annotate(
     authentication=[BasicAuthentication()],
-    permissions=[IsAuthenticated()]
+    permissions=[IsAuthorized()]
 )
 def display_user(auth: Auth):
     # Only authenticated requests will be allowed to access this handler.
