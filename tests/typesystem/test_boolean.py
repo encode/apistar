@@ -26,6 +26,7 @@ def test_boolean():
     assert typesystem.Boolean('TRUE') is True
     assert typesystem.Boolean('FALSE') is False
     assert typesystem.Boolean('') is False
+    assert typesystem.Boolean() is False
 
 
 def test_valid_boolean():
