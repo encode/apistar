@@ -10,9 +10,10 @@ from apistar.frameworks.cli import CliApp
 from apistar.interfaces import App
 
 
-def load_app(folder) -> App:
+def load_app(filepath) -> App:
+    folder = os.path.dirname(filepath)
     sys.path.insert(0, folder)
-    spec = importlib.util.spec_from_file_location("app", "%s/app.py" % folder)
+    spec = importlib.util.spec_from_file_location("app", filepath)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     app = getattr(module, 'app', None)
@@ -30,9 +31,9 @@ def default_app() -> App:
 
 
 def main() -> None:  # pragma: nocover
-    folder = os.getenv('APISTAR_FOLDER', os.getcwd())
-    if os.path.exists('%s/app.py' % folder):
-        app = load_app(folder)
+    filepath = os.getenv('APISTAR_APP', os.path.join(os.getcwd(), 'app.py'))
+    if os.path.isfile(filepath):
+        app = load_app(filepath)
     else:
         app = default_app()
     app.main()
