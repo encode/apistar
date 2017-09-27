@@ -842,7 +842,7 @@ def display_user(auth: Auth):
 Typically you'll want to either permit or deny an incoming request, based on the
 authentication credentials provided.
 
-API Star provides a single built-in `IsAuthenticted` permission class, or you
+API Star provides a single built-in `IsAuthenticated` permission class, or you
 can implement your own for more complex cases.
 
 ### Creating a permissions class
