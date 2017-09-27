@@ -724,9 +724,9 @@ Alternatively we can specify the parsers to use on a specific handler function.
 
 ```python
 from apistar import annotate
-from apistar.parsers import MultiPartRenderer
+from apistar.parsers import MultiPartParser
 
-@annotate(parsers=[MultiPartRenderer()])
+@annotate(parsers=[MultiPartParser()])
 def file_upload():
     # Handles a file upload, using a multipart encoded request.
     ...
