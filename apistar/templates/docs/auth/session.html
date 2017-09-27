@@ -9,22 +9,22 @@
     <form class="form-horizontal authentication-session-form">
     <div class="modal-body">
 
-        {% if user.is_authenticated %}
-          <h4 class="text-center">You are logged in as {{ user.username }}.</h4>
-        {% else %}
+        <!--  if user.is_authenticated
+          <h4 class="text-center">You are logged in as  user.username .</h4>
+         else  -->
 
           <div class="text-center">
-            <h4 class="text-center">You need to {% optional_docs_login request %} to enable Session Authentication.</h4>
+            <h4 class="text-center">You need to login to enable Session Authentication.</h4>
           </div>
-        {% endif %}
+        <!-- endif  -->
 
     </div>
 
     <div class="modal-footer">
       <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-      {% if user.is_authenticated %}
+      <!--  if user.is_authenticated  -->
         <button type="submit" class="btn btn-primary">Use Session Authentication</button>
-      {% endif %}
+      <!--  endif  -->
     </div>
     </form>
 

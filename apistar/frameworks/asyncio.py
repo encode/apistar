@@ -1,17 +1,17 @@
-import json
 import typing
 
-from apistar import commands, exceptions, http
+from apistar import commands, exceptions, hooks, http
 from apistar.components import (
-    commandline, console, dependency, router, schema, statics, templates, umi
+    commandline, console, dependency, router, schema, sessions, statics,
+    templates, umi
 )
 from apistar.core import Command, Component
 from apistar.frameworks.cli import CliApp
 from apistar.interfaces import (
-    CommandLineClient, Console, FileWrapper, Injector, Router, Schema,
-    StaticFiles, Templates
+    Auth, CommandLineClient, Console, FileWrapper, Injector, Router, Schema,
+    SessionStore, StaticFiles, Templates
 )
-from apistar.types import KeywordArgs, UMIChannels, UMIMessage
+from apistar.types import Handler, KeywordArgs, UMIChannels, UMIMessage
 
 
 class ASyncIOApp(CliApp):
@@ -30,7 +30,8 @@ class ASyncIOApp(CliApp):
         Component(StaticFiles, init=statics.WhiteNoiseStaticFiles),
         Component(Router, init=router.WerkzeugRouter),
         Component(CommandLineClient, init=commandline.ArgParseCommandLineClient),
-        Component(Console, init=console.PrintConsole)
+        Component(Console, init=console.PrintConsole),
+        Component(SessionStore, init=sessions.LocalMemorySessionStore),
     ]
 
     HTTP_COMPONENTS = [
@@ -47,8 +48,11 @@ class ASyncIOApp(CliApp):
         Component(http.QueryParam, init=umi.get_queryparam),
         Component(http.Body, init=umi.get_body),
         Component(http.Request, init=http.Request),
+        Component(http.RequestStream, init=umi.get_stream),
         Component(http.RequestData, init=umi.get_request_data),
-        Component(FileWrapper, init=umi.get_file_wrapper)
+        Component(FileWrapper, init=umi.get_file_wrapper),
+        Component(http.Session, init=sessions.get_session),
+        Component(Auth, init=umi.get_auth)
     ]
 
     def __init__(self, **kwargs):
@@ -57,6 +61,18 @@ class ASyncIOApp(CliApp):
         # Setup everything that we need in order to run `self.__call__()`
         self.router = self.preloaded_state[Router]
         self.http_injector = self.create_http_injector()
+
+        settings = kwargs.get('settings', None)
+
+        if settings and 'BEFORE_REQUEST' in settings:
+            self.before_request = settings['BEFORE_REQUEST']
+        else:
+            self.before_request = [hooks.check_permissions_async]
+
+        if settings and 'AFTER_REQUEST' in settings:
+            self.after_request = settings['AFTER_REQUEST']
+        else:
+            self.after_request = [hooks.render_response]
 
     def create_http_injector(self) -> Injector:
         """
@@ -75,7 +91,10 @@ class ASyncIOApp(CliApp):
                 UMIMessage: 'message',
                 UMIChannels: 'channels',
                 KeywordArgs: 'kwargs',
-                Exception: 'exc'
+                Handler: 'handler',
+                Exception: 'exc',
+                http.ResponseHeaders: 'response_headers',
+                http.ResponseData: 'response_data'
             },
             resolvers=[dependency.HTTPResolver()]
         )
@@ -83,32 +102,36 @@ class ASyncIOApp(CliApp):
     async def __call__(self,
                        message: typing.Dict[str, typing.Any],
                        channels: typing.Dict[str, typing.Any]):
+        headers = http.ResponseHeaders()
         state = {
             'message': message,
             'channels': channels,
+            'handler': None,
             'kwargs': None,
-            'exc': None
+            'exc': None,
+            'response_headers': headers
         }
         method = message['method'].upper()
         path = message['path']
         try:
             handler, kwargs = self.router.lookup(path, method)
-            state['kwargs'] = kwargs
-            response = await self.http_injector.run_async(handler, state=state)
+            state['handler'], state['kwargs'] = handler, kwargs
+            funcs = self.before_request + [handler] + self.after_request
+            response = await self.http_injector.run_all_async(funcs, state=state)
         except Exception as exc:
             state['exc'] = exc  # type: ignore
-            response = await self.http_injector.run_async(self.exception_handler, state=state)
+            funcs = [self.exception_handler] + self.after_request
+            response = await self.http_injector.run_all_async(funcs, state=state)
 
-        if getattr(response, 'content_type', None) is None:
-            response = self.finalize_response(response)
+        headers.update(response.headers)
+        if response.content_type is not None:
+            headers['content-type'] = response.content_type
 
         response_message = {
             'status': response.status,
             'headers': [
                 [key.encode(), value.encode()]
-                for key, value in response.headers.items()
-            ] + [
-                [b'content-type', response.content_type.encode()]
+                for key, value in headers
             ],
             'content': response.content
         }
@@ -116,7 +139,10 @@ class ASyncIOApp(CliApp):
 
     def exception_handler(self, exc: Exception) -> http.Response:
         if isinstance(exc, exceptions.Found):
-            return http.Response('', exc.status_code, {'Location': exc.location})
+            return http.Response(
+                status=exc.status_code,
+                headers={'Location': exc.location}
+            )
 
         if isinstance(exc, exceptions.HTTPException):
             if isinstance(exc.detail, str):
@@ -126,28 +152,3 @@ class ASyncIOApp(CliApp):
             return http.Response(content, exc.status_code, {})
 
         raise
-
-    def finalize_response(self, response: http.Response) -> http.Response:
-        if isinstance(response, http.Response):
-            data, status, headers, content_type = response
-        else:
-            data, status, headers, content_type = response, 200, {}, None
-
-        if data is None:
-            content = b''
-            content_type = 'text/plain'
-        elif isinstance(data, str):
-            content = data.encode('utf-8')
-            content_type = 'text/html; charset=utf-8'
-        elif isinstance(data, bytes):
-            content = data
-            content_type = 'text/html; charset=utf-8'
-        else:
-            content = json.dumps(data).encode('utf-8')
-            content_type = 'application/json'
-
-        if not content and status == 200:
-            status = 204
-            content_type = 'text/plain'
-
-        return http.Response(content, status, headers, content_type)

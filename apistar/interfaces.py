@@ -66,8 +66,42 @@ class StaticFiles(metaclass=abc.ABCMeta):
         raise NotImplementedError
 
 
-# Command Line Parser
+# Sessions
 
+class SessionStore(metaclass=abc.ABCMeta):
+    @abc.abstractmethod
+    def new(self) -> http.Session:
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def load(self, session_id: str) -> http.Session:
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def save(self, session: http.Session) -> typing.Dict[str, str]:
+        raise NotImplementedError
+
+
+# Authentication
+
+class Auth(metaclass=abc.ABCMeta):
+    user = None  # type: typing.Any
+    token = None  # type: typing.Any
+
+    @abc.abstractmethod
+    def is_authenticated(self) -> bool:
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def get_display_name(self) -> typing.Optional[str]:
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def get_user_id(self) -> typing.Optional[str]:
+        raise NotImplementedError
+
+
+# Command Line Parser
 
 class CommandLineClient(metaclass=abc.ABCMeta):
     @abc.abstractmethod
@@ -80,7 +114,9 @@ class CommandLineClient(metaclass=abc.ABCMeta):
 
 class Resolver(metaclass=abc.ABCMeta):
     @abc.abstractmethod
-    def resolve(self, param: inspect.Parameter) -> typing.Optional[typing.Tuple[str, typing.Callable]]:
+    def resolve(self,
+                param: inspect.Parameter,
+                func: typing.Callable) -> typing.Optional[typing.Tuple[str, typing.Callable]]:
         raise NotImplementedError
 
 
@@ -96,7 +132,25 @@ class Injector(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def run(self,
             func: typing.Callable,
-            state: typing.Dict[str, typing.Any]) -> typing.Any:
+            state: typing.Dict[str, typing.Any]={}) -> typing.Any:
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def run_all(self,
+                funcs: typing.List[typing.Callable],
+                state: typing.Dict[str, typing.Any]={}) -> typing.Any:
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    async def run_async(self,
+                        func: typing.Callable,
+                        state: typing.Dict[str, typing.Any]={}) -> typing.Any:
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    async def run_all_async(self,
+                            funcs: typing.List[typing.Callable],
+                            state: typing.Dict[str, typing.Any]={}) -> typing.Any:
         raise NotImplementedError
 
 

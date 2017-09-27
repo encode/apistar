@@ -76,6 +76,16 @@ class ValidationError(HTTPException):
     default_detail = 'Validation error'
 
 
+class BadRequest(HTTPException):
+    default_status_code = 400
+    default_detail = 'Bad request'
+
+
+class Forbidden(HTTPException):
+    default_status_code = 403
+    default_detail = 'Forbidden'
+
+
 class NotFound(HTTPException):
     default_status_code = 404
     default_detail = 'Not found'
@@ -84,6 +94,11 @@ class NotFound(HTTPException):
 class MethodNotAllowed(HTTPException):
     default_status_code = 405
     default_detail = 'Method not allowed'
+
+
+class NotAcceptable(HTTPException):
+    default_status_code = 406
+    default_detail = 'Could not satisfy the request Accept header'
 
 
 class UnsupportedMediaType(HTTPException):

@@ -88,3 +88,12 @@ def flatten_routes(routes: typing.Sequence[typing.Union[Route, Include]],
                 flattened_routes.append(route)
 
     return flattened_routes
+
+
+def annotate(**kwargs):
+    def decorator(func):
+        nonlocal kwargs
+        for key, value in kwargs.items():
+            setattr(func, key, value)
+        return func
+    return decorator

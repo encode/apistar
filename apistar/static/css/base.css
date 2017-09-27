@@ -225,11 +225,17 @@ body {
 }
 
 .docs-content .btn {
-  font-size: inherit;
+    font-size: inherit;
 }
 
 .docs-content .description {
-    margin-top: 10px
+    font-size: 18px;
+    margin-top: 10px;
+}
+
+.docs-content h4 {
+    font-size: 14px;
+    font-weight: bold;
 }
 
 .code-samples pre {

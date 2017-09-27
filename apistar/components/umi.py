@@ -1,14 +1,13 @@
 import io
-import json
 import typing
 
 import werkzeug
-from werkzeug.datastructures import ImmutableMultiDict
-from werkzeug.formparser import FormDataParser
 from werkzeug.http import parse_options_header
 
-from apistar import exceptions, http
-from apistar.types import ParamName, UMIChannels, UMIMessage
+from apistar import Settings, exceptions, http, parsers
+from apistar.authentication import Unauthenticated
+from apistar.interfaces import Injector
+from apistar.types import Handler, ParamName, UMIChannels, UMIMessage
 
 
 def get_method(message: UMIMessage):
@@ -85,6 +84,10 @@ async def get_body(message: UMIMessage, channels: UMIChannels):
     return body
 
 
+async def get_stream(body: http.Body):
+    return io.BytesIO(body)
+
+
 def _get_content_length(headers: http.Headers) -> typing.Optional[int]:
     content_length = headers.get('Content-Length')
     if content_length is not None:
@@ -95,29 +98,35 @@ def _get_content_length(headers: http.Headers) -> typing.Optional[int]:
     return None  # pragma: nocover
 
 
-async def get_request_data(headers: http.Headers, message: UMIMessage, channels: UMIChannels):
+async def get_request_data(headers: http.Headers, injector: Injector, settings: Settings):
     content_type = headers.get('Content-Type')
-    if content_type:
-        mimetype, options = parse_options_header(content_type)
-    else:
-        mimetype, options = None, {}
+    if not content_type:
+        return None
 
-    if mimetype is None:
-        value = None
-    elif mimetype == 'application/json':
-        body = await get_body(message, channels)
-        value = json.loads(body.decode('utf-8'))
-    elif mimetype in ('multipart/form-data', 'application/x-www-form-urlencoded'):
-        body = await get_body(message, channels)
-        stream = io.BytesIO(body)
-        content_length = _get_content_length(headers)
-        parser = FormDataParser()
-        stream, form, files = parser.parse(stream, mimetype, content_length, options)
-        value = ImmutableMultiDict(list(form.items()) + list(files.items()))
-    else:
+    media_type, _ = parse_options_header(content_type)
+    parser_mapping = {
+        parser.media_type: parser
+        for parser in settings.get('PARSERS', parsers.DEFAULT_PARSERS)
+    }
+
+    if media_type not in parser_mapping:
         raise exceptions.UnsupportedMediaType()
 
-    return value
+    parser = parser_mapping[media_type]
+    return await injector.run_async(parser.parse)
+
+
+async def get_auth(handler: Handler, injector: Injector, settings: Settings):
+    default_authentication = settings.get('AUTHENTICATION', None)
+    authentication = getattr(handler, 'authentication', default_authentication)
+    if authentication is None:
+        return Unauthenticated()
+
+    for authenticator in authentication:
+        auth = await injector.run_async(authenticator.authenticate)
+        if auth is not None:
+            return auth
+    return Unauthenticated()
 
 
 def get_file_wrapper():

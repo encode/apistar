@@ -8,6 +8,7 @@ class Env(environment.Environment):
         'DEBUG': typesystem.boolean(default=False),
         'DATABASE_URL': typesystem.string()
     }
+    required = ['DATABASE_URL']
 
 
 def test_valid_env():

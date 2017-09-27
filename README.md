@@ -43,6 +43,13 @@ be in sync with your codebase.
 - [Building Websites](#building-websites)
     - [Templates](#templates)
     - [Static Files](#static-files)
+    - [HTTP Sessions](#http-sessions)
+- [Renderers & Parsers](#renderers--parsers)
+    - [Renderers](#renderers)
+    - [Parsers](#parsers)
+- [Authentication & Permissions](#authentication--permissions)
+    - [Authentication](#authentication)
+    - [Permissions](#permissions)
 - [Settings & Environment](#settings--environment)
     - [Application settings](#application-settings)
     - [Environment](#environment)
@@ -57,6 +64,7 @@ be in sync with your codebase.
     - [Running in Production](#running-in-production)
     - ["Serverless" Deployments](#serverless-deployments)
 - [Changelog](#changelog)
+    - [0.3 Release](#03-release)
     - [0.2 Release](#02-release)
 - [Development](#development)
 
@@ -65,53 +73,55 @@ be in sync with your codebase.
 # Quickstart
 
 Install API Star:
-
-    $ pip3 install apistar
-
+```bash
+$ pip3 install apistar
+```
 Create a new project:
-
-    $ apistar new .
-    app.py
-    tests.py
-    $ cat app.py
-    from apistar import Include, Route
-    from apistar.frameworks.wsgi import WSGIApp as App
-    from apistar.handlers import docs_urls, static_urls
-
-
-    def welcome(name=None):
-        if name is None:
-            return {'message': 'Welcome to API Star!'}
-        return {'message': 'Welcome to API Star, %s!' % name}
+```bash
+$ apistar new .
+app.py
+tests.py
+$ cat app.py
+```
+```python
+from apistar import Include, Route
+from apistar.frameworks.wsgi import WSGIApp as App
+from apistar.handlers import docs_urls, static_urls
 
 
-    routes = [
-        Route('/', 'GET', welcome),
-        Include('/docs', docs_urls),
-        Include('/static', static_urls)
-    ]
-
-    app = App(routes=routes)
+def welcome(name=None):
+    if name is None:
+        return {'message': 'Welcome to API Star!'}
+    return {'message': 'Welcome to API Star, %s!' % name}
 
 
-    if __name__ == '__main__':
-        app.main()
+routes = [
+    Route('/', 'GET', welcome),
+    Include('/docs', docs_urls),
+    Include('/static', static_urls)
+]
 
+app = App(routes=routes)
+
+
+if __name__ == '__main__':
+    app.main()
+```
 Run the application:
-
-    $ apistar run
-    Running at http://localhost:8080/
-
+```bash
+$ apistar run
+Running at http://localhost:8080/
+```
 Run the tests:
-
-    $ apistar test
-    tests.py ..
-    ===== 2 passed in 0.05 seconds =====
-
+```bash
+$ apistar test
+tests.py ..
+===== 2 passed in 0.05 seconds =====
+```
 View the interactive API documentation:
-
-    $ open http://localhost:8080/docs/
-
+```bash
+$ open http://localhost:8080/docs/
+```
 ![screenshot](docs/img/apistar.png)
 
 ## Choosing a framework
@@ -125,14 +135,14 @@ ecosystem support. The SQLAlchemy and Django ORM backends are available,
 and you can use a large range of existing Python libraries.
 
 To start a new `wsgi` project use:
-
-    $ pip install apistar
-    $ apistar new .
-
+```bash
+$ pip install apistar
+$ apistar new .
+```
 The application import line in the code will look like this:
-
-    from apistar.frameworks.wsgi import WSGIApp as App
-
+```python
+from apistar.frameworks.wsgi import WSGIApp as App
+```
 ### ASyncIO
 
 The benefit of an asyncio application is the potential for higher throughput,
@@ -142,24 +152,24 @@ for any blocking operations, such as calls to the database, reading from disk, o
 making a network request.
 
 To start a new `asyncio` project use:
-
-    $ pip install apistar[asyncio]
-    $ apistar new . --framework asyncio
-
+```bash
+$ pip install apistar[asyncio]
+$ apistar new . --framework asyncio
+```
 The application import line in the code will look like this:
-
-    from apistar.frameworks.asyncio import ASyncIOApp as App
-
+```python
+from apistar.frameworks.asyncio import ASyncIOApp as App
+```
 You may now include either regular or async handler functions...
+```python
+def welcome(name=None):
+    # A regular handler function that contains no asynchronous operations.
+    ...
 
-    def welcome(name=None):
-        # A regular handler function that contains no asynchronous operations.
-        ...
-
-    async def welcome(name=None):
-        # An async handler, that may use `async/await` syntax for performing asynchronous operations.
-        ...
-
+async def welcome(name=None):
+    # An async handler, that may use `async/await` syntax for performing asynchronous operations.
+    ...
+```
 ---
 
 # HTTP
@@ -200,7 +210,7 @@ Some of the components you might use most often:
 | `http.QueryParams` | The request query parameters, returned as a dictionary-like object. |
 | `http.QueryParam`  | Lookup a single query parameter, corresponding to the argument name.<br/>Returns a string or `None`. |
 | `http.Body`        | The request body. Returns a bytestring. |
-| `http.RequestData` | The request data, returned as a dictionary-like object. |
+| `http.RequestData` | The parsed request data. Data type will depend on the Content-Type of the request. |
 
 ## Responses
 
@@ -268,8 +278,8 @@ app = App(routes=[
 ```
 
 Parameters which do not correspond to a URL path parameter will be treated as
-query parameters for `GET` and `DELETE` requests, or part of the request body
-for `POST`, `PUT`, and `PATCH` requests.
+query parameters for scalar types such as `int` or `str`, or part of the
+request body for composite types of `dict` and `list`.
 
 ```python
 def echo_username(username):
@@ -298,7 +308,7 @@ def get_all_players(router: Router):
     player_list = [
         {
             'name': player.name,
-            'url': router.reverse_url('get_player_details', player_name=player.name)
+            'url': router.reverse_url('get_player_details', {'player_name': player.name})
         }
         for player in players
     ]
@@ -306,7 +316,7 @@ def get_all_players(router: Router):
 
 app = App(routes=[
     Route('/players/', 'GET', get_all_players),
-    Route('/players/{name}/', 'GET', get_player_details),
+    Route('/players/{player_name}/', 'GET', get_player_details),
 ])
 ```
 
@@ -407,6 +417,7 @@ Validates string data. A subclass of `str`.
 * `pattern` - A string or compiled regex that the data must match.
 * `format` - An identifier indicating a complex datatype with a string representation. For example `"date"`, to represent an ISO 8601 formatted date string.
 * `trim_whitespace` - `True ` if leading and trailing whitespace should be stripped from the data. Defaults to `True`.
+* `description` - A description for online documentation
 
 ### Number
 
@@ -418,6 +429,7 @@ Validates numeric data. A subclass of `float`.
 * `exclusive_maximum` - `True` for an exclusive maximum limit. Defaults to `False`.
 * `exclusive_minimum` - `True` for an exclusive minimum limit. Defaults to `False`.
 * `multiple_of` - A float that the data must be strictly divisible by, in order to be valid.
+* `description` - A description for online documentation
 
 ### Integer
 
@@ -429,12 +441,14 @@ Validates integer data. A subclass of `int`.
 * `exclusive_maximum` - `True` for an exclusive maximum limit. Defaults to `False`.
 * `exclusive_minimum` - `True` for an exclusive minimum limit. Defaults to `False`.
 * `multiple_of` - An integer that the data must be strictly divisible by, in order to be valid.
+* `description` - A description for online documentation
 
 ### Boolean
 
 Validates boolean input. Returns either `True` or `False`.
 
 * `default` - A default to be used if a field using this typesystem is missing from a parent `Object`.
+* `description` - A description for online documentation
 
 ### Enum
 
@@ -442,6 +456,7 @@ Validates string input, against a list of valid choices. A subclass of `str`.
 
 * `default` - A default to be used if a field using this typesystem is missing from a parent `Object`.
 * `enum` - A list of valid string values for the data.
+* `description` - A description for online documentation
 
 ### Object
 
@@ -449,6 +464,7 @@ Validates dictionary or object input. A subclass of `dict`.
 
 * `default` - A default to be used if a field using this typesystem is missing from a parent `Object`.
 * `properties` - A dictionary mapping string key names to typesystem or type values.
+* `description` - A description for online documentation
 
 Note that child properties are considered to be required if they do not have a `default` value.
 
@@ -461,6 +477,7 @@ Validates list or tuple input. A subclass of `list`.
 * `min_items` - The minimum number of items the array must contain.
 * `max_items` - The maximum number of items the array must contain.
 * `unique_items` - Whether repeated items are permitted in the array.
+* `description` - A description for online documentation
 
 ## Generating API Schemas
 
@@ -471,7 +488,7 @@ See [#69](https://github.com/tomchristie/apistar/issues/69) for more details on 
 
 The default output format is the built-in CoreJSON support:
 
-```shell
+```bash
 $ apistar schema
 {"_type":"document", ...}
 ```
@@ -480,7 +497,7 @@ The OpenAPI (Swagger) and RAML codecs are optional, and require installation of 
 
 #### Swagger
 
-```shell
+```bash
 $ pip install openapi-codec
 $ apistar schema --format openapi
 {"swagger": "2.0", "info": ...}
@@ -488,7 +505,7 @@ $ apistar schema --format openapi
 
 #### RAML
 
-```shell
+```bash
 $ pip install raml-codec
 $ apistar schema --format raml
 #%RAML 0.8
@@ -554,7 +571,7 @@ For serving static files, API Star uses [whitenoise](http://whitenoise.evans.io/
 
 First make sure to install the `whitenoise` package.
 
-```
+```bash
 $ pip install whitenoise
 ```
 
@@ -583,6 +600,290 @@ settings = {
 }
 
 app = App(routes=routes, settings=settings)
+```
+
+## HTTP Sessions
+
+API Star supports persistent HTTP sessions. You can access the session
+as a dictionary-like object. The session is made available by including
+the `http.Session` class as an annotation on a handler. For example:
+```python
+from apistar import Response, http
+
+def login(username: str, password: str, session: http.Session):
+    if authenticate(username, password):
+        session['username'] = username
+        return Response(status=302, headers={'location': '/'})
+    else:
+        ...
+
+def logout(session: http.Session):
+    if 'username' in session:
+        del session['username']
+    return Response(status=302, headers={'location': '/'})
+
+def homepage(session: http.Session):
+    username = session.get('username')
+    ...
+```
+The default implementation stores the session information in local memory,
+which isn't suitable for anything other than development and testing. For
+production you'll need to implement a session store that integrates with
+some kind of persistent storage.
+```python
+from apistar import Component
+from apistar.interfaces import SessionStore
+from myproject import RedisSessionStore  # A SessionStore implementation.
+
+routes = [
+    ...
+]
+
+components = [
+    Component(SessionStore, init=RedisSessionStore)
+]
+
+app = App(routes=routes, components=components)
+```
+
+---
+
+# Renderers & Parsers
+
+Renderers and parsers are responsible for handling the translation of incoming
+or outgoing bytestreams.
+
+For example, when returning a response we'll often simply return a native
+Python datastructure such as a `dict` or `list`. A renderer class is then
+responsible for generating the bytes that should be used for the response body.
+
+## Renderers
+
+API Star defaults to returning JSON responses. You can alter this behaviour
+by configuring the renderers that should be supported.
+
+### Configuring the installed renderers
+
+We can install one or more renderers by adding them to our settings.
+The `RENDERERS` setting should be a list. For example if most of our
+handlers return HTML responses, we might use the following:
+
+```python
+settings = {
+    'RENDERERS': [HTMLRenderer()]
+}
+```
+
+Alternatively we can specify the renderers to use on a specific handler function.
+
+```python
+from apistar import annotate
+from apistar.renderers import JSONRenderer
+from myproject.renderers import CSVRenderer
+
+@annotate(renderers=[JSONRenderer(), CSVRenderer()])
+def download_current_dataset():
+    # Return some data, formatted either as JSON or CSV,
+    # depending on the request Accept header.
+    ...
+```
+
+### How a renderer is determined
+
+API Star uses HTTP content negotiation to determine which renderer should
+be returned. The `Accept` header is inspected, and one of the available
+installed renderers is selected. If the Accept header doesn't match any of the
+installed renderers then a `406 Not Acceptable` response will be returned.
+
+You can disable the content negotiation by including an explicit `content_type`
+argument when returning a `Response`. For example...
+
+    content = template.render(...)
+    return http.Response(content, content_type='text/html')
+
+## Parsers
+
+Parsers are responsible for taking the incoming request body, and returning
+the data structure it represents, given the `Content-Type` of the request.
+
+By default API Star supports parsing JSON or form encoded requests.
+
+### Configuring the installed parsers
+
+We can install one or more parsers by adding them to our settings.
+The `PARSERS` setting should be a list. For example if we want to disable
+form parsing, and only support JSON requests, we can do the following:
+
+```python
+settings = {
+    'PARSERS': [JSONParser()]
+}
+```
+
+Alternatively we can specify the parsers to use on a specific handler function.
+
+```python
+from apistar import annotate
+from apistar.parsers import MultiPartParser
+
+@annotate(parsers=[MultiPartParser()])
+def file_upload():
+    # Handles a file upload, using a multipart encoded request.
+    ...
+```
+
+---
+
+# Authentication & Permissions
+
+Authentication is the mechanism of associating an incoming request with a set of
+identifying credentials, such as the user the request came from, or the token
+that it was signed with. Permissions are the processes of using those credentials
+to determine if the request should be permitted.
+
+## Authentication
+
+The `Auth` component provides information about the currently authenticated user.
+
+```python
+from apistar.interfaces import Auth
+
+def display_user(auth: Auth):
+    return {
+        'is_authenticated': auth.is_authenticated(),
+        'user': auth.get_display_name()
+    }
+```
+
+It provides the following interface:
+
+* `.get_display_name()` - Returns a string that should be used when displaying a username, or `None` for unauthenticated requests.
+* `.get_user_id()` - Returns a string that can be used to uniquely identify the user, or `None` for unauthenticated requests.
+* `.is_authenticated()` - Returns `True` for an authenticated request, `False` otherwise.
+* `.user` - A reference to any persistent user information.
+* `.token` - A reference to any other authentication information associated with the incoming request.
+
+In our example above we haven't yet configured any authentication policy,
+so our `auth` argument will always be set to an instance of `Unauthenticated`.
+
+Requests to our endpoint will currently return a response like this:
+
+```json
+{
+    "is_authenticated": false,
+    "user": null
+}
+```
+
+### Creating an authentication class
+
+In order to authenticate our incoming requests we need to create an authentication
+class.
+
+An authentication class must implement the `authenticate` method, and
+should return a subclass of `Auth`, or `None` if the request was not authenticated.
+
+The `authenticate` method can accept any installed components in its signature.
+
+```python
+import base64
+from apistar import http
+from apistar.authentication import Authenticated
+
+class BasicAuthentication():
+    def authenticate(self, authorization: http.Header):
+        """
+        Determine the user associated with a request, using HTTP Basic Authentication.
+        """
+        if authorization is None:
+            return None
+
+        scheme, token = authorization.split()
+        if scheme.lower() != 'basic':
+            return None
+
+        username, password = base64.b64decode(token).decode('utf-8').split(':')
+        return Authenticated(username)
+```
+
+Note that the `Authenticated` class provides a shortcut which you can use
+instead of implementing a subclass of `Auth`.
+
+### Configuring the authentication policy
+
+We can install one or more authentication policies by adding them to our settings.
+The `AUTHENTICATION` setting should be a list. Each authentication policy will be
+attempted in turn.
+
+```python
+settings = {
+    'AUTHENTICATION': [BasicAuthentication()]
+}
+```
+
+Alternatively we can specify authentication policies on a specific handler function.
+
+```python
+from apistar import annotate
+from apistar.interfaces import Auth
+from myproject.authentication import BasicAuthentication
+
+@annotate(authentication=[BasicAuthentication()])
+def display_user(auth: Auth):
+    # There are no required permissions set on this handler, so all requests
+    # will be allowed.
+    # Requests that have successfully authenticated using basic authentication
+    # will include user credentials in `auth`.
+    ...
+```
+
+## Permissions
+
+Typically you'll want to either permit or deny an incoming request, based on the
+authentication credentials provided.
+
+API Star provides a single built-in `IsAuthenticated` permission class, or you
+can implement your own for more complex cases.
+
+### Creating a permissions class
+
+A permissions class should implement a `has_permission()` method,
+and return either `True` or `False` depending on if the request should
+be permitted or not.
+
+For example, if our user model includes an `is_admin` field, we might want
+to allow certain operations only for those users.
+
+```python
+class IsAdminUser():
+    def has_permission(self, auth: Auth):
+        if not auth.is_authenticated():
+            return False
+        return auth.user.is_admin
+```
+
+### Configuring the permissions policy
+
+Configuring permissions is very similar to configuring authentication,
+you can do so globally, using the settings...
+
+```python
+settings = {
+    'AUTHENTICATION': [BasicAuthentication()],
+    'PERMISSIONS': [IsAuthenticted()]
+}
+```
+
+Or configure permissions on a specific handler...
+
+```python
+@annotate(
+    authentication=[BasicAuthentication()],
+    permissions=[IsAuthenticated()]
+)
+def display_user(auth: Auth):
+    # Only authenticated requests will be allowed to access this handler.
+    ...
 ```
 
 ---
@@ -970,6 +1271,7 @@ Component                      | Description
 `interfaces.App`               | The current application.
 `interfaces.Console`           | The console interface. Supports the `.echo(message)` interface.
 `interfaces.CommandLineClient` | The command line parsing component. Supports the `.parse(args)` interface.
+`interfaces.Injector`          | Makes the dependency injection available to handler. Supports the `.run(func)` interface.
 `interfaces.Router`            | The router for the application instance. Supports the `reverse_url(name, **kwargs)` interface.
 `interfaces.Schema`            | The CoreAPI schema used to represent the API.
 `interfaces.StaticFiles`       | The static files component. Supports the `get_url(path)` interface.
@@ -1010,33 +1312,33 @@ both performance and for productivity.
 ## The Development Server
 
 A development server is available, using the `run` command:
-
-    $ apistar run
-    # Specify the port or interface via --port and --host
-    # Serve on port 9001 and use IPv6 only
-    $ apistar run --port 9001 --host ::1
-    # If you don't like the Werkzeug web debugger, turn it off
-    $ apistar run --no-debugger
-
+```bash
+$ apistar run
+# Specify the port or interface via --port and --host
+# Serve on port 9001 and use IPv6 only
+$ apistar run --port 9001 --host ::1
+# If you don't like the Werkzeug web debugger, turn it off
+$ apistar run --no-debugger
+```
 ## Running in Production
 
 ### Running a WSGIApp project
 
 For WSGI applications, the recommended production deployment is Gunicorn,
 using the Meinheld worker.
-
-    $ pip install gunicorn
-    $ pip install meinheld
-    $ gunicorn app:app --workers=4 --bind=0.0.0.0:5000 --pid=pid --worker-class=meinheld.gmeinheld.MeinheldWorker
-
+```bash
+$ pip install gunicorn
+$ pip install meinheld
+$ gunicorn app:app --workers=4 --bind=0.0.0.0:5000 --pid=pid --worker-class=meinheld.gmeinheld.MeinheldWorker
+```
 Typically you'll want to run as many workers as you have CPU cores on the server.
 
 ### Running an ASyncIOApp project
 
 For asyncio applications, use `uvicorn`.
-
-    $ uvicorn app:app --workers=4 --bind=0.0.0.0:5000 --pid=pid
-
+```bash
+$ uvicorn app:app --workers=4 --bind=0.0.0.0:5000 --pid=pid
+```
 Again, you'll typically want to run as many workers as you have CPU cores on the server.
 
 ## "Serverless" deployments
@@ -1057,7 +1359,7 @@ app = App(routes=routes, settings=settings)
 
 Your `zappa_settings.json` configuration file should then look something like this:
 
-```
+```json
 {
     "dev": {
         "app_function": "app.app",
@@ -1086,7 +1388,7 @@ See [Zappa's installation instructions](https://github.com/Miserlou/Zappa#instal
 - `keep_warm` is a four minute callback to AWS to ensure your function stays loaded in AWS, decreasing the initial response time. When doing development work you don't really need the function to stay 'warm' 24/7 so by setting it to `false` in `dev` it will save you some AWS invocation requests. The free tier at AWS gives you [1,000,000 free requests](https://aws.amazon.com/s/dm/optimization/server-side-test/free-tier/free_np/) so it shouldn't matter too much.
 - `profile_name` specifies which alias to use in your [AWS Credentials](https://aws.amazon.com/blogs/security/a-new-and-standardized-way-to-manage-credentials-in-the-aws-sdks/) file. This is usually located at `~/.aws/credentials`.
 
-```
+```INI
 [default]
 aws_access_key_id = 'xxx'
 aws_secret_access_key = 'xxx'
@@ -1097,6 +1399,22 @@ To successfully run `zappa deploy` you will need an IAM user on your AWS account
 ---
 
 # Changelog
+
+## 0.3 Release
+
+* Added Authentication & Permissions support.
+* Added Parsers & Renderers support, with content negotiation.
+* Added HTTP Session support.
+* Added `BEFORE_REQUEST` / `AFTER_REQUEST` settings.
+* Added `SCHEMA` settings.
+* Added support for using `Injector` component inside a handler.
+
+Note: Because we now support configurable renderers, there's a difference in
+the behaviour of returning plain data, or a Response without a `content_type` set.
+Previously we would return HTML for strings/bytes, and JSON for anything else.
+Now, JSON is the default for everything, unless alternative renderers are
+specified. See the "Renderers & Parsers" and "Requests & Responses" section
+for more detail.
 
 ## 0.2 Release
 
@@ -1123,16 +1441,16 @@ To successfully run `zappa deploy` you will need an IAM user on your AWS account
 
 To work on the API Star codebase, you'll want to clone the repository,
 and create a Python virtualenv with the project requirements installed:
-
-    $ git clone git@github.com:tomchristie/apistar.git
-    $ cd apistar
-    $ ./scripts/setup
-
+```bash
+$ git clone git@github.com:tomchristie/apistar.git
+$ cd apistar
+$ ./scripts/setup
+```
 To run the continuous integration tests and code linting:
-
-    $ ./scripts/test
-    $ ./scripts/lint
-
+```bash
+$ ./scripts/test
+$ ./scripts/lint
+```
 ---
 
 <p align="center"><i>API Star is <a href="https://github.com/tomchristie/apistar/blob/master/LICENSE.md">BSD licensed</a> code.<br/>Designed & built in Brighton, England.</i><br/>&mdash; ⭐️ &mdash;</p>

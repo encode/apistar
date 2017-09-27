@@ -5,7 +5,7 @@ from contextlib import ExitStack
 
 from apistar import exceptions, http, typesystem
 from apistar.interfaces import Injector, Resolver
-from apistar.types import KeywordArgs, ParamAnnotation, ParamName
+from apistar.types import KeywordArgs, ParamAnnotation, ParamName, ReturnValue
 
 Step = typing.NamedTuple('Step', [
     ('func', typing.Callable),
@@ -15,6 +15,13 @@ Step = typing.NamedTuple('Step', [
     ('is_context_manager', bool),
     ('is_async', bool)
 ])
+
+
+def include_kwargs(step: Step,
+                   kwargs: typing.Dict[str, typing.Any]={}):
+    func, input_keys, input_values, output_key, is_context_manager, is_async = step
+    input_values.update(kwargs)
+    return Step(func, input_keys, input_values, output_key, is_context_manager, is_async)
 
 
 class DependencyInjector(Injector):
@@ -51,8 +58,10 @@ class DependencyInjector(Injector):
         if resolvers is None:
             resolvers = []  # pragma: nocover
 
+        builtin = {ReturnValue: None, Injector: None}
+
         self.components = components
-        self.initial_state = initial_state
+        self.initial_state = {**initial_state, **builtin}
         self.required_state = required_state
         self.resolvers = resolvers
 
@@ -71,31 +80,53 @@ class DependencyInjector(Injector):
             func: typing.Callable,
             state: typing.Dict[str, typing.Any]={}) -> typing.Any:
         """
-        Run a function, using dependency inject to resolve any parameters
+        Run a functions, using dependency inject to resolve any parameters
         that it requires.
 
         Args:
             func: The function to run.
+
+        Returns:
+            The return value of the function.
+        """
+        return self.run_all([func], state)
+
+    def run_all(self,
+                funcs: typing.List[typing.Callable],
+                state: typing.Dict[str, typing.Any]={}) -> typing.Any:
+        """
+        Run some functions, using dependency inject to resolve any parameters
+        that they require.
+
+        Args:
+            funcs: The functions to run.
             state: A dictionary of any per-call state that can differ on each
                    run. For example, this might include any base information
                    associated with an incoming HTTP request.
 
         Returns:
-            The return value of the given function.
+            The return value of the final function.
         """
-        try:
-            # We cache the steps that are required to run a given function.
-            steps = self._steps_cache[func]
-        except KeyError:
-            steps = self._create_steps(func)
-            self._steps_cache[func] = steps
+        steps = []  # type: typing.List[Step]
+        for func in funcs:
+            try:
+                # We cache the steps that are required to run a given function.
+                func_steps = self._steps_cache[func]
+            except KeyError:
+                func_steps = self._create_steps(func)
+                self._steps_cache[func] = func_steps
+            steps += func_steps
 
         # Combine any preconfigured initial state with any explicit per-call state.
         state = {**self._setup_state, **state}
 
         ret = None
         with ExitStack() as stack:
+            state['injector'] = BoundInjector(self, state, stack)
             for step in steps:
+                if step.output_key in state and step.output_key != 'returnvalue':
+                    continue
+
                 # Keyword arguments are usually "input_key" references to state
                 # that's been generated. In the case of `ParamName` or
                 # `ParamAnnotation` they will be a pre-provided "input_value".
@@ -114,7 +145,19 @@ class DependencyInjector(Injector):
 
         return ret
 
-    def _resolve_parameter(self, param: inspect.Parameter) -> typing.Tuple[str, typing.Optional[typing.Callable]]:
+    async def run_async(self,
+                        func: typing.Callable,
+                        state: typing.Dict[str, typing.Any]={}) -> typing.Any:
+        raise NotImplementedError('Cannot use `run_async` when running with WSGI.')
+
+    async def run_all_async(self,
+                            funcs: typing.List[typing.Callable],
+                            state: typing.Dict[str, typing.Any]={}) -> typing.Any:
+        raise NotImplementedError('Cannot use `run_all_async` when running with WSGI.')
+
+    def _resolve_parameter(self,
+                           param: inspect.Parameter,
+                           func: typing.Callable) -> typing.Tuple[str, typing.Optional[typing.Callable]]:
         """
         Resolve a single function parameter, returning the information needed
         to inject it to the function.
@@ -131,7 +174,7 @@ class DependencyInjector(Injector):
         if annotation in self.components:
             # If the type annotation is one of our components, then
             # use the function that is installed for creating that component.
-            key = annotation.__name__.lower()
+            key = '%s:%d' % (annotation.__name__.lower(), id(annotation))
             func = self.components[annotation]
 
             params = inspect.signature(func).parameters.values()
@@ -157,7 +200,7 @@ class DependencyInjector(Injector):
 
         for resolver in self.resolvers:
             # Try any custom resolvers that are installed.
-            ret = resolver.resolve(param)
+            ret = resolver.resolve(param, func)
             if ret is not None:
                 return ret
 
@@ -201,7 +244,7 @@ class DependencyInjector(Injector):
                 input_values[param.name] = parent_param.annotation
                 continue
 
-            key, provider_func = self._resolve_parameter(param)
+            key, provider_func = self._resolve_parameter(param, func)
             input_keys[param.name] = key
             if provider_func is None or (key in seen_keys):
                 continue
@@ -214,10 +257,10 @@ class DependencyInjector(Injector):
 
         # Add the step for the function itself.
         if parent_param is None:
-            output_key = ''
+            output_key = 'returnvalue'
             context_manager = False
         else:
-            output_key, _ = self._resolve_parameter(parent_param)
+            output_key, _ = self._resolve_parameter(parent_param, None)
             context_manager = (
                 hasattr(parent_param.annotation, '__enter__') and
                 hasattr(parent_param.annotation, '__exit__')
@@ -235,6 +278,89 @@ class DependencyInjector(Injector):
         return steps
 
 
+class BoundInjector(Injector):
+    """
+    This injector is available to functions when running inside a dependency
+    injected context. It is automatically provided by DependencyInjector.
+
+    To use it, include the `Injector` component as an annotation in the
+    function. For example:
+
+    def my_function(injector: Injector):
+        injector.run(some_function)
+    """
+    def __init__(self, bound_to, state, stack):
+        self.bound_to = bound_to
+        self.state = state
+        self.stack = stack
+
+    def run(self,
+            func: typing.Callable,
+            state: typing.Dict[str, typing.Any]={}) -> typing.Any:
+        """
+        Run a function, using dependency inject to resolve any parameters
+        that it requires.
+
+        Args:
+            func: The function to run.
+
+        Returns:
+            The return value of the given function.
+        """
+        try:
+            # We cache the steps that are required to run a given function.
+            steps = self.bound_to._steps_cache[func]
+        except KeyError:
+            steps = self.bound_to._create_steps(func)
+            self.bound_to._steps_cache[func] = steps
+
+        self.state.update(state)
+
+        ret = None
+
+        for step in steps:
+            if step.output_key in self.state and step.output_key != 'returnvalue':
+                continue
+
+            # Keyword arguments are usually "input_key" references to state
+            # that's been generated. In the case of `ParamName` or
+            # `ParamAnnotation` they will be a pre-provided "input_value".
+            kwargs = {
+                argname: self.state[state_key]
+                for (argname, state_key) in step.input_keys.items()
+            }
+            kwargs.update(step.input_values)
+
+            # Run the function, possibly entering it into the context
+            # stack in order to handle context managers.
+            ret = step.func(**kwargs)
+            if hasattr(ret, '__enter__') and hasattr(ret, '__exit__'):
+                ret = self.stack.enter_context(ret)
+            self.state[step.output_key] = ret
+
+        return ret
+
+    def run_all(self,
+                funcs: typing.List[typing.Callable],
+                state: typing.Dict[str, typing.Any]={}) -> typing.Any:
+        raise NotImplementedError(
+            '.run_all() is not available in this context. '
+            'Use .run() instead.'
+        )
+
+    async def run_async(self,
+                        func: typing.Callable,
+                        state: typing.Dict[str, typing.Any]={}) -> typing.Any:
+        raise NotImplementedError('Cannot use `run_async` when running with WSGI.')
+
+    async def run_all_async(self,
+                            funcs: typing.List[typing.Callable],
+                            state: typing.Dict[str, typing.Any]={}) -> typing.Any:
+        raise NotImplementedError('Cannot use `run_all_async` when running with WSGI.')
+
+
+# asyncio flavoured dependency injector...
+
 class AsyncDependencyInjector(DependencyInjector):
     async def run_async(self,
                         func: typing.Callable,
@@ -245,26 +371,48 @@ class AsyncDependencyInjector(DependencyInjector):
 
         Args:
             func: The function to run.
+
+        Returns:
+            The return value of the given function.
+        """
+        return await self.run_all_async([func], state)
+
+    async def run_all_async(self,
+                            funcs: typing.List[typing.Callable],
+                            state: typing.Dict[str, typing.Any]={}) -> typing.Any:
+        """
+        Run some functions, using dependency inject to resolve any parameters
+        that they require.
+
+        Args:
+            funcs: The functions to run.
             state: A dictionary of any per-call state that can differ on each
                    run. For example, this might include any base information
                    associated with an incoming HTTP request.
 
         Returns:
-            The return value of the given function.
+            The return value of the final function.
         """
-        try:
-            # We cache the steps that are required to run a given function.
-            steps = self._steps_cache[func]
-        except KeyError:
-            steps = self._create_steps(func)
-            self._steps_cache[func] = steps
+        steps = []  # type: typing.List[Step]
+        for func in funcs:
+            try:
+                # We cache the steps that are required to run a given function.
+                func_steps = self._steps_cache[func]
+            except KeyError:
+                func_steps = self._create_steps(func)
+                self._steps_cache[func] = func_steps
+            steps += func_steps
 
         # Combine any preconfigured initial state with any explicit per-call state.
         state = {**self._setup_state, **state}
 
         ret = None
         with ExitStack() as stack:
+            state['injector'] = AsyncBoundInjector(self, state, stack)
             for step in steps:
+                if step.output_key in state and step.output_key != 'returnvalue':
+                    continue
+
                 # Keyword arguments are usually "input_key" references to state
                 # that's been generated. In the case of `ParamName` or
                 # `ParamAnnotation` they will be a pre-provided "input_value".
@@ -288,12 +436,91 @@ class AsyncDependencyInjector(DependencyInjector):
         return ret
 
 
+class AsyncBoundInjector(BoundInjector):
+    """
+    This injector is available to functions when running inside a dependency
+    injected context. It is automatically provided by AsyncDependencyInjector.
+
+    To use it, include the `Injector` component as an annotation in the
+    function. For example:
+
+    async def my_function(injector: Injector):
+        await injector.run_async(some_function)
+    """
+    def __init__(self, bound_to, state, stack):
+        self.bound_to = bound_to
+        self.state = state
+        self.stack = stack
+
+    async def run_async(self,
+                        func: typing.Callable,
+                        state: typing.Dict[str, typing.Any]={}) -> typing.Any:
+        """
+        Run a function, using dependency inject to resolve any parameters
+        that it requires.
+
+        Args:
+            func: The function to run.
+
+        Returns:
+            The return value of the given function.
+        """
+        try:
+            # We cache the steps that are required to run a given function.
+            steps = self.bound_to._steps_cache[func]
+        except KeyError:
+            steps = self.bound_to._create_steps(func)
+            self.bound_to._steps_cache[func] = steps
+
+        self.state.update(state)
+
+        ret = None
+
+        for step in steps:
+            if step.output_key in self.state and step.output_key != 'returnvalue':
+                continue
+
+            # Keyword arguments are usually "input_key" references to state
+            # that's been generated. In the case of `ParamName` or
+            # `ParamAnnotation` they will be a pre-provided "input_value".
+            kwargs = {
+                argname: self.state[state_key]
+                for (argname, state_key) in step.input_keys.items()
+            }
+            kwargs.update(step.input_values)
+
+            # Run the function, possibly entering it into the context
+            # stack in order to handle context managers.
+            if step.is_async:
+                ret = await step.func(**kwargs)
+            else:
+                ret = step.func(**kwargs)
+
+            if hasattr(ret, '__enter__') and hasattr(ret, '__exit__'):
+                ret = self.stack.enter_context(ret)
+            self.state[step.output_key] = ret
+
+        return ret
+
+    async def run_all_async(self,
+                            funcs: typing.List[typing.Callable],
+                            state: typing.Dict[str, typing.Any]={}) -> typing.Any:
+        raise NotImplementedError(
+            '.run_all_async() is not available in this context. '
+            'Use .run_async() instead.'
+        )
+
+
+# The Resolver subclasses below handle mapping annotations to component instances.
+
 class CliResolver(Resolver):
     """
     Handles resolving parameters for running with the command line.
     """
 
-    def resolve(self, param: inspect.Parameter) -> typing.Optional[typing.Tuple[str, typing.Callable]]:
+    def resolve(self,
+                param: inspect.Parameter,
+                func: typing.Callable) -> typing.Optional[typing.Tuple[str, typing.Callable]]:
         """
         Resolve a single function parameter, returning the information needed
         to inject it to the function.
@@ -327,7 +554,9 @@ class HTTPResolver(Resolver):
     Handles resolving parameters for HTTP requests.
     """
 
-    def resolve(self, param: inspect.Parameter) -> typing.Optional[typing.Tuple[str, typing.Callable]]:
+    def resolve(self,
+                param: inspect.Parameter,
+                func: typing.Callable) -> typing.Optional[typing.Tuple[str, typing.Callable]]:
         """
         Resolve a single function parameter, returning the information needed
         to inject it to the function.
@@ -345,24 +574,38 @@ class HTTPResolver(Resolver):
         annotation = param.annotation
 
         key = ''
-        func = None  # type: typing.Callable
+        default_func = None  # type: typing.Callable
 
         if annotation is inspect.Parameter.empty:
             key = 'empty:' + param.name
-            func = self.empty
-            return (key, func)
+            default_func = self.empty
 
         elif issubclass(annotation, (str, int, float, bool, typesystem.Boolean)):
             key = '%s:%s' % (annotation.__name__.lower(), param.name)
-            func = self.scalar_type
-            return (key, func)
+            default_func = self.url_or_query_argument
 
         elif issubclass(annotation, (dict, list)):
             key = '%s:%s' % (annotation.__name__.lower(), param.name)
-            func = self.container_type
-            return (key, func)
+            default_func = self.body_argument
 
-        return None
+        else:
+            return None
+
+        # Allow a 'location' annotation on the function to override
+        # the default function.
+        locations = getattr(func, 'location', {})
+        location = locations.get(param.name)
+        if location is None:
+            resolved_func = default_func  # type: typing.Callable
+        else:
+            location_to_func = {
+                'query': self.query_argument,
+                'form': self.form_argument,
+                'body': self.body_argument,
+                'url': self.url_argument
+            }  # type: typing.Dict[str, typing.Callable]
+            resolved_func = location_to_func[location]
+        return (key, resolved_func)
 
     def empty(self,
               name: ParamName,
@@ -385,11 +628,11 @@ class HTTPResolver(Resolver):
             return kwargs[name]
         return query_params.get(name)
 
-    def scalar_type(self,
-                    name: ParamName,
-                    kwargs: KeywordArgs,
-                    query_params: http.QueryParams,
-                    coerce: ParamAnnotation) -> typing.Any:
+    def url_or_query_argument(self,
+                              name: ParamName,
+                              kwargs: KeywordArgs,
+                              query_params: http.QueryParams,
+                              coerce: ParamAnnotation) -> typing.Any:
         """
         Handles `str`, `int`, `float`, or `bool` annotations for HTTP requests.
         These types use either a matched URL keyword argument, or else
@@ -405,12 +648,14 @@ class HTTPResolver(Resolver):
             The value that should be used for the handler function.
         """
         if name in kwargs:
-            value = kwargs[name]
-            is_url_arg = True
-        else:
-            value = query_params.get(name)
-            is_url_arg = False
+            return self.url_argument(name, kwargs, coerce)
+        return self.query_argument(name, query_params, coerce)
 
+    def url_argument(self,
+                     name: ParamName,
+                     kwargs: KeywordArgs,
+                     coerce: ParamAnnotation) -> typing.Any:
+        value = kwargs[name]
         if value is None or isinstance(value, coerce):
             return value
 
@@ -421,24 +666,49 @@ class HTTPResolver(Resolver):
         except (TypeError, ValueError) as exc:
             detail = {name: str(exc)}
 
-        if is_url_arg:
-            raise exceptions.NotFound()
+        raise exceptions.NotFound(detail=detail)
+
+    def query_argument(self,
+                       name: ParamName,
+                       query_params: http.QueryParams,
+                       coerce: ParamAnnotation) -> typing.Any:
+        value = query_params.get(name)
+        if value is None or isinstance(value, coerce):
+            return value
+
+        try:
+            return coerce(value)
+        except exceptions.TypeSystemError as exc:
+            detail = {name: exc.detail}
+        except (TypeError, ValueError) as exc:
+            detail = {name: str(exc)}
         raise exceptions.ValidationError(detail=detail)
 
-    def container_type(self,
-                       data: http.RequestData,
-                       coerce: ParamAnnotation) -> typing.Any:
-        """
-        Handles `list` or `dict` annotations for HTTP requests.
-        These types use the parsed request body.
+    def form_argument(self,
+                      data: http.RequestData,
+                      name: ParamName,
+                      coerce: ParamAnnotation) -> typing.Any:
+        if not isinstance(data, dict):
+            raise exceptions.ValidationError(
+                detail='Request data must be an object.'
+            )
 
-        Args:
-            data: The parsed request data.
-            coerce: The type of the parameter that is being injected.
+        data = data.get(name)
+        if data is None or isinstance(data, coerce):
+            return data
 
-        Returns:
-            The value that should be used for the handler function.
-        """
+        try:
+            return coerce(data)
+        except exceptions.TypeSystemError as exc:
+            detail = exc.detail
+        except (TypeError, ValueError) as exc:
+            detail = str(exc)
+
+        raise exceptions.ValidationError(detail=detail)
+
+    def body_argument(self,
+                      data: http.RequestData,
+                      coerce: ParamAnnotation) -> typing.Any:
         if data is None or isinstance(data, coerce):
             return data
 

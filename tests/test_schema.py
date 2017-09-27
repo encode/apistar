@@ -68,11 +68,17 @@ routes = [
     Route('/static/{path}', 'GET', serve_static)
 ]
 
-app = App(routes=routes)
+settings = {
+    'SCHEMA': {
+        'TITLE': 'My API'
+    }
+}
+
+app = App(routes=routes, settings=settings)
 
 client = TestClient(app)
 
-expected = Schema(url='/schema/', content={
+expected = Schema(title='My API', url='/schema/', content={
     'list_todo': Link(
         url='/todo/',
         action='GET',
@@ -83,7 +89,13 @@ expected = Schema(url='/schema/', content={
         url='/todo/',
         action='POST',
         description='add_todo description\nMultiple indented lines',
-        fields=[Field(name='note', location='body', required=True, schema=coreschema.String())]
+        fields=[
+            Field(name='id', required=False, location='form', schema=coreschema.Integer()),
+            Field(name='text', required=False, location='form', schema=coreschema.String()),
+            Field(name='complete', required=False, location='form', schema=coreschema.Boolean()),
+            Field(name='percent_complete', required=False, location='form', schema=coreschema.Number()),
+            Field(name='category', required=False, location='form', schema=coreschema.Enum(enum=['shop', 'chore']))
+        ]
     ),
     'show_todo': Link(
         url='/todo/{ident}/',
@@ -122,10 +134,11 @@ def test_serve_schema():
     codec = CoreJSONCodec()
     document = codec.decode(response.content)
     assert document.url == '/schema/'
+    assert document.title == expected.title
     for name, link in expected.links.items():
         assert name in document
         assert link.action == document[name].action
-        assert link.fields == document[name].fields
+        assert sorted(link.fields) == sorted(document[name].fields)
 
 
 def test_javascript_schema():

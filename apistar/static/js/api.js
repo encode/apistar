@@ -61,6 +61,7 @@ $(function () {
   var $authControl = $('#auth-control')
   var $authTokenModal = $('#auth_token_modal')
   var $authBasicModal = $('#auth_basic_modal')
+  var $authSessionModal = $('#auth_session_modal')
 
   // Language Control
   $('#language-control li').click(function (event) {

@@ -1,14 +1,13 @@
-import json
 from wsgiref.util import FileWrapper, request_uri
 
 import werkzeug
-from werkzeug.datastructures import ImmutableMultiDict
-from werkzeug.formparser import FormDataParser
 from werkzeug.http import parse_options_header
 from werkzeug.wsgi import get_input_stream
 
-from apistar import exceptions, http
-from apistar.types import ParamName, WSGIEnviron
+from apistar import Settings, exceptions, http, parsers
+from apistar.authentication import Unauthenticated
+from apistar.interfaces import Injector
+from apistar.types import Handler, ParamName, WSGIEnviron
 
 
 def get_method(environ: WSGIEnviron):
@@ -72,25 +71,39 @@ def get_body(environ: WSGIEnviron):
     return get_input_stream(environ).read()
 
 
-def get_request_data(environ: WSGIEnviron):
-    if not bool(environ.get('CONTENT_TYPE')):
-        mimetype = None
-    else:
-        mimetype, _ = parse_options_header(environ['CONTENT_TYPE'])
+def get_stream(environ: WSGIEnviron):
+    return get_input_stream(environ)
 
-    if mimetype is None:
-        value = None
-    elif mimetype == 'application/json':
-        body = get_input_stream(environ).read()
-        value = json.loads(body.decode('utf-8'))
-    elif mimetype in ('multipart/form-data', 'application/x-www-form-urlencoded'):
-        parser = FormDataParser()
-        stream, form, files = parser.parse_from_environ(environ)
-        value = ImmutableMultiDict(list(form.items()) + list(files.items()))
-    else:
+
+def get_request_data(headers: http.Headers, injector: Injector, settings: Settings):
+    content_type = headers.get('Content-Type')
+    if not content_type:
+        return None
+
+    media_type, _ = parse_options_header(content_type)
+    parser_mapping = {
+        parser.media_type: parser
+        for parser in settings.get('PARSERS', parsers.DEFAULT_PARSERS)
+    }
+
+    if media_type not in parser_mapping:
         raise exceptions.UnsupportedMediaType()
 
-    return value
+    parser = parser_mapping[media_type]
+    return injector.run(parser.parse)
+
+
+def get_auth(handler: Handler, injector: Injector, settings: Settings):
+    default_authentication = settings.get('AUTHENTICATION', None)
+    authentication = getattr(handler, 'authentication', default_authentication)
+    if authentication is None:
+        return Unauthenticated()
+
+    for authenticator in authentication:
+        auth = injector.run(authenticator.authenticate)
+        if auth is not None:
+            return auth
+    return Unauthenticated()
 
 
 def get_file_wrapper(environ: WSGIEnviron):

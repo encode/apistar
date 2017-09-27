@@ -1,8 +1,9 @@
 import pytest
 
-from apistar import Route, TestClient, http
+from apistar import Route, TestClient, annotate, http
 from apistar.frameworks.asyncio import ASyncIOApp
 from apistar.frameworks.wsgi import WSGIApp
+from apistar.renderers import HTMLRenderer
 
 
 def to_native(obj):  # pragma: nocover  (Some cases only included for completeness)
@@ -71,6 +72,10 @@ def get_body(body: http.Body) -> http.Response:
     return http.Response({'body': body.decode('utf-8')})
 
 
+def get_stream(stream: http.RequestStream) -> http.Response:
+    return http.Response({'stream': stream.read().decode('utf-8')})
+
+
 def get_data(data: http.RequestData) -> http.Response:
     return http.Response({'data': to_native(data)})
 
@@ -85,10 +90,12 @@ def get_accept_header(accept: http.Header) -> http.Response:
 
 # Different response types
 
+@annotate(renderers=[HTMLRenderer()])
 def binary_response():
     return b'<html><h1>Hello, world</h1></html>'
 
 
+@annotate(renderers=[HTMLRenderer()])
 def text_response():
     return '<html><h1>Hello, world</h1></html>'
 
@@ -125,6 +132,7 @@ routes = [
     Route('/page_query_param/', 'GET', get_page_query_param),
     Route('/url/', 'GET', get_url),
     Route('/body/', 'POST', get_body),
+    Route('/stream/', 'POST', get_stream),
     Route('/data/', 'POST', get_data),
     Route('/headers/', 'GET', get_headers),
     Route('/headers/', 'POST', get_headers, name='post_headers'),
@@ -265,6 +273,12 @@ def test_body(client):
 
 
 @pytest.mark.parametrize('client', [wsgi_client, async_client])
+def test_stream(client):
+    response = client.post('http://example.com/stream/', data="content")
+    assert response.json() == {'stream': 'content'}
+
+
+@pytest.mark.parametrize('client', [wsgi_client, async_client])
 def test_data(client):
     response = client.post('http://example.com/data/', json={"hello": 123})
     assert response.json() == {'data': {'hello': 123}}
@@ -349,6 +363,27 @@ def test_empty_response(client):
     response = client.get('/empty/')
     assert response.status_code == 204
     assert response.text == ''
+
+
+@pytest.mark.parametrize('client', [wsgi_client, async_client])
+def test_request_with_invalid_json(client):
+    response = client.post(
+        'http://example.com/data/',
+        headers={'Content-Type': 'application/json'},
+        data='"hello": 123}'
+    )
+    assert response.status_code == 400
+    assert response.json() == {'message': 'Invalid JSON'}
+
+
+@pytest.mark.parametrize('client', [wsgi_client, async_client])
+def test_request_with_empty_json(client):
+    response = client.post(
+        'http://example.com/data/',
+        headers={'Content-Type': 'application/json'}
+    )
+    assert response.status_code == 400
+    assert response.json() == {'message': 'Empty JSON'}
 
 
 @pytest.mark.parametrize('client', [wsgi_client, async_client])

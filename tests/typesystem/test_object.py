@@ -23,6 +23,7 @@ class HighScore(typesystem.Object):
         'difficulty': typesystem.enum(enum=['easy', 'medium', 'hard']),
         'location': typesystem.newtype(Location, default={'latitude': 0.0, 'longitude': 0.0})
     }
+    required = ['name']
 
 
 def basic_object(score: HighScore):
@@ -56,6 +57,26 @@ def test_valid_object():
         'completed': True,
         'location': {
             'latitude': 51.477,
+            'longitude': 0.0
+        }
+    }
+
+
+def test_valid_object_with_form_data():
+    response = client.post('/basic_object/', data={
+        'name': 'tom',
+        'score': '87',
+        'difficulty': 'easy',
+        'completed': 'True'
+    })
+    assert response.status_code == 200
+    assert response.json() == {
+        'name': 'tom',
+        'score': 87,
+        'difficulty': 'easy',
+        'completed': True,
+        'location': {
+            'latitude': 0.0,
             'longitude': 0.0
         }
     }
