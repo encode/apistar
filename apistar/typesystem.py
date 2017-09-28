@@ -120,6 +120,8 @@ class Boolean(object):
                 return {
                     'true': True,
                     'false': False,
+                    'on': True,
+                    'off': False,
                     '1': True,
                     '0': False,
                     '': False
