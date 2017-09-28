@@ -10,7 +10,7 @@ from apistar.http import Response
 from apistar.test import TestClient
 from apistar.types import Settings
 
-__version__ = '0.3.5'
+__version__ = '0.3.6'
 __all__ = [
     'annotate', 'Command', 'Component', 'Response', 'Route', 'Include',
     'Settings', 'TestClient'
