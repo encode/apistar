@@ -121,7 +121,8 @@ class Boolean(object):
                     'true': True,
                     'false': False,
                     '1': True,
-                    '0': False
+                    '0': False,
+                    '': False
                 }[args[0].lower()]
             except KeyError:
                 raise TypeSystemError(cls=cls, code='type') from None
