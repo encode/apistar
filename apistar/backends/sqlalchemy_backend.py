@@ -22,6 +22,9 @@ class SQLAlchemyBackend(object):
         kwargs = {}
         if url.startswith('postgresql'):  # pragma: nocover
             kwargs['pool_size'] = database_config.get('POOL_SIZE', 5)
+        elif url.startswith('mysql'):  # pragma: nocover
+            kwargs['pool_size'] = database_config.get('POOL_SIZE', 5)
+            kwargs['pool_recycle'] = database_config.get('POOL_RECYCLE', 3600)
 
         self.metadata = metadata
         self.engine = create_engine(url, **kwargs)
