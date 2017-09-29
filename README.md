@@ -538,11 +538,12 @@ responses, using [Jinja2](http://jinja.pocoo.org/).
 **app.py:**
 
 ```python
-from apistar import Route
+from apistar import Route, annotate
 from apistar.interfaces import Templates
 from apistar.frameworks.wsgi import WSGIApp as App
+from apistar.renderers import HTMLRenderer
 
-
+@annotate(renderers=[HTMLRenderer()])
 def hello(username: str, templates: Templates):
     index = templates.get_template('index.html')
     return index.render(username=username)
@@ -561,9 +562,13 @@ settings = {
 app = App(routes=routes, settings=settings)
 ```
 
-Returning a string response from a view will default to using the `text/html`
-content type. You can override this by returning a `Response`, including an
-explicit `Content-Type` header.
+Returning a string response from a view will default to using the `text/json`
+content type. This means you will need to override this so that your HTML views
+use the `text/html` content type in their responses. There are a couple of ways you 
+can do this, including:
+
+1. by annotating your handler function so that it uses the `HTMLRenderer` (as shown above)
+2. by returning a `Response`, including an explicit `Content-Type` header (see [Renderers](#renderers) section for an example)
 
 ## Static Files
 
