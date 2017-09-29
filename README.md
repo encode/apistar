@@ -564,13 +564,11 @@ app = App(routes=routes, settings=settings)
 
 Returning a string response from a view will default to using the `text/json`
 content type. This means you will need to override this so that your HTML views
-use the `text/html` content type in their responses. There are several ways you can do this,
-including:
+use the `text/html` content type in their responses. There are a couple of ways you 
+can do this, including:
 
 1. by annotating your handler function so that it uses the `HTMLRenderer` (as shown above)
 2. by returning a `Response`, including an explicit `Content-Type` header (see [Renderers](#renderers) section for an example)
-3. by using the `BEFORE_REQUEST` and `AFTER_REQUEST` hooks, which fire before and after all requests
-
 
 ## Static Files
 
