@@ -1080,6 +1080,12 @@ Before starting you app you will likely need to create the database tables decla
 $ apistar create_tables
 ```
 
+**Migrations**
+If you wish to use alembic migrations with sql alchemy you can use the following package
+
+https://github.com/colanconnon/apistar_alembic_migrations
+
+
 **Interacting with the database**
 
 To interact with the database, use the `Session` component. This will automatically
