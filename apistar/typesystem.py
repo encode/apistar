@@ -122,6 +122,8 @@ class Boolean(object):
                     'false': False,
                     'on': True,
                     'off': False,
+                    'yes': True,
+                    'no': False,
                     '1': True,
                     '0': False,
                     '': False
