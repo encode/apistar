@@ -3,22 +3,17 @@ import tempfile
 
 import pytest
 
-from apistar import exceptions
+from apistar import exceptions, load_app
+from apistar.frameworks.cli import CliApp
 from apistar.interfaces import App
-from apistar.main import default_app, load_app
-
-
-def test_default_app():
-    default = default_app()
-    assert isinstance(default, App)
 
 
 def test_load_app():
     with tempfile.TemporaryDirectory() as tempdir:
         os.chdir(tempdir)
-        app = default_app()
+        app = CliApp()
         app.main(['new', '.'], standalone_mode=False)
-        loaded = load_app()
+        loaded = load_app(use_cache=False)
         assert isinstance(loaded, App)
 
 
@@ -28,7 +23,7 @@ def test_load_missing_app():
         with open('app.py', 'w') as app_file:
             app_file.write('')
         with pytest.raises(exceptions.ConfigurationError):
-            load_app()
+            load_app(use_cache=False)
 
 
 def test_load_invalid_app():
@@ -37,4 +32,4 @@ def test_load_invalid_app():
         with open('app.py', 'w') as app_file:
             app_file.write('app = 123\n')
         with pytest.raises(exceptions.ConfigurationError):
-            load_app()
+            load_app(use_cache=False)
