@@ -142,6 +142,10 @@ class CliApp(App):
         if not standalone_mode:
             return ret
 
-    def reverse_url(self, identifier: str, values: dict=None) -> str:
+    def reverse_url(self, identifier: str, **values) -> str:
         msg = "'%s' does not support 'reverse_url'" % self.__class__.__name__
+        raise NotImplementedError(msg)
+
+    def render_template(self, template_name: str, **context) -> str:
+        msg = "'%s' does not support 'render_template'" % self.__class__.__name__
         raise NotImplementedError(msg)

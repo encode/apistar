@@ -60,6 +60,7 @@ class ASyncIOApp(CliApp):
 
         # Setup everything that we need in order to run `self.__call__()`
         self.router = self.preloaded_state[Router]
+        self.templates = self.preloaded_state[Templates]
         self.http_injector = self.create_http_injector()
 
         settings = kwargs.get('settings', None)
@@ -153,5 +154,9 @@ class ASyncIOApp(CliApp):
 
         raise
 
-    def reverse_url(self, identifier: str, values: dict=None) -> str:
-        return self.router.reverse_url(identifier, values)
+    def reverse_url(self, identifier: str, **values) -> str:
+        return self.router.reverse_url(identifier, **values)
+
+    def render_template(self, template_name: str, **context) -> str:
+        template = self.templates.get_template(template_name)
+        return template.render(**context)

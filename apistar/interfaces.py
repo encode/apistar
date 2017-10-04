@@ -170,5 +170,9 @@ class App(metaclass=abc.ABCMeta):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def reverse_url(self, identifier: str, values: dict=None) -> str:
+    def reverse_url(self, identifier: str, **values) -> str:
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def render_template(self, template_name: str, **context) -> str:
         raise NotImplementedError

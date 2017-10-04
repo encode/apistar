@@ -308,7 +308,7 @@ def get_all_players():
     player_list = [
         {
             'name': player.name,
-            'url': reverse_url('get_player_details', {'player_name': player.name})
+            'url': reverse_url('get_player_details', player_name=player.name)
         }
         for player in players
     ]
@@ -538,15 +538,13 @@ responses, using [Jinja2](http://jinja.pocoo.org/).
 **app.py:**
 
 ```python
-from apistar import Route, annotate
-from apistar.interfaces import Templates
+from apistar import Route, annotate, render_template
 from apistar.frameworks.wsgi import WSGIApp as App
 from apistar.renderers import HTMLRenderer
 
 @annotate(renderers=[HTMLRenderer()])
-def hello(username: str, templates: Templates):
-    index = templates.get_template('index.html')
-    return index.render(username=username)
+def hello(username: str):
+    return render_template('index.html', username=username)
 
 routes = [
     Route('/', 'GET', hello)
@@ -1283,7 +1281,7 @@ Component                      | Description
 `interfaces.Console`           | The console interface. Supports the `.echo(message)` interface.
 `interfaces.CommandLineClient` | The command line parsing component. Supports the `.parse(args)` interface.
 `interfaces.Injector`          | Makes the dependency injection available to handler. Supports the `.run(func)` interface.
-`interfaces.Router`            | The router for the application instance. Supports the `reverse_url(name, **kwargs)` interface.
+`interfaces.Router`            | The router for the application instance. Supports the `reverse_url(name, **values)` interface.
 `interfaces.Schema`            | The CoreAPI schema used to represent the API.
 `interfaces.StaticFiles`       | The static files component. Supports the `get_url(path)` interface.
 `interfaces.Templates`         | The template environment. Supports the `get_template(path)` interface.

@@ -17,7 +17,7 @@ from apistar.interfaces import App
 from apistar.test import TestClient
 from apistar.types import Settings
 
-__version__ = '0.3.7'
+__version__ = '0.3.8'
 __all__ = [
     'annotate', 'exceptions', 'Command', 'Component', 'Response', 'Route',
     'Include', 'Settings', 'TestClient'
@@ -58,6 +58,11 @@ def get_current_app(use_cache=True) -> App:
     return app
 
 
-def reverse_url(identifier: str, values: dict=None) -> str:
+def reverse_url(identifier: str, **values) -> str:
     app = get_current_app()
-    return app.reverse_url(identifier, values)
+    return app.reverse_url(identifier, **values)
+
+
+def render_template(template_name: str, **context) -> str:
+    app = get_current_app()
+    return app.render_template(template_name, **context)
