@@ -148,6 +148,7 @@ class Object(dict):
         'type': 'Must be an object.',
         'invalid_key': 'Object keys must be strings.',
         'required': 'This field is required.',
+        'unknown': 'This field is unknown.'
     }
     properties = {}  # type: typing.Dict[str, typing.Any]
     required = []  # type: typing.List[str]
@@ -164,10 +165,17 @@ class Object(dict):
                 else:
                     raise TypeSystemError(cls=self.__class__, code='type') from None
 
-        # Ensure all property keys are strings.
         errors = {}
-        if any(not isinstance(key, str) for key in value.keys()):
-            raise TypeSystemError(cls=self.__class__, code='invalid_key')
+        for key in value.keys():
+            # Ensure all property keys are strings.
+            if not isinstance(key, str):
+                raise TypeSystemError(cls=self.__class__, code='invalid_key')
+
+            # Ensure no unknown properties have been passed.
+            # We ignore properties that start with _ because we use those internally like _sa_instance_state or _state
+            if key not in self.properties.keys() and not key.startswith('_'):
+                exc = TypeSystemError(cls=self.__class__, code='unknown')
+                errors[key] = exc.detail
 
         # Properties
         for key, child_schema in self.properties.items():

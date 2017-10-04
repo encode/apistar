@@ -95,6 +95,22 @@ def test_invalid_object():
     }
 
 
+def test_unknown_key():
+    response = client.post('/basic_object/', json={
+        'name': 'tom',
+        'score': '87',
+        'difficulty': 'easy',
+        'completed': 'True',
+        'an_unknown_field': 'value',
+        'another_unknown_field': 'another_value'
+    })
+    assert response.status_code == 400
+    assert response.json() == {
+        'an_unknown_field': 'This field is unknown.',
+        'another_unknown_field': 'This field is unknown.'
+    }
+
+
 class test_object_instantiation():
     location = Location({'latitude': 51.477, 'longitude': 0.0})
     value = HighScore({
