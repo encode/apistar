@@ -303,7 +303,7 @@ def get_player_details(player_name):
     score = get_score(player_name)
     return {'name': player_name, 'score': score}
 
-def get_all_players(router: Router):
+def get_all_players():
     players = get_players()
     player_list = [
         {
