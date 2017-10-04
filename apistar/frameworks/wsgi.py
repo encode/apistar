@@ -169,7 +169,7 @@ class WSGIApp(CliApp):
         raise
 
     def reverse_url(self, identifier: str, **values) -> str:
-        return self.router.reverse_url(identifier, **values)
+        return self.router.reverse_url(identifier, values)
 
     def render_template(self, template_name: str, **context) -> str:
         template = self.templates.get_template(template_name)
