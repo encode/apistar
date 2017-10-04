@@ -17,7 +17,7 @@ from apistar.interfaces import App
 from apistar.test import TestClient
 from apistar.types import Settings
 
-__version__ = '0.3.6'
+__version__ = '0.3.7'
 __all__ = [
     'annotate', 'exceptions', 'Command', 'Component', 'Response', 'Route',
     'Include', 'Settings', 'TestClient'
