@@ -152,3 +152,6 @@ class ASyncIOApp(CliApp):
             return http.Response(content, exc.status_code, {})
 
         raise
+
+    def reverse_url(self, identifier: str, values: dict=None) -> str:
+        return self.router.reverse_url(identifier, values)

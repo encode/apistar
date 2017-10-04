@@ -141,3 +141,7 @@ class CliApp(App):
             self.console.echo(ret)
         if not standalone_mode:
             return ret
+
+    def reverse_url(self, identifier: str, values: dict=None) -> str:
+        msg = "'%s' does not support 'reverse_url'" % self.__class__.__name__
+        raise NotImplementedError(msg)
