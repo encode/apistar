@@ -168,3 +168,7 @@ class App(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def main(self, args: typing.Sequence[str]=None) -> None:
         raise NotImplementedError
+
+    @abc.abstractmethod
+    def reverse_url(self, identifier: str, values: dict=None) -> str:
+        raise NotImplementedError

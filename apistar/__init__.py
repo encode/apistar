@@ -23,22 +23,22 @@ __all__ = [
     'Include', 'Settings', 'TestClient'
 ]
 
-loaded_app = None
+_current_app = None
 
 
-def main() -> None:  # pragma: nocover
+def main() -> None:
     if os.path.exists('app.py'):
-        app = load_app()
+        app = get_current_app()
     else:
         app = CliApp()
     app.main()
 
 
-def load_app(use_cache=True) -> App:
-    global loaded_app
+def get_current_app(use_cache=True) -> App:
+    global _current_app
 
-    if loaded_app is not None and use_cache:
-        return loaded_app
+    if _current_app is not None and use_cache:
+        return _current_app
 
     sys.path.insert(0, os.getcwd())
     spec = importlib.util.spec_from_file_location("app", "app.py")
@@ -53,6 +53,11 @@ def load_app(use_cache=True) -> App:
         raise exceptions.ConfigurationError(msg)
 
     if use_cache:
-        loaded_app = app
+        _current_app = app
 
     return app
+
+
+def reverse_url(identifier: str, values: dict=None) -> str:
+    app = get_current_app()
+    return app.reverse_url(identifier, values)
