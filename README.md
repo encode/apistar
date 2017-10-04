@@ -294,10 +294,10 @@ app = App(routes=[
 
 ### Reversing URLS
 
-Rather than build URLs by hand, it is possible to generate URLs based on the endpoint, using `Router's reverse_url()`.
+Rather than build URLs by hand, it is possible to generate URLs based on the endpoint, using `reverse_url()`.
 
 ```python
-from apistar.interfaces import Router
+from apistar import reverse_url
 
 def get_player_details(player_name):
     score = get_score(player_name)
@@ -308,7 +308,7 @@ def get_all_players(router: Router):
     player_list = [
         {
             'name': player.name,
-            'url': router.reverse_url('get_player_details', {'player_name': player.name})
+            'url': reverse_url('get_player_details', {'player_name': player.name})
         }
         for player in players
     ]
@@ -564,7 +564,7 @@ app = App(routes=routes, settings=settings)
 
 Returning a string response from a view will default to using the `text/json`
 content type. This means you will need to override this so that your HTML views
-use the `text/html` content type in their responses. There are a couple of ways you 
+use the `text/html` content type in their responses. There are a couple of ways you
 can do this, including:
 
 1. by annotating your handler function so that it uses the `HTMLRenderer` (as shown above)
