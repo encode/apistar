@@ -20,7 +20,7 @@ class DjangoORM(object):
         }
         if not django_settings.configured:
             django_settings.configure(**config)
-            django.setup()
+        django.setup()
         self.models = {
             model.__name__: model
             for model in apps.get_models()
