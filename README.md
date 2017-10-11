@@ -1010,6 +1010,14 @@ response = client.get('http://www.example.com/hello_world/')
 The TestClient also have a post method. There are two ways to send content to
 the post method. Using the data argument or using the json argument.
 
+The data argument is used when you want to send some form-encoded data, like
+ an HTML form.
+
+The json argument is used want to send data that is not form-encoded, some API
+accepts JSON-Encoded, for example the github V3 api.
+
+You can read more about it in the [requests](http://docs.python-requests.org/en/master/user/quickstart/#more-complicated-post-requests) library documentation.
+
 Using the data argument:
 
 ```python
@@ -1017,7 +1025,7 @@ from app import app
 from apistar import TestClient
 
 def test_hello_world():
-	response = client.post('/hello_world', data="content")
+    response = client.post('/hello_world', data="content")
     assert response.json() == {'hello_world': 'content'}
 ```
 
@@ -1028,7 +1036,7 @@ from app import app
 from apistar import TestClient
 
 def test_hello_world():
-	response = client.post('/hello_world', data={"title": "My Title"})
+    response = client.post('/hello_world', data={"title": "My Title"})
     assert response.json() == {'hello_world': {'title': 'My Title'}}
 ```
 
@@ -1039,7 +1047,7 @@ from app import app
 from apistar import TestClient
 
 def test_hello_world():
-	response = client.post('/hello_world', json={"title": "My Title"})
+    response = client.post('/hello_world', json={"title": "My Title"})
     assert response.json() == {'hello_world': {'title': 'My Title'}}
 ```
 
