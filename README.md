@@ -67,6 +67,7 @@ be in sync with your codebase.
     - [0.3 Release](#03-release)
     - [0.2 Release](#02-release)
 - [Development](#development)
+- [Common 3rd party packages](#common-3rd-party-packages)
 
 ---
 
