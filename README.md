@@ -1462,6 +1462,13 @@ $ ./scripts/lint
 ```
 ---
 
+# Common 3rd party packages
+
+- [apistar-jwt](https://github.com/audiolion/apistar-jwt)
+- [apistar_alembic_migrations](https://github.com/colanconnon/apistar_alembic_migrations)
+
+---
+
 <p align="center"><i>API Star is <a href="https://github.com/tomchristie/apistar/blob/master/LICENSE.md">BSD licensed</a> code.<br/>Designed & built in Brighton, England.</i><br/>&mdash; ⭐️ &mdash;</p>
 
 [techempower]: https://www.techempower.com/benchmarks/#section=data-r14&hw=ph&test=json
