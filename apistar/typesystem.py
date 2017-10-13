@@ -44,7 +44,7 @@ class String(str):
         return value
 
 
-class _NumericType(object):
+class _NumericType:
     """
     Base class for both `Number` and `Integer`.
     """
@@ -108,7 +108,7 @@ class Integer(_NumericType, int):
     native_type = int
 
 
-class Boolean(object):
+class Boolean:
     native_type = bool
     errors = {
         'type': 'Must be a valid boolean.'
