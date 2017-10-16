@@ -4,7 +4,7 @@ Type annotations that may be used in handler functions.
 import typing
 
 from apistar import typesystem
-from apistar.core import Command, Include, Route
+from apistar.core import Command, SubCommand, Include, Route
 
 # URL & Command Routing
 # =====================
@@ -38,7 +38,7 @@ RouteConfig.__name__ = 'RouteConfig'
 
 # Used for the 'commands' configuration of an app.
 
-CommandConfig = typing.Sequence[Command]
+CommandConfig = typing.Sequence[typing.Union[Command, SubCommand]]
 CommandConfig.__name__ = 'CommandConfig'
 
 

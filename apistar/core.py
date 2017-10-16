@@ -1,4 +1,5 @@
 import collections
+import re
 import typing
 
 
@@ -42,6 +43,35 @@ class Command(collections.abc.Iterable):
 
     def __iter__(self) -> typing.Iterator:
         return iter((self.name, self.handler))
+
+
+class SubCommand(collections.abc.Iterable):
+
+    def __init__(self,
+                 name: str=None,
+                 commands: typing.Sequence[Command]=None) -> None:
+        if name:
+            self.name = name
+        elif not hasattr(self, 'name'):
+            self.name = self.__evaluate_name()
+
+        if commands:
+            self.commands = commands
+        elif not hasattr(self, 'commands'):
+            raise RuntimeError('SubCommand class should define `commands` as an array of `Command`s')
+
+    def __evaluate_name(self):
+        name = self.__class__.__name__
+
+        if 'commands' == name[-8:].lower():
+            name = name[:-8]
+
+        # convert to snake case
+        s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
+        return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
+
+    def __iter__(self) -> typing.Iterator:
+        return iter((self.name, self.commands))
 
 
 class Component(collections.abc.Iterable):

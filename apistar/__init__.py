@@ -10,7 +10,7 @@ import os
 import sys
 
 from apistar import exceptions
-from apistar.core import Command, Component, Include, Route, annotate
+from apistar.core import Command, SubCommand, Component, Include, Route, annotate
 from apistar.frameworks.cli import CliApp
 from apistar.http import Response
 from apistar.interfaces import App
@@ -19,7 +19,7 @@ from apistar.types import Settings
 
 __version__ = '0.3.9'
 __all__ = [
-    'annotate', 'exceptions', 'Command', 'Component', 'Response', 'Route',
+    'annotate', 'exceptions', 'Command', 'SubCommand', 'Component', 'Response', 'Route',
     'Include', 'Settings', 'TestClient'
 ]
 
