@@ -10,7 +10,7 @@ import os
 import sys
 
 from apistar import exceptions
-from apistar.core import Command, SubCommand, Component, Include, Route, annotate
+from apistar.core import Command, Component, Include, Route, SubCommand, annotate
 from apistar.frameworks.cli import CliApp
 from apistar.http import Response
 from apistar.interfaces import App

@@ -4,7 +4,7 @@ Type annotations that may be used in handler functions.
 import typing
 
 from apistar import typesystem
-from apistar.core import Command, SubCommand, Include, Route
+from apistar.core import Command, Include, Route, SubCommand
 
 # URL & Command Routing
 # =====================
