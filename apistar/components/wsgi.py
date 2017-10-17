@@ -5,9 +5,9 @@ from werkzeug.http import parse_options_header
 from werkzeug.wsgi import get_input_stream
 
 from apistar import Settings, exceptions, http
-from apistar.parsers import DEFAULT_PARSERS
 from apistar.authentication import Unauthenticated
 from apistar.interfaces import Injector
+from apistar.parsers import DEFAULT_PARSERS
 from apistar.types import Handler, ParamName, WSGIEnviron
 
 

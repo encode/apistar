@@ -358,20 +358,29 @@ def test_accept_header(client):
 
 @pytest.mark.parametrize('client', [wsgi_client, async_client])
 def test_parser_content_type_vendor(client):
-    response = client.post('http://example.com/content_type_vendor/', json={'abc': 123},
-                           headers={'Content-type': 'application/vnd.apistar.test+json'})
+    response = client.post(
+        '/content_type_vendor/',
+        headers={'Content-type': 'application/vnd.apistar.test+json'},
+        json={'abc': 123}
+    )
     assert response.json() == {'data': {'abc': 123}}
 
 
 @pytest.mark.parametrize('client', [wsgi_client, async_client])
 def test_parser_vendor_invalid_content(client):
-    response = client.post('/content_type_vendor/', json={'abc': 123})
+    response = client.post(
+        '/content_type_vendor/',
+        json={'abc': 123}
+    )
     assert response.status_code == 415
 
 
 @pytest.mark.parametrize('client', [wsgi_client, async_client])
 def test_parser_form_only_invalid_content(client):
-    response = client.post('/content_type_form_only/', json={'abc': 123})
+    response = client.post(
+        '/content_type_form_only/',
+        json={'abc': 123}
+    )
     assert response.status_code == 415
 
 
