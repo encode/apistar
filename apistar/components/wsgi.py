@@ -4,7 +4,8 @@ import werkzeug
 from werkzeug.http import parse_options_header
 from werkzeug.wsgi import get_input_stream
 
-from apistar import Settings, exceptions, http, parsers
+from apistar import Settings, exceptions, http
+from apistar.parsers import DEFAULT_PARSERS
 from apistar.authentication import Unauthenticated
 from apistar.interfaces import Injector
 from apistar.types import Handler, ParamName, WSGIEnviron
@@ -75,17 +76,17 @@ def get_stream(environ: WSGIEnviron):
     return get_input_stream(environ)
 
 
-def get_request_data(headers: http.Headers, injector: Injector, settings: Settings):
+def get_request_data(headers: http.Headers, handler: Handler, injector: Injector, settings: Settings):
     content_type = headers.get('Content-Type')
     if not content_type:
         return None
 
-    media_type, _ = parse_options_header(content_type)
-    parser_mapping = {
-        parser.media_type: parser
-        for parser in settings.get('PARSERS', parsers.DEFAULT_PARSERS)
-    }
+    default_parsers = settings.get('PARSERS', DEFAULT_PARSERS)
+    parsers = getattr(handler, 'parsers', default_parsers)
 
+    parser_mapping = {parser.media_type: parser for parser in parsers}
+
+    media_type, _ = parse_options_header(content_type)
     if media_type not in parser_mapping:
         raise exceptions.UnsupportedMediaType()
 

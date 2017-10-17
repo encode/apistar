@@ -3,6 +3,7 @@ import pytest
 from apistar import Route, TestClient, annotate, http
 from apistar.frameworks.asyncio import ASyncIOApp
 from apistar.frameworks.wsgi import WSGIApp
+from apistar.parsers import JSONParser, MultiPartParser
 from apistar.renderers import HTMLRenderer
 
 
@@ -88,6 +89,22 @@ def get_accept_header(accept: http.Header) -> http.Response:
     return http.Response({'accept': accept})
 
 
+# Different parsers
+
+class VendorJSONParser(JSONParser):
+    media_type = 'application/vnd.apistar.test+json'
+
+
+@annotate(parsers=[VendorJSONParser()])
+def content_type_vendor(data: http.RequestData) -> http.Response:
+    return http.Response({'data': to_native(data)})
+
+
+@annotate(parsers=[MultiPartParser()])
+def content_type_form_only(data: http.RequestData) -> http.Response:
+    return http.Response({'data': to_native(data)})
+
+
 # Different response types
 
 @annotate(renderers=[HTMLRenderer()])
@@ -137,6 +154,8 @@ routes = [
     Route('/headers/', 'GET', get_headers),
     Route('/headers/', 'POST', get_headers, name='post_headers'),
     Route('/accept_header/', 'GET', get_accept_header),
+    Route('/content_type_vendor/', 'POST', content_type_vendor),
+    Route('/content_type_form_only/', 'POST', content_type_form_only),
     Route('/binary/', 'GET', binary_response),
     Route('/text/', 'GET', text_response),
     Route('/data/', 'GET', data_response),
@@ -335,6 +354,25 @@ def test_headers(client):
 def test_accept_header(client):
     response = client.get('http://example.com/accept_header/')
     assert response.json() == {'accept': '*/*'}
+
+
+@pytest.mark.parametrize('client', [wsgi_client, async_client])
+def test_parser_content_type_vendor(client):
+    response = client.post('http://example.com/content_type_vendor/', json={'abc': 123},
+                           headers={'Content-type': 'application/vnd.apistar.test+json'})
+    assert response.json() == {'data': {'abc': 123}}
+
+
+@pytest.mark.parametrize('client', [wsgi_client, async_client])
+def test_parser_vendor_invalid_content(client):
+    response = client.post('/content_type_vendor/', json={'abc': 123})
+    assert response.status_code == 415
+
+
+@pytest.mark.parametrize('client', [wsgi_client, async_client])
+def test_parser_form_only_invalid_content(client):
+    response = client.post('/content_type_form_only/', json={'abc': 123})
+    assert response.status_code == 415
 
 
 @pytest.mark.parametrize('client', [wsgi_client, async_client])
