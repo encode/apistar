@@ -65,6 +65,7 @@ def render_response(handler: Handler,
         renderer = negotiate_renderer(accept, renderers)
         if renderer is None:
             raise exceptions.NotAcceptable()
+            # return http.Response(status=406)
         content = injector.run(renderer.render, {'response_data': data})
         if isinstance(content, http.Response):
             return content

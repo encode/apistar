@@ -352,6 +352,15 @@ def test_text_response(client):
 
 
 @pytest.mark.parametrize('client', [wsgi_client, async_client])
+def test_text_with_wrong_accept_header(client):
+    response = client.get(
+        '/text/',
+        headers={'Accept': 'application/json'}
+    )
+    assert response.status_code == 406
+
+
+@pytest.mark.parametrize('client', [wsgi_client, async_client])
 def test_data_response(client):
     response = client.get('/data/')
     assert response.json() == {'hello': 'world'}
