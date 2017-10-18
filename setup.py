@@ -47,7 +47,7 @@ version = get_version('apistar')
 setup(
     name='apistar',
     version=version,
-    url='http://www.api-star.org',
+    url='http://discuss.apistar.org',
     license='BSD',
     description='Blazingly fast & beautifully expressive Web APIs',
     author='Tom Christie',
