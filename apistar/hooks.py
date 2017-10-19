@@ -47,7 +47,7 @@ def render_response(handler: Handler,
     Render a response, using content negotiation to determine an
     appropriate renderer.
 
-    Used in the default `BEFORE_REQUEST` configuration.
+    Used in the default `AFTER_REQUEST` configuration.
     """
     if isinstance(ret, http.Response):
         data, status, headers, content_type = ret
