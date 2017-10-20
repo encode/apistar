@@ -1,12 +1,9 @@
 import json
-import re
 import typing
 
 from werkzeug.http import parse_accept_header
 
 from apistar import http
-
-subtype = re.compile('/[^/]*$')
 
 
 class Renderer():
@@ -50,8 +47,12 @@ def negotiate_renderer(accept: typing.Optional[str],
         if media_type == '*/*':
             return renderers[0]
         elif media_type.endswith('/*'):
+            media_type = media_type[:-2]
             for renderer in renderers:
-                match = re.sub(subtype, '/*', renderer.media_type)
+                try:
+                    match = renderer.media_type[:renderer.media_type.rindex('/')]
+                except ValueError:
+                    continue
                 if media_type == match:
                     return renderer
         else:
