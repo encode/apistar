@@ -50,7 +50,7 @@ def get_session(backend: DjangoORM) -> typing.Generator[Session, None, None]:
     atomic.__enter__()
     try:
         yield Session(backend)
-    except:
+    except Exception:
         exc_type, exc_value, exc_traceback = sys.exc_info()
         atomic.__exit__(exc_type, exc_value, exc_traceback)
         raise
