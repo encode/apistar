@@ -21,7 +21,7 @@ class WerkzeugRouter(Router):
         for path, method, view, name in flatten_routes(routes):
             if name in views:
                 msg = (
-                    'Route wtih name "%s" exists more than once. Use an '
+                    'Route with name "%s" exists more than once. Use an '
                     'explicit name="..." on the Route to avoid a conflict.'
                 ) % name
                 raise exceptions.ConfigurationError(msg)
