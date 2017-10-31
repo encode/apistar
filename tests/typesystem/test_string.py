@@ -1,4 +1,6 @@
-from apistar import Route, TestClient, typesystem
+import pytest
+
+from apistar import Route, TestClient, exceptions, typesystem
 from apistar.frameworks.wsgi import WSGIApp as App
 
 
@@ -13,6 +15,10 @@ class NotBlank(typesystem.String):
 
 class ValidPattern(typesystem.String):
     pattern = '^[A-Za-z0-9_]+$'
+
+
+class Nullable(typesystem.String):
+    nullable = True
 
 
 def validate_length(value: MinMaxLength):
@@ -83,3 +89,13 @@ def test_invalid_pattern():
     response = client.get('/pattern/?value=')
     assert response.status_code == 400
     assert response.json() == {'value': 'Must match the pattern /^[A-Za-z0-9_]+$/.'}
+
+
+def test_valid_nullable():
+    assert Nullable(None) is None
+
+
+def test_invalid_not_nullable():
+    with pytest.raises(exceptions.TypeSystemError) as exc:
+        NotBlank(None)
+    assert str(exc.value) == 'Must not be null.'
