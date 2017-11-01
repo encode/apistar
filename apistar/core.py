@@ -61,13 +61,8 @@ class Component(collections.abc.Iterable):
 
 
 def flatten_routes(routes: typing.Sequence[typing.Union[Route, Include]],
-                   path_prefix: str=None,
-                   namespace_prefix: str=None) -> typing.Sequence[Route]:
-    if path_prefix is None:
-        path_prefix = ''
-    if namespace_prefix is None:
-        namespace_prefix = ''
-
+                   path_prefix: str='',
+                   namespace_prefix: str='') -> typing.Sequence[Route]:
     flattened_routes = []
     for item in routes:
         if isinstance(item, Route):
@@ -96,4 +91,5 @@ def annotate(**kwargs):
         for key, value in kwargs.items():
             setattr(func, key, value)
         return func
+
     return decorator
