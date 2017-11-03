@@ -176,7 +176,7 @@ class Object(dict):
             except KeyError:
                 if hasattr(child_schema, 'default'):
                     # If a key is missing but has a default, then use that.
-                    self[key] = child_schema.default
+                    self[key] = child_schema(child_schema.default)
                 elif key in self.required:
                     exc = TypeSystemError(cls=self.__class__, code='required')
                     errors[key] = exc.detail
