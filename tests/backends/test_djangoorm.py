@@ -79,6 +79,5 @@ def test_list_create(setup_tables):
 
 
 def test_shell_command_present():
-    commands = django_orm.commands
-    shell_commands = filter(lambda c: c.name is 'shell', commands)
-    assert len(list(shell_commands)) is 1
+    command_names = [c.name for c in django_orm.commands]
+    assert 'shell' in command_names
