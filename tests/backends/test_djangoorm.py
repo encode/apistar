@@ -76,3 +76,9 @@ def test_list_create(setup_tables):
     response = client.get('/kittens/')
     assert response.status_code == 200
     assert response.json() == [created_kitten]
+
+
+def test_shell_command_present():
+    commands = django_orm.commands
+    shell_commands = filter(lambda c: c.name is 'shell', commands)
+    assert len(list(shell_commands)) is 1
