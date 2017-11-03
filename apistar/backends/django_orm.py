@@ -70,6 +70,10 @@ def migrate():
     call_command('migrate')
 
 
+def shell():
+    call_command('shell')
+
+
 def showmigrations():  # pragma: nocover
     call_command('showmigrations')
 
@@ -83,5 +87,6 @@ commands = [
     Command('flush', flush),
     Command('makemigrations', makemigrations),
     Command('migrate', migrate),
+    Command('shell', shell),
     Command('showmigrations', showmigrations)
 ]

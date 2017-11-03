@@ -1206,6 +1206,14 @@ def list_customers(session: Session):
     ]
 ```
 
+**Accessing the shell**
+
+To interact with the Django shell, use the `shell` command included in `django_orm.commands`:
+
+```bash
+$ apistar shell
+```
+
 ---
 
 # Components
