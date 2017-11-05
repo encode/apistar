@@ -168,6 +168,12 @@ def get_session(orm: PeeweeORM) -> typing.Generator[Session, None, None]:
         yield orm.Session(context)
 
 
+def abstract():
+    def wrapper(cls):
+        cls._isabstract = True
+    return wrapper
+
+
 def get_non_abstract_models(orm):
     models = []
     for model in orm.models:
@@ -245,9 +251,4 @@ def migrate(console: Console, orm: PeeweeORM, migration: str=''):
     else:
         for name in run_migrations:
             router.run_one(name, router.migrator, fake=False, downgrade=downgrade)
-
-def abstract():
-    def wrapper(cls):
-        cls._isabstract = True
-    return wrapper
 
