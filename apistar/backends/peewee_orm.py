@@ -51,7 +51,7 @@ import typing
 import peewee
 from playhouse import pool
 from peewee import Database
-from apistar import Command, Component, Settings
+from apistar import Command, Component, Settings, exceptions
 from apistar.interfaces import Console
 
 
@@ -59,7 +59,7 @@ class Session:
 
     def __init__(self, context):
         self._context = context
-        
+
     @property
     def db(self):
         return self._context.database
@@ -72,7 +72,7 @@ class Session:
 class PeeweeORM:
 
     def __init__(self, engine=None, defaults=None, config_key=None, imports=None,
-            migrate_dir='migrations', migrate_table='migratehistory'):
+                 migrate_dir='migrations', migrate_table='migratehistory'):
         self._initialized = False
         if engine is None:
             self.db = peewee.Proxy()
@@ -84,6 +84,7 @@ class PeeweeORM:
         self.migrate_dir = migrate_dir
         self.migrate_table = migrate_table
         self.models = []
+
         class Model(peewee.Model):
             def __init_subclass__(cls, **kwargs):
                 super().__init_subclass__(**kwargs)
@@ -93,8 +94,10 @@ class PeeweeORM:
                         )
                 setattr(self.Session, cls.__name__, cls)
                 self.models.append(cls)
+
             class Meta:
                 database = self.db
+
         self.Model = Model
         self.Session = type('Session', (Session,), {})
         self.components = [
@@ -112,7 +115,7 @@ class PeeweeORM:
 
     def get_orm(self, settings: Settings):
         assert not self._initialized, "Peewee ORM is already initialized"
-        if self.defaults is None:    
+        if self.defaults is None:
             database_settings = {}
         else:
             database_settings = dict(self.defaults)
@@ -121,7 +124,7 @@ class PeeweeORM:
         if self.config_key is not None:
             config = config[self.config_key]
         database_settings.update(config)
-        
+
         self.imports = database_settings.pop('imports', self.imports)
         self.migrate_dir = database_settings.pop('migrate_dir', self.migrate_dir)
         self.migrate_table = database_settings.pop('migrate_table', self.migrate_table)
@@ -144,7 +147,7 @@ class PeeweeORM:
     def import_modules(self):
         if not self.imports:
             return
-        for module in imports:
+        for module in self.imports:
             try:
                 importlib.import_module(module)
             except ImportError:
@@ -178,9 +181,9 @@ def get_non_abstract_models(orm):
     models = []
     for model in orm.models:
         # special case for abstract models
-        if (model.__name__.startswith('_') or 
-            model.__name__.startswith('Abstract') or
-            getattr(model, '_isabstract', False)):
+        if (model.__name__.startswith('_') or
+                model.__name__.startswith('Abstract') or
+                getattr(model, '_isabstract', False)):
             continue
         models.append(model)
     return models
@@ -251,4 +254,3 @@ def migrate(console: Console, orm: PeeweeORM, migration: str=''):
     else:
         for name in run_migrations:
             router.run_one(name, router.migrator, fake=False, downgrade=downgrade)
-
