@@ -62,7 +62,10 @@ def render_response(handler: Handler,
     else:
         default_renderers = settings.get('RENDERERS', DEFAULT_RENDERERS)
         renderers = getattr(handler, 'renderers', default_renderers)
-        renderer = negotiate_renderer(accept, renderers)
+        if status == 406:
+            renderer = negotiate_renderer(accept, renderers, force=True)
+        else:
+            renderer = negotiate_renderer(accept, renderers, force=False)
         if renderer is None:
             raise exceptions.NotAcceptable()
         content = injector.run(renderer.render, {'response_data': data})
