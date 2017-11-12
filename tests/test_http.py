@@ -342,8 +342,10 @@ def test_unacceptable_header(client):
     response = client.get('/data/', headers={'accept': 'a/b'})
     assert response.status_code == 406
     assert response.headers['Content-Type'] == 'application/json'
-    assert response.json() == {'message':
-        'Could not satisfy the request Accept header'}
+    assert response.json() == {
+        'message':
+        'Could not satisfy the request Accept header'
+    }
 
 
 @pytest.mark.parametrize('client', [wsgi_client, async_client])
