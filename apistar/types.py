@@ -67,3 +67,14 @@ ReturnValue = typing.TypeVar('ReturnValue')
 
 class PathWildcard(typesystem.String):
     pass
+
+
+# Mixin to add .get() method to mapping-derived classes
+# (necessary for Python 3.5.2)
+
+class MappingGetMixin(object):
+    def get(self, key, default=None):
+        if key in self:
+            return self[key]
+        else:
+            return default
