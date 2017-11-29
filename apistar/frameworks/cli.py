@@ -13,6 +13,9 @@ class CliApp(App):
 
     BUILTIN_COMMANDS = [
         Command('new', commands.new),
+        Command('run', commands.run),
+        Command('schema', commands.schema),
+        Command('test', commands.test)
     ]
 
     BUILTIN_COMPONENTS = [
@@ -41,7 +44,7 @@ class CliApp(App):
             RouteConfig: routes,
             CommandConfig: commands,
             Settings: settings,
-            App: self,
+            # App: self,
         }
 
         self.components, self.preloaded_state = self.preload_components(
