@@ -10,7 +10,6 @@ from apistar import exceptions
 from apistar.core import Command, Component, Include, Route, annotate
 from apistar.frameworks.cli import CliApp
 from apistar.http import Response
-from apistar.interfaces import App
 from apistar.test import TestClient
 from apistar.types import Settings
 from apistar.utils import import_app

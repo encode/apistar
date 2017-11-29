@@ -38,7 +38,7 @@ def app_loader_args(a: AppLoader=import_app):
     Args:
       a: A parameter.
     """
-    return 'a=%s' % a
+    return 'a=%s' % type(a)
 
 
 commands = [
@@ -174,7 +174,7 @@ def test_default_args():
 
 def test_app_loader_args():
     ret = app.main(['app_loader_args', 'tests.test_commandline:wsgi_app'], standalone_mode=False)
-    assert True
+    assert ret == "a=<class 'apistar.frameworks.wsgi.WSGIApp'>"
 
 
 def test_unknown_command():

@@ -4,10 +4,10 @@ from apistar.utils import import_app
 
 
 def run(app: AppLoader=import_app,
-             host: str='127.0.0.1',
-             port: int=8080,
-             debug: bool=True,
-             reloader: bool=True) -> None:  # pragma: nocover
+        host: str='127.0.0.1',
+        port: int=8080,
+        debug: bool=True,
+        reloader: bool=True) -> None:  # pragma: nocover
     """
         Run the development server.
 
