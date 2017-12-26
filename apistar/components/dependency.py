@@ -549,6 +549,34 @@ class CliResolver(Resolver):
         return kwargs[name]
 
 
+def coerce_or_fail(coerce,
+                   value,
+                   exception: Exception=exceptions.ValidationError,
+                   name=None):
+    """
+    Return a coerced ``value`` or raise ``exception`` if fail.
+    If ``name`` is given, the exception's detail will be a dictionary
+    ``{name: detail}``
+
+    Args:
+        coerce: Type to coerce to
+        value: object to be coerced
+        exception: exception class to raise if coercion fails
+        name: string to add semantic to exception's details
+
+    Returns:
+        A coerced version of value.
+
+    """
+    try:
+        return coerce(value)
+    except exceptions.TypeSystemError as exc:
+        detail = exc.detail
+    except (TypeError, ValueError) as exc:
+        detail = str(exc)
+    raise exception(detail=detail if not name else {name: detail})
+
+
 class HTTPResolver(Resolver):
     """
     Handles resolving parameters for HTTP requests.
@@ -658,15 +686,7 @@ class HTTPResolver(Resolver):
         value = kwargs[name]
         if value is None or isinstance(value, coerce):
             return value
-
-        try:
-            return coerce(value)
-        except exceptions.TypeSystemError as exc:
-            detail = {name: exc.detail}
-        except (TypeError, ValueError) as exc:
-            detail = {name: str(exc)}
-
-        raise exceptions.NotFound(detail=detail)
+        return coerce_or_fail(coerce, value, exceptions.NotFound, name)
 
     def query_argument(self,
                        name: ParamName,
@@ -676,13 +696,7 @@ class HTTPResolver(Resolver):
         if value is None or isinstance(value, coerce):
             return value
 
-        try:
-            return coerce(value)
-        except exceptions.TypeSystemError as exc:
-            detail = {name: exc.detail}
-        except (TypeError, ValueError) as exc:
-            detail = {name: str(exc)}
-        raise exceptions.ValidationError(detail=detail)
+        return coerce_or_fail(coerce, value, name=name)
 
     def form_argument(self,
                       data: http.RequestData,
@@ -697,14 +711,7 @@ class HTTPResolver(Resolver):
         if data is None or isinstance(data, coerce):
             return data
 
-        try:
-            return coerce(data)
-        except exceptions.TypeSystemError as exc:
-            detail = exc.detail
-        except (TypeError, ValueError) as exc:
-            detail = str(exc)
-
-        raise exceptions.ValidationError(detail=detail)
+        return coerce_or_fail(coerce, data, name=name)
 
     def body_argument(self,
                       data: http.RequestData,
@@ -712,11 +719,4 @@ class HTTPResolver(Resolver):
         if data is None or isinstance(data, coerce):
             return data
 
-        try:
-            return coerce(data)
-        except exceptions.TypeSystemError as exc:
-            detail = exc.detail
-        except (TypeError, ValueError) as exc:
-            detail = str(exc)
-
-        raise exceptions.ValidationError(detail=detail)
+        return coerce_or_fail(coerce, data)
