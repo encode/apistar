@@ -186,7 +186,8 @@ class Object(dict):
                     self[key] = item
                 else:
                     try:
-                        self[key] = child_schema(item)
+                        if item is not None:
+                            self[key] = child_schema(item)
                     except TypeSystemError as exc:
                         errors[key] = exc.detail
 
