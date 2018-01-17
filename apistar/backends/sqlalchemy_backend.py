@@ -41,7 +41,7 @@ def get_session(backend: SQLAlchemyBackend) -> typing.Generator[Session, None, N
     try:
         yield session
         session.commit()
-    except:  # NOQA
+    except Exception:
         session.rollback()
         raise
     finally:
