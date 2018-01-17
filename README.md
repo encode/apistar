@@ -373,6 +373,7 @@ class Product(typesystem.Object):
         'in_stock': typesystem.Boolean,
         'size': ProductSize,
     }
+    required = ['name', 'in_stock', 'rating', 'name']
 ```
 
 ## Data Validation
