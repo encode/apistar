@@ -263,6 +263,19 @@ routes = [
 app = App(routes=routes)
 ```
 
+Map Multiple HTTP Methods to same view function
+
+```python
+def edit_user(username):
+    return {'message': f'Welcome, {username}!'}
+
+routes = [
+    Route('/{username}', ('PUT', 'PATCH'), edit_user)
+]
+
+app = App(routes=routes)
+```
+
 Use type annotation on the view method to include typed URL path parameters.
 
 ```python

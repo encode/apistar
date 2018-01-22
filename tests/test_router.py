@@ -1,6 +1,6 @@
 import pytest
 
-from apistar import Include, Route, TestClient, core, exceptions, typesystem
+from apistar import Include, Route, TestClient, core, exceptions, typesystem, http
 from apistar.frameworks.asyncio import ASyncIOApp
 from apistar.frameworks.wsgi import WSGIApp
 from apistar.types import KeywordArgs, PathWildcard
@@ -13,6 +13,12 @@ class MaxLength(typesystem.String):
 def found():
     return {
         'message': 'Found'
+    }
+
+
+def multiple_method(request: http.Request):
+    return {
+        'method': request.method
     }
 
 
@@ -85,6 +91,7 @@ routes = [
     ], namespace='included'),
     Route('/x', 'GET', lambda: 1, name='x'),
     Include('/another_subpath', [Route('/x', 'GET', lambda: 1, name='x2')]),
+    Route('/multiple-method/', ('PUT', 'PATCH'), multiple_method)
 ]
 wsgi_app = WSGIApp(routes=routes)
 async_app = ASyncIOApp(routes=routes)
@@ -99,6 +106,19 @@ def test_200(client):
     assert response.status_code == 200
     assert response.json() == {
         'message': 'Found'
+    }
+
+@pytest.mark.parametrize('client', [wsgi_client, async_client])
+def test_muptiple_method(client):
+    response1 = client.put('/multiple-method/')
+    response2 = client.patch('/multiple-method/')
+    assert response1.status_code == 200
+    assert response1.json() == {
+        'method': 'PUT'
+    }
+    assert response2.status_code == 200
+    assert response2.json() == {
+        'method': 'PATCH'
     }
 
 
