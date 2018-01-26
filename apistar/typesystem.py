@@ -142,7 +142,6 @@ class Enum(str):
             raise TypeSystemError(cls=cls, code='invalid')
         return value
 
-
 class Object(dict):
     errors = {
         'type': 'Must be an object.',
@@ -171,24 +170,28 @@ class Object(dict):
 
         # Properties
         for key, child_schema in self.properties.items():
-            try:
+            item = None
+            if key in value:
                 item = value[key]
-            except KeyError:
-                if hasattr(child_schema, 'default'):
-                    # If a key is missing but has a default, then use that.
-                    self[key] = child_schema.default
-                elif key in self.required:
+
+            # If a key is missing but has a default, then use that.
+            if item is None and hasattr(child_schema, 'default'):
+                item = child_schema.default
+
+            if item is None:
+                if key in self.required:
                     exc = TypeSystemError(cls=self.__class__, code='required')
                     errors[key] = exc.detail
+                continue
+
+            # Coerce value into the given schema type if needed.
+            if isinstance(item, child_schema):
+                self[key] = item
             else:
-                # Coerce value into the given schema type if needed.
-                if isinstance(item, child_schema):
-                    self[key] = item
-                else:
-                    try:
-                        self[key] = child_schema(item)
-                    except TypeSystemError as exc:
-                        errors[key] = exc.detail
+                try:
+                    self[key] = child_schema(item)
+                except TypeSystemError as exc:
+                    errors[key] = exc.detail
 
         if errors:
             raise TypeSystemError(errors)
