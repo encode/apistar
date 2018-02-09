@@ -8,6 +8,9 @@ import requests
 
 from apistar.interfaces import App
 
+REMOTE_ADDR = '127.0.0.1'
+REMOTE_PORT = 54000
+
 
 def _get_reason_phrase(status_code: int) -> str:
     try:
@@ -90,6 +93,9 @@ class _WSGIAdapter(requests.adapters.HTTPAdapter):
             if key not in ('CONTENT_LENGTH', 'CONTENT_TYPE'):
                 key = 'HTTP_' + key
             environ[key] = _coerce_to_str(value)
+
+        environ['REMOTE_ADDR'] = REMOTE_ADDR
+        environ['REMOTE_PORT'] = REMOTE_PORT
 
         return environ
 
@@ -179,6 +185,8 @@ class _UMIAdapter(requests.adapters.HTTPAdapter):
             [_coerce_to_bytes(key), _coerce_to_bytes(value)]
             for key, value in request.headers.items()
         ]
+
+        message['client'] = (REMOTE_ADDR, REMOTE_PORT)
 
         return message
 
