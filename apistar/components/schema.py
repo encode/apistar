@@ -134,6 +134,8 @@ def get_param_schema(annotated_type: typing.Type) -> coreschema.schemas.Schema:
         return coreschema.Integer(**schema_kwargs)
     elif issubclass(annotated_type, float):
         return coreschema.Number(**schema_kwargs)
+    elif issubclass(annotated_type, list):
+        return coreschema.Array(**schema_kwargs)
     elif issubclass(annotated_type, typesystem.Enum):
         enum = typing.cast(typing.Type[typesystem.Enum], annotated_type)
         return coreschema.Enum(enum=enum.enum, **schema_kwargs)
