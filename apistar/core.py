@@ -71,7 +71,7 @@ def flatten_routes(routes: typing.Sequence[typing.Union[Route, Include]],
             name = namespace_prefix + name
             if isinstance(method, (list, tuple)):
                 for _method in method:
-                    path_name = f"{_method}_{name}"
+                    path_name = "%s_%s" % (_method, name)
                     route = Route(path, _method, view, path_name)
                     flattened_routes.append(route)
             else:
