@@ -969,7 +969,7 @@ settings = {
 
 # Testing
 
-API Star includes the `py.test` testing framework. You can run all tests in
+API Star includes the [py.test](http://pytest.org/) testing framework. You can run all tests in
 a `tests.py` module or a `tests/` directory, by using the following command:
 
 ```bash
