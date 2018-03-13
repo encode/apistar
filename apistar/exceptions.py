@@ -1,47 +1,16 @@
 from typing import Union
 
 
-class TypeSystemError(Exception):
-    def __init__(self,
-                 detail: Union[str, dict]=None,
-                 cls: type=None,
-                 code: str=None) -> None:
-
-        if cls is not None and code is not None:
-            errors = getattr(cls, 'errors')
-            detail = errors[code].format(**cls.__dict__)
-
-        self.detail = detail
-        super().__init__(detail)
+class ParseError(Exception):
+    pass
 
 
 class NoReverseMatch(Exception):
     pass
 
 
-class TemplateNotFound(Exception):
-    pass
-
-
-class CouldNotResolveDependency(Exception):
-    pass
-
-
 class ConfigurationError(Exception):
     pass
-
-
-class CommandLineError(Exception):
-    def __init__(self, message: str, exit_code: int=1) -> None:
-        self.exit_code = exit_code
-        self.message = message
-        super().__init__(message)
-
-
-class CommandLineExit(Exception):
-    def __init__(self, message: str) -> None:
-        self.message = message
-        super().__init__(message)
 
 
 # HTTP exceptions
@@ -58,6 +27,9 @@ class HTTPException(Exception):
         assert self.detail is not None, '"detail" is required.'
         assert self.status_code is not None, '"status_code" is required.'
 
+    def get_headers(self):
+        return {}
+
 
 class Found(HTTPException):
     default_status_code = 302
@@ -69,6 +41,9 @@ class Found(HTTPException):
                  status_code: int=None) -> None:
         self.location = location
         super().__init__(detail, status_code)
+
+    def get_headers(self):
+        return {'Location': self.location}
 
 
 class ValidationError(HTTPException):

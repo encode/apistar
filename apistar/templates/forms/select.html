@@ -1,0 +1,17 @@
+<div class="form-group">
+    <label>
+      {{ field.title or name }}
+    </label>
+
+  <select class="form-control" name="{{ name }}" {{ attrs }}>
+    <option></option>
+    {% for value in field.enum %}
+        <option value="{{ value }}">{{ value }}</option>
+    {% endfor %}
+  </select>
+  <div class="invalid-feedback"></div>
+
+  {% if field.description %}
+    <span class="help-block">{{ field.description }}</span>
+  {% endif %}
+</div>
