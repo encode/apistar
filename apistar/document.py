@@ -58,14 +58,14 @@ class Section():
     def sections(self):
         return [item for item in self.content if isinstance(item, Section)]
 
-    def all_links(self, previous_sections=()):
+    def walk_links(self, previous_sections=()):
         links = []
         sections = previous_sections + (self,)
         for item in self.content:
             if isinstance(item, Link):
                 links.append((sections, item))
             else:
-                links.extend(item.all_links(previous_sections=sections))
+                links.extend(item.walk_links(previous_sections=sections))
         return links
 
 
@@ -78,6 +78,7 @@ class Link():
                  method='',
                  handler=None,
                  name='',
+                 encoding='',
                  title='',
                  description='',
                  fields: typing.Sequence['Field']=None):
@@ -85,6 +86,7 @@ class Link():
         self.method = 'GET' if (method == '') else method.upper()
         self.handler = handler
         self.name = name if name else handler.__name__
+        self.encoding = encoding
         self.title = title
         self.description = description
         self.fields = [] if (fields is None) else list(fields)

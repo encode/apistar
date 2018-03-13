@@ -6,7 +6,12 @@
    \/     /_/   \_\_|  |___| |____/ \__\__,_|_|        \/
 """
 
+from apistar.client import Client
 from apistar.document import Document, Field, Link, Section
+from apistar.server import App, Component, TestClient, http
 
 __version__ = '0.3.9'
-__all__ = ['Document', 'Section', 'Link', 'Field']
+__all__ = [
+    'App', 'Client', 'Component', 'Document', 'Section', 'Link', 'Field',
+    'TestClient', 'http'
+]

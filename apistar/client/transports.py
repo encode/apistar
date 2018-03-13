@@ -3,9 +3,9 @@ import mimetypes
 
 import requests
 import uritemplate
+from http import cookiejar
 
 from coreapi import exceptions, utils
-from coreapi.compat import cookiejar
 from coreapi.transports.base import BaseTransport
 from coreapi.utils import File, guess_filename, is_file
 
@@ -115,16 +115,12 @@ def _get_url(url, path_params):
     return url
 
 
-def _get_headers(url, decoders):
+def _get_headers(decoders):
     """
     Return a dictionary of HTTP headers to use in the outgoing request.
     """
-    accept_media_types = decoders[0].get_media_types()
-    if '*/*' not in accept_media_types:
-        accept_media_types.append('*/*')
-
     headers = {
-        'accept': ', '.join(accept_media_types),
+        'accept': '%s, */*' % decoders[0].media_type,
         'user-agent': 'coreapi'
     }
 
@@ -225,12 +221,12 @@ class HTTPTransport(BaseTransport):
         self.headers = {} if (headers is None) else dict(headers)
         self.session = session
 
-    def transition(self, link, decoders, params=None):
+    def transition(self, url, link, decoders, params=None):
         method = _get_method(link.method)
         encoding = _get_encoding(link.encoding)
         params = _get_params(method, encoding, link.fields, params)
-        url = _get_url(link.url, params.path)
-        headers = _get_headers(url, decoders)
+        url = _get_url(url, params.path)
+        headers = _get_headers(decoders)
         headers.update(self.headers)
 
         options = _get_request_options(headers, encoding, params)
@@ -239,6 +235,6 @@ class HTTPTransport(BaseTransport):
 
         if response.status_code >= 400 and response.status_code <= 599:
             title = '%d %s' % (response.status_code, response.reason)
-            raise exceptions.ErrorMessage(title, content)
+            raise exceptions.ErrorResponse(title, content)
 
         return content

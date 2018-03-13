@@ -2,12 +2,21 @@ from typing import Union
 
 
 class ParseError(Exception):
+    """
+    Raised by a Codec when `decode` fails due to malformed syntax.
+    """
     pass
 
 
 class NoReverseMatch(Exception):
+    """
+    Raised by a Router when `reverse_url` is passed an invalid handler name.
+    """
     pass
 
+
+class RequestError(Exception):
+    ...
 
 class ConfigurationError(Exception):
     pass

@@ -1,3 +1,4 @@
+from urllib.parse import urljoin, urlparse
 from apistar import codecs, types
 from apistar.client import transports
 from coreapi.utils import determine_transport
@@ -27,17 +28,35 @@ class Client():
             )
         ]
 
+    def determine_transport(self, url):
+        components = urlparse(url)
+        scheme = components.scheme.lower()
+        netloc = components.netloc
+
+        if not scheme:
+            raise exceptions.RequestError("URL missing scheme '%s'." % url)
+
+        if not netloc:
+            raise exceptions.RequestError("URL missing hostname '%s'." % url)
+
+        for transport in self.transports:
+            if scheme in transport.schemes:
+                return transport
+
+        raise exceptions.RequestError("Unsupported URL scheme '%s'." % scheme)
+
     def request(self, name, params=None):
         if params is None:
             params = {}
 
         link = self.document.lookup_link(name)
         validator = types.Object(
-            items={field.name: types.Any() for field in link.fields},
+            properties={field.name: types.Any() for field in link.fields},
             required=[field.name for field in link.fields if field.required],
-            additional_items=False
+            additional_properties=False
         )
         validator.validate(params)
 
-        transport = determine_transport(self.transports, link.url)
-        return transport.transition(link, self.decoders, params=params)
+        url = urljoin(self.document.url, link.url)
+        transport = self.determine_transport(url)
+        return transport.transition(url, link, self.decoders, params=params)
