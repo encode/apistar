@@ -45,10 +45,7 @@ class Client():
 
         raise exceptions.RequestError("Unsupported URL scheme '%s'." % scheme)
 
-    def request(self, name, params=None):
-        if params is None:
-            params = {}
-
+    def request(self, name, **params):
         link = self.document.lookup_link(name)
         validator = types.Object(
             properties={field.name: types.Any() for field in link.fields},

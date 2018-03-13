@@ -104,14 +104,14 @@ class Link():
 
 class Field():
     def __init__(self,
-                 id: str='',
+                 name: str='',
                  title: str='',
                  description: str='',
                  location: str='',
                  required: bool=False,
                  schema: Validator=None,
                  example: typing.Any=None):
-        self.id = id
+        self.name = name
         self.title = title
         self.description = description
         self.location = location
