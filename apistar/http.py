@@ -2,6 +2,7 @@ import collections
 import io
 import typing
 from urllib.parse import urlparse
+from apistar.types import MappingGetMixin
 
 Method = typing.NewType('Method', str)
 Scheme = typing.NewType('Scheme', str)
@@ -37,7 +38,7 @@ StringPairsMapping = typing.Mapping[str, str]
 StringPairs = typing.Union[StringPairsSequence, StringPairsMapping]
 
 
-class QueryParams(typing.Mapping[str, str]):
+class QueryParams(typing.Mapping[str, str], MappingGetMixin):
     """
     An immutable multidict.
     """
@@ -88,7 +89,7 @@ class QueryParams(typing.Mapping[str, str]):
         return 'QueryParams(%s)' % repr(self._list)
 
 
-class Headers(typing.Mapping[str, str]):
+class Headers(typing.Mapping[str, str], MappingGetMixin):
     """
     An immutable, case-insensitive multidict.
     """
