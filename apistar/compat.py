@@ -8,7 +8,7 @@ else:
 
 
 try:
-    # Ideally we subclass `_TemproraryFileWrapper` to present a clear __repr__
+    # Ideally we subclass `_TemporaryFileWrapper` to present a clear __repr__
     # for downloaded files.
     from tempfile import _TemporaryFileWrapper
 
