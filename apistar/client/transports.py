@@ -65,20 +65,11 @@ def _get_params(method, encoding, fields, params=None):
 
     errors = {}
 
-    # Ensure graceful behavior in edge-case where both location='body' and
-    # location='form' fields are present.
-    seen_body = False
-
     for key, value in params.items():
-        if key not in field_map or not field_map[key].location:
-            # Default is 'query' for 'GET' and 'DELETE', and 'form' for others.
-            location = 'query' if method in ('GET', 'DELETE') else 'form'
-        else:
-            location = field_map[key].location
+        if key not in field_map:
+            continue
 
-        if location == 'form' and encoding == 'application/octet-stream':
-            # Raw uploads should always use 'body', not 'form'.
-            location = 'body'
+        location = field_map[key].location
 
         try:
             if location == 'path':
@@ -87,10 +78,6 @@ def _get_params(method, encoding, fields, params=None):
                 query[key] = utils.validate_query_param(value)
             elif location == 'body':
                 data = utils.validate_body_param(value, encoding=encoding)
-                seen_body = True
-            elif location == 'form':
-                if not seen_body:
-                    data[key] = utils.validate_form_param(value, encoding=encoding)
         except exceptions.ParameterError as exc:
             errors[key] = "%s" % exc
 
