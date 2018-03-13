@@ -329,7 +329,7 @@ class OpenAPICodec(BaseCodec):
 
     def encode(self, document, **options):
         paths = self.get_paths(document)
-        openapi = OpenAPI.validate({
+        openapi = OPEN_API.validate({
             'openapi': '3.0.0',
             'info': {
                 'version': document.version,

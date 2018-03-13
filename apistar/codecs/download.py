@@ -1,4 +1,3 @@
-# coding: utf-8
 from apistar.codecs.base import BaseCodec
 from apistar.compat import DownloadedFile
 from urllib.parse import unquote, urlparse

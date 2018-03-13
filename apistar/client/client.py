@@ -1,4 +1,4 @@
-from apistar import codecs, exceptions
+from apistar import codecs, types
 from apistar.client import transports
 from coreapi.utils import determine_transport
 

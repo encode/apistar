@@ -1,9 +1,5 @@
-# coding: utf-8
-from __future__ import unicode_literals
-from collections import OrderedDict
 from coreapi import exceptions, utils
 from coreapi.compat import cookiejar
-from coreapi.document import Document, Object, Error
 from coreapi.transports.base import BaseTransport
 from coreapi.utils import guess_filename, is_file, File
 import collections

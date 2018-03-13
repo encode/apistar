@@ -1,4 +1,3 @@
-# coding: utf-8
 from apistar.codecs.base import BaseCodec
 from apistar.codecs.download import DownloadCodec
 from apistar.codecs.jsondata import JSONCodec

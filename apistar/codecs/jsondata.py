@@ -1,4 +1,3 @@
-# coding: utf-8
 from apistar.codecs.base import BaseCodec
 from apistar.exceptions import ParseError
 import collections
