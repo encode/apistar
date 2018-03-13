@@ -5,7 +5,8 @@ import requests
 import uritemplate
 from http import cookiejar
 
-from coreapi import exceptions, utils
+from apistar import exceptions
+from coreapi import utils
 from coreapi.transports.base import BaseTransport
 from coreapi.utils import File, guess_filename, is_file
 

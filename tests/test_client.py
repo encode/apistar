@@ -1,4 +1,5 @@
-from apistar import http, App, Client, Document, Field, Link, Section, TestClient
+from apistar import App, Client, Document, Field, Link, Section, TestClient, exceptions, http
+import pytest
 
 
 def no_parameter():
@@ -9,8 +10,12 @@ def query_parameter(params: http.QueryParams):
     return http.Response({'params': dict(params)})
 
 
-# def path_parameters(params: http.QueryParams):
-#     return http.Response({'params': dict(params)})
+def empty_response():
+    return http.Response(status=204)
+
+
+def error_response():
+    return http.Response({'error': 'failed'}, status=400)
 
 
 document = Document(
@@ -21,7 +26,11 @@ document = Document(
             Link(url='/query-parameter/', method='GET', handler=query_parameter, fields=[
                 Field(name='a', location='query')
             ])
-        ])
+        ]),
+        Section(name='responses', content=[
+            Link(url='/empty-response/', method='GET', handler=empty_response),
+            Link(url='/error-response/', method='GET', handler=error_response)
+        ]),
     ]
 )
 app = App(document)
@@ -34,3 +43,12 @@ def test_no_parameters():
 
 def test_query_parameter():
     assert client.request('parameters:query_parameter', a=1) == {'params': {'a': '1'}}
+
+def test_empty_response():
+    assert client.request('responses:empty_response') is None
+
+def test_error_response():
+    with pytest.raises(exceptions.ErrorResponse) as exc:
+        client.request('responses:error_response')
+    assert exc.value.title == '400 Bad Request'
+    assert exc.value.content == {'error': 'failed'}

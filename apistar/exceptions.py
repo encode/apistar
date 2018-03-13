@@ -15,8 +15,14 @@ class NoReverseMatch(Exception):
     pass
 
 
-class RequestError(Exception):
-    ...
+class ErrorResponse(Exception):
+    """
+    Raised when a client request results in an error response being returned.
+    """
+    def __init__(self, title, content):
+        self.title = title
+        self.content = content
+
 
 class ConfigurationError(Exception):
     pass
