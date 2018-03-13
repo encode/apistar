@@ -32,7 +32,7 @@ class Router():
         self.name_lookups = name_lookups
 
         # Use an MRU cache for router lookups.
-        self._lookup_cache = dict_type
+        self._lookup_cache = dict_type()
         self._lookup_cache_size = 10000
 
     def get_converter(self, field):
