@@ -16,9 +16,11 @@ def query_parameter(params: http.QueryParams):
 document = Document(
     url='http://testserver',
     content=[
-        Link(url='/no-parameters/', method='GET', handler=no_parameter),
-        Link(url='/query-parameter/', method='GET', handler=query_parameter, fields=[
-            Field(name='a', location='query')
+        Section(name='parameters', content=[
+            Link(url='/no-parameters/', method='GET', handler=no_parameter),
+            Link(url='/query-parameter/', method='GET', handler=query_parameter, fields=[
+                Field(name='a', location='query')
+            ])
         ])
     ]
 )
@@ -28,7 +30,7 @@ client = Client(document=document, session=session)
 
 
 def test_no_parameters():
-    assert client.request('no_parameter') == {'hello': 'world'}
+    assert client.request('parameters:no_parameter') == {'hello': 'world'}
 
 def test_query_parameter():
-    assert client.request('query_parameter', a=1) == {'params': {'a': '1'}}
+    assert client.request('parameters:query_parameter', a=1) == {'params': {'a': '1'}}
