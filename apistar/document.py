@@ -104,13 +104,16 @@ class Link():
 
 class Field():
     def __init__(self,
-                 name: str='',
+                 name: str,
+                 location: str,
                  title: str='',
                  description: str='',
-                 location: str='',
                  required: bool=False,
                  schema: Validator=None,
                  example: typing.Any=None):
+        assert location in ('path', 'query', 'body')
+        assert required if (location == 'path') else True
+
         self.name = name
         self.title = title
         self.description = description
