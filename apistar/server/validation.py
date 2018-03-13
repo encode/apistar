@@ -12,7 +12,10 @@
 # class PrimitiveDataTypes(Component):
 #     resolves = (int, float, str, bool)
 #
-#     def resolve_parameter(self, parameter: inspect.Parameter, path_params: ValidatedPathParams, query_params: ValidatedQueryParams):
+#     def resolve_parameter(self,
+#                           parameter: inspect.Parameter,
+#                           path_params: ValidatedPathParams,
+#                           query_params: ValidatedQueryParams):
 #         name = parameter.name
 #         ...
 #

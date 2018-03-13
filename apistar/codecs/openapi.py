@@ -1,13 +1,13 @@
+import json
+import re
+from urllib.parse import urljoin, urlparse
+
 from apistar import types
 from apistar.codecs import BaseCodec, JSONSchemaCodec
 from apistar.codecs.jsonschema import JSON_SCHEMA
 from apistar.compat import dict_type
-from apistar.document import Document, Link, Field, Section
+from apistar.document import Document, Field, Link, Section
 from apistar.exceptions import ParseError
-from urllib.parse import urljoin, urlparse
-import json
-import re
-
 
 SCHEMA_REF = types.Object(
     properties={'$ref': types.String(pattern='^#/components/schemas/')}

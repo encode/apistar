@@ -1,14 +1,12 @@
-from inspect import Parameter
 import typing
-
+from inspect import Parameter
 from wsgiref.util import request_uri
 
 from werkzeug.urls import url_decode
 from werkzeug.wsgi import get_input_stream
 
-from apistar.server.injector import Component
 from apistar.server import http
-
+from apistar.server.injector import Component
 
 WSGIEnviron = typing.NewType('WSGIEnviron', dict)
 

@@ -1,7 +1,7 @@
-from apistar.compat import dict_type
-from math import isfinite
 import re
+from math import isfinite
 
+from apistar.compat import dict_type
 
 NO_DEFAULT = object()
 TRUE = object()
@@ -114,7 +114,8 @@ class String(Validator):
         'exact': 'Must be {exact}.'
     }
 
-    def __init__(self, max_length=None, min_length=None, pattern=None, enum=None, format=None, allow_null=False, **kwargs):
+    def __init__(self, max_length=None, min_length=None, pattern=None,
+                 enum=None, format=None, allow_null=False, **kwargs):
         super(String, self).__init__(**kwargs)
 
         assert max_length is None or isinstance(max_length, int)
@@ -179,7 +180,9 @@ class NumericType(Validator):
         'multiple_of': 'Must be a multiple of {multiple_of}.',
     }
 
-    def __init__(self, minimum=None, maximum=None, exclusive_minimum=False, exclusive_maximum=False, multiple_of=None, enum=None, format=None, allow_null=False, **kwargs):
+    def __init__(self, minimum=None, maximum=None, exclusive_minimum=False,
+                 exclusive_maximum=False, multiple_of=None, enum=None,
+                 format=None, allow_null=False, **kwargs):
         super(NumericType, self).__init__(**kwargs)
 
         assert minimum is None or isinstance(minimum, (int, float))
@@ -287,7 +290,10 @@ class Object(Validator):
         'min_properties': 'Must have at least {min_properties} properties.',
     }
 
-    def __init__(self, properties=None, pattern_properties=None, additional_properties=True, min_properties=None, max_properties=None, required=None, allow_null=False, **kwargs):
+    def __init__(self, properties=None, pattern_properties=None,
+                 additional_properties=True, min_properties=None,
+                 max_properties=None, required=None, allow_null=False,
+                 **kwargs):
         super(Object, self).__init__(**kwargs)
 
         properties = {} if (properties is None) else dict_type(properties)
@@ -404,12 +410,16 @@ class Array(Validator):
         'unique_items': 'This item is not unique.',
     }
 
-    def __init__(self, items=None, additional_items=None, min_items=None, max_items=None, unique_items=False, allow_null=False, **kwargs):
+    def __init__(self, items=None, additional_items=None, min_items=None,
+                 max_items=None, unique_items=False, allow_null=False, **kwargs):
         super(Array, self).__init__(**kwargs)
 
         items = list(items) if isinstance(items, (list, tuple)) else items
 
-        assert items is None or isinstance(items, Validator) or isinstance(items, list) and all(isinstance(i, Validator) for i in items)
+        assert items is None or isinstance(items, Validator) or (
+            isinstance(items, list) and
+            all(isinstance(i, Validator) for i in items)
+        )
         assert additional_items is None or isinstance(additional_items, (bool, Validator))
         assert min_items is None or isinstance(min_items, int)
         assert max_items is None or isinstance(max_items, int)

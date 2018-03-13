@@ -1,12 +1,13 @@
+import collections
+import mimetypes
+
+import requests
+import uritemplate
+
 from coreapi import exceptions, utils
 from coreapi.compat import cookiejar
 from coreapi.transports.base import BaseTransport
-from coreapi.utils import guess_filename, is_file, File
-import collections
-import requests
-import mimetypes
-import uritemplate
-
+from coreapi.utils import File, guess_filename, is_file
 
 Params = collections.namedtuple('Params', ['path', 'query', 'data', 'files'])
 empty_params = Params({}, {}, {}, {})

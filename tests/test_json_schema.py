@@ -1,8 +1,9 @@
 import json
-import pytest
 import os
-from apistar.codecs import JSONSchemaCodec
 
+import pytest
+
+from apistar.codecs import JSONSchemaCodec
 
 filenames = [
     'additionalItems.json',

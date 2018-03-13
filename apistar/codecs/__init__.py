@@ -5,7 +5,6 @@ from apistar.codecs.jsonschema import JSONSchemaCodec
 from apistar.codecs.openapi import OpenAPICodec
 from apistar.codecs.text import TextCodec
 
-
 __all__ = [
     'BaseCodec', 'JSONCodec', 'JSONSchemaCodec', 'OpenAPICodec', 'TextCodec',
     'DownloadCodec'

@@ -1,13 +1,12 @@
+import json
+
+from werkzeug.http import HTTP_STATUS_CODES
+
 from apistar import exceptions
 from apistar.server import http
 from apistar.server.injector import Injector
 from apistar.server.router import Router
-from apistar.server.wsgi import WSGIEnviron, WSGI_COMPONENTS
-
-from werkzeug.http import HTTP_STATUS_CODES
-
-import json
-
+from apistar.server.wsgi import WSGI_COMPONENTS, WSGIEnviron
 
 STATUS_TEXT = {
     code: "%d %s" % (code, msg)

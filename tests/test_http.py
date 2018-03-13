@@ -3,8 +3,8 @@ from apistar.server import http
 from apistar.server.app import App
 from apistar.server.test import TestClient
 
-
 # HTTP Components as parameters
+
 
 def get_request(request: http.Request) -> http.Response:
     return http.Response({

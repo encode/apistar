@@ -1,10 +1,11 @@
-from apistar.codecs.base import BaseCodec
-from apistar.compat import DownloadedFile
-from urllib.parse import unquote, urlparse
 import cgi
 import os
 import posixpath
 import tempfile
+from urllib.parse import unquote, urlparse
+
+from apistar.codecs.base import BaseCodec
+from apistar.compat import DownloadedFile
 
 
 def _guess_extension(content_type):

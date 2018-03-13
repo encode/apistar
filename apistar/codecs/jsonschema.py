@@ -1,9 +1,9 @@
+import json
+
 from apistar import types
 from apistar.codecs.base import BaseCodec
 from apistar.compat import dict_type
 from apistar.exceptions import ParseError
-import json
-
 
 JSON_SCHEMA = types.Object(
     self_ref='JSONSchema',

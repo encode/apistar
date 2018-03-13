@@ -1,10 +1,10 @@
-from apistar.compat import dict_type
 from urllib.parse import urlparse
 
 import werkzeug
 from werkzeug.routing import Map, Rule
 
 from apistar import Document, exceptions, types
+from apistar.compat import dict_type
 
 
 class Router():

@@ -6,8 +6,7 @@
    \/     /_/   \_\_|  |___| |____/ \__\__,_|_|        \/
 """
 
-from apistar.document import Document, Section, Link, Field
-
+from apistar.document import Document, Field, Link, Section
 
 __version__ = '0.3.9'
 __all__ = ['Document', 'Section', 'Link', 'Field']

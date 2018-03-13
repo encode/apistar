@@ -1,5 +1,6 @@
-from apistar.exceptions import ConfigurationError
 from inspect import Parameter, signature
+
+from apistar.exceptions import ConfigurationError
 
 
 class Component():
@@ -28,7 +29,8 @@ class Component():
         # class or set of classes, however you could override this if you
         # wanted name-based parameter resolution.
         # Eg. Include the `Request` instance for any parameter named `request`.
-        assert self.resolves is not None, 'Component %s must set "resolves" or override "handle_parameter"' % self.__class__
+        msg = 'Component %s must set "resolves" or override "handle_parameter"'
+        assert self.resolves is not None, msg % self.__class__
         return parameter.annotation in self.resolves
 
     def resolve_parameter(self):

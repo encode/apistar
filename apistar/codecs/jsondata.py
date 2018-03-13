@@ -1,7 +1,8 @@
-from apistar.codecs.base import BaseCodec
-from apistar.exceptions import ParseError
 import collections
 import json
+
+from apistar.codecs.base import BaseCodec
+from apistar.exceptions import ParseError
 
 
 class JSONCodec(BaseCodec):

@@ -1,5 +1,6 @@
-from apistar.types import Validator
 import typing
+
+from apistar.types import Validator
 
 
 class Document():
