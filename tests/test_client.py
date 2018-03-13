@@ -15,6 +15,14 @@ def text_response():
     return http.Response('Hello, world!', headers={'Content-Type': 'text/plain'})
 
 
+def empty_response():
+    return http.Response(status=204)
+
+
+def error_response():
+    return http.Response({'error': 'failed'}, status=400)
+
+
 def download_response():
     return http.Response(b'...', headers={
         'Content-Type': 'image/jpeg',
@@ -22,12 +30,10 @@ def download_response():
     })
 
 
-def empty_response():
-    return http.Response(status=204)
-
-
-def error_response():
-    return http.Response({'error': 'failed'}, status=400)
+def download_response_filename_in_url():
+    return http.Response(b'...', headers={
+        'Content-Type': 'image/jpeg'
+    })
 
 
 document = Document(
@@ -41,9 +47,12 @@ document = Document(
         ]),
         Section(name='responses', content=[
             Link(url='/text-response/', method='GET', handler=text_response),
-            Link(url='/download-response/', method='GET', handler=download_response),
             Link(url='/empty-response/', method='GET', handler=empty_response),
             Link(url='/error-response/', method='GET', handler=error_response)
+        ]),
+        Section(name='downloads', content=[
+            Link(url='/download-response/', method='GET', handler=download_response),
+            Link(url='/download-response/path.jpg', method='GET', handler=download_response_filename_in_url),
         ]),
     ]
 )
@@ -61,11 +70,6 @@ def test_query_parameter():
 def test_text_response():
     assert client.request('responses:text_response') == 'Hello, world!'
 
-def test_download_response():
-    downloaded = client.request('responses:download_response')
-    assert downloaded.read() == b'...'
-    assert os.path.basename(downloaded.name) == 'example.jpg'
-
 def test_empty_response():
     assert client.request('responses:empty_response') is None
 
@@ -74,3 +78,13 @@ def test_error_response():
         client.request('responses:error_response')
     assert exc.value.title == '400 Bad Request'
     assert exc.value.content == {'error': 'failed'}
+
+def test_download_response():
+    downloaded = client.request('downloads:download_response')
+    assert downloaded.read() == b'...'
+    assert os.path.basename(downloaded.name) == 'example.jpg'
+
+def test_download_response_filename_in_url():
+    downloaded = client.request('downloads:download_response_filename_in_url')
+    assert downloaded.read() == b'...'
+    assert os.path.basename(downloaded.name) == 'path.jpg'
