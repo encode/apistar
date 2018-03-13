@@ -61,6 +61,12 @@ class QueryParams(typing.Mapping[str, str]):
     def items(self):
         return list(self._list)
 
+    def get(self, key, default=None):
+        if key in self._dict:
+            return self._dict[key]
+        else:
+            return default
+
     def __getitem__(self, key):
         return self._dict[key]
 
@@ -114,6 +120,12 @@ class Headers(typing.Mapping[str, str]):
 
     def items(self):
         return list(self._list)
+
+    def get(self, key, default=None):
+        if key in self._dict:
+            return self._dict[key]
+        else:
+            return default
 
     def __getitem__(self, key: str):
         return self._dict[key.lower()]

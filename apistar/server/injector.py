@@ -84,8 +84,8 @@ class Injector():
                         )
                     break
             else:
-                msg = f'No component to handle parameter "{parameter.name}" on function {func}'
-                raise ConfigurationError(msg)
+                msg = 'No component to handle parameter "%s" on function %s'
+                raise ConfigurationError(msg % (parameter.name, func))
 
         step = (func, kwargs, consts, output_name)
         steps.append(step)
