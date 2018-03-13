@@ -418,6 +418,7 @@ Validates string data. A subclass of `str`.
 * `format` - An identifier indicating a complex datatype with a string representation. For example `"date"`, to represent an ISO 8601 formatted date string.
 * `trim_whitespace` - `True ` if leading and trailing whitespace should be stripped from the data. Defaults to `True`.
 * `description` - A description for online documentation
+* `nullable` - `True` if it should be possible to set the value to `None`
 
 ### Number
 
@@ -430,6 +431,7 @@ Validates numeric data. A subclass of `float`.
 * `exclusive_minimum` - `True` for an exclusive minimum limit. Defaults to `False`.
 * `multiple_of` - A float that the data must be strictly divisible by, in order to be valid.
 * `description` - A description for online documentation
+* `nullable` - `True` if it should be possible to set the value to `None`
 
 ### Integer
 
@@ -442,6 +444,7 @@ Validates integer data. A subclass of `int`.
 * `exclusive_minimum` - `True` for an exclusive minimum limit. Defaults to `False`.
 * `multiple_of` - An integer that the data must be strictly divisible by, in order to be valid.
 * `description` - A description for online documentation
+* `nullable` - `True` if it should be possible to set the value to `None`
 
 ### Boolean
 

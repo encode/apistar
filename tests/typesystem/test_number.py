@@ -1,4 +1,6 @@
-from apistar import Route, TestClient, typesystem
+import pytest
+
+from apistar import Route, TestClient, exceptions, typesystem
 from apistar.frameworks.wsgi import WSGIApp as App
 
 
@@ -11,6 +13,10 @@ class MinMaxNumber(typesystem.Number):
 
 class MultipleNumber(typesystem.Number):
     multiple_of = 0.1
+
+
+class NullableNumber(typesystem.Number):
+    nullable = True
 
 
 def get_min_max(value: MinMaxNumber):
@@ -72,3 +78,13 @@ def test_invalid_multiple():
     response = client.get('/multiple/?value=1.23')
     assert response.status_code == 400
     assert response.json() == {'value': 'Must be a multiple of 0.1.'}
+
+
+def test_valid_nullable():
+    assert NullableNumber(None) is None
+
+
+def test_invalid_not_nullable():
+    with pytest.raises(exceptions.TypeSystemError) as exc:
+        MinMaxNumber(None)
+    assert str(exc.value) == 'Must be a valid number.'

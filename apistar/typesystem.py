@@ -13,14 +13,22 @@ class String(str):
         'min_length': 'Must have at least {min_length} characters.',
         'pattern': 'Must match the pattern /{pattern}/.',
         'input_type': 'Must be a valid {input_type}.',
+        'null': 'Must not be null.',
     }
     max_length = None  # type: int
     min_length = None  # type: int
     pattern = None  # type: str
     input_type = None  # type: str
     trim_whitespace = True
+    nullable = False
 
     def __new__(cls, *args, **kwargs):
+        if args and args[0] is None:
+            if cls.nullable:
+                return None
+            else:
+                raise TypeSystemError(cls=cls, code='null')
+
         value = super().__new__(cls, *args, **kwargs)
 
         if cls.trim_whitespace:
@@ -63,8 +71,12 @@ class _NumericType:
     exclusive_minimum = False
     exclusive_maximum = False
     multiple_of = None  # type: typing.Union[float, int]
+    nullable = False
 
     def __new__(cls, *args, **kwargs):
+        if cls.nullable and args and args[0] is None:
+            return None
+
         try:
             value = cls.native_type.__new__(cls, *args, **kwargs)
         except (TypeError, ValueError):
