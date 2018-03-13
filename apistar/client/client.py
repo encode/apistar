@@ -1,7 +1,7 @@
 from urllib.parse import urljoin, urlparse
-from apistar import codecs, types
+
+from apistar import codecs, exceptions, types
 from apistar.client import transports
-from coreapi.utils import determine_transport
 
 
 class Client():

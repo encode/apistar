@@ -1,9 +1,9 @@
 import collections
 import mimetypes
+from http import cookiejar
 
 import requests
 import uritemplate
-from http import cookiejar
 
 from apistar import conneg, exceptions
 from coreapi import utils

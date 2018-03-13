@@ -1,6 +1,10 @@
-from apistar import App, Client, Document, Field, Link, Section, TestClient, exceptions, http
-import pytest
 import os
+
+import pytest
+
+from apistar import (
+    App, Client, Document, Field, Link, Section, TestClient, exceptions, http
+)
 
 
 def no_parameter():
@@ -64,14 +68,18 @@ client = Client(document=document, session=session)
 def test_no_parameters():
     assert client.request('parameters:no_parameter') == {'hello': 'world'}
 
+
 def test_query_parameter():
     assert client.request('parameters:query_parameter', a=1) == {'params': {'a': '1'}}
+
 
 def test_text_response():
     assert client.request('responses:text_response') == 'Hello, world!'
 
+
 def test_empty_response():
     assert client.request('responses:empty_response') is None
+
 
 def test_error_response():
     with pytest.raises(exceptions.ErrorResponse) as exc:
@@ -79,10 +87,12 @@ def test_error_response():
     assert exc.value.title == '400 Bad Request'
     assert exc.value.content == {'error': 'failed'}
 
+
 def test_download_response():
     downloaded = client.request('downloads:download_response')
     assert downloaded.read() == b'...'
     assert os.path.basename(downloaded.name) == 'example.jpg'
+
 
 def test_download_response_filename_in_url():
     downloaded = client.request('downloads:download_response_filename_in_url')

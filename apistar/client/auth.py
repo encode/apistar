@@ -1,7 +1,5 @@
 from requests.auth import AuthBase, HTTPBasicAuth
 
-from coreapi.utils import domain_matches
-
 
 class BasicAuthentication(HTTPBasicAuth):
     allow_cookies = False
