@@ -24,6 +24,10 @@ class ErrorResponse(Exception):
         self.content = content
 
 
+class NoCodecAvailable(Exception):
+    pass
+
+
 class ConfigurationError(Exception):
     pass
 

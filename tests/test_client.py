@@ -10,6 +10,10 @@ def query_parameter(params: http.QueryParams):
     return http.Response({'params': dict(params)})
 
 
+def text_response():
+    return http.Response('Hello, world!', headers={'Content-Type': 'text/plain'})
+
+
 def empty_response():
     return http.Response(status=204)
 
@@ -28,6 +32,7 @@ document = Document(
             ])
         ]),
         Section(name='responses', content=[
+            Link(url='/text-response/', method='GET', handler=text_response),
             Link(url='/empty-response/', method='GET', handler=empty_response),
             Link(url='/error-response/', method='GET', handler=error_response)
         ]),
@@ -43,6 +48,9 @@ def test_no_parameters():
 
 def test_query_parameter():
     assert client.request('parameters:query_parameter', a=1) == {'params': {'a': '1'}}
+
+def test_text_response():
+    assert client.request('responses:text_response') == 'Hello, world!'
 
 def test_empty_response():
     assert client.request('responses:empty_response') is None

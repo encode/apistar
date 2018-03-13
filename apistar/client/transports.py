@@ -5,7 +5,7 @@ import requests
 import uritemplate
 from http import cookiejar
 
-from apistar import exceptions
+from apistar import conneg, exceptions
 from coreapi import utils
 from coreapi.transports.base import BaseTransport
 from coreapi.utils import File, guess_filename, is_file
@@ -192,7 +192,7 @@ def _decode_result(response, decoders):
         return None
 
     content_type = response.headers.get('content-type')
-    codec = utils.negotiate_decoder(decoders, content_type)
+    codec = conneg.negotiate_content_type(decoders, content_type)
 
     options = {
         'base_url': response.url
