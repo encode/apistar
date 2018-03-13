@@ -11,11 +11,10 @@ document = Document(
         Link(url='/', method='GET', handler=hello_world)
     ]
 )
-
 app = App(document)
 session = TestClient(app)
-client = Client(document=document, session=session)
 
 
 def test_client_request():
+    client = Client(document=document, session=session)
     assert client.request('hello_world') == {'hello': 'world'}
