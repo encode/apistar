@@ -1,5 +1,6 @@
 from apistar import App, Client, Document, Field, Link, Section, TestClient, exceptions, http
 import pytest
+import os
 
 
 def no_parameter():
@@ -12,6 +13,13 @@ def query_parameter(params: http.QueryParams):
 
 def text_response():
     return http.Response('Hello, world!', headers={'Content-Type': 'text/plain'})
+
+
+def download_response():
+    return http.Response(b'...', headers={
+        'Content-Type': 'image/jpeg',
+        'Content-Disposition': 'attachment; filename=example.jpg;'
+    })
 
 
 def empty_response():
@@ -33,6 +41,7 @@ document = Document(
         ]),
         Section(name='responses', content=[
             Link(url='/text-response/', method='GET', handler=text_response),
+            Link(url='/download-response/', method='GET', handler=download_response),
             Link(url='/empty-response/', method='GET', handler=empty_response),
             Link(url='/error-response/', method='GET', handler=error_response)
         ]),
@@ -51,6 +60,11 @@ def test_query_parameter():
 
 def test_text_response():
     assert client.request('responses:text_response') == 'Hello, world!'
+
+def test_download_response():
+    downloaded = client.request('responses:download_response')
+    assert downloaded.read() == b'...'
+    assert os.path.basename(downloaded.name) == 'example.jpg'
 
 def test_empty_response():
     assert client.request('responses:empty_response') is None
