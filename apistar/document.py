@@ -4,7 +4,6 @@ import typing
 
 from apistar.types import Validator
 
-
 LinkInfo = collections.namedtuple('LinkInfo', ['link', 'name', 'sections'])
 
 
@@ -31,18 +30,11 @@ class Document():
         link_info_list = []
         for item in self.content:
             if isinstance(item, Link):
-                sections = ()
                 link_info = LinkInfo(link=item, name=item.name, sections=())
                 link_info_list.append(link_info)
             else:
                 link_info_list.extend(item.walk_links())
         return link_info_list
-
-    def lookup_link(self, name: str):
-        for item in self.walk_links():
-            if item.name == name:
-                return item.link
-        raise ValueError('Link "%s" not found in document.' % name)
 
 
 class Section():
