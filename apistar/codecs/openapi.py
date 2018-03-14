@@ -357,18 +357,15 @@ class OpenAPICodec(BaseCodec):
     def get_paths(self, document):
         paths = dict_type()
 
-        for operation_id, link in document.links.items():
-            url = urlparse(link.url)
-            if url.path not in paths:
-                paths[url.path] = {}
-            paths[url.path][link.action] = self.get_operation(link, operation_id)
+        for link, name, sections in document.walk_links():
+            path = urlparse(link.url).path
+            operation_id = link.name
+            tag = sections[0].name if sections else None
+            method = link.method.lower()
 
-        for tag, links in document.data.items():
-            for operation_id, link in links.links.items():
-                url = urlparse(link.url)
-                if url.path not in paths:
-                    paths[url.path] = {}
-                paths[url.path][link.action] = self.get_operation(link, operation_id, tag=tag)
+            if path not in paths:
+                paths[path] = {}
+            paths[path][method] = self.get_operation(link, operation_id, tag=tag)
 
         return paths
 

@@ -20,10 +20,10 @@ class Document():
         self.description = description
         self.version = version
 
-    def links(self):
+    def get_links(self):
         return [item for item in self.content if isinstance(item, Link)]
 
-    def sections(self):
+    def get_sections(self):
         return [item for item in self.content if isinstance(item, Section)]
 
     def walk_links(self):
@@ -39,19 +39,19 @@ class Document():
 
 class Section():
     def __init__(self,
-                 content: typing.Sequence[typing.Union['Section', 'Link']]=None,
-                 name: str='',
+                 content: typing.Sequence[typing.Union['Section', 'Link']],
+                 name: str,
                  title: str='',
                  description: str=''):
-        self.content = [] if (content is None) else list(content)
+        self.content = list(content)
         self.name = name
         self.title = title
         self.description = description
 
-    def links(self):
+    def get_links(self):
         return [item for item in self.content if isinstance(item, Link)]
 
-    def sections(self):
+    def get_sections(self):
         return [item for item in self.content if isinstance(item, Section)]
 
     def walk_links(self, previous_sections=()):
