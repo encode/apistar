@@ -1,39 +1,15 @@
 import collections
 import mimetypes
-from http import cookiejar
 
 import requests
 
 from apistar import conneg, exceptions
-from coreapi import utils
-from coreapi.transports.base import BaseTransport
-from coreapi.utils import File, guess_filename, is_file
+from apistar.client.utils import (
+    BlockAllCookies, File, ForceMultiPartDict, guess_filename, is_file
+)
 
 Params = collections.namedtuple('Params', ['path', 'query', 'data', 'files'])
 empty_params = Params({}, {}, {}, {})
-
-
-class ForceMultiPartDict(dict):
-    """
-    A dictionary that always evaluates as True.
-    Allows us to force requests to use multipart encoding, even when no
-    file parameters are passed.
-    """
-    def __bool__(self):
-        return True
-
-    def __nonzero__(self):
-        return True
-
-
-class BlockAll(cookiejar.CookiePolicy):
-    """
-    A cookie policy that rejects all cookies.
-    Used to override the default `requests` behavior.
-    """
-    return_ok = set_ok = domain_return_ok = path_return_ok = lambda self, *args, **kwargs: False
-    netscape = True
-    rfc2965 = hide_cookie2 = False
 
 
 def _get_method(method):
@@ -72,11 +48,11 @@ def _get_params(method, encoding, fields, params=None):
 
         try:
             if location == 'path':
-                path[key] = utils.validate_path_param(value)
+                path[key] = value
             elif location == 'query':
-                query[key] = utils.validate_query_param(value)
+                query[key] = value
             elif location == 'body':
-                data = utils.validate_body_param(value, encoding=encoding)
+                data = value
         except exceptions.ParameterError as exc:
             errors[key] = "%s" % exc
 
@@ -192,6 +168,13 @@ def _decode_result(response, decoders):
     return codec.decode(response.content, **options)
 
 
+class BaseTransport():
+    schemes = None
+
+    def transition(self, url, link, decoders, params=None):
+        raise NotImplementedError()
+
+
 class HTTPTransport(BaseTransport):
     schemes = ['http', 'https']
 
@@ -204,7 +187,7 @@ class HTTPTransport(BaseTransport):
             headers = {key.lower(): value for key, value in headers.items()}
 
         if not getattr(session.auth, 'allow_cookies', False):
-            session.cookies.set_policy(BlockAll())
+            session.cookies.set_policy(BlockAllCookies())
 
         self.headers = {} if (headers is None) else dict(headers)
         self.session = session
