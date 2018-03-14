@@ -3,7 +3,6 @@ import mimetypes
 from http import cookiejar
 
 import requests
-import uritemplate
 
 from apistar import conneg, exceptions
 from coreapi import utils
@@ -99,7 +98,8 @@ def _get_url(url, path_params):
     expand the URL.
     """
     if path_params:
-        return uritemplate.expand(url, path_params)
+        for key, value in path_params:
+            url = url.replace('{%s}' % key, value)
     return url
 
 

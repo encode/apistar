@@ -1,3 +1,4 @@
+import re
 import typing
 
 from apistar.types import Validator
@@ -74,22 +75,38 @@ class Link():
     Links represent the actions that a client may perform.
     """
     def __init__(self,
-                 url='',
-                 method='',
+                 url,
+                 method,
                  handler=None,
                  name='',
                  encoding='',
                  title='',
                  description='',
                  fields: typing.Sequence['Field']=None):
+        method = method.upper()
+        fields = [] if (fields is None) else list(fields)
+
+        url_path_names = set([
+            item.strip('{}') for item in re.findall('{[^}]*}', url)
+        ])
+        field_path_names = set([
+            field.name for field in fields if field.location == 'path'
+        ])
+
+        assert method in (
+            'GET', 'POST', 'PUT', 'PATCH',
+            'DELETE', 'OPTIONS', 'HEAD', 'TRACE'
+        )
+        assert url_path_names == field_path_names
+
         self.url = url
-        self.method = 'GET' if (method == '') else method.upper()
+        self.method = method
         self.handler = handler
         self.name = name if name else handler.__name__
         self.encoding = encoding
         self.title = title
         self.description = description
-        self.fields = [] if (fields is None) else list(fields)
+        self.fields = fields
 
     def path_fields(self):
         return [field for field in self.fields if field.location == 'path']
