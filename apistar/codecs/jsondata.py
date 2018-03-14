@@ -19,4 +19,4 @@ class JSONCodec(BaseCodec):
                 object_pairs_hook=collections.OrderedDict
             )
         except ValueError as exc:
-            raise ParseError('Malformed JSON. %s' % exc)
+            raise ParseError('Malformed JSON. %s' % exc) from None

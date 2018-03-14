@@ -205,7 +205,7 @@ class OpenAPICodec(BaseCodec):
         try:
             data = json.loads(bytestring.decode('utf-8'))
         except ValueError as exc:
-            raise ParseError('Malformed JSON. %s' % exc)
+            raise ParseError('Malformed JSON. %s' % exc) from None
 
         openapi = OPEN_API.validate(data)
         title = lookup(openapi, ['info', 'title'])
@@ -213,8 +213,8 @@ class OpenAPICodec(BaseCodec):
         version = lookup(openapi, ['info', 'version'])
         base_url = lookup(openapi, ['servers', 0, 'url'])
         schema_definitions = self.get_schema_definitions(openapi)
-        sections = self.get_sections(openapi, base_url, schema_definitions)
-        return Document(title=title, description=description, version=version, url=base_url, sections=sections)
+        content = self.get_content(openapi, base_url, schema_definitions)
+        return Document(title=title, description=description, version=version, url=base_url, content=content)
 
     def get_schema_definitions(self, openapi):
         definitions = {}
@@ -223,11 +223,12 @@ class OpenAPICodec(BaseCodec):
             definitions[key] = JSONSchemaCodec().decode_from_data_structure(value)
         return definitions
 
-    def get_sections(self, openapi, base_url, schema_definitions):
+    def get_content(self, openapi, base_url, schema_definitions):
         """
         Return all the links in the document, layed out by tag and operationId.
         """
-        links = dict_type()
+        links_by_section = dict_type()
+        links = []
 
         for path, path_info in openapi.get('paths', {}).items():
             operations = {
@@ -235,31 +236,35 @@ class OpenAPICodec(BaseCodec):
                 if key in METHODS
             }
             for operation, operation_info in operations.items():
-                tag = lookup(operation_info, ['tags', 0], default='')
+                section_name = lookup(operation_info, ['tags', 0])
                 link = self.get_link(base_url, path, path_info, operation, operation_info, schema_definitions)
                 if link is None:
                     continue
 
-                if tag not in links:
-                    links[tag] = []
-                links[tag].append(link)
+                if section_name is None:
+                    links.append(link)
+                elif section_name not in links_by_section:
+                    links_by_section[section_name] = [link]
+                else:
+                    links_by_section[section_name].append(link)
 
-        return [
-            Section(id=_simple_slugify(key), title=key.title(), links=value)
-            for key, value in links.items()
+        sections = [
+            Section(name=_simple_slugify(key), title=key.title(), content=links)
+            for section_name, links in links_by_section.items()
         ]
+        return links + sections
 
     def get_link(self, base_url, path, path_info, operation, operation_info, schema_definitions):
         """
         Return a single link in the document.
         """
-        id = operation_info.get('operationId')
+        name = operation_info.get('operationId')
         title = operation_info.get('summary')
         description = operation_info.get('description')
 
-        if id is None:
-            id = _simple_slugify(title)
-            if not id:
+        if name is None:
+            name = _simple_slugify(title)
+            if not name:
                 return None
 
         # Allow path info and operation info to override the base url.
@@ -291,7 +296,7 @@ class OpenAPICodec(BaseCodec):
                     fields += [Field(name=key, location='form', schema=value)]
 
         return Link(
-            id=id,
+            name=name,
             url=urljoin(base_url, path),
             method=operation,
             title=title,

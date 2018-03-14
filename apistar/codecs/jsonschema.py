@@ -187,7 +187,7 @@ class JSONSchemaCodec(BaseCodec):
                 object_pairs_hook=dict_type
             )
         except ValueError as exc:
-            raise ParseError('Malformed JSON. %s' % exc)
+            raise ParseError('Malformed JSON. %s' % exc) from None
         jsonschema = JSON_SCHEMA.validate(data)
         return decode(jsonschema)
 
