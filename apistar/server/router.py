@@ -12,11 +12,9 @@ class Router():
         rules = []
         name_lookups = {}
 
-        for sections, link in document.walk_links():
+        for link, name, sections in document.walk_links():
             path = link.url
             method = link.method
-            names = [section.name for section in sections] + [link.name]
-            name = ':'.join(names)
 
             for field in link.path_fields():
                 converter = self.get_converter(field)

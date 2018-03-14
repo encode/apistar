@@ -1,7 +1,11 @@
+import collections
 import re
 import typing
 
 from apistar.types import Validator
+
+
+LinkInfo = collections.namedtuple('LinkInfo', ['link', 'name', 'sections'])
 
 
 class Document():
@@ -24,21 +28,20 @@ class Document():
         return [item for item in self.content if isinstance(item, Section)]
 
     def walk_links(self):
-        links = []
+        link_info_list = []
         for item in self.content:
             if isinstance(item, Link):
                 sections = ()
-                links.append((sections, item))
+                link_info = LinkInfo(link=item, name=item.name, sections=())
+                link_info_list.append(link_info)
             else:
-                links.extend(item.walk_links())
-        return links
+                link_info_list.extend(item.walk_links())
+        return link_info_list
 
     def lookup_link(self, name: str):
-        names = name.split(':')
-        for sections, link in self.walk_links():
-            link_names = [section.name for section in sections] + [link.name]
-            if link_names == names:
-                return link
+        for item in self.walk_links():
+            if item.name == name:
+                return item.link
         raise ValueError('Link "%s" not found in document.' % name)
 
 
@@ -60,14 +63,16 @@ class Section():
         return [item for item in self.content if isinstance(item, Section)]
 
     def walk_links(self, previous_sections=()):
-        links = []
+        link_info_list = []
         sections = previous_sections + (self,)
         for item in self.content:
             if isinstance(item, Link):
-                links.append((sections, item))
+                name = ':'.join([section.name for section in sections] + [item.name])
+                link_info = LinkInfo(link=item, name=name, sections=sections)
+                link_info_list.append(link_info)
             else:
-                links.extend(item.walk_links(previous_sections=sections))
-        return links
+                link_info_list.extend(item.walk_links(previous_sections=sections))
+        return link_info_list
 
 
 class Link():
