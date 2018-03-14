@@ -227,7 +227,7 @@ class OpenAPICodec(BaseCodec):
         """
         Return all the links in the document, layed out by tag and operationId.
         """
-        links_by_section = dict_type()
+        links_by_tag = dict_type()
         links = []
 
         for path, path_info in openapi.get('paths', {}).items():
@@ -236,21 +236,21 @@ class OpenAPICodec(BaseCodec):
                 if key in METHODS
             }
             for operation, operation_info in operations.items():
-                section_name = lookup(operation_info, ['tags', 0])
+                tag = lookup(operation_info, ['tags', 0])
                 link = self.get_link(base_url, path, path_info, operation, operation_info, schema_definitions)
                 if link is None:
                     continue
 
-                if section_name is None:
+                if tag is None:
                     links.append(link)
-                elif section_name not in links_by_section:
-                    links_by_section[section_name] = [link]
+                elif tag not in links_by_tag:
+                    links_by_tag[tag] = [link]
                 else:
-                    links_by_section[section_name].append(link)
+                    links_by_tag[tag].append(link)
 
         sections = [
-            Section(name=_simple_slugify(key), title=key.title(), content=links)
-            for section_name, links in links_by_section.items()
+            Section(name=_simple_slugify(tag), title=tag.title(), content=links)
+            for tag, links in links_by_tag.items()
         ]
         return links + sections
 
