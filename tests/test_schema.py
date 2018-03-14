@@ -24,6 +24,6 @@ def test_get_schema():
     response = test_client.get('/schema/')
     assert response.status_code == 200
     codec = OpenAPICodec()
-    decoded_document = codec.decode(response.content)
+    document = codec.decode(response.content)
     assert document.title == 'API Star'
     assert len(document.get_links()) == 2

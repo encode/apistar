@@ -105,13 +105,13 @@ class Link():
         self.description = description
         self.fields = fields
 
-    def path_fields(self):
+    def get_path_fields(self):
         return [field for field in self.fields if field.location == 'path']
 
-    def query_fields(self):
+    def get_query_fields(self):
         return [field for field in self.fields if field.location == 'query']
 
-    def body_field(self):
+    def get_body_field(self):
         body_fields = [field for field in self.fields if field.location == 'body']
         return next(body_fields, default=None)
 

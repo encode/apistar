@@ -16,7 +16,7 @@ class Router():
             path = link.url
             method = link.method
 
-            for field in link.path_fields():
+            for field in link.get_path_fields():
                 converter = self.get_converter(field)
                 template_format = '{%s}' % field.name
                 werkzeug_format = '<%s:%s>' % (converter, field.name)
@@ -59,7 +59,7 @@ class Router():
 
         (link, handler) = self.name_lookups[name]
 
-        for field in link.path_fields():
+        for field in link.get_path_fields():
             if (field.schema is not None) and (field.id in path_kwargs):
                 try:
                     path_kwargs[field.id] = field.schema.validate(path_kwargs[field.id])
