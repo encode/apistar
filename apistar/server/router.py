@@ -60,9 +60,9 @@ class Router():
         (link, handler) = self.name_lookups[name]
 
         for field in link.get_path_fields():
-            if (field.schema is not None) and (field.id in path_kwargs):
+            if (field.schema is not None) and (field.name in path_kwargs):
                 try:
-                    path_kwargs[field.id] = field.schema.validate(path_kwargs[field.id])
+                    path_kwargs[field.name] = field.schema.validate(path_kwargs[field.name])
                 except exceptions.ValidationError as exc:
                     raise exceptions.NotFound(detail=exc.detail) from None
 

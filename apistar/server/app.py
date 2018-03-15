@@ -6,6 +6,7 @@ from apistar import exceptions
 from apistar.server import http
 from apistar.server.injector import Injector
 from apistar.server.router import Router
+from apistar.server.templates import TemplateRenderer
 from apistar.server.wsgi import WSGI_COMPONENTS, WSGIEnviron
 
 STATUS_TEXT = {
@@ -25,12 +26,12 @@ class App():
 
     def __init__(self, document):
         self.document = document
-        self.initial = self.get_initial()
         self.router = self.get_router()
+        self.template_renderer = self.get_template_renderer()
         self.injector = self.get_injector()
         self.exception_handler = exception_handler
 
-    def get_initial(self):
+    def get_initial_components(self):
         return {
             'environ': WSGIEnviron,
             'exc': Exception,
@@ -40,8 +41,21 @@ class App():
     def get_router(self):
         return Router(self.document)
 
+    def get_template_renderer(self):
+        return TemplateRenderer(self)
+
     def get_injector(self):
-        return Injector(self.components, self.initial)
+        initial_components = self.get_initial_components()
+        return Injector(self.components, initial_components)
+
+    def reverse_url(self, name: str, params: dict=None):
+        return self.router.reverse_url(name, params)
+
+    def render_template(self, path: str, **context):
+        return self.template_renderer.render_template(path, **context)
+
+    def static_url(self, path: str):
+        return '#'
 
     def __call__(self, environ, start_response):
         state = {
