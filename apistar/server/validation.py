@@ -33,6 +33,29 @@ class ValidatePathParamsComponent(Component):
         return path_params
 
 
+class ValidateQueryParamsComponent(Component):
+    resolves = (ValidatedQueryParams,)
+
+    def resolve_parameter(self,
+                          link: Link,
+                          query_params: http.QueryParams):
+        query_fields = link.get_query_fields()
+
+        validator = types.Object(
+            properties=[
+                (field.name, field.schema if field.schema else types.Any())
+                for field in query_fields
+            ],
+            required=[field.name for field in query_fields if field.required]
+        )
+
+        try:
+            query_params = validator.validate(query_params, allow_coerce=True)
+        except types.ValidationError as exc:
+            raise exceptions.BadRequest(exc.detail)
+        return query_params
+
+
 class ValidatedParamComponent(Component):
     resolves = (str, int, float, bool)
 
@@ -43,7 +66,11 @@ class ValidatedParamComponent(Component):
 
     def resolve_parameter(self,
                           parameter: inspect.Parameter,
-                          path_params: ValidatedPathParams):
+                          path_params: ValidatedPathParams,
+                          query_params: ValidatedQueryParams):
+        params = path_params if (parameter.name in path_params) else query_params
+        has_default = parameter.default is not parameter.empty
+
         param_validator = {
             parameter.empty: types.Any(),
             str: types.String(),
@@ -54,17 +81,18 @@ class ValidatedParamComponent(Component):
 
         validator = types.Object(
             properties=[(parameter.name, param_validator)],
-            required=[parameter.name]
+            required=[] if has_default else [parameter.name]
         )
 
         try:
-            path_params = validator.validate(path_params, allow_coerce=True)
+            params = validator.validate(params, allow_coerce=True)
         except types.ValidationError as exc:
             raise exceptions.NotFound(exc.detail)
-        return path_params[parameter.name]
+        return params.get(parameter.name, parameter.default)
 
 
 VALIDATION_COMPONENTS = (
     ValidatePathParamsComponent(),
+    ValidateQueryParamsComponent(),
     ValidatedParamComponent()
 )

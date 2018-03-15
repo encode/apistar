@@ -94,6 +94,7 @@ class Link():
             'GET', 'POST', 'PUT', 'PATCH',
             'DELETE', 'OPTIONS', 'HEAD', 'TRACE'
         )
+        assert len([field for field in fields if field.location == 'body']) < 2
         for field_name in field_path_names:
             assert field_name in url_path_names
 

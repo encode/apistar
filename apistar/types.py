@@ -1,4 +1,5 @@
 import re
+import typing
 from math import isfinite
 
 from apistar.compat import dict_type
@@ -328,7 +329,7 @@ class Object(Validator):
             return None
         elif value is None:
             self.error('null')
-        elif not isinstance(value, dict):
+        elif not isinstance(value, (dict, typing.Mapping)):
             self.error('type')
 
         definitions = self.get_definitions(definitions)
