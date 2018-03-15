@@ -1,6 +1,6 @@
 from urllib.parse import urljoin, urlparse
 
-from apistar import codecs, exceptions, types
+from apistar import exceptions, types
 from apistar.client import transports
 
 
