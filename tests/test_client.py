@@ -20,11 +20,11 @@ def text_response():
 
 
 def empty_response():
-    return http.Response(status=204)
+    return http.Response(status_code=204)
 
 
 def error_response():
-    return http.Response({'error': 'failed'}, status=400)
+    return http.Response({'error': 'failed'}, status_code=400)
 
 
 def download_response():

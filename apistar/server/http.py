@@ -172,10 +172,10 @@ class Request():
 class Response():
     def __init__(self,
                  content: typing.Any=b'',
-                 status: int=200,
+                 status_code: int=200,
                  headers: StringPairs=None,
                  content_type: str=None) -> None:
         self.content = content
-        self.status = status
+        self.status_code = status_code
         self.headers = Headers() if (headers is None) else Headers(headers)
         self.content_type = content_type

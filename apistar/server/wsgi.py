@@ -1,8 +1,8 @@
 import typing
 from inspect import Parameter
+from urllib.parse import parse_qsl
 from wsgiref.util import request_uri
 
-from werkzeug.urls import url_decode
 from werkzeug.wsgi import get_input_stream
 
 from apistar.server import http
@@ -66,10 +66,8 @@ class QueryParamsComponent(Component):
     resolves = [http.QueryParams]
 
     def resolve_parameter(self, environ: WSGIEnviron):
-        return url_decode(
-            environ.get('QUERY_STRING', ''),
-            cls=http.QueryParams
-        )
+        query_string = environ.get('QUERY_STRING', '')
+        return http.QueryParams(parse_qsl(query_string))
 
 
 class QueryParamComponent(Component):

@@ -76,9 +76,9 @@ class App():
 
         # Get the WSGI response information, given the Response instance.
         try:
-            status_text = RESPONSE_STATUS_TEXT[response.status]
+            status_text = RESPONSE_STATUS_TEXT[response.status_code]
         except KeyError:
-            status_text = str(response.status)
+            status_text = str(response.status_code)
 
         if isinstance(response.content, str):
             content = [response.content.encode('utf-8')]
