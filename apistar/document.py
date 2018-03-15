@@ -86,22 +86,27 @@ class Link():
         url_path_names = set([
             item.strip('{}').lstrip('+') for item in re.findall('{[^}]*}', url)
         ])
-        field_path_names = set([
-            field.name for field in fields if field.location == 'path'
-        ])
+        path_fields = [
+            field for field in fields if field.location == 'path'
+        ]
+        body_fields = [
+            field for field in fields if field.location == 'body'
+        ]
 
         assert method in (
             'GET', 'POST', 'PUT', 'PATCH',
             'DELETE', 'OPTIONS', 'HEAD', 'TRACE'
         )
-        assert len([field for field in fields if field.location == 'body']) < 2
-        for field_name in field_path_names:
-            assert field_name in url_path_names
+        assert len(body_fields) < 2
+        if body_fields:
+            assert encoding
+        for field in path_fields:
+            assert field.name in url_path_names
 
         # Add in path fields for any "{param}" items that don't already have
         # a corresponding path field.
         for path_name in url_path_names:
-            if path_name not in field_path_names:
+            if path_name not in [field.name for field in path_fields]:
                 fields += [Field(name=path_name, location='path', required=True)]
 
         self.url = url
@@ -120,8 +125,10 @@ class Link():
         return [field for field in self.fields if field.location == 'query']
 
     def get_body_field(self):
-        body_fields = [field for field in self.fields if field.location == 'body']
-        return next(body_fields, default=None)
+        for field in self.fields:
+            if field.location == 'body':
+                return field
+        return None
 
 
 class Field():

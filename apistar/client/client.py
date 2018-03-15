@@ -1,4 +1,4 @@
-from urllib.parse import urljoin, urlparse
+from urllib.parse import quote, urljoin, urlparse
 
 from apistar import exceptions, types
 from apistar.client import transports
@@ -7,9 +7,9 @@ from apistar.client import transports
 class Client():
     def __init__(self, document, decoders=None, auth=None, headers=None, session=None):
         self.document = document
-        self.transport = self.get_transport(decoders, auth, headers, session)
+        self.transport = self.init_transport(decoders, auth, headers, session)
 
-    def get_transport(self, decoders=None, auth=None, headers=None, session=None):
+    def init_transport(self, decoders=None, auth=None, headers=None, session=None):
         return transports.HTTPTransport(
             decoders=decoders,
             auth=auth,
@@ -17,28 +17,48 @@ class Client():
             session=session
         )
 
-    def validate_url(self, url):
-        components = urlparse(url)
-        scheme = components.scheme.lower()
-        netloc = components.netloc
-
-        if not scheme:
-            raise exceptions.RequestError("URL missing scheme '%s'." % url)
-
-        if not netloc:
-            raise exceptions.RequestError("URL missing hostname '%s'." % url)
-
-        if scheme not in self.transport.schemes:
-            raise exceptions.RequestError("Unsupported URL scheme '%s'." % scheme)
-
     def lookup_link(self, name: str):
         for item in self.document.walk_links():
             if item.name == name:
                 return item.link
         raise exceptions.RequestError('Link "%s" not found in document.' % name)
 
+    def get_url(self, link, params):
+        url = urljoin(self.document.url, link.url)
+
+        scheme = urlparse(url).scheme.lower()
+
+        if not scheme:
+            raise exceptions.RequestError("URL missing scheme '%s'." % url)
+
+        if scheme not in self.transport.schemes:
+            raise exceptions.RequestError("Unsupported URL scheme '%s'." % scheme)
+
+        for field in link.get_path_fields():
+            value = str(params[field.name])
+            if '{%s}' % field.name in url:
+                url = url.replace('{%s}' % field.name, quote(value, safe=''))
+            elif '{+%s}' % field.name in url:
+                url = url.replace('{+%s}' % field.name, quote(value, safe='/'))
+
+        return url
+
+    def get_query_params(self, link, params):
+        return {
+            field.name: params[field.name]
+            for field in link.get_query_fields()
+            if field.name in params
+        }
+
+    def get_content_and_encoding(self, link, params):
+        body_field = link.get_body_field()
+        if body_field and body_field.name in params:
+            return (params[body_field.name], link.encoding)
+        return (None, None)
+
     def request(self, name: str, **params):
         link = self.lookup_link(name)
+
         validator = types.Object(
             properties={field.name: types.Any() for field in link.fields},
             required=[field.name for field in link.fields if field.required],
@@ -46,6 +66,15 @@ class Client():
         )
         validator.validate(params)
 
-        url = urljoin(self.document.url, link.url)
-        self.validate_url(url)
-        return self.transport.transition(url, link, params=params)
+        method = link.method
+        url = self.get_url(link, params)
+        query_params = self.get_query_params(link, params)
+        (content, encoding) = self.get_content_and_encoding(link, params)
+
+        return self.transport.send(
+            method,
+            url,
+            query_params=query_params,
+            content=content,
+            encoding=encoding
+        )
