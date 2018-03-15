@@ -3,7 +3,7 @@ import mimetypes
 
 import requests
 
-from apistar import conneg, exceptions
+from apistar import codecs, conneg, exceptions
 from apistar.client.utils import (
     BlockAllCookies, File, ForceMultiPartDict, guess_filename, is_file
 )
@@ -177,8 +177,13 @@ class BaseTransport():
 
 class HTTPTransport(BaseTransport):
     schemes = ['http', 'https']
+    default_decoders = [
+        codecs.JSONCodec(),
+        codecs.TextCodec(),
+        codecs.DownloadCodec()
+    ]
 
-    def __init__(self, auth=None, headers=None, session=None):
+    def __init__(self, decoders=None, auth=None, headers=None, session=None):
         if session is None:
             session = requests.Session()
         if auth is not None:
@@ -191,18 +196,19 @@ class HTTPTransport(BaseTransport):
 
         self.headers = {} if (headers is None) else dict(headers)
         self.session = session
+        self.decoders = list(decoders) if decoders else list(self.default_decoders)
 
-    def transition(self, url, link, decoders, params=None):
+    def transition(self, url, link, params=None):
         method = _get_method(link.method)
         encoding = _get_encoding(link.encoding)
         params = _get_params(method, encoding, link.fields, params)
         url = _get_url(url, params.path)
-        headers = _get_headers(decoders)
+        headers = _get_headers(self.decoders)
         headers.update(self.headers)
 
         options = _get_request_options(headers, encoding, params)
         response = self.session.request(method, url, **options)
-        content = _decode_result(response, decoders)
+        content = _decode_result(response, self.decoders)
 
         if response.status_code >= 400 and response.status_code <= 599:
             title = '%d %s' % (response.status_code, response.reason)

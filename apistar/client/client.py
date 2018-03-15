@@ -7,28 +7,17 @@ from apistar.client import transports
 class Client():
     def __init__(self, document, decoders=None, auth=None, headers=None, session=None):
         self.document = document
-        self.decoders = self.get_decoders(decoders)
-        self.transports = self.get_transports(auth, headers, session)
+        self.transport = self.get_transport(decoders, auth, headers, session)
 
-    def get_decoders(self, decoders=None):
-        if decoders is None:
-            return [
-                codecs.JSONCodec(),
-                codecs.TextCodec(),
-                codecs.DownloadCodec()
-            ]
-        return list(decoders)
+    def get_transport(self, decoders=None, auth=None, headers=None, session=None):
+        return transports.HTTPTransport(
+            decoders=decoders,
+            auth=auth,
+            headers=headers,
+            session=session
+        )
 
-    def get_transports(self, auth=None, headers=None, session=None):
-        return [
-            transports.HTTPTransport(
-                auth=auth,
-                headers=headers,
-                session=session
-            )
-        ]
-
-    def determine_transport(self, url):
+    def validate_url(self, url):
         components = urlparse(url)
         scheme = components.scheme.lower()
         netloc = components.netloc
@@ -39,11 +28,8 @@ class Client():
         if not netloc:
             raise exceptions.RequestError("URL missing hostname '%s'." % url)
 
-        for transport in self.transports:
-            if scheme in transport.schemes:
-                return transport
-
-        raise exceptions.RequestError("Unsupported URL scheme '%s'." % scheme)
+        if scheme not in self.transport.schemes:
+            raise exceptions.RequestError("Unsupported URL scheme '%s'." % scheme)
 
     def lookup_link(self, name: str):
         for item in self.document.walk_links():
@@ -61,5 +47,5 @@ class Client():
         validator.validate(params)
 
         url = urljoin(self.document.url, link.url)
-        transport = self.determine_transport(url)
-        return transport.transition(url, link, self.decoders, params=params)
+        self.validate_url(url)
+        return self.transport.transition(url, link, params=params)
