@@ -208,8 +208,7 @@ class HTTPTransport(BaseTransport):
         encoding = _get_encoding(link.encoding)
         params = _get_params(method, encoding, link.fields, params)
         url = _get_url(url, params.path)
-        headers = _get_headers(self.decoders)
-        headers.update(self.headers)
+        headers = dict(self.headers)
 
         options = _get_request_options(headers, encoding, params)
         response = self.session.request(method, url, **options)
