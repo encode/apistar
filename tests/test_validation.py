@@ -21,6 +21,14 @@ def int_query_param(param: int) -> http.Response:
     return http.Response({'param': param})
 
 
+def str_query_param_with_default(param: str='') -> http.Response:
+    return http.Response({'param': param})
+
+
+def int_query_param_with_default(param: int=None) -> http.Response:
+    return http.Response({'param': param})
+
+
 def schema_enforced_str_path_param(param) -> http.Response:
     return http.Response({'param': param})
 
@@ -58,6 +66,8 @@ doc = Document([
     ),
     Link(url='/str_query_param/', method='GET', handler=str_query_param),
     Link(url='/int_query_param/', method='GET', handler=int_query_param),
+    Link(url='/str_query_param_with_default/', method='GET', handler=str_query_param_with_default),
+    Link(url='/int_query_param_with_default/', method='GET', handler=int_query_param_with_default),
     Link(
         url='/schema_enforced_str_query_param/',
         method='GET',
@@ -109,6 +119,15 @@ def test_schema_enforced_int_path_param():
 def test_str_query_param():
     response = client.get('/str_query_param/?param=123')
     assert response.json() == {'param': '123'}
+    response = client.get('/str_query_param/')
+    assert response.json() == {'param': 'This field is required.'}
+
+
+def test_str_query_param_with_default():
+    response = client.get('/str_query_param_with_default/?param=123')
+    assert response.json() == {'param': '123'}
+    response = client.get('/str_query_param_with_default/')
+    assert response.json() == {'param': ''}
 
 
 def test_schema_enforced_str_query_param():
@@ -122,6 +141,15 @@ def test_schema_enforced_str_query_param():
 def test_int_query_param():
     response = client.get('/int_query_param/?param=123')
     assert response.json() == {'param': 123}
+    response = client.get('/int_query_param/')
+    assert response.json() == {'param': 'This field is required.'}
+
+
+def test_int_query_param_with_default():
+    response = client.get('/int_query_param_with_default/?param=123')
+    assert response.json() == {'param': 123}
+    response = client.get('/int_query_param_with_default/')
+    assert response.json() == {'param': None}
 
 
 def test_schema_enforced_int_query_param():
