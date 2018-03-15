@@ -5,7 +5,7 @@ from wsgiref.util import request_uri
 
 from werkzeug.wsgi import get_input_stream
 
-from apistar.server import http
+from apistar import http
 from apistar.server.injector import Component
 
 WSGIEnviron = typing.NewType('WSGIEnviron', dict)

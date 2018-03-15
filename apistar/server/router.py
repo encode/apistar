@@ -64,8 +64,8 @@ class Router():
 
         return (link, handler, path_params)
 
-    def reverse_url(self, name: str, values: dict=None) -> str:
+    def reverse_url(self, name: str, **params) -> str:
         try:
-            return self.adapter.build(name, values)
+            return self.adapter.build(name, params)
         except werkzeug.routing.BuildError as exc:
             raise exceptions.NoReverseMatch(str(exc)) from None

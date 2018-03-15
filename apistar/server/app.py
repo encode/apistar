@@ -2,8 +2,7 @@ import json
 
 from apistar import exceptions
 from apistar.document import Link
-from apistar.server import http
-from apistar.server.http import RESPONSE_STATUS_TEXT, PathParams
+from apistar.http import RESPONSE_STATUS_TEXT, PathParams, Response
 from apistar.server.injector import Injector
 from apistar.server.router import Router
 from apistar.server.templates import TemplateRenderer
@@ -11,9 +10,9 @@ from apistar.server.validation import VALIDATION_COMPONENTS
 from apistar.server.wsgi import WSGI_COMPONENTS, WSGIEnviron
 
 
-def exception_handler(exc: Exception) -> http.Response:
+def exception_handler(exc: Exception) -> Response:
     if isinstance(exc, exceptions.HTTPException):
-        return http.Response(exc.detail, exc.status_code, exc.get_headers())
+        return Response(exc.detail, exc.status_code, exc.get_headers())
     raise
 
 
@@ -46,8 +45,8 @@ class App():
         initial_components = self.get_initial_components()
         return Injector(self.components, initial_components)
 
-    def reverse_url(self, name: str, params: dict=None):
-        return self.router.reverse_url(name, params)
+    def reverse_url(self, name: str, **params):
+        return self.router.reverse_url(name, **params)
 
     def render_template(self, path: str, **context):
         return self.template_renderer.render_template(path, **context)

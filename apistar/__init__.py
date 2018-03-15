@@ -8,7 +8,7 @@
 
 from apistar.client import Client
 from apistar.document import Document, Field, Link, Section
-from apistar.server import App, Component, TestClient, http
+from apistar.server import App, Component, TestClient
 
 __version__ = '0.3.9'
 __all__ = [

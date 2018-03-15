@@ -1,9 +1,8 @@
 import inspect
 import typing
 
-from apistar import exceptions, types
+from apistar import exceptions, http, types
 from apistar.document import Link
-from apistar.server import http
 from apistar.server.injector import Component
 
 ValidatedPathParams = typing.NewType('ValidatedPathParams', dict)

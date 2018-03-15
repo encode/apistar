@@ -1,6 +1,5 @@
-from apistar import types
+from apistar import http, types
 from apistar.document import Document, Field, Link
-from apistar.server import http
 from apistar.server.app import App
 from apistar.server.test import TestClient
 

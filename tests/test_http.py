@@ -1,5 +1,5 @@
+from apistar import http
 from apistar.document import Document, Link
-from apistar.server import http
 from apistar.server.app import App
 from apistar.server.test import TestClient
 
