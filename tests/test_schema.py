@@ -3,14 +3,10 @@ from apistar.codecs import OpenAPICodec
 from apistar.server.handlers import serve_schema
 
 
-def hello_world(username: http.QueryParam):
-    return http.Response({'hello': username or 'world'})
-
-
 document = Document(
     title='API Star',
     content=[
-        Link(url='/hello-world/', method='GET', handler=hello_world, fields=[
+        Link(url='/hello-world/', method='GET', name='hello_world', fields=[
             Field(name='username', location='query')
         ]),
         Link(url='/schema/', method='GET', handler=serve_schema),
