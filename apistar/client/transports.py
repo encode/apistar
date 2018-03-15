@@ -23,7 +23,7 @@ class HTTPTransport(BaseTransport):
         codecs.DownloadCodec()
     ]
 
-    def __init__(self, decoders=None, auth=None, headers=None, session=None):
+    def __init__(self, auth=None, decoders=None, headers=None, session=None):
         from apistar import __version__
 
         if session is None:

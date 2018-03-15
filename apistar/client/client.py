@@ -5,14 +5,14 @@ from apistar.client import transports
 
 
 class Client():
-    def __init__(self, document, decoders=None, auth=None, headers=None, session=None):
+    def __init__(self, document, auth=None, decoders=None, headers=None, session=None):
         self.document = document
-        self.transport = self.init_transport(decoders, auth, headers, session)
+        self.transport = self.init_transport(auth, decoders, headers, session)
 
-    def init_transport(self, decoders=None, auth=None, headers=None, session=None):
+    def init_transport(self, auth=None, decoders=None, headers=None, session=None):
         return transports.HTTPTransport(
-            decoders=decoders,
             auth=auth,
+            decoders=decoders,
             headers=headers,
             session=session
         )
