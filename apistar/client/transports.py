@@ -188,15 +188,20 @@ class HTTPTransport(BaseTransport):
             session = requests.Session()
         if auth is not None:
             session.auth = auth
-        if headers:
-            headers = {key.lower(): value for key, value in headers.items()}
-
         if not getattr(session.auth, 'allow_cookies', False):
             session.cookies.set_policy(BlockAllCookies())
 
-        self.headers = {} if (headers is None) else dict(headers)
         self.session = session
         self.decoders = list(decoders) if decoders else list(self.default_decoders)
+        self.headers = {
+            'accept': '%s, */*' % self.decoders[0].media_type,
+            'user-agent': 'coreapi'
+        }
+        if headers:
+            self.headers.update({
+                key.lower(): value
+                for key, value in headers.items()
+            })
 
     def transition(self, url, link, params=None):
         method = _get_method(link.method)
