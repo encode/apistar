@@ -84,7 +84,7 @@ doc = Document([
     Link('/headers/', 'POST', get_headers, name='post_headers'),
     Link('/accept_header/', 'GET', get_accept_header),
     Link('/path_params/{example}/', 'GET', get_path_params),
-    Link('/full_path_params/{+example}', 'GET', get_path_params),
+    Link('/full_path_params/{+example}', 'GET', get_path_params, name='full_path_params'),
 ])
 
 app = App(doc)

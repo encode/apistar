@@ -14,7 +14,22 @@ class Document():
                  title: str='',
                  description: str='',
                  version: str=''):
-        self.content = [] if (content is None) else list(content)
+        content = [] if (content is None) else list(content)
+
+        # Ensure all names within a document are unique.
+        seen_fields = set()
+        seen_sections = set()
+        for item in content:
+            if isinstance(item, Field):
+                msg = 'Field "%s" in Document must have a unique name.'
+                assert item.name not in seen_fields, msg % item.name
+                seen_fields.add(item.name)
+            else:
+                msg = 'Section "%s" in Document must have a unique name.'
+                assert item.name not in seen_sections, msg % item.name
+                seen_sections.add(item.name)
+
+        self.content = content
         self.url = url
         self.title = title
         self.description = description
@@ -39,11 +54,26 @@ class Document():
 
 class Section():
     def __init__(self,
-                 content: typing.Sequence[typing.Union['Section', 'Link']],
                  name: str,
+                 content: typing.Sequence[typing.Union['Section', 'Link']]=None,
                  title: str='',
                  description: str=''):
-        self.content = list(content)
+        content = [] if (content is None) else list(content)
+
+        # Ensure all names within a section are unique.
+        seen_fields = set()
+        seen_sections = set()
+        for item in content:
+            if isinstance(item, Field):
+                msg = 'Field "%s" in Section "%s" must have a unique name.'
+                assert item.name not in seen_fields, msg % (item.name, name)
+                seen_fields.add(item.name)
+            else:
+                msg = 'Section "%s" in Section "%s" must have a unique name.'
+                assert item.name not in seen_sections, msg % (item.name, name)
+                seen_sections.add(item.name)
+
+        self.content = content
         self.name = name
         self.title = title
         self.description = description
@@ -141,7 +171,8 @@ class Field():
                  schema: Validator=None,
                  example: typing.Any=None):
         assert location in ('path', 'query', 'body')
-        assert required if (location == 'path') else True
+        if location in ('path', 'body'):
+            required = True
 
         self.name = name
         self.title = title
