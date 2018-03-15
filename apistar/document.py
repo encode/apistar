@@ -84,7 +84,7 @@ class Link():
         fields = [] if (fields is None) else list(fields)
 
         url_path_names = set([
-            item.strip('{}') for item in re.findall('{[^}]*}', url)
+            item.strip('{}').lstrip('+') for item in re.findall('{[^}]*}', url)
         ])
         field_path_names = set([
             field.name for field in fields if field.location == 'path'
@@ -94,7 +94,12 @@ class Link():
             'GET', 'POST', 'PUT', 'PATCH',
             'DELETE', 'OPTIONS', 'HEAD', 'TRACE'
         )
-        assert url_path_names == field_path_names
+        for name in field_path_names:
+            assert name in url_path_names
+
+        for name in url_path_names:
+            if name not in field_path_names:
+                fields += [Field(name=name, location='path', required=True)]
 
         self.url = url
         self.method = method

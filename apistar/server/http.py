@@ -10,6 +10,8 @@ QueryString = typing.NewType('QueryString', str)
 QueryParam = typing.NewType('QueryParam', str)
 Header = typing.NewType('Header', str)
 Body = typing.NewType('Body', bytes)
+PathParams = typing.NewType('PathParams', dict)
+PathParam = typing.NewType('PathParam', str)
 
 
 class URL(str):

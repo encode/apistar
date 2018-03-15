@@ -1,17 +1,17 @@
 import json
-
-from werkzeug.http import HTTP_STATUS_CODES
+from http import HTTPStatus
 
 from apistar import exceptions
 from apistar.server import http
+from apistar.server.http import PathParams
 from apistar.server.injector import Injector
 from apistar.server.router import Router
 from apistar.server.templates import TemplateRenderer
 from apistar.server.wsgi import WSGI_COMPONENTS, WSGIEnviron
 
 STATUS_TEXT = {
-    code: "%d %s" % (code, msg)
-    for code, msg in HTTP_STATUS_CODES.items()
+    status.value: "%d %s" % (status.value, status.phrase)
+    for status in HTTPStatus
 }
 
 
@@ -35,7 +35,8 @@ class App():
         return {
             'environ': WSGIEnviron,
             'exc': Exception,
-            'app': App
+            'app': App,
+            'path_params': PathParams
         }
 
     def get_router(self):
@@ -61,12 +62,14 @@ class App():
         state = {
             'environ': environ,
             'exc': None,
-            'app': self
+            'app': self,
+            'path_params': None
         }
         method = environ['REQUEST_METHOD'].upper()
         path = environ['PATH_INFO']
         try:
-            link, handler, path_kwargs = self.router.lookup(path, method)
+            link, handler, path_params = self.router.lookup(path, method)
+            state['path_params'] = path_params
             # state['link'], state['handler'], state['path_kwargs'] = link, handler, path_kwargs
             response = self.injector.run(handler, state)
         except Exception as exc:

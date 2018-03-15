@@ -3,7 +3,7 @@ from urllib.parse import urlparse
 import werkzeug
 from werkzeug.routing import Map, Rule
 
-from apistar import Document, exceptions, types
+from apistar import Document, exceptions
 from apistar.compat import dict_type
 
 
@@ -17,10 +17,16 @@ class Router():
             method = link.method
 
             for field in link.get_path_fields():
-                converter = self.get_converter(field)
-                template_format = '{%s}' % field.name
-                werkzeug_format = '<%s:%s>' % (converter, field.name)
-                path = path.replace(template_format, werkzeug_format)
+                if '{%s}' % field.name in path:
+                    path = path.replace(
+                        '{%s}' % field.name,
+                        "<%s>" % field.name
+                    )
+                elif '{+%s}' % field.name in path:
+                    path = path.replace(
+                        '{+%s}' % field.name,
+                        "<path:%s>" % field.name
+                    )
 
             rule = Rule(path, methods=[method], endpoint=name)
             rules.append(rule)
@@ -33,13 +39,6 @@ class Router():
         self._lookup_cache = dict_type()
         self._lookup_cache_size = 10000
 
-    def get_converter(self, field):
-        if isinstance(field.schema, types.Integer):
-            return 'int'
-        elif isinstance(field.schema, types.Number):
-            return 'float'
-        return 'string'
-
     def lookup(self, path: str, method: str):
         lookup_key = method + ' ' + path
         try:
@@ -48,7 +47,7 @@ class Router():
             pass
 
         try:
-            name, path_kwargs = self.adapter.match(path, method)
+            name, path_params = self.adapter.match(path, method)
         except werkzeug.exceptions.NotFound:
             raise exceptions.NotFound() from None
         except werkzeug.exceptions.MethodNotAllowed:
@@ -59,18 +58,11 @@ class Router():
 
         (link, handler) = self.name_lookups[name]
 
-        for field in link.get_path_fields():
-            if (field.schema is not None) and (field.name in path_kwargs):
-                try:
-                    path_kwargs[field.name] = field.schema.validate(path_kwargs[field.name])
-                except exceptions.ValidationError as exc:
-                    raise exceptions.NotFound(detail=exc.detail) from None
-
-        self._lookup_cache[lookup_key] = (link, handler, path_kwargs)
+        self._lookup_cache[lookup_key] = (link, handler, path_params)
         if len(self._lookup_cache) > self._lookup_cache_size:
             self._lookup_cache.pop(next(iter(self._lookup_cache)))
 
-        return (link, handler, path_kwargs)
+        return (link, handler, path_params)
 
     def reverse_url(self, name: str, values: dict=None) -> str:
         try:

@@ -63,6 +63,10 @@ def get_accept_header(accept: http.Header) -> http.Response:
     return http.Response({'accept': accept})
 
 
+def get_path_params(params: http.PathParams) -> http.Response:
+    return http.Response({'params': params})
+
+
 doc = Document([
     Link('/request/', 'GET', get_request),
     Link('/method/', 'GET', get_method),
@@ -79,6 +83,8 @@ doc = Document([
     Link('/headers/', 'GET', get_headers),
     Link('/headers/', 'POST', get_headers, name='post_headers'),
     Link('/accept_header/', 'GET', get_accept_header),
+    Link('/path_params/{example}/', 'GET', get_path_params),
+    Link('/full_path_params/{+example}', 'GET', get_path_params),
 ])
 
 app = App(doc)
@@ -102,9 +108,9 @@ def test_request():
 
 
 def test_method():
-    response = client.get('http://example.com/method/')
+    response = client.get('/method/')
     assert response.json() == {'method': 'GET'}
-    response = client.post('http://example.com/method/')
+    response = client.post('/method/')
     assert response.json() == {'method': 'POST'}
 
 
@@ -132,32 +138,32 @@ def test_port():
 
 
 def test_path():
-    response = client.get('http://example.com/path/')
+    response = client.get('/path/')
     assert response.json() == {'path': '/path/'}
 
 
 def test_query_string():
-    response = client.get('http://example.com/query_string/')
+    response = client.get('/query_string/')
     assert response.json() == {'query_string': ''}
-    response = client.get('http://example.com/query_string/?a=1&a=2&b=3')
+    response = client.get('/query_string/?a=1&a=2&b=3')
     assert response.json() == {'query_string': 'a=1&a=2&b=3'}
 
 
 def test_query_params():
-    response = client.get('http://example.com/query_params/')
+    response = client.get('/query_params/')
     assert response.json() == {'query_params': {}}
-    response = client.get('http://example.com/query_params/?a=1&a=2&b=3')
+    response = client.get('/query_params/?a=1&a=2&b=3')
     assert response.json() == {
         'query_params': {'a': '1', 'b': '3'}
     }
 
 
 def test_single_query_param():
-    response = client.get('http://example.com/page_query_param/')
+    response = client.get('/page_query_param/')
     assert response.json() == {'page': None}
-    response = client.get('http://example.com/page_query_param/?page=123')
+    response = client.get('/page_query_param/?page=123')
     assert response.json() == {'page': '123'}
-    response = client.get('http://example.com/page_query_param/?page=123&page=456')
+    response = client.get('/page_query_param/?page=123&page=456')
     assert response.json() == {'page': '123'}
 
 
@@ -190,7 +196,7 @@ def test_url():
 
 
 def test_body():
-    response = client.post('http://example.com/body/', data="content")
+    response = client.post('/body/', data="content")
     assert response.json() == {'body': 'content'}
 
 
@@ -228,8 +234,22 @@ def test_headers():
 
 
 def test_accept_header():
-    response = client.get('http://example.com/accept_header/')
+    response = client.get('/accept_header/')
     assert response.json() == {'accept': '*/*'}
+
+
+def test_path_params():
+    response = client.get('/path_params/abc/')
+    assert response.json() == {'params': {'example': 'abc'}}
+    response = client.get('/path_params/a%20b%20c/')
+    assert response.json() == {'params': {'example': 'a b c'}}
+    response = client.get('/path_params/abc/def/')
+    assert response.status_code == 404
+
+
+def test_full_path_params():
+    response = client.get('/full_path_params/abc/def/')
+    assert response.json() == {'params': {'example': 'abc/def/'}}
 
 
 def test_headers_type():
