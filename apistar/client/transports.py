@@ -195,7 +195,7 @@ class HTTPTransport(BaseTransport):
         self.decoders = list(decoders) if decoders else list(self.default_decoders)
         self.headers = {
             'accept': '%s, */*' % self.decoders[0].media_type,
-            'user-agent': 'coreapi'
+            'user-agent': 'apistar'
         }
         if headers:
             self.headers.update({
