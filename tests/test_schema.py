@@ -1,7 +1,6 @@
-from apistar import App, Document, Field, Link, TestClient, http
+from apistar import App, Document, Field, Link, TestClient
 from apistar.codecs import OpenAPICodec
 from apistar.server.handlers import serve_schema
-
 
 document = Document(
     title='API Star',
