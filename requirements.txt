@@ -1,6 +1,7 @@
 # Core requirements
 requests
 werkzeug
+jinja2
 
 # Testing requirements
 codecov
