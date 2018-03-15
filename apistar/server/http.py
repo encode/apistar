@@ -1,4 +1,5 @@
 import typing
+from http import HTTPStatus
 from urllib.parse import urlparse
 
 Method = typing.NewType('Method', str)
@@ -12,6 +13,12 @@ Header = typing.NewType('Header', str)
 Body = typing.NewType('Body', bytes)
 PathParams = typing.NewType('PathParams', dict)
 PathParam = typing.NewType('PathParam', str)
+
+
+RESPONSE_STATUS_TEXT = {
+    status.value: "%d %s" % (status.value, status.phrase)
+    for status in HTTPStatus
+}
 
 
 class URL(str):

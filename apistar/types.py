@@ -55,7 +55,7 @@ class Validator(object):
         if default is not NO_DEFAULT:
             self.default = default
 
-    def validate(self, value, definitions=None):
+    def validate(self, value, definitions=None, allow_coerce=False):
         raise NotImplementedError()
 
     def is_valid(self, value):
@@ -131,7 +131,7 @@ class String(Validator):
         self.format = format
         self.allow_null = allow_null
 
-    def validate(self, value, definitions=None):
+    def validate(self, value, definitions=None, allow_coerce=False):
         if value is None and self.allow_null:
             return None
         elif value is None:
@@ -202,19 +202,24 @@ class NumericType(Validator):
         self.format = format
         self.allow_null = allow_null
 
-    def validate(self, value, definitions=None):
+    def validate(self, value, definitions=None, allow_coerce=False):
         if value is None and self.allow_null:
             return None
         elif value is None:
             self.error('null')
-        elif not isinstance(value, (int, float)) or isinstance(value, bool):
+        elif isinstance(value, bool):
+            self.error('type')
+        elif not isinstance(value, (int, float)) and not allow_coerce:
             self.error('type')
         elif isinstance(value, float) and not isfinite(value):
             self.error('finite')
         elif self.numeric_type is int and isinstance(value, float) and not value.is_integer():
             self.error('integer')
 
-        value = self.numeric_type(value)
+        try:
+            value = self.numeric_type(value)
+        except (TypeError, ValueError):
+            self.error('type')
 
         if self.enum is not None:
             if value not in self.enum:
@@ -268,7 +273,7 @@ class Boolean(Validator):
 
         self.allow_null = allow_null
 
-    def validate(self, value, definitions=None):
+    def validate(self, value, definitions=None, allow_coerce=False):
         if value is None and self.allow_null:
             return None
         elif value is None:
@@ -318,7 +323,7 @@ class Object(Validator):
         self.required = required
         self.allow_null = allow_null
 
-    def validate(self, value, definitions=None):
+    def validate(self, value, definitions=None, allow_coerce=False):
         if value is None and self.allow_null:
             return None
         elif value is None:
@@ -356,7 +361,11 @@ class Object(Validator):
                 continue
             item = value[key]
             try:
-                validated[key] = child_schema.validate(item, definitions=definitions)
+                validated[key] = child_schema.validate(
+                    item,
+                    definitions=definitions,
+                    allow_coerce=allow_coerce
+                )
             except ValidationError as exc:
                 errors[key] = exc.detail
 
@@ -367,7 +376,10 @@ class Object(Validator):
                     if re.search(pattern, key):
                         item = value[key]
                         try:
-                            validated[key] = child_schema.validate(item, definitions=definitions)
+                            validated[key] = child_schema.validate(
+                                item, definitions=definitions,
+                                allow_coerce=allow_coerce
+                            )
                         except ValidationError as exc:
                             errors[key] = exc.detail
 
@@ -388,7 +400,11 @@ class Object(Validator):
             for key in remaining:
                 item = value[key]
                 try:
-                    validated[key] = child_schema.validate(item, definitions=definitions)
+                    validated[key] = child_schema.validate(
+                        item,
+                        definitions=definitions,
+                        allow_coerce=allow_coerce
+                    )
                 except ValidationError as exc:
                     errors[key] = exc.detail
 
@@ -432,7 +448,7 @@ class Array(Validator):
         self.unique_items = unique_items
         self.allow_null = allow_null
 
-    def validate(self, value, definitions=None):
+    def validate(self, value, definitions=None, allow_coerce=False):
         if value is None and self.allow_null:
             return None
         elif value is None:
@@ -463,11 +479,23 @@ class Array(Validator):
             try:
                 if isinstance(self.items, list):
                     if pos < len(self.items):
-                        item = self.items[pos].validate(item, definitions=definitions)
+                        item = self.items[pos].validate(
+                            item,
+                            definitions=definitions,
+                            allow_coerce=allow_coerce
+                        )
                     elif isinstance(self.additional_items, Validator):
-                        item = self.additional_items.validate(item, definitions=definitions)
+                        item = self.additional_items.validate(
+                            item,
+                            definitions=definitions,
+                            allow_coerce=allow_coerce
+                        )
                 elif self.items is not None:
-                    item = self.items.validate(item, definitions=definitions)
+                    item = self.items.validate(
+                        item,
+                        definitions=definitions,
+                        allow_coerce=allow_coerce
+                    )
 
                 if self.unique_items:
                     hashable_item = hashable(item)
@@ -487,7 +515,7 @@ class Array(Validator):
 
 
 class Any(Validator):
-    def validate(self, value, definitions=None):
+    def validate(self, value, definitions=None, allow_coerce=False):
         # TODO: Validate value matches primitive types
         return value
 
@@ -503,7 +531,7 @@ class Union(Validator):
         self.items = list(items)
         self.allow_null = allow_null
 
-    def validate(self, value, definitions=None):
+    def validate(self, value, definitions=None, allow_coerce=False):
         if value is None and self.allow_null:
             return None
         elif value is None:
@@ -511,7 +539,11 @@ class Union(Validator):
 
         for item in self.items:
             try:
-                return item.validate(value, definitions=definitions)
+                return item.validate(
+                    value,
+                    definitions=definitions,
+                    allow_coerce=allow_coerce
+                )
             except ValidationError:
                 pass
         self.error('union')
@@ -523,9 +555,13 @@ class Ref(Validator):
         assert isinstance(ref, str)
         self.ref = ref
 
-    def validate(self, value, definitions=None):
+    def validate(self, value, definitions=None, allow_coerce=False):
         assert definitions is not None, 'Ref.validate() requires definitions'
         assert self.ref in definitions, 'Ref "%s" not in definitions' % self.ref
 
         child_schema = definitions[self.ref]
-        return child_schema.validate(value, definitions=definitions)
+        return child_schema.validate(
+            value,
+            definitions=definitions,
+            allow_coerce=allow_coerce
+        )

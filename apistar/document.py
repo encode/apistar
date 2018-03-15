@@ -94,12 +94,14 @@ class Link():
             'GET', 'POST', 'PUT', 'PATCH',
             'DELETE', 'OPTIONS', 'HEAD', 'TRACE'
         )
-        for name in field_path_names:
-            assert name in url_path_names
+        for field_name in field_path_names:
+            assert field_name in url_path_names
 
-        for name in url_path_names:
-            if name not in field_path_names:
-                fields += [Field(name=name, location='path', required=True)]
+        # Add in path fields for any "{param}" items that don't already have
+        # a corresponding path field.
+        for path_name in url_path_names:
+            if path_name not in field_path_names:
+                fields += [Field(name=path_name, location='path', required=True)]
 
         self.url = url
         self.method = method

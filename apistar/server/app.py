@@ -1,18 +1,14 @@
 import json
-from http import HTTPStatus
 
 from apistar import exceptions
+from apistar.document import Link
 from apistar.server import http
-from apistar.server.http import PathParams
+from apistar.server.http import RESPONSE_STATUS_TEXT, PathParams
 from apistar.server.injector import Injector
 from apistar.server.router import Router
 from apistar.server.templates import TemplateRenderer
+from apistar.server.validation import VALIDATION_COMPONENTS
 from apistar.server.wsgi import WSGI_COMPONENTS, WSGIEnviron
-
-STATUS_TEXT = {
-    status.value: "%d %s" % (status.value, status.phrase)
-    for status in HTTPStatus
-}
 
 
 def exception_handler(exc: Exception) -> http.Response:
@@ -22,7 +18,7 @@ def exception_handler(exc: Exception) -> http.Response:
 
 
 class App():
-    components = WSGI_COMPONENTS
+    components = WSGI_COMPONENTS + VALIDATION_COMPONENTS
 
     def __init__(self, document):
         self.document = document
@@ -36,7 +32,8 @@ class App():
             'environ': WSGIEnviron,
             'exc': Exception,
             'app': App,
-            'path_params': PathParams
+            'path_params': PathParams,
+            'link': Link
         }
 
     def get_router(self):
@@ -63,14 +60,15 @@ class App():
             'environ': environ,
             'exc': None,
             'app': self,
-            'path_params': None
+            'path_params': None,
+            'link': None
         }
         method = environ['REQUEST_METHOD'].upper()
         path = environ['PATH_INFO']
         try:
             link, handler, path_params = self.router.lookup(path, method)
+            state['link'] = link
             state['path_params'] = path_params
-            # state['link'], state['handler'], state['path_kwargs'] = link, handler, path_kwargs
             response = self.injector.run(handler, state)
         except Exception as exc:
             state['exc'] = exc
@@ -78,7 +76,7 @@ class App():
 
         # Get the WSGI response information, given the Response instance.
         try:
-            status_text = STATUS_TEXT[response.status]
+            status_text = RESPONSE_STATUS_TEXT[response.status]
         except KeyError:
             status_text = str(response.status)
 
