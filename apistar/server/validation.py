@@ -8,6 +8,7 @@ from apistar.server.components import Component
 
 ValidatedPathParams = typing.NewType('ValidatedPathParams', dict)
 ValidatedQueryParams = typing.NewType('ValidatedQueryParams', dict)
+ValidatedRequestData = typing.TypeVar('ValidatedRequestData')
 
 
 class RequestDataComponent(Component):
@@ -81,7 +82,26 @@ class ValidateQueryParamsComponent(Component):
         return query_params
 
 
-class ValidatedParamComponent(Component):
+class ValidateRequestDataComponent(Component):
+    resolves_types = (ValidatedRequestData,)
+
+    def resolve(self,
+                link: Link,
+                data: http.RequestData):
+        body_field = link.get_body_field()
+
+        if not body_field or not body_field.schema:
+            return data
+
+        validator = body_field.schema
+
+        try:
+            return validator.validate(data, allow_coerce=True)
+        except types.ValidationError as exc:
+            raise exceptions.BadRequest(exc.detail)
+
+
+class PrimitiveParamComponent(Component):
     resolves_types = (str, int, float, bool)
 
     def can_handle_parameter(self, parameter: inspect.Parameter):
@@ -116,9 +136,24 @@ class ValidatedParamComponent(Component):
         return params.get(parameter.name, parameter.default)
 
 
+class CompositeParamComponent(Component):
+    def can_handle_parameter(self, parameter: inspect.Parameter):
+        return issubclass(parameter.annotation, types.Type)
+
+    def resolve(self,
+                parameter: inspect.Parameter,
+                data: ValidatedRequestData):
+        try:
+            return parameter.annotation(data)
+        except types.ValidationError as exc:
+            raise exceptions.BadRequest(exc.detail)
+
+
 VALIDATION_COMPONENTS = (
     RequestDataComponent(),
     ValidatePathParamsComponent(),
     ValidateQueryParamsComponent(),
-    ValidatedParamComponent()
+    ValidateRequestDataComponent(),
+    PrimitiveParamComponent(),
+    CompositeParamComponent()
 )

@@ -14,8 +14,9 @@ class ValidationError(Exception):
         super(ValidationError, self).__init__(detail)
 
 
-class Validator(object):
+class Validator():
     errors = {}
+    _creation_counter = 0
 
     def __init__(self, title='', description='', default=NO_DEFAULT, definitions=None, self_ref=None):
         definitions = {} if (definitions is None) else dict_type(definitions)
@@ -30,6 +31,11 @@ class Validator(object):
         self.description = description
         self.definitions = definitions
         self.self_ref = self_ref
+
+        # We need this global counter to determine what order fields have
+        # been declared in when used with `Type`.
+        self._creation_counter = Validator._creation_counter
+        Validator._creation_counter += 1
 
         if default is not NO_DEFAULT:
             self.default = default
@@ -188,12 +194,12 @@ class NumericType(Validator):
             self.error('null')
         elif isinstance(value, bool):
             self.error('type')
+        elif self.numeric_type is int and isinstance(value, float) and not value.is_integer():
+            self.error('integer')
         elif not isinstance(value, (int, float)) and not allow_coerce:
             self.error('type')
         elif isinstance(value, float) and not isfinite(value):
             self.error('finite')
-        elif self.numeric_type is int and isinstance(value, float) and not value.is_integer():
-            self.error('integer')
 
         try:
             value = self.numeric_type(value)
@@ -595,3 +601,62 @@ class Uniqueness():
             ]))
 
         return element
+
+
+# `Type` is a bit of syntactic sugar that gives you validated classes
+# that can be used in type annotations.
+
+class TypeMetaclass(type):
+    def __new__(cls, name, bases, attrs):
+        properties = []
+        required = []
+        for key, value in list(attrs.items()):
+            if isinstance(value, Validator):
+                attrs.pop(key)
+                properties.append((key, value))
+                if not value.has_default():
+                    required.append(key)
+
+        properties = sorted(
+            properties,
+            key=lambda item: item[1]._creation_counter
+        )
+
+        attrs['_validator'] = Object(
+            properties=properties,
+            required=required,
+            additional_properties=None
+        )
+        return super(TypeMetaclass, cls).__new__(cls, name, bases, attrs)
+
+
+class Type(dict_type, metaclass=TypeMetaclass):
+    def __init__(self, *args, **kwargs):
+        if args:
+            assert len(args) == 1
+            validated = self._validator.validate(args[0])
+        else:
+            validated = self._validator.validate(kwargs)
+        for key, value in validated.items():
+            dict_type.__setitem__(self, key, value)
+
+    def __repr__(self):
+        args = ['%s=%s' % (key, repr(value)) for key, value in self.items()]
+        arg_string = ', '.join(args)
+        return '<%s(%s)>' % (self.__class__.__name__, arg_string)
+
+    def __setattr__(self, key, value):
+        if key not in self._validator.properties:
+            raise AttributeError('Invalid attribute "%s"' % key)
+        self[key] = value
+
+    def __setitem__(self, key, value):
+        if key not in self._validator.properties:
+            raise KeyError('Invalid key "%s"' % key)
+        value = self._validator.properties[key].validate(value)
+        dict_type.__setitem__(self, key, value)
+
+    def __getattr__(self, key):
+        if key in self._validator.properties:
+            return dict_type.__getitem__(self, key)
+        return self.__getattribute__(key)
