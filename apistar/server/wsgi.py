@@ -12,76 +12,69 @@ WSGIEnviron = typing.NewType('WSGIEnviron', dict)
 
 
 class MethodComponent(Component):
-    resolves_types = (http.Method,)
-
-    def resolve(self, environ: WSGIEnviron):
-        return environ['REQUEST_METHOD'].upper()
+    def resolve(self,
+                environ: WSGIEnviron) -> http.Method:
+        return http.Method(environ['REQUEST_METHOD'].upper())
 
 
 class URLComponent(Component):
-    resolves_types = (http.URL,)
-
-    def resolve(self, environ: WSGIEnviron):
+    def resolve(self,
+                environ: WSGIEnviron) -> http.URL:
         return http.URL(request_uri(environ))
 
 
 class SchemeComponent(Component):
-    resolves_types = (http.Scheme,)
-
-    def resolve(self, environ: WSGIEnviron):
-        return environ['wsgi.url_scheme']
+    def resolve(self,
+                environ: WSGIEnviron) -> http.Scheme:
+        return http.Scheme(environ['wsgi.url_scheme'])
 
 
 class HostComponent(Component):
-    resolves_types = (http.Host,)
-
-    def resolve(self, environ: WSGIEnviron):
-        return environ.get('HTTP_HOST') or environ['SERVER_NAME']
+    def resolve(self,
+                environ: WSGIEnviron) -> http.Host:
+        return http.Host(environ.get('HTTP_HOST') or environ['SERVER_NAME'])
 
 
 class PortComponent(Component):
-    resolves_types = (http.Port,)
-
-    def resolve(self, environ: WSGIEnviron):
+    def resolve(self,
+                environ: WSGIEnviron) -> http.Port:
         if environ['wsgi.url_scheme'] == 'https':
-            return int(environ.get('SERVER_PORT') or 443)
-        return int(environ.get('SERVER_PORT') or 80)
+            return http.Port(int(environ.get('SERVER_PORT', 443)))
+        return http.Port(int(environ.get('SERVER_PORT', 80)))
 
 
 class PathComponent(Component):
-    resolves_types = (http.Path,)
-
-    def resolve(self, environ: WSGIEnviron):
-        return environ['SCRIPT_NAME'] + environ['PATH_INFO']
+    def resolve(self,
+                environ: WSGIEnviron) -> http.Path:
+        return http.Path(environ['SCRIPT_NAME'] + environ['PATH_INFO'])
 
 
 class QueryStringComponent(Component):
-    resolves_types = (http.QueryString,)
-
-    def resolve(self, environ: WSGIEnviron):
-        return environ.get('QUERY_STRING', '')
+    def resolve(self,
+                environ: WSGIEnviron) -> http.QueryString:
+        return http.QueryString(environ.get('QUERY_STRING', ''))
 
 
 class QueryParamsComponent(Component):
-    resolves_types = (http.QueryParams,)
-
-    def resolve(self, environ: WSGIEnviron):
+    def resolve(self,
+                environ: WSGIEnviron) -> http.QueryParams:
         query_string = environ.get('QUERY_STRING', '')
         return http.QueryParams(parse_qsl(query_string))
 
 
 class QueryParamComponent(Component):
-    resolves_types = (http.QueryParam,)
-
-    def resolve(self, parameter: Parameter, query_params: http.QueryParams):
+    def resolve(self,
+                parameter: Parameter,
+                query_params: http.QueryParams) -> http.QueryParam:
         name = parameter.name
-        return query_params.get(name)
+        if name not in query_params:
+            return None
+        return http.QueryParam(query_params[name])
 
 
 class HeadersComponent(Component):
-    resolves_types = (http.Headers,)
-
-    def resolve(self, environ: WSGIEnviron):
+    def resolve(self,
+                environ: WSGIEnviron) -> http.Headers:
         header_items = []
         for key, value in environ.items():
             if key.startswith('HTTP_'):
@@ -94,24 +87,27 @@ class HeadersComponent(Component):
 
 
 class HeaderComponent(Component):
-    resolves_types = (http.Header,)
-
-    def resolve(self, parameter: Parameter, headers: http.Headers):
-        name = parameter.name
-        return headers.get(name.replace('_', '-'))
+    def resolve(self,
+                parameter: Parameter,
+                headers: http.Headers) -> http.Header:
+        name = parameter.name.replace('_', '-')
+        if name not in headers:
+            return None
+        return http.Header(headers[name])
 
 
 class BodyComponent(Component):
-    resolves_types = (http.Body,)
-
-    def resolve(self, environ: WSGIEnviron):
-        return get_input_stream(environ).read()
+    def resolve(self,
+                environ: WSGIEnviron) -> http.Body:
+        return http.Body(get_input_stream(environ).read())
 
 
 class RequestComponent(Component):
-    resolves_types = (http.Request,)
-
-    def resolve(self, method: http.Method, url: http.URL, headers: http.Headers, body: http.Body):
+    def resolve(self,
+                method: http.Method,
+                url: http.URL,
+                headers: http.Headers,
+                body: http.Body) -> http.Request:
         return http.Request(method, url, headers, body)
 
 

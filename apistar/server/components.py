@@ -1,9 +1,9 @@
 import inspect
 
+from apistar import exceptions
+
 
 class Component():
-    resolves_types = None
-
     def identity(self, parameter: inspect.Parameter):
         """
         Each component needs a unique identifier string that we use for lookups
@@ -27,9 +27,14 @@ class Component():
         # class or set of classes, however you could override this if you
         # wanted name-based parameter resolution.
         # Eg. Include the `Request` instance for any parameter named `request`.
-        msg = 'Component %s must set "resolves_types" or override "can_handle_parameter"'
-        assert self.resolves_types is not None, msg % self.__class__
-        return parameter.annotation in self.resolves_types
+        return_annotation = inspect.signature(self.resolve).return_annotation
+        if return_annotation is inspect.Signature.empty:
+            msg = (
+                'Component "%s" must include a return annotation on the '
+                '`resolve()` method, or override `can_handle_parameter`'
+            )
+            raise exceptions.ConfigurationError(msg % self.__class__.__name__)
+        return parameter.annotation is return_annotation
 
     def resolve(self):
         raise NotImplementedError()

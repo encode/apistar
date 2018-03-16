@@ -12,10 +12,11 @@ ValidatedRequestData = typing.TypeVar('ValidatedRequestData')
 
 
 class RequestDataComponent(Component):
-    resolves_types = (http.RequestData,)
-
     def __init__(self):
         self.codecs = [codecs.JSONCodec()]
+
+    def can_handle_parameter(self, parameter: inspect.Parameter):
+        return parameter.annotation is http.RequestData
 
     def resolve(self,
                 content: http.Body,
@@ -37,11 +38,9 @@ class RequestDataComponent(Component):
 
 
 class ValidatePathParamsComponent(Component):
-    resolves_types = (ValidatedPathParams,)
-
     def resolve(self,
                 link: Link,
-                path_params: http.PathParams):
+                path_params: http.PathParams) -> ValidatedPathParams:
         path_fields = link.get_path_fields()
 
         validator = validators.Object(
@@ -56,15 +55,13 @@ class ValidatePathParamsComponent(Component):
             path_params = validator.validate(path_params, allow_coerce=True)
         except validators.ValidationError as exc:
             raise exceptions.NotFound(exc.detail)
-        return path_params
+        return ValidatedPathParams(path_params)
 
 
 class ValidateQueryParamsComponent(Component):
-    resolves_types = (ValidatedQueryParams,)
-
     def resolve(self,
                 link: Link,
-                query_params: http.QueryParams):
+                query_params: http.QueryParams) -> ValidatedQueryParams:
         query_fields = link.get_query_fields()
 
         validator = validators.Object(
@@ -79,11 +76,12 @@ class ValidateQueryParamsComponent(Component):
             query_params = validator.validate(query_params, allow_coerce=True)
         except validators.ValidationError as exc:
             raise exceptions.BadRequest(exc.detail)
-        return query_params
+        return ValidatedQueryParams(query_params)
 
 
 class ValidateRequestDataComponent(Component):
-    resolves_types = (ValidatedRequestData,)
+    def can_handle_parameter(self, parameter: inspect.Parameter):
+        return parameter.annotation is ValidatedRequestData
 
     def resolve(self,
                 link: Link,
@@ -102,12 +100,8 @@ class ValidateRequestDataComponent(Component):
 
 
 class PrimitiveParamComponent(Component):
-    resolves_types = (str, int, float, bool)
-
     def can_handle_parameter(self, parameter: inspect.Parameter):
-        if parameter.annotation is parameter.empty:
-            return True
-        return parameter.annotation in self.resolves_types
+        return parameter.annotation in (str, int, float, bool, parameter.empty)
 
     def resolve(self,
                 parameter: inspect.Parameter,

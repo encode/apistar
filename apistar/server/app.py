@@ -17,10 +17,11 @@ def exception_handler(exc: Exception) -> Response:
 
 
 class App():
-    components = WSGI_COMPONENTS + VALIDATION_COMPONENTS
+    def __init__(self, document, components=None):
+        components = list(components) if components else []
 
-    def __init__(self, document):
         self.document = document
+        self.components = self.default_components() + components
         self.router = self.default_router()
         self.templates = self.default_templates()
         self.injector = self.default_injector()
@@ -34,6 +35,9 @@ class App():
             'path_params': PathParams,
             'link': Link
         }
+
+    def default_components(self):
+        return list(WSGI_COMPONENTS + VALIDATION_COMPONENTS)
 
     def default_router(self):
         return Router(self.document)
