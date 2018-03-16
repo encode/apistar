@@ -1,12 +1,38 @@
 import inspect
 import typing
 
-from apistar import exceptions, http, types
+from apistar import codecs, exceptions, http, types
+from apistar.conneg import negotiate_content_type
 from apistar.document import Link
 from apistar.server.injector import Component
 
 ValidatedPathParams = typing.NewType('ValidatedPathParams', dict)
 ValidatedQueryParams = typing.NewType('ValidatedQueryParams', dict)
+
+
+class RequestDataComponent(Component):
+    resolves = (http.RequestData,)
+
+    def __init__(self):
+        self.codecs = [codecs.JSONCodec()]
+
+    def resolve_parameter(self,
+                          content: http.Body,
+                          headers: http.Headers):
+        if not content:
+            return None
+
+        content_type = headers.get('Content-Type')
+
+        try:
+            codec = negotiate_content_type(self.codecs, content_type)
+        except exceptions.NoCodecAvailable:
+            raise exceptions.UnsupportedMediaType()
+
+        try:
+            return codec.decode(content, headers=headers)
+        except exceptions.ParseError as exc:
+            raise exceptions.BadRequest(str(exc))
 
 
 class ValidatePathParamsComponent(Component):
@@ -91,6 +117,7 @@ class ValidatedParamComponent(Component):
 
 
 VALIDATION_COMPONENTS = (
+    RequestDataComponent(),
     ValidatePathParamsComponent(),
     ValidateQueryParamsComponent(),
     ValidatedParamComponent()

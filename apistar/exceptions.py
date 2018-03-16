@@ -97,4 +97,4 @@ class NotAcceptable(HTTPException):
 
 class UnsupportedMediaType(HTTPException):
     default_status_code = 415
-    default_detail = 'Unsupported media type'
+    default_detail = 'Unsupported Content-Type header in request'

@@ -13,6 +13,7 @@ Header = typing.NewType('Header', str)
 Body = typing.NewType('Body', bytes)
 PathParams = typing.NewType('PathParams', dict)
 PathParam = typing.NewType('PathParam', str)
+RequestData = typing.TypeVar('RequestData')
 
 
 RESPONSE_STATUS_TEXT = {
@@ -131,6 +132,7 @@ class Headers(typing.Mapping[str, str]):
         return list(self._list)
 
     def get(self, key, default=None):
+        key = key.lower()
         if key in self._dict:
             return self._dict[key]
         else:

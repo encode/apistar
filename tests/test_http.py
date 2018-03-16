@@ -67,6 +67,10 @@ def get_path_params(params: http.PathParams) -> http.Response:
     return http.Response({'params': params})
 
 
+def get_request_data(data: http.RequestData) -> http.Response:
+    return http.Response({'data': data})
+
+
 doc = Document([
     Link('/request/', 'GET', get_request),
     Link('/method/', 'GET', get_method),
@@ -85,6 +89,7 @@ doc = Document([
     Link('/accept_header/', 'GET', get_accept_header),
     Link('/path_params/{example}/', 'GET', get_path_params),
     Link('/full_path_params/{+example}', 'GET', get_path_params, name='full_path_params'),
+    Link('/request_data/', 'POST', get_request_data),
 ])
 
 app = App(doc)
@@ -250,6 +255,17 @@ def test_path_params():
 def test_full_path_params():
     response = client.get('/full_path_params/abc/def/')
     assert response.json() == {'params': {'example': 'abc/def/'}}
+
+
+def test_request_data():
+    response = client.post('/request_data/', json={'abc': 123})
+    assert response.json() == {'data': {'abc': 123}}
+    response = client.post('/request_data/')
+    assert response.json() == {'data': None}
+    response = client.post('/request_data/', data=b'...', headers={'content-type': 'unknown'})
+    assert response.status_code == 415
+    response = client.post('/request_data/', data=b'...', headers={'content-type': 'application/json'})
+    assert response.status_code == 400
 
 
 def test_headers_type():
