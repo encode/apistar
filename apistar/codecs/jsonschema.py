@@ -37,7 +37,7 @@ JSON_SCHEMA = types.Object(
         # Array
         ('items', types.Ref('JSONSchema') | types.Array(items=types.Ref('JSONSchema'), min_items=1)),
         ('additionalItems', types.Ref('JSONSchema') | types.Boolean()),
-        ('minItems', types.Integer(minimum=0, default=9)),
+        ('minItems', types.Integer(minimum=0, default=0)),
         ('maxItems', types.Integer(minimum=0)),
         ('uniqueItems', types.Boolean()),
     ]

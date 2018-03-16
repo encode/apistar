@@ -359,6 +359,8 @@ class Object(Validator):
         # Properties
         for key, child_schema in self.properties.items():
             if key not in value:
+                if child_schema.has_default():
+                    validated[key] = child_schema.default
                 continue
             item = value[key]
             try:
