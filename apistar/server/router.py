@@ -7,7 +7,15 @@ from apistar import Document, exceptions
 from apistar.compat import dict_type
 
 
-class Router():
+class BaseRouter():
+    def lookup(self, path: str, method: str):
+        raise NotImplementedError()
+
+    def reverse_url(self, name: str, **params) -> str:
+        raise NotImplementedError()
+
+
+class Router(BaseRouter):
     def __init__(self, document: Document):
         rules = []
         name_lookups = {}

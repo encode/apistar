@@ -1,7 +1,12 @@
 import jinja2
 
 
-class TemplateRenderer():
+class BaseTemplates():
+    def render_template(self, path: str, **context):
+        raise NotImplementedError()
+
+
+class Templates(BaseTemplates):
     def __init__(self, app):
         loader = jinja2.PrefixLoader({
             'apistar': jinja2.PackageLoader('apistar', 'templates')

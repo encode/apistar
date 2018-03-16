@@ -5,7 +5,7 @@ from apistar.document import Link
 from apistar.http import RESPONSE_STATUS_TEXT, PathParams, Response
 from apistar.server.injector import Injector
 from apistar.server.router import Router
-from apistar.server.templates import TemplateRenderer
+from apistar.server.templates import Templates
 from apistar.server.validation import VALIDATION_COMPONENTS
 from apistar.server.wsgi import WSGI_COMPONENTS, WSGIEnviron
 
@@ -21,9 +21,9 @@ class App():
 
     def __init__(self, document):
         self.document = document
-        self.router = self.get_router()
-        self.template_renderer = self.get_template_renderer()
-        self.injector = self.get_injector()
+        self.router = self.default_router()
+        self.templates = self.default_templates()
+        self.injector = self.default_injector()
         self.exception_handler = exception_handler
 
     def get_initial_components(self):
@@ -35,13 +35,13 @@ class App():
             'link': Link
         }
 
-    def get_router(self):
+    def default_router(self):
         return Router(self.document)
 
-    def get_template_renderer(self):
-        return TemplateRenderer(self)
+    def default_templates(self):
+        return Templates(self)
 
-    def get_injector(self):
+    def default_injector(self):
         initial_components = self.get_initial_components()
         return Injector(self.components, initial_components)
 
@@ -49,10 +49,23 @@ class App():
         return self.router.reverse_url(name, **params)
 
     def render_template(self, path: str, **context):
-        return self.template_renderer.render_template(path, **context)
+        return self.templates.render_template(path, **context)
 
     def static_url(self, path: str):
         return '#'
+
+    def render_response(self, response):
+        if isinstance(response, Response):
+            return response
+
+        if isinstance(response, str):
+            content = response.encode('utf-8')
+            headers = {'Content-Type': 'text/html; charset=utf-8'}
+            return Response(content, headers=headers)
+
+        content = json.dumps(response).encode('utf-8')
+        headers = {'Content-Type': 'application/json'}
+        return Response(content, headers=headers)
 
     def __call__(self, environ, start_response):
         state = {
@@ -73,15 +86,7 @@ class App():
             state['exc'] = exc
             response = self.injector.run(self.exception_handler, state)
 
-        if not isinstance(response, Response):
-            if isinstance(response, str):
-                content = response.encode('utf-8')
-                headers = {'Content-Type': 'text/html; charset=utf-8'}
-                response = Response(content, headers=headers)
-            else:
-                content = json.dumps(response).encode('utf-8')
-                headers = {'Content-Type': 'application/json'}
-                response = Response(content, headers=headers)
+        response = self.render_response(response)
 
         # Get the WSGI response information, given the Response instance.
         try:

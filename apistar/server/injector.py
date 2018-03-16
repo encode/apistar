@@ -3,7 +3,12 @@ import inspect
 from apistar.exceptions import ConfigurationError
 
 
-class Injector():
+class BaseInjector():
+    def run(self, func, state):
+        raise NotImplementedError()
+
+
+class Injector(BaseInjector):
     def __init__(self, components, initial):
         self.components = components
         self.initial = initial
