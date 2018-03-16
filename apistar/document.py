@@ -102,13 +102,13 @@ class Link():
     Links represent the actions that a client may perform.
     """
     def __init__(self,
-                 url,
-                 method,
-                 handler=None,
-                 name='',
-                 encoding='',
-                 title='',
-                 description='',
+                 url: str,
+                 method: str,
+                 handler: typing.Callable=None,
+                 name: str='',
+                 encoding: str='',
+                 title: str='',
+                 description: str='',
                  fields: typing.Sequence['Field']=None):
         method = method.upper()
         fields = [] if (fields is None) else list(fields)
@@ -167,12 +167,14 @@ class Field():
                  location: str,
                  title: str='',
                  description: str='',
-                 required: bool=False,
+                 required: bool=None,
                  schema: Validator=None,
                  example: typing.Any=None):
         assert location in ('path', 'query', 'body')
-        if location in ('path', 'body'):
-            required = True
+        if required is None:
+            required = True if location in ('path', 'body') else False
+        if location == 'path':
+            assert required, "May not set 'required=False' on path fields."
 
         self.name = name
         self.title = title
