@@ -1,7 +1,7 @@
 import inspect
 import typing
 
-from apistar import codecs, exceptions, http, validators
+from apistar import codecs, exceptions, http, types, validators
 from apistar.conneg import negotiate_content_type
 from apistar.document import Link
 from apistar.server.components import Component
@@ -138,7 +138,7 @@ class PrimitiveParamComponent(Component):
 
 class CompositeParamComponent(Component):
     def can_handle_parameter(self, parameter: inspect.Parameter):
-        return issubclass(parameter.annotation, validators.Type)
+        return issubclass(parameter.annotation, types.Type)
 
     def resolve(self,
                 parameter: inspect.Parameter,

@@ -1,4 +1,4 @@
-from apistar import http, test, validators
+from apistar import http, test, types, validators
 from apistar.document import Document, Field, Link
 from apistar.server.app import App
 from apistar.server.validation import ValidatedRequestData
@@ -44,7 +44,7 @@ def schema_enforced_int_query_param(param) -> http.Response:
     return http.Response({'param': param})
 
 
-class User(validators.Type):
+class User(types.Type):
     name = validators.String(max_length=10)
     age = validators.Integer(minimum=0, allow_null=True, default=None)
 
