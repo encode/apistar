@@ -1,7 +1,6 @@
-from apistar import http, types
+from apistar import http, test, types
 from apistar.document import Document, Field, Link
 from apistar.server.app import App
-from apistar.server.test import TestClient
 from apistar.server.validation import ValidatedRequestData
 
 
@@ -50,12 +49,12 @@ class User(types.Type):
     age = types.Integer(minimum=0, allow_null=True, default=None)
 
 
-def type_body_param(user: User) -> http.Response:
-    return http.Response({'user': user})
+def type_body_param(user: User):
+    return {"user": user}
 
 
-def schema_enforced_body_param(user: ValidatedRequestData) -> http.Response:
-    return http.Response({'user': user})
+def schema_enforced_body_param(user: ValidatedRequestData):
+    return {"user": user}
 
 
 doc = Document([
@@ -118,7 +117,7 @@ doc = Document([
 ])
 
 app = App(doc)
-client = TestClient(app)
+client = test.TestClient(app)
 
 
 def test_str_path_param():

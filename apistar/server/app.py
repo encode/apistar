@@ -73,6 +73,16 @@ class App():
             state['exc'] = exc
             response = self.injector.run(self.exception_handler, state)
 
+        if not isinstance(response, Response):
+            if isinstance(response, str):
+                content = response.encode('utf-8')
+                headers = {'Content-Type': 'text/html; charset=utf-8'}
+                response = Response(content, headers=headers)
+            else:
+                content = json.dumps(response).encode('utf-8')
+                headers = {'Content-Type': 'application/json'}
+                response = Response(content, headers=headers)
+
         # Get the WSGI response information, given the Response instance.
         try:
             status_text = RESPONSE_STATUS_TEXT[response.status_code]

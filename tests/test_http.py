@@ -1,7 +1,6 @@
-from apistar import http
+from apistar import http, test
 from apistar.document import Document, Link
 from apistar.server.app import App
-from apistar.server.test import TestClient
 
 # HTTP Components as parameters
 
@@ -93,7 +92,7 @@ doc = Document([
 ])
 
 app = App(doc)
-client = TestClient(app)
+client = test.TestClient(app)
 
 
 def test_request():
