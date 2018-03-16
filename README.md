@@ -873,7 +873,7 @@ you can do so globally, using the settings...
 ```python
 settings = {
     'AUTHENTICATION': [BasicAuthentication()],
-    'PERMISSIONS': [IsAuthenticted()]
+    'PERMISSIONS': [IsAuthenticated()]
 }
 ```
 
