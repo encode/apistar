@@ -15,6 +15,10 @@ def query_parameter(params: http.QueryParams):
     return http.Response({'params': dict(params)})
 
 
+def body_parameter(data: http.RequestData):
+    return http.Response({'data': data})
+
+
 def text_response():
     return http.Response('Hello, world!', headers={'Content-Type': 'text/plain'})
 
@@ -47,6 +51,9 @@ document = Document(
             Link(url='/no-parameters/', method='GET', handler=no_parameter),
             Link(url='/query-parameter/', method='GET', handler=query_parameter, fields=[
                 Field(name='a', location='query')
+            ]),
+            Link(url='/body-parameter/', method='POST', handler=body_parameter, encoding='application/json', fields=[
+                Field(name='a', location='body')
             ])
         ]),
         Section(name='responses', content=[
@@ -71,6 +78,10 @@ def test_no_parameters():
 
 def test_query_parameter():
     assert client.request('parameters:query_parameter', a=1) == {'params': {'a': '1'}}
+
+
+def test_body_parameter():
+    assert client.request('parameters:body_parameter', a={'abc': 123}) == {'data': {'abc': 123}}
 
 
 def test_text_response():
