@@ -5,28 +5,6 @@ from math import isfinite
 from apistar.compat import dict_type
 
 NO_DEFAULT = object()
-TRUE = object()
-FALSE = object()
-
-
-def hashable(element):
-    # Coerce a primitive into a uniquely hashable type, for uniqueness checks.
-
-    if element is True:
-        return TRUE  # Need to make `True` distinct from `1`.
-    elif element is False:
-        return FALSE  # Need to make `False` distinct from `0`.
-    elif isinstance(element, list):
-        return ('list', tuple([
-            hashable(item) for item in element
-        ]))
-    elif isinstance(element, dict):
-        return ('dict', tuple([
-            (hashable(key), hashable(value)) for key, value in element.items()
-        ]))
-
-    assert (element is None) or isinstance(element, (int, float, str))
-    return element
 
 
 class ValidationError(Exception):
@@ -476,7 +454,7 @@ class Array(Validator):
         # Ensure all items are of the right type.
         errors = {}
         if self.unique_items:
-            seen_items = set()
+            seen_items = Uniqueness()
 
         for pos, item in enumerate(value):
             try:
@@ -501,11 +479,10 @@ class Array(Validator):
                     )
 
                 if self.unique_items:
-                    hashable_item = hashable(item)
-                    if hashable_item in seen_items:
+                    if item in seen_items:
                         self.error('unique_items')
                     else:
-                        seen_items.add(hashable_item)
+                        seen_items.add(item)
 
                 validated.append(item)
             except ValidationError as exc:
@@ -568,3 +545,53 @@ class Ref(Validator):
             definitions=definitions,
             allow_coerce=allow_coerce
         )
+
+
+class Uniqueness():
+    """
+    A set-like class that tests for uniqueness of primitive types.
+
+    Ensures the `True` and `False` are treated as distinct from `1` and `0`,
+    and coerces non-hashable instances that cannot be added to sets,
+    into hashable representations that can.
+    """
+    TRUE = object()
+    FALSE = object()
+
+    def __init__(self):
+        self._set = set()
+
+    def __contains__(self, item):
+        item = self.make_hashable(item)
+        return item in self._set
+
+    def add(self, item):
+        item = self.make_hashable(item)
+        self._set.add(item)
+
+    def make_hashable(self, element):
+        """
+        Coerce a primitive into a uniquely hashable type, for uniqueness checks.
+        """
+
+        # Only primitive types can be handled.
+        assert (element is None) or isinstance(element, (bool, int, float, str, list, dict))
+
+        if element is True:
+            # Need to make `True` distinct from `1`.
+            return self.TRUE
+        elif element is False:
+            # Need to make `False` distinct from `0`.
+            return self.FALSE
+        elif isinstance(element, list):
+            # Represent lists using a two-tuple of ('list', (item, item, ...))
+            return ('list', tuple([
+                self.make_hashable(item) for item in element
+            ]))
+        elif isinstance(element, dict):
+            # Represent dicts using a two-tuple of ('dict', ((key, val), (key, val), ...))
+            return ('dict', tuple([
+                (self.make_hashable(key), self.make_hashable(value)) for key, value in element.items()
+            ]))
+
+        return element
