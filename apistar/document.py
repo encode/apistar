@@ -20,8 +20,8 @@ class Document():
         seen_fields = set()
         seen_sections = set()
         for item in content:
-            if isinstance(item, Field):
-                msg = 'Field "%s" in Document must have a unique name.'
+            if isinstance(item, Link):
+                msg = 'Link "%s" in Document must have a unique name.'
                 assert item.name not in seen_fields, msg % item.name
                 seen_fields.add(item.name)
             else:
@@ -64,8 +64,8 @@ class Section():
         seen_fields = set()
         seen_sections = set()
         for item in content:
-            if isinstance(item, Field):
-                msg = 'Field "%s" in Section "%s" must have a unique name.'
+            if isinstance(item, Link):
+                msg = 'Link "%s" in Section "%s" must have a unique name.'
                 assert item.name not in seen_fields, msg % (item.name, name)
                 seen_fields.add(item.name)
             else:
