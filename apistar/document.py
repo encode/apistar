@@ -2,7 +2,7 @@ import collections
 import re
 import typing
 
-from apistar.types import Validator
+from apistar.validators import Validator
 
 LinkInfo = collections.namedtuple('LinkInfo', ['link', 'name', 'sections'])
 

@@ -1,7 +1,7 @@
 import inspect
 import typing
 
-from apistar import codecs, exceptions, http, types
+from apistar import codecs, exceptions, http, validators
 from apistar.conneg import negotiate_content_type
 from apistar.document import Link
 from apistar.server.components import Component
@@ -44,9 +44,9 @@ class ValidatePathParamsComponent(Component):
                 path_params: http.PathParams):
         path_fields = link.get_path_fields()
 
-        validator = types.Object(
+        validator = validators.Object(
             properties=[
-                (field.name, field.schema if field.schema else types.Any())
+                (field.name, field.schema if field.schema else validators.Any())
                 for field in path_fields
             ],
             required=[field.name for field in path_fields]
@@ -54,7 +54,7 @@ class ValidatePathParamsComponent(Component):
 
         try:
             path_params = validator.validate(path_params, allow_coerce=True)
-        except types.ValidationError as exc:
+        except validators.ValidationError as exc:
             raise exceptions.NotFound(exc.detail)
         return path_params
 
@@ -67,9 +67,9 @@ class ValidateQueryParamsComponent(Component):
                 query_params: http.QueryParams):
         query_fields = link.get_query_fields()
 
-        validator = types.Object(
+        validator = validators.Object(
             properties=[
-                (field.name, field.schema if field.schema else types.Any())
+                (field.name, field.schema if field.schema else validators.Any())
                 for field in query_fields
             ],
             required=[field.name for field in query_fields if field.required]
@@ -77,7 +77,7 @@ class ValidateQueryParamsComponent(Component):
 
         try:
             query_params = validator.validate(query_params, allow_coerce=True)
-        except types.ValidationError as exc:
+        except validators.ValidationError as exc:
             raise exceptions.BadRequest(exc.detail)
         return query_params
 
@@ -97,7 +97,7 @@ class ValidateRequestDataComponent(Component):
 
         try:
             return validator.validate(data, allow_coerce=True)
-        except types.ValidationError as exc:
+        except validators.ValidationError as exc:
             raise exceptions.BadRequest(exc.detail)
 
 
@@ -117,35 +117,35 @@ class PrimitiveParamComponent(Component):
         has_default = parameter.default is not parameter.empty
 
         param_validator = {
-            parameter.empty: types.Any(),
-            str: types.String(),
-            int: types.Integer(),
-            float: types.Number(),
-            bool: types.Boolean()
+            parameter.empty: validators.Any(),
+            str: validators.String(),
+            int: validators.Integer(),
+            float: validators.Number(),
+            bool: validators.Boolean()
         }[parameter.annotation]
 
-        validator = types.Object(
+        validator = validators.Object(
             properties=[(parameter.name, param_validator)],
             required=[] if has_default else [parameter.name]
         )
 
         try:
             params = validator.validate(params, allow_coerce=True)
-        except types.ValidationError as exc:
+        except validators.ValidationError as exc:
             raise exceptions.NotFound(exc.detail)
         return params.get(parameter.name, parameter.default)
 
 
 class CompositeParamComponent(Component):
     def can_handle_parameter(self, parameter: inspect.Parameter):
-        return issubclass(parameter.annotation, types.Type)
+        return issubclass(parameter.annotation, validators.Type)
 
     def resolve(self,
                 parameter: inspect.Parameter,
                 data: ValidatedRequestData):
         try:
             return parameter.annotation(data)
-        except types.ValidationError as exc:
+        except validators.ValidationError as exc:
             raise exceptions.BadRequest(exc.detail)
 
 

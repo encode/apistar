@@ -1,4 +1,4 @@
-from apistar import http, test, types
+from apistar import http, test, validators
 from apistar.document import Document, Field, Link
 from apistar.server.app import App
 from apistar.server.validation import ValidatedRequestData
@@ -44,9 +44,9 @@ def schema_enforced_int_query_param(param) -> http.Response:
     return http.Response({'param': param})
 
 
-class User(types.Type):
-    name = types.String(max_length=10)
-    age = types.Integer(minimum=0, allow_null=True, default=None)
+class User(validators.Type):
+    name = validators.String(max_length=10)
+    age = validators.Integer(minimum=0, allow_null=True, default=None)
 
 
 def type_body_param(user: User):
@@ -66,7 +66,7 @@ doc = Document([
         method='GET',
         handler=schema_enforced_str_path_param,
         fields=[
-            Field(name='param', location='path', required=True, schema=types.String(max_length=3))
+            Field(name='param', location='path', required=True, schema=validators.String(max_length=3))
         ]
     ),
     Link(
@@ -74,7 +74,7 @@ doc = Document([
         method='GET',
         handler=schema_enforced_int_path_param,
         fields=[
-            Field(name='param', location='path', required=True, schema=types.Integer(minimum=0, maximum=1000))
+            Field(name='param', location='path', required=True, schema=validators.Integer(minimum=0, maximum=1000))
         ]
     ),
 
@@ -88,7 +88,7 @@ doc = Document([
         method='GET',
         handler=schema_enforced_str_query_param,
         fields=[
-            Field(name='param', location='query', schema=types.String(max_length=3))
+            Field(name='param', location='query', schema=validators.String(max_length=3))
         ]
     ),
     Link(
@@ -96,7 +96,7 @@ doc = Document([
         method='GET',
         handler=schema_enforced_int_query_param,
         fields=[
-            Field(name='param', location='query', schema=types.Integer(minimum=0, maximum=1000))
+            Field(name='param', location='query', schema=validators.Integer(minimum=0, maximum=1000))
         ]
     ),
 
@@ -108,9 +108,9 @@ doc = Document([
         handler=schema_enforced_body_param,
         encoding='application/json',
         fields=[
-            Field(name='param', location='body', schema=types.Object(properties={
-                'name': types.String(max_length=10),
-                'age': types.Integer(minimum=0, allow_null=True, default=None),
+            Field(name='param', location='body', schema=validators.Object(properties={
+                'name': validators.String(max_length=10),
+                'age': validators.Integer(minimum=0, allow_null=True, default=None),
             }))
         ]
     ),

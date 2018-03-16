@@ -2,161 +2,161 @@ import json
 import re
 from urllib.parse import urljoin, urlparse
 
-from apistar import types
+from apistar import validators
 from apistar.codecs import BaseCodec, JSONSchemaCodec
 from apistar.codecs.jsonschema import JSON_SCHEMA
 from apistar.compat import dict_type
 from apistar.document import Document, Field, Link, Section
 from apistar.exceptions import ParseError
 
-SCHEMA_REF = types.Object(
-    properties={'$ref': types.String(pattern='^#/components/schemas/')}
+SCHEMA_REF = validators.Object(
+    properties={'$ref': validators.String(pattern='^#/components/schemas/')}
 )
 
 
-OPEN_API = types.Object(
+OPEN_API = validators.Object(
     self_ref='OpenAPI',
     title='OpenAPI',
     properties=[
-        ('openapi', types.String()),
-        ('info', types.Ref('Info')),
-        ('servers', types.Array(items=types.Ref('Server'))),
-        ('paths', types.Ref('Paths')),
-        ('components', types.Ref('Components')),
-        ('security', types.Ref('SecurityRequirement')),
-        ('tags', types.Array(items=types.Ref('Tag'))),
-        ('externalDocs', types.Ref('ExternalDocumentation'))
+        ('openapi', validators.String()),
+        ('info', validators.Ref('Info')),
+        ('servers', validators.Array(items=validators.Ref('Server'))),
+        ('paths', validators.Ref('Paths')),
+        ('components', validators.Ref('Components')),
+        ('security', validators.Ref('SecurityRequirement')),
+        ('tags', validators.Array(items=validators.Ref('Tag'))),
+        ('externalDocs', validators.Ref('ExternalDocumentation'))
     ],
     required=['openapi', 'info'],
     definitions={
-        'Info': types.Object(
+        'Info': validators.Object(
             properties=[
-                ('title', types.String()),
-                ('description', types.String(format='textarea')),
-                ('termsOfService', types.String(format='url')),
-                ('contact', types.Ref('Contact')),
-                ('license', types.Ref('License')),
-                ('version', types.String())
+                ('title', validators.String()),
+                ('description', validators.String(format='textarea')),
+                ('termsOfService', validators.String(format='url')),
+                ('contact', validators.Ref('Contact')),
+                ('license', validators.Ref('License')),
+                ('version', validators.String())
             ],
             required=['title', 'version']
         ),
-        'Contact': types.Object(
+        'Contact': validators.Object(
             properties=[
-                ('name', types.String()),
-                ('url', types.String(format='url')),
-                ('email', types.String(format='email'))
+                ('name', validators.String()),
+                ('url', validators.String(format='url')),
+                ('email', validators.String(format='email'))
             ]
         ),
-        'License': types.Object(
+        'License': validators.Object(
             properties=[
-                ('name', types.String()),
-                ('url', types.String(format='url'))
+                ('name', validators.String()),
+                ('url', validators.String(format='url'))
             ],
             required=['name']
         ),
-        'Server': types.Object(
+        'Server': validators.Object(
             properties=[
-                ('url', types.String()),
-                ('description', types.String(format='textarea')),
-                ('variables', types.Object(additional_properties=types.Ref('ServerVariable')))
+                ('url', validators.String()),
+                ('description', validators.String(format='textarea')),
+                ('variables', validators.Object(additional_properties=validators.Ref('ServerVariable')))
             ],
             required=['url']
         ),
-        'ServerVariable': types.Object(
+        'ServerVariable': validators.Object(
             properties=[
-                ('enum', types.Array(items=types.String())),
-                ('default', types.String()),
-                ('description', types.String(format='textarea'))
+                ('enum', validators.Array(items=validators.String())),
+                ('default', validators.String()),
+                ('description', validators.String(format='textarea'))
             ],
             required=['default']
         ),
-        'Paths': types.Object(
+        'Paths': validators.Object(
             pattern_properties=[
-                ('^/', types.Ref('Path'))  # TODO: Path | ReferenceObject
+                ('^/', validators.Ref('Path'))  # TODO: Path | ReferenceObject
             ]
         ),
-        'Path': types.Object(
+        'Path': validators.Object(
             properties=[
-                ('summary', types.String()),
-                ('description', types.String(format='textarea')),
-                ('get', types.Ref('Operation')),
-                ('put', types.Ref('Operation')),
-                ('post', types.Ref('Operation')),
-                ('delete', types.Ref('Operation')),
-                ('options', types.Ref('Operation')),
-                ('head', types.Ref('Operation')),
-                ('patch', types.Ref('Operation')),
-                ('trace', types.Ref('Operation')),
-                ('servers', types.Array(items=types.Ref('Server'))),
-                ('parameters', types.Array(items=types.Ref('Parameter')))  # TODO: Parameter | ReferenceObject
+                ('summary', validators.String()),
+                ('description', validators.String(format='textarea')),
+                ('get', validators.Ref('Operation')),
+                ('put', validators.Ref('Operation')),
+                ('post', validators.Ref('Operation')),
+                ('delete', validators.Ref('Operation')),
+                ('options', validators.Ref('Operation')),
+                ('head', validators.Ref('Operation')),
+                ('patch', validators.Ref('Operation')),
+                ('trace', validators.Ref('Operation')),
+                ('servers', validators.Array(items=validators.Ref('Server'))),
+                ('parameters', validators.Array(items=validators.Ref('Parameter')))  # TODO: | ReferenceObject
             ]
         ),
-        'Operation': types.Object(
+        'Operation': validators.Object(
             properties=[
-                ('tags', types.Array(items=types.String())),
-                ('summary', types.String()),
-                ('description', types.String(format='textarea')),
-                ('externalDocs', types.Ref('ExternalDocumentation')),
-                ('operationId', types.String()),
-                ('parameters', types.Array(items=types.Ref('Parameter'))),  # TODO: Parameter | ReferenceObject
-                ('requestBody', types.Ref('RequestBody')),  # TODO: RequestBody | ReferenceObject
+                ('tags', validators.Array(items=validators.String())),
+                ('summary', validators.String()),
+                ('description', validators.String(format='textarea')),
+                ('externalDocs', validators.Ref('ExternalDocumentation')),
+                ('operationId', validators.String()),
+                ('parameters', validators.Array(items=validators.Ref('Parameter'))),  # TODO: | ReferenceObject
+                ('requestBody', validators.Ref('RequestBody')),  # TODO: RequestBody | ReferenceObject
                 # TODO: 'responses'
                 # TODO: 'callbacks'
-                ('deprecated', types.Boolean()),
-                ('security', types.Array(types.Ref('SecurityRequirement'))),
-                ('servers', types.Array(items=types.Ref('Server')))
+                ('deprecated', validators.Boolean()),
+                ('security', validators.Array(validators.Ref('SecurityRequirement'))),
+                ('servers', validators.Array(items=validators.Ref('Server')))
             ]
         ),
-        'ExternalDocumentation': types.Object(
+        'ExternalDocumentation': validators.Object(
             properties=[
-                ('description', types.String(format='textarea')),
-                ('url', types.String(format='url'))
+                ('description', validators.String(format='textarea')),
+                ('url', validators.String(format='url'))
             ],
             required=['url']
         ),
-        'Parameter': types.Object(
+        'Parameter': validators.Object(
             properties=[
-                ('name', types.String()),
-                ('in', types.String(enum=['query', 'header', 'path', 'cookie'])),
-                ('description', types.String(format='textarea')),
-                ('required', types.Boolean()),
-                ('deprecated', types.Boolean()),
-                ('allowEmptyValue', types.Boolean()),
+                ('name', validators.String()),
+                ('in', validators.String(enum=['query', 'header', 'path', 'cookie'])),
+                ('description', validators.String(format='textarea')),
+                ('required', validators.Boolean()),
+                ('deprecated', validators.Boolean()),
+                ('allowEmptyValue', validators.Boolean()),
                 ('schema', JSON_SCHEMA | SCHEMA_REF),
-                ('example', types.Any())
+                ('example', validators.Any())
                 # TODO: Other fields
             ],
             required=['name', 'in']
         ),
-        'RequestBody': types.Object(
+        'RequestBody': validators.Object(
             properties=[
-                ('description', types.String()),
-                ('content', types.Object(additional_properties=types.Ref('MediaType'))),
-                ('required', types.Boolean())
+                ('description', validators.String()),
+                ('content', validators.Object(additional_properties=validators.Ref('MediaType'))),
+                ('required', validators.Boolean())
             ]
         ),
-        'MediaType': types.Object(
+        'MediaType': validators.Object(
             properties=[
                 ('schema', JSON_SCHEMA | SCHEMA_REF),
-                ('example', types.Any())
+                ('example', validators.Any())
                 # TODO 'examples', 'encoding'
             ]
         ),
-        'Components': types.Object(
+        'Components': validators.Object(
             properties=[
-                ('schemas', types.Object(additional_properties=JSON_SCHEMA)),
+                ('schemas', validators.Object(additional_properties=JSON_SCHEMA)),
             ]
         ),
-        'Tag': types.Object(
+        'Tag': validators.Object(
             properties=[
-                ('name', types.String()),
-                ('description', types.String(format='textarea')),
-                ('externalDocs', types.Ref('ExternalDocumentation'))
+                ('name', validators.String()),
+                ('description', validators.String(format='textarea')),
+                ('externalDocs', validators.Ref('ExternalDocumentation'))
             ],
             required=['name']
         ),
-        'SecurityRequirement': types.Object(
-            additional_properties=types.Array(items=types.String())
+        'SecurityRequirement': validators.Object(
+            additional_properties=validators.Array(items=validators.String())
         )
     }
 )
@@ -291,7 +291,7 @@ class OpenAPICodec(BaseCodec):
                 schema = schema_definitions.get(ref)
             else:
                 schema = JSONSchemaCodec().decode_from_data_structure(body_schema)
-            if isinstance(schema, types.Object):
+            if isinstance(schema, validators.Object):
                 for key, value in schema.properties.items():
                     fields += [Field(name=key, location='form', schema=value)]
 

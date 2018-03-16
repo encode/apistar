@@ -1,6 +1,6 @@
 from urllib.parse import quote, urljoin, urlparse
 
-from apistar import exceptions, types
+from apistar import exceptions, validators
 from apistar.client import transports
 
 
@@ -59,8 +59,8 @@ class Client():
     def request(self, name: str, **params):
         link = self.lookup_link(name)
 
-        validator = types.Object(
-            properties={field.name: types.Any() for field in link.fields},
+        validator = validators.Object(
+            properties={field.name: validators.Any() for field in link.fields},
             required=[field.name for field in link.fields if field.required],
             additional_properties=False
         )

@@ -1,45 +1,45 @@
 import json
 
-from apistar import types
+from apistar import validators
 from apistar.codecs.base import BaseCodec
 from apistar.compat import dict_type
 from apistar.exceptions import ParseError
 
-JSON_SCHEMA = types.Object(
+JSON_SCHEMA = validators.Object(
     self_ref='JSONSchema',
     properties=[
-        ('$ref', types.String()),
-        ('type', types.String() | types.Array(items=types.String())),
-        ('enum', types.Array(unique_items=True, min_items=1)),
-        ('definitions', types.Object(additional_properties=types.Ref('JSONSchema'))),
+        ('$ref', validators.String()),
+        ('type', validators.String() | validators.Array(items=validators.String())),
+        ('enum', validators.Array(unique_items=True, min_items=1)),
+        ('definitions', validators.Object(additional_properties=validators.Ref('JSONSchema'))),
 
         # String
-        ('minLength', types.Integer(minimum=0, default=0)),
-        ('maxLength', types.Integer(minimum=0)),
-        ('pattern', types.String(format='regex')),
-        ('format', types.String()),
+        ('minLength', validators.Integer(minimum=0, default=0)),
+        ('maxLength', validators.Integer(minimum=0)),
+        ('pattern', validators.String(format='regex')),
+        ('format', validators.String()),
 
         # Numeric
-        ('minimum', types.Number()),
-        ('maximum', types.Number()),
-        ('exclusiveMinimum', types.Boolean(default=False)),
-        ('exclusiveMaximum', types.Boolean(default=False)),
-        ('multipleOf', types.Number(minimum=0.0, exclusive_minimum=True)),
+        ('minimum', validators.Number()),
+        ('maximum', validators.Number()),
+        ('exclusiveMinimum', validators.Boolean(default=False)),
+        ('exclusiveMaximum', validators.Boolean(default=False)),
+        ('multipleOf', validators.Number(minimum=0.0, exclusive_minimum=True)),
 
         # Object
-        ('properties', types.Object(additional_properties=types.Ref('JSONSchema'))),
-        ('minProperties', types.Integer(minimum=0, default=0)),
-        ('maxProperties', types.Integer(minimum=0)),
-        ('patternProperties', types.Object(additional_properties=types.Ref('JSONSchema'))),
-        ('additionalProperties', types.Ref('JSONSchema') | types.Boolean()),
-        ('required', types.Array(items=types.String(), min_items=1, unique_items=True)),
+        ('properties', validators.Object(additional_properties=validators.Ref('JSONSchema'))),
+        ('minProperties', validators.Integer(minimum=0, default=0)),
+        ('maxProperties', validators.Integer(minimum=0)),
+        ('patternProperties', validators.Object(additional_properties=validators.Ref('JSONSchema'))),
+        ('additionalProperties', validators.Ref('JSONSchema') | validators.Boolean()),
+        ('required', validators.Array(items=validators.String(), min_items=1, unique_items=True)),
 
         # Array
-        ('items', types.Ref('JSONSchema') | types.Array(items=types.Ref('JSONSchema'), min_items=1)),
-        ('additionalItems', types.Ref('JSONSchema') | types.Boolean()),
-        ('minItems', types.Integer(minimum=0, default=0)),
-        ('maxItems', types.Integer(minimum=0)),
-        ('uniqueItems', types.Boolean()),
+        ('items', validators.Ref('JSONSchema') | validators.Array(items=validators.Ref('JSONSchema'), min_items=1)),
+        ('additionalItems', validators.Ref('JSONSchema') | validators.Boolean()),
+        ('minItems', validators.Integer(minimum=0, default=0)),
+        ('maxItems', validators.Integer(minimum=0)),
+        ('uniqueItems', validators.Boolean()),
     ]
 )
 
@@ -47,7 +47,7 @@ JSON_SCHEMA = types.Object(
 def decode(struct):
     typestrings = get_typestrings(struct)
     if is_any(typestrings, struct):
-        return types.Any()
+        return validators.Any()
 
     allow_null = False
     if 'null' in typestrings:
@@ -58,7 +58,7 @@ def decode(struct):
         return load_type(typestrings.pop(), struct, allow_null)
     else:
         items = [load_type(typename, struct, False) for typename in typestrings]
-        return types.Union(items=items, allow_null=allow_null)
+        return validators.Union(items=items, allow_null=allow_null)
 
 
 def get_typestrings(struct):
@@ -106,7 +106,7 @@ def load_type(typename, struct, allow_null):
             attrs['pattern'] = struct['pattern']
         if 'format' in struct:
             attrs['format'] = struct['format']
-        return types.String(**attrs)
+        return validators.String(**attrs)
 
     if typename in ['number', 'integer']:
         if 'minimum' in struct:
@@ -122,11 +122,11 @@ def load_type(typename, struct, allow_null):
         if 'format' in struct:
             attrs['format'] = struct['format']
         if typename == 'integer':
-            return types.Integer(**attrs)
-        return types.Number(**attrs)
+            return validators.Integer(**attrs)
+        return validators.Number(**attrs)
 
     if typename == 'boolean':
-        return types.Boolean(**attrs)
+        return validators.Boolean(**attrs)
 
     if typename == 'object':
         if 'properties' in struct:
@@ -152,7 +152,7 @@ def load_type(typename, struct, allow_null):
                 attrs['additional_properties'] = struct['additionalProperties']
             else:
                 attrs['additional_properties'] = decode(struct['additionalProperties'])
-        return types.Object(**attrs)
+        return validators.Object(**attrs)
 
     if typename == 'array':
         if 'items' in struct:
@@ -171,7 +171,7 @@ def load_type(typename, struct, allow_null):
             attrs['max_items'] = struct['maxItems']
         if 'uniqueItems' in struct:
             attrs['unique_items'] = struct['uniqueItems']
-        return types.Array(**attrs)
+        return validators.Array(**attrs)
 
     assert False
 
@@ -213,7 +213,7 @@ class JSONSchemaCodec(BaseCodec):
         return json.dumps(struct, **kwargs).encode('utf-8')
 
     def encode_to_data_structure(self, item):
-        if isinstance(item, types.String):
+        if isinstance(item, validators.String):
             value = {'type': 'string'}
             if item.max_length is not None:
                 value['maxLength'] = item.max_length
@@ -225,8 +225,8 @@ class JSONSchemaCodec(BaseCodec):
                 value['format'] = item.format
             return value
 
-        if isinstance(item, types.NumericType):
-            if isinstance(item, types.Integer):
+        if isinstance(item, validators.NumericType):
+            if isinstance(item, validators.Integer):
                 value = {'type': 'integer'}
             else:
                 value = {'type': 'number'}
@@ -245,10 +245,10 @@ class JSONSchemaCodec(BaseCodec):
                 value['format'] = item.format
             return value
 
-        if isinstance(item, types.Boolean):
+        if isinstance(item, validators.Boolean):
             return {'type': 'boolean'}
 
-        if isinstance(item, types.Object):
+        if isinstance(item, validators.Object):
             value = {'type': 'object'}
             if item.properties:
                 value['properties'] = {
@@ -259,7 +259,7 @@ class JSONSchemaCodec(BaseCodec):
                 value['required'] = item.required
             return value
 
-        if isinstance(item, types.Array):
+        if isinstance(item, validators.Array):
             value = {'type': 'array'}
             if item.items is not None:
                 value['items'] = self.encode_to_data_structure(item.items)
