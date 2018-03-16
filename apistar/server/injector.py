@@ -1,40 +1,6 @@
-from inspect import Parameter, signature
+import inspect
 
 from apistar.exceptions import ConfigurationError
-
-
-class Component():
-    resolves = None
-
-    def identity(self, parameter: Parameter):
-        """
-        Each component needs a unique identifier string that we use for lookups
-        from the `state` dictionary when we run the dependency injection.
-        """
-        parameter_name = parameter.name.lower()
-        annotation_name = parameter.annotation.__name__.lower()
-
-        # If `resolve_parameter` includes `Parameter` then we use an identifier
-        # that is additionally parameterized by the parameter name.
-        args = signature(self.resolve_parameter).parameters.values()
-        if Parameter in [arg.annotation for arg in args]:
-            return annotation_name + ':' + parameter_name
-
-        # Standard case is to use the class name, lowercased.
-        return annotation_name
-
-    def handle_parameter(self, parameter: Parameter):
-        # Return `True` if this component can handle the given parameter.
-        # The default behavior is for components to handle a particular
-        # class or set of classes, however you could override this if you
-        # wanted name-based parameter resolution.
-        # Eg. Include the `Request` instance for any parameter named `request`.
-        msg = 'Component %s must set "resolves" or override "handle_parameter"'
-        assert self.resolves is not None, msg % self.__class__
-        return parameter.annotation in self.resolves
-
-    def resolve_parameter(self):
-        raise NotImplementedError()
 
 
 class Injector():
@@ -56,7 +22,7 @@ class Injector():
         kwargs = {}
         consts = {}
 
-        parameters = signature(func).parameters.values()
+        parameters = inspect.signature(func).parameters.values()
         for parameter in parameters:
             # Check if the parameter class exists in 'initial'.
             if parameter.annotation in self.reverse_initial:
@@ -67,26 +33,26 @@ class Injector():
             # The 'Parameter' annotation can be used to get the parameter
             # itself. Used for example in 'Header' components that need the
             # parameter name in order to lookup a particular value.
-            if parameter.annotation is Parameter:
+            if parameter.annotation is inspect.Parameter:
                 consts[parameter.name] = parent_parameter
                 continue
 
             # Otherwise, find a component to resolve the parameter.
             for component in self.components:
-                if component.handle_parameter(parameter):
+                if component.can_handle_parameter(parameter):
                     identity = component.identity(parameter)
                     kwargs[parameter.name] = identity
                     if identity not in seen_state:
                         seen_state.add(identity)
                         steps += self.resolve_function(
-                            func=component.resolve_parameter,
+                            func=component.resolve,
                             output_name=identity,
                             seen_state=seen_state,
                             parent_parameter=parameter
                         )
                     break
             else:
-                msg = 'No component to handle parameter "%s" on function "%s".'
+                msg = 'No component able to handle parameter "%s" on function "%s".'
                 raise ConfigurationError(msg % (parameter.name, func.__name__))
 
         step = (func, kwargs, consts, output_name)

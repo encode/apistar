@@ -4,21 +4,21 @@ import typing
 from apistar import codecs, exceptions, http, types
 from apistar.conneg import negotiate_content_type
 from apistar.document import Link
-from apistar.server.injector import Component
+from apistar.server.components import Component
 
 ValidatedPathParams = typing.NewType('ValidatedPathParams', dict)
 ValidatedQueryParams = typing.NewType('ValidatedQueryParams', dict)
 
 
 class RequestDataComponent(Component):
-    resolves = (http.RequestData,)
+    resolves_types = (http.RequestData,)
 
     def __init__(self):
         self.codecs = [codecs.JSONCodec()]
 
-    def resolve_parameter(self,
-                          content: http.Body,
-                          headers: http.Headers):
+    def resolve(self,
+                content: http.Body,
+                headers: http.Headers):
         if not content:
             return None
 
@@ -36,11 +36,11 @@ class RequestDataComponent(Component):
 
 
 class ValidatePathParamsComponent(Component):
-    resolves = (ValidatedPathParams,)
+    resolves_types = (ValidatedPathParams,)
 
-    def resolve_parameter(self,
-                          link: Link,
-                          path_params: http.PathParams):
+    def resolve(self,
+                link: Link,
+                path_params: http.PathParams):
         path_fields = link.get_path_fields()
 
         validator = types.Object(
@@ -59,11 +59,11 @@ class ValidatePathParamsComponent(Component):
 
 
 class ValidateQueryParamsComponent(Component):
-    resolves = (ValidatedQueryParams,)
+    resolves_types = (ValidatedQueryParams,)
 
-    def resolve_parameter(self,
-                          link: Link,
-                          query_params: http.QueryParams):
+    def resolve(self,
+                link: Link,
+                query_params: http.QueryParams):
         query_fields = link.get_query_fields()
 
         validator = types.Object(
@@ -82,17 +82,17 @@ class ValidateQueryParamsComponent(Component):
 
 
 class ValidatedParamComponent(Component):
-    resolves = (str, int, float, bool)
+    resolves_types = (str, int, float, bool)
 
-    def handle_parameter(self, parameter: inspect.Parameter):
+    def can_handle_parameter(self, parameter: inspect.Parameter):
         if parameter.annotation is parameter.empty:
             return True
-        return parameter.annotation in self.resolves
+        return parameter.annotation in self.resolves_types
 
-    def resolve_parameter(self,
-                          parameter: inspect.Parameter,
-                          path_params: ValidatedPathParams,
-                          query_params: ValidatedQueryParams):
+    def resolve(self,
+                parameter: inspect.Parameter,
+                path_params: ValidatedPathParams,
+                query_params: ValidatedQueryParams):
         params = path_params if (parameter.name in path_params) else query_params
         has_default = parameter.default is not parameter.empty
 
