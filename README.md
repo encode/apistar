@@ -1133,7 +1133,13 @@ You then need to add the database config to your settings and the django migrati
 ```python
 from apistar.frameworks.wsgi import WSGIApp as App
 from apistar.backends import django_orm
+import django
 
+# Populate app registry, required before importing django apps or views which import apps
+django.setup()
+
+# imports relying on django's app registry must come after django.setup()
+from myapp.views import my_view
 
 routes = [
    # ...

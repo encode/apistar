@@ -18,7 +18,8 @@ class DjangoORM(object):
             'DATABASES': settings.get('DATABASES', {}),
             'AUTH_USER_MODEL': settings.get('AUTH_USER_MODEL', 'auth.User')
         }
-        django_settings.configure(**config)
+        if not django_settings.configured:
+            django_settings.configure(**config)
         django.setup()
         self.models = {
             model.__name__: model
