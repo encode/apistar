@@ -22,7 +22,9 @@ class SQLAlchemyBackend(object):
         kwargs = {}
         if url.startswith('postgresql'):  # pragma: nocover
             kwargs['pool_size'] = database_config.get('POOL_SIZE', 5)
-
+        if "POOL_RECYCLE" in database_config:
+            kwargs['pool_recycle'] = database_config['POOL_RECYCLE']
+        
         self.metadata = metadata
         self.engine = create_engine(url, **kwargs)
         self.Session = sessionmaker(bind=self.engine)
