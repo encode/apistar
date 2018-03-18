@@ -1448,10 +1448,12 @@ for more detail.
 
 # Development
 
-To work on the API Star codebase, you'll want to clone the repository,
+To work on the API Star codebase, you'll want to clone (with SSH) the repository,
 and create a Python virtualenv with the project requirements installed:
 ```bash
-$ git clone git@github.com:tomchristie/apistar.git
+$ git clone git@github.com:encode/apistar.git  
+#  or with HTTPS: 
+#$ git clone https://github.com/encode/apistar.git
 $ cd apistar
 $ ./scripts/setup
 ```
