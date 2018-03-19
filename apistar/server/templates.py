@@ -11,8 +11,8 @@ class Templates(BaseTemplates):
                  template_dir: str=None,
                  template_apps: list=None,
                  global_context: dict=None):
-        template_apps = [] if (template_apps is None) else template_apps
-        global_context = {} if (global_context is None) else global_context
+        template_apps = template_apps if template_apps else []
+        global_context = global_context else global_context else {}
 
         loader = jinja2.PrefixLoader({
             app_name: jinja2.PackageLoader(app_name, 'templates')

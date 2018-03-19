@@ -35,7 +35,7 @@ class App():
         })
 
     def init_injector(self, components=None):
-        components = [] if (components is None) else list(components)
+        components = components if components else []
         components = list(WSGI_COMPONENTS + VALIDATION_COMPONENTS) + components
         initial_components = {
             'environ': WSGIEnviron,
