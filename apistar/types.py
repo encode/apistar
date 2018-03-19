@@ -2,7 +2,7 @@ from abc import ABCMeta
 from collections.abc import Mapping
 
 from apistar import validators
-from apistar.exceptions import ValidationError
+from apistar.exceptions import ConfigurationError, ValidationError
 
 
 class TypeMetaclass(ABCMeta):
@@ -10,7 +10,14 @@ class TypeMetaclass(ABCMeta):
         properties = []
         required = []
         for key, value in list(attrs.items()):
-            if isinstance(value, validators.Validator):
+            if key in ['keys', 'items', 'values', 'get', 'validator']:
+                msg = (
+                    'Cannot use reserved name "%s" on Type "%s", as it '
+                    'clashes with the class interface.'
+                )
+                raise ConfigurationError(msg % (key, name))
+
+            elif isinstance(value, validators.Validator):
                 attrs.pop(key)
                 properties.append((key, value))
                 if not value.has_default():

@@ -150,6 +150,12 @@ def test_misc():
         Product([])
 
 
+def test_reserved_keys():
+    with pytest.raises(exceptions.ConfigurationError):
+        class Something(types.Type):
+            keys = validators.String()
+
+
 def test_as_jsonschema():
     struct = encode_jsonschema(Product, to_data_structure=True)
     assert struct == {
