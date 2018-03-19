@@ -217,7 +217,7 @@ class JSONSchemaCodec(BaseCodec):
 
     def encode_to_data_structure(self, item):
         if issubclass(item, types.Type):
-            item = item._validator
+            item = item.validator
 
         if isinstance(item, validators.String):
             value = {'type': 'string'}

@@ -21,7 +21,7 @@ class TypeMetaclass(ABCMeta):
             key=lambda item: item[1]._creation_counter
         )
 
-        attrs['_validator'] = validators.Object(
+        attrs['validator'] = validators.Object(
             def_name=name,
             properties=properties,
             required=required,
@@ -34,19 +34,28 @@ class Type(Mapping, metaclass=TypeMetaclass):
     def __init__(self, *args, **kwargs):
         if args:
             assert len(args) == 1
-            arg = args[0]
-            if arg is None or isinstance(arg, (bool, int, float, list)):
+            assert not kwargs
+
+            if args[0] is None or isinstance(args[0], (bool, int, float, list)):
                 raise ValidationError('Must be an object.')
-            elif not isinstance(arg, dict):
-                arg = {
-                    key: getattr(arg, key)
-                    for key in self._validator.properties.keys()
+            elif isinstance(args[0], dict):
+                # Instantiated with a dict.
+                value = args[0]
+            else:
+                # Instantiated with an object instance.
+                value = {
+                    key: getattr(args[0], key)
+                    for key in self.validator.properties.keys()
                 }
         else:
-            arg = kwargs
+            # Instantiated with keyword arguments.
+            value = kwargs
 
-        value = self._validator.validate(arg)
+        value = self.validate(value)
         object.__setattr__(self, '_dict', value)
+
+    def validate(self, value):
+        return self.validator.validate(value)
 
     def __repr__(self):
         args = ['%s=%s' % (key, repr(value)) for key, value in self.items()]
@@ -56,13 +65,13 @@ class Type(Mapping, metaclass=TypeMetaclass):
     def __setattr__(self, key, value):
         if key not in self._dict:
             raise AttributeError('Invalid attribute "%s"' % key)
-        value = self._validator.properties[key].validate(value)
+        value = self.validator.properties[key].validate(value)
         self._dict[key] = value
 
     def __setitem__(self, key, value):
         if key not in self._dict:
             raise KeyError('Invalid key "%s"' % key)
-        value = self._validator.properties[key].validate(value)
+        value = self.validator.properties[key].validate(value)
         self._dict[key] = value
 
     def __getattr__(self, key):
@@ -70,7 +79,7 @@ class Type(Mapping, metaclass=TypeMetaclass):
 
     def __getitem__(self, key):
         value = self._dict[key]
-        validator = self._validator.properties[key]
+        validator = self.validator.properties[key]
         if validator.format in validators.FORMATS:
             formatter = validators.FORMATS[validator.format]
             return formatter.to_string(value)
