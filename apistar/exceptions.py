@@ -31,6 +31,13 @@ class ErrorResponse(Exception):
         self.content = content
 
 
+class RequestError(Exception):
+    """
+    Raised when some invalid parameter is used in a client request.
+    """
+    pass
+
+
 class NoCodecAvailable(Exception):
     pass
 
