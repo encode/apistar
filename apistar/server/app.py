@@ -16,37 +16,35 @@ def exception_handler(exc: Exception) -> Response:
 
 
 class App():
-    def __init__(self, document, components=None):
+    def __init__(self, document, template_dir=None, template_apps=None, components=None):
         components = list(components) if components else []
 
         self.document = document
-        self.components = self.default_components() + components
-        self.router = self.default_router()
-        self.templates = self.default_templates()
-        self.injector = self.default_injector()
+        self.router = self.init_router(document)
+        self.templates = self.init_templates(template_dir, template_apps)
+        self.injector = self.init_injector(components)
         self.exception_handler = exception_handler
 
-    def get_initial_components(self):
-        return {
+    def init_router(self, document):
+        return Router(document)
+
+    def init_templates(self, template_dir: str=None, template_apps: list=None):
+        return Templates(template_dir, template_apps, {
+            'reverse_url': self.reverse_url,
+            'static_url': self.static_url
+        })
+
+    def init_injector(self, components=None):
+        components = [] if (components is None) else list(components)
+        components = list(WSGI_COMPONENTS + VALIDATION_COMPONENTS) + components
+        initial_components = {
             'environ': WSGIEnviron,
             'exc': Exception,
             'app': App,
             'path_params': PathParams,
             'link': Link
         }
-
-    def default_components(self):
-        return list(WSGI_COMPONENTS + VALIDATION_COMPONENTS)
-
-    def default_router(self):
-        return Router(self.document)
-
-    def default_templates(self):
-        return Templates(self)
-
-    def default_injector(self):
-        initial_components = self.get_initial_components()
-        return Injector(self.components, initial_components)
+        return Injector(components, initial_components)
 
     def reverse_url(self, name: str, **params):
         return self.router.reverse_url(name, **params)

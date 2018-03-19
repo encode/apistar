@@ -7,13 +7,26 @@ class BaseTemplates():
 
 
 class Templates(BaseTemplates):
-    def __init__(self, app):
+    def __init__(self,
+                 template_dir: str=None,
+                 template_apps: list=None,
+                 global_context: dict=None):
+        template_apps = [] if (template_apps is None) else template_apps
+        global_context = {} if (global_context is None) else global_context
+
         loader = jinja2.PrefixLoader({
-            'apistar': jinja2.PackageLoader('apistar', 'templates')
+            app_name: jinja2.PackageLoader(app_name, 'templates')
+            for app_name in template_apps
         })
+        if template_dir is not None:
+            loader = loader.ChoiceLoader([
+                loader.FileSystemLoader(template_dir),
+                loader
+            ])
+
         self.env = jinja2.Environment(loader=loader)
-        self.env.globals['reverse_url'] = app.reverse_url
-        self.env.globals['static_url'] = app.static_url
+        for key, value in global_context.items():
+            self.env.globals[key] = value
 
     def render_template(self, path: str, **context):
         template = self.env.get_template(path)
