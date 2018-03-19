@@ -8,7 +8,6 @@ from apistar.exceptions import ConfigurationError, ValidationError
 class TypeMetaclass(ABCMeta):
     def __new__(cls, name, bases, attrs):
         properties = []
-        required = []
         for key, value in list(attrs.items()):
             if key in ['keys', 'items', 'values', 'get', 'validator']:
                 msg = (
@@ -20,13 +19,15 @@ class TypeMetaclass(ABCMeta):
             elif isinstance(value, validators.Validator):
                 attrs.pop(key)
                 properties.append((key, value))
-                if not value.has_default():
-                    required.append(key)
 
         properties = sorted(
             properties,
             key=lambda item: item[1]._creation_counter
         )
+        required = [
+            key for key, value in properties
+            if not value.has_default()
+        ]
 
         attrs['validator'] = validators.Object(
             def_name=name,
