@@ -3,6 +3,7 @@ import datetime
 import pytest
 
 from apistar import exceptions, types, validators
+from apistar.utils import encode_jsonschema
 
 utc = datetime.timezone.utc
 
@@ -147,3 +148,29 @@ def test_misc():
         product['other'] = 456
     with pytest.raises(exceptions.ValidationError):
         Product([])
+
+
+def test_as_jsonschema():
+    struct = encode_jsonschema(Product, to_data_structure=True)
+    assert struct == {
+        "type": "object",
+        "properties": {
+            "name": {
+                "type": "string",
+                "maxLength": 10
+            },
+            "rating": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100
+            },
+            "created": {
+                "type": "string",
+                "format": "datetime"
+            }
+        },
+        "required": [
+            "name",
+            "created"
+        ]
+    }
