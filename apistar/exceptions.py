@@ -1,6 +1,13 @@
 from typing import Union
 
 
+class ValidationError(Exception):
+    def __init__(self, detail):
+        assert isinstance(detail, (str, dict))
+        self.detail = detail
+        super(ValidationError, self).__init__(detail)
+
+
 class ParseError(Exception):
     """
     Raised by a Codec when `decode` fails due to malformed syntax.
@@ -63,11 +70,6 @@ class Found(HTTPException):
 
     def get_headers(self):
         return {'Location': self.location}
-
-
-class ValidationError(HTTPException):
-    default_status_code = 400
-    default_detail = 'Validation error'
 
 
 class BadRequest(HTTPException):

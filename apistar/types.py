@@ -56,3 +56,11 @@ class Type(dict_type, metaclass=TypeMetaclass):
         if key in self._validator.properties:
             return dict_type.__getitem__(self, key)
         return self.__getattribute__(key)
+
+    def __getitem__(self, key):
+        value = dict_type.__getitem__(self, key)
+        validator = self._validator.properties[key]
+        if validator.format in validators.FORMATS:
+            formatter = validators.FORMATS[validator.format]
+            return formatter.to_string(value)
+        return value

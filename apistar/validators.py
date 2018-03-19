@@ -2,16 +2,17 @@ import re
 import typing
 from math import isfinite
 
+from apistar import formats
 from apistar.compat import dict_type
+from apistar.exceptions import ValidationError
 
 NO_DEFAULT = object()
 
-
-class ValidationError(Exception):
-    def __init__(self, detail):
-        assert isinstance(detail, (str, dict))
-        self.detail = detail
-        super(ValidationError, self).__init__(detail)
+FORMATS = {
+    'date': formats.DateFormat(),
+    'time': formats.TimeFormat(),
+    'datetime': formats.DateTimeFormat()
+}
 
 
 class Validator():
@@ -101,7 +102,7 @@ class String(Validator):
 
     def __init__(self, max_length=None, min_length=None, pattern=None,
                  enum=None, format=None, allow_null=False, **kwargs):
-        super(String, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
         assert max_length is None or isinstance(max_length, int)
         assert min_length is None or isinstance(min_length, int)
@@ -121,6 +122,8 @@ class String(Validator):
             return None
         elif value is None:
             self.error('null')
+        elif self.format in FORMATS and FORMATS[self.format].is_native_type(value):
+            return value
         elif not isinstance(value, str):
             self.error('type')
 
@@ -145,6 +148,9 @@ class String(Validator):
             if not re.search(self.pattern, value):
                 self.error('pattern')
 
+        if self.format in FORMATS:
+            return FORMATS[self.format].validate(value)
+
         return value
 
 
@@ -168,7 +174,7 @@ class NumericType(Validator):
     def __init__(self, minimum=None, maximum=None, exclusive_minimum=False,
                  exclusive_maximum=False, multiple_of=None, enum=None,
                  format=None, allow_null=False, **kwargs):
-        super(NumericType, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
         assert minimum is None or isinstance(minimum, (int, float))
         assert maximum is None or isinstance(maximum, (int, float))
@@ -254,7 +260,7 @@ class Boolean(Validator):
     }
 
     def __init__(self, allow_null=False, **kwargs):
-        super(Boolean, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
         self.allow_null = allow_null
 
@@ -284,7 +290,7 @@ class Object(Validator):
                  additional_properties=True, min_properties=None,
                  max_properties=None, required=None, allow_null=False,
                  **kwargs):
-        super(Object, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
         properties = {} if (properties is None) else dict_type(properties)
         pattern_properties = {} if (pattern_properties is None) else dict_type(pattern_properties)
@@ -415,7 +421,7 @@ class Array(Validator):
 
     def __init__(self, items=None, additional_items=None, min_items=None,
                  max_items=None, unique_items=False, allow_null=False, **kwargs):
-        super(Array, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
         items = list(items) if isinstance(items, (list, tuple)) else items
 
@@ -500,6 +506,21 @@ class Array(Validator):
         return validated
 
 
+class Date(String):
+    def __init__(self, **kwargs):
+        super().__init__(format='date', **kwargs)
+
+
+class Time(String):
+    def __init__(self, **kwargs):
+        super().__init__(format='time', **kwargs)
+
+
+class DateTime(String):
+    def __init__(self, **kwargs):
+        super().__init__(format='datetime', **kwargs)
+
+
 class Any(Validator):
     def validate(self, value, definitions=None, allow_coerce=False):
         # TODO: Validate value matches primitive types
@@ -537,7 +558,7 @@ class Union(Validator):
 
 class Ref(Validator):
     def __init__(self, ref, **kwargs):
-        super(Ref, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         assert isinstance(ref, str)
         self.ref = ref
 
