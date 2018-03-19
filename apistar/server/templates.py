@@ -12,7 +12,7 @@ class Templates(BaseTemplates):
                  template_apps: list=None,
                  global_context: dict=None):
         template_apps = template_apps if template_apps else []
-        global_context = global_context else global_context else {}
+        global_context = global_context if global_context else {}
 
         loader = jinja2.PrefixLoader({
             app_name: jinja2.PackageLoader(app_name, 'templates')
