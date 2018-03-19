@@ -19,7 +19,7 @@ class Validator():
     errors = {}
     _creation_counter = 0
 
-    def __init__(self, title='', description='', default=NO_DEFAULT, definitions=None, self_ref=None):
+    def __init__(self, title='', description='', default=NO_DEFAULT, definitions=None, def_name=None):
         definitions = {} if (definitions is None) else dict_type(definitions)
 
         assert isinstance(title, str)
@@ -31,7 +31,7 @@ class Validator():
         self.title = title
         self.description = description
         self.definitions = definitions
-        self.self_ref = self_ref
+        self.def_name = def_name
 
         # We need this global counter to determine what order fields have
         # been declared in when used with `Type`.
@@ -62,15 +62,15 @@ class Validator():
         return self.errors[code].format(**self.__dict__)
 
     def get_definitions(self, definitions=None):
-        if self.definitions is None and self.self_ref is None:
+        if self.definitions is None and self.def_name is None:
             return definitions
 
         if definitions is None:
             definitions = {}
         if self.definitions is not None:
             definitions.update(self.definitions)
-        if self.self_ref is not None:
-            definitions[self.self_ref] = self
+        if self.def_name is not None:
+            definitions[self.def_name] = self
         return definitions
 
     def __or__(self, other):

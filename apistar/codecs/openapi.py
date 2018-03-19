@@ -15,7 +15,7 @@ SCHEMA_REF = validators.Object(
 
 
 OPEN_API = validators.Object(
-    self_ref='OpenAPI',
+    def_name='OpenAPI',
     title='OpenAPI',
     properties=[
         ('openapi', validators.String()),

@@ -1,5 +1,6 @@
 import json
 
+from apistar import codecs
 from apistar.types import Type
 
 
@@ -27,3 +28,8 @@ def encode_json(data, indent=False):
             'separators': (',', ': ')
         })
     return json.dumps(data, **kwargs).encode('utf-8')
+
+
+def encode_jsonschema(validator, to_data_structure=False):
+    codec = codecs.JSONSchemaCodec()
+    return codec.encode(validator, to_data_structure=to_data_structure)

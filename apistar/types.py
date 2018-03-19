@@ -22,6 +22,7 @@ class TypeMetaclass(ABCMeta):
         )
 
         attrs['_validator'] = validators.Object(
+            def_name=name,
             properties=properties,
             required=required,
             additional_properties=None

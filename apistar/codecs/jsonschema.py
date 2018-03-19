@@ -1,12 +1,12 @@
 import json
 
-from apistar import validators
+from apistar import types, validators
 from apistar.codecs.base import BaseCodec
 from apistar.compat import dict_type
 from apistar.exceptions import ParseError
 
 JSON_SCHEMA = validators.Object(
-    self_ref='JSONSchema',
+    def_name='JSONSchema',
     properties=[
         ('$ref', validators.String()),
         ('type', validators.String() | validators.Array(items=validators.String())),
@@ -197,6 +197,9 @@ class JSONSchemaCodec(BaseCodec):
 
     def encode(self, item, **options):
         struct = self.encode_to_data_structure(item)
+        if options.get('to_data_structure'):
+            return struct
+
         indent = options.get('indent')
         if indent:
             kwargs = {
@@ -213,6 +216,9 @@ class JSONSchemaCodec(BaseCodec):
         return json.dumps(struct, **kwargs).encode('utf-8')
 
     def encode_to_data_structure(self, item):
+        if issubclass(item, types.Type):
+            item = item._validator
+
         if isinstance(item, validators.String):
             value = {'type': 'string'}
             if item.max_length is not None:
