@@ -1,5 +1,3 @@
-import json
-
 from apistar import exceptions
 from apistar.document import Link
 from apistar.http import RESPONSE_STATUS_TEXT, PathParams, Response
@@ -8,6 +6,7 @@ from apistar.server.router import Router
 from apistar.server.templates import Templates
 from apistar.server.validation import VALIDATION_COMPONENTS
 from apistar.server.wsgi import WSGI_COMPONENTS, WSGIEnviron
+from apistar.utils import encode_json
 
 
 def exception_handler(exc: Exception) -> Response:
@@ -67,7 +66,7 @@ class App():
             headers = {'Content-Type': 'text/html; charset=utf-8'}
             return Response(content, headers=headers)
 
-        content = json.dumps(response).encode('utf-8')
+        content = encode_json(response)
         headers = {'Content-Type': 'application/json'}
         return Response(content, headers=headers)
 
@@ -103,7 +102,7 @@ class App():
         elif isinstance(response.content, bytes):
             content = [response.content]
         else:
-            content = [json.dumps(response.content).encode('utf-8')]
+            content = [encode_json(response.content)]
 
         # Return the WSGI response.
         start_response(status_text, list(response.headers))
