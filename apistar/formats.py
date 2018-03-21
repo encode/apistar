@@ -44,6 +44,8 @@ class DateFormat(BaseFormat):
         return datetime.date(**kwargs)
 
     def to_string(self, value):
+        if not value:
+            return None
         return value.isoformat()
 
 
@@ -62,6 +64,8 @@ class TimeFormat(BaseFormat):
         return datetime.time(**kwargs)
 
     def to_string(self, value):
+        if not value:
+            return None
         return value.isoformat()
 
 
@@ -91,6 +95,8 @@ class DateTimeFormat(BaseFormat):
         return datetime.datetime(**kwargs)
 
     def to_string(self, value):
+        if not value:
+            return None
         value = value.isoformat()
         if value.endswith('+00:00'):
             value = value[:-6] + 'Z'
