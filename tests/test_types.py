@@ -180,3 +180,12 @@ def test_as_jsonschema():
             "created"
         ]
     }
+
+class Choice(types.Type):
+    choice = validators.Boolean(default=False)
+
+
+def test_boolean_print_fail():
+    # AttributeError("'Boolean' object has no attribute 'format'") raised in repr()
+    a = Choice()
+    repr(a) == False
