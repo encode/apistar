@@ -88,9 +88,10 @@ class Type(Mapping, metaclass=TypeMetaclass):
     def __getitem__(self, key):
         value = self._dict[key]
         validator = self.validator.properties[key]
-        if validator.format in validators.FORMATS:
-            formatter = validators.FORMATS[validator.format]
-            return formatter.to_string(value)
+        if hasattr(validator, "format"):
+            if validator.format in validators.FORMATS:
+                formatter = validators.FORMATS[validator.format]
+                return formatter.to_string(value)
         return value
 
     def __len__(self):
