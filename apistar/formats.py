@@ -45,7 +45,7 @@ class DateFormat(BaseFormat):
 
     def to_string(self, value):
         if not value:
-            return None
+            return ''
         return value.isoformat()
 
 
@@ -65,7 +65,7 @@ class TimeFormat(BaseFormat):
 
     def to_string(self, value):
         if not value:
-            return None
+            return ''
         return value.isoformat()
 
 
@@ -96,7 +96,7 @@ class DateTimeFormat(BaseFormat):
 
     def to_string(self, value):
         if not value:
-            return None
+            return ''
         value = value.isoformat()
         if value.endswith('+00:00'):
             value = value[:-6] + 'Z'
