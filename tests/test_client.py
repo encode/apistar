@@ -3,7 +3,8 @@ import os
 import pytest
 
 from apistar import (
-    App, Client, Document, Field, Link, Section, TestClient, exceptions, http
+    App, Client, Document, Field, Include, Link, Route, Section, TestClient,
+    exceptions, http
 )
 
 
@@ -44,30 +45,54 @@ def download_response_filename_in_url():
     })
 
 
+routes = [
+    Include(url='/parameters', name='parameters', routes=[
+        Route(url='/no-parameters/', method='GET', handler=no_parameter),
+        Route(url='/query-parameter/', method='GET', handler=query_parameter),
+        Route(url='/body-parameter/', method='POST', handler=body_parameter),
+    ]),
+    Include(url='/responses', name='responses', routes=[
+        Route(url='/text-response/', method='GET', handler=text_response),
+        Route(url='/empty-response/', method='GET', handler=empty_response),
+        Route(url='/error-response/', method='GET', handler=error_response),
+    ]),
+    Include(url='/downloads', name='downloads', routes=[
+        Route(url='/download-response/', method='GET', handler=download_response),
+        Route(url='/download-response/path.jpg', method='GET', handler=download_response_filename_in_url),
+    ]),
+]
+app = App(routes=routes)
+
+
 document = Document(
     url='http://testserver',
     content=[
         Section(name='parameters', content=[
-            Link(url='/no-parameters/', method='GET', handler=no_parameter),
-            Link(url='/query-parameter/', method='GET', handler=query_parameter, fields=[
+            Link(name='no_parameter', url='/parameters/no-parameters/', method='GET'),
+            Link(name='query_parameter', url='/parameters/query-parameter/', method='GET', fields=[
                 Field(name='a', location='query')
             ]),
-            Link(url='/body-parameter/', method='POST', handler=body_parameter, encoding='application/json', fields=[
-                Field(name='a', location='body')
-            ])
+            Link(
+                name='body_parameter',
+                url='/parameters/body-parameter/',
+                method='POST',
+                encoding='application/json',
+                fields=[
+                    Field(name='a', location='body')
+                ]
+            )
         ]),
         Section(name='responses', content=[
-            Link(url='/text-response/', method='GET', handler=text_response),
-            Link(url='/empty-response/', method='GET', handler=empty_response),
-            Link(url='/error-response/', method='GET', handler=error_response)
+            Link(name='text_response', url='/responses/text-response/', method='GET'),
+            Link(name='empty_response', url='/responses/empty-response/', method='GET'),
+            Link(name='error_response', url='/responses/error-response/', method='GET')
         ]),
         Section(name='downloads', content=[
-            Link(url='/download-response/', method='GET', handler=download_response),
-            Link(url='/download-response/path.jpg', method='GET', handler=download_response_filename_in_url),
+            Link(name='download_response', url='/downloads/download-response/', method='GET'),
+            Link(name='download_response_filename_in_url', url='/downloads/download-response/path.jpg', method='GET'),
         ]),
     ]
 )
-app = App(document)
 session = TestClient(app)
 client = Client(document=document, session=session)
 

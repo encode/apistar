@@ -8,11 +8,11 @@
 
 from apistar.client import Client
 from apistar.document import Document, Field, Link, Section
-from apistar.server import App, Component
+from apistar.server import App, Component, Include, Route
 from apistar.test import TestClient
 
 __version__ = '0.3.9'
 __all__ = [
     'App', 'Client', 'Component', 'Document', 'Section', 'Link', 'Field',
-    'TestClient', 'http'
+    'Route', 'Include', 'TestClient', 'http'
 ]

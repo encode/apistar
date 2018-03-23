@@ -1,6 +1,7 @@
 from apistar import http, test, types, validators
 from apistar.document import Document, Field, Link
 from apistar.server.app import App
+from apistar.server.core import bind
 from apistar.server.validation import ValidatedRequestData
 
 
@@ -57,14 +58,14 @@ def schema_enforced_body_param(user: ValidatedRequestData):
     return {"user": user}
 
 
-doc = Document([
+document = Document([
     # Path parameters
-    Link(url='/str_path_param/{param}/', method='GET', handler=str_path_param),
-    Link(url='/int_path_param/{param}/', method='GET', handler=int_path_param),
+    Link(url='/str_path_param/{param}/', method='GET', name='str_path_param'),
+    Link(url='/int_path_param/{param}/', method='GET', name='int_path_param'),
     Link(
         url='/schema_enforced_str_path_param/{param}/',
         method='GET',
-        handler=schema_enforced_str_path_param,
+        name='schema_enforced_str_path_param',
         fields=[
             Field(name='param', location='path', required=True, schema=validators.String(max_length=3))
         ]
@@ -72,21 +73,21 @@ doc = Document([
     Link(
         url='/schema_enforced_int_path_param/{param}/',
         method='GET',
-        handler=schema_enforced_int_path_param,
+        name='schema_enforced_int_path_param',
         fields=[
             Field(name='param', location='path', required=True, schema=validators.Integer(minimum=0, maximum=1000))
         ]
     ),
 
     # Query parameters
-    Link(url='/str_query_param/', method='GET', handler=str_query_param),
-    Link(url='/int_query_param/', method='GET', handler=int_query_param),
-    Link(url='/str_query_param_with_default/', method='GET', handler=str_query_param_with_default),
-    Link(url='/int_query_param_with_default/', method='GET', handler=int_query_param_with_default),
+    Link(url='/str_query_param/', method='GET', name='str_query_param'),
+    Link(url='/int_query_param/', method='GET', name='int_query_param'),
+    Link(url='/str_query_param_with_default/', method='GET', name='str_query_param_with_default'),
+    Link(url='/int_query_param_with_default/', method='GET', name='int_query_param_with_default'),
     Link(
         url='/schema_enforced_str_query_param/',
         method='GET',
-        handler=schema_enforced_str_query_param,
+        name='schema_enforced_str_query_param',
         fields=[
             Field(name='param', location='query', schema=validators.String(max_length=3))
         ]
@@ -94,7 +95,7 @@ doc = Document([
     Link(
         url='/schema_enforced_int_query_param/',
         method='GET',
-        handler=schema_enforced_int_query_param,
+        name='schema_enforced_int_query_param',
         fields=[
             Field(name='param', location='query', schema=validators.Integer(minimum=0, maximum=1000))
         ]
@@ -105,7 +106,7 @@ doc = Document([
     Link(
         url='/schema_enforced_body_param/',
         method='POST',
-        handler=schema_enforced_body_param,
+        name='schema_enforced_body_param',
         encoding='application/json',
         fields=[
             Field(name='param', location='body', schema=validators.Object(properties={
@@ -116,7 +117,23 @@ doc = Document([
     ),
 ])
 
-app = App(doc)
+
+routes = bind(document, {
+    'str_path_param': str_path_param,
+    'int_path_param': int_path_param,
+    'schema_enforced_str_path_param': schema_enforced_str_path_param,
+    'schema_enforced_int_path_param': schema_enforced_int_path_param,
+    'str_query_param': str_query_param,
+    'int_query_param': int_query_param,
+    'str_query_param_with_default': str_query_param_with_default,
+    'int_query_param_with_default': int_query_param_with_default,
+    'schema_enforced_str_query_param': schema_enforced_str_query_param,
+    'schema_enforced_int_query_param': schema_enforced_int_query_param,
+    'type_body_param': type_body_param,
+    'schema_enforced_body_param': schema_enforced_body_param
+})
+
+app = App(routes=routes)
 client = test.TestClient(app)
 
 

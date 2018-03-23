@@ -159,24 +159,31 @@ def test_reserved_keys():
 def test_as_jsonschema():
     struct = encode_jsonschema(Product, to_data_structure=True)
     assert struct == {
-        "type": "object",
-        "properties": {
-            "name": {
-                "type": "string",
-                "maxLength": 10
-            },
-            "rating": {
-                "type": "integer",
-                "minimum": 0,
-                "maximum": 100
-            },
-            "created": {
-                "type": "string",
-                "format": "datetime"
+        "$ref": "#/definitions/Product",
+        "definitions": {
+            "Product": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "maxLength": 10
+                    },
+                    "rating": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 100,
+                        "default": None,
+                        "nullable": True
+                    },
+                    "created": {
+                        "type": "string",
+                        "format": "datetime"
+                    }
+                },
+                "required": [
+                    "name",
+                    "created"
+                ]
             }
-        },
-        "required": [
-            "name",
-            "created"
-        ]
+        }
     }

@@ -1,5 +1,4 @@
-from apistar import http, test
-from apistar.document import Document, Link
+from apistar import Route, http, test
 from apistar.server.app import App
 
 # HTTP Components as parameters
@@ -70,28 +69,28 @@ def get_request_data(data: http.RequestData) -> http.Response:
     return http.Response({'data': data})
 
 
-doc = Document([
-    Link('/request/', 'GET', get_request),
-    Link('/method/', 'GET', get_method),
-    Link('/method/', 'POST', get_method, name='post_method'),
-    Link('/scheme/', 'GET', get_scheme),
-    Link('/host/', 'GET', get_host),
-    Link('/port/', 'GET', get_port),
-    Link('/path/', 'GET', get_path),
-    Link('/query_string/', 'GET', get_query_string),
-    Link('/query_params/', 'GET', get_query_params),
-    Link('/page_query_param/', 'GET', get_page_query_param),
-    Link('/url/', 'GET', get_url),
-    Link('/body/', 'POST', get_body),
-    Link('/headers/', 'GET', get_headers),
-    Link('/headers/', 'POST', get_headers, name='post_headers'),
-    Link('/accept_header/', 'GET', get_accept_header),
-    Link('/path_params/{example}/', 'GET', get_path_params),
-    Link('/full_path_params/{+example}', 'GET', get_path_params, name='full_path_params'),
-    Link('/request_data/', 'POST', get_request_data),
-])
+routes = [
+    Route('/request/', 'GET', get_request),
+    Route('/method/', 'GET', get_method),
+    Route('/method/', 'POST', get_method, name='post_method'),
+    Route('/scheme/', 'GET', get_scheme),
+    Route('/host/', 'GET', get_host),
+    Route('/port/', 'GET', get_port),
+    Route('/path/', 'GET', get_path),
+    Route('/query_string/', 'GET', get_query_string),
+    Route('/query_params/', 'GET', get_query_params),
+    Route('/page_query_param/', 'GET', get_page_query_param),
+    Route('/url/', 'GET', get_url),
+    Route('/body/', 'POST', get_body),
+    Route('/headers/', 'GET', get_headers),
+    Route('/headers/', 'POST', get_headers, name='post_headers'),
+    Route('/accept_header/', 'GET', get_accept_header),
+    Route('/path_params/{example}/', 'GET', get_path_params),
+    Route('/full_path_params/{+example}', 'GET', get_path_params, name='full_path_params'),
+    Route('/request_data/', 'POST', get_request_data),
+]
 
-app = App(doc)
+app = App(routes=routes)
 client = test.TestClient(app)
 
 

@@ -1,6 +1,6 @@
 from apistar import exceptions
-from apistar.document import Link
 from apistar.http import RESPONSE_STATUS_TEXT, PathParams, Response
+from apistar.server.core import Route, generate_document
 from apistar.server.injector import Injector
 from apistar.server.router import Router
 from apistar.server.templates import Templates
@@ -16,17 +16,17 @@ def exception_handler(exc: Exception) -> Response:
 
 
 class App():
-    def __init__(self, document, template_dir=None, template_apps=None, components=None):
+    def __init__(self, routes, template_dir=None, template_apps=None, components=None):
         components = list(components) if components else []
 
-        self.document = document
-        self.router = self.init_router(document)
+        self.document = generate_document(routes)
+        self.router = self.init_router(routes)
         self.templates = self.init_templates(template_dir, template_apps)
         self.injector = self.init_injector(components)
         self.exception_handler = exception_handler
 
-    def init_router(self, document):
-        return Router(document)
+    def init_router(self, routes):
+        return Router(routes)
 
     def init_templates(self, template_dir: str=None, template_apps: list=None):
         return Templates(template_dir, template_apps, {
@@ -42,7 +42,7 @@ class App():
             'exc': Exception,
             'app': App,
             'path_params': PathParams,
-            'link': Link
+            'route': Route
         }
         return Injector(components, initial_components)
 
@@ -74,15 +74,15 @@ class App():
             'exc': None,
             'app': self,
             'path_params': None,
-            'link': None
+            'route': None
         }
         method = environ['REQUEST_METHOD'].upper()
         path = environ['PATH_INFO']
         try:
-            link, handler, path_params = self.router.lookup(path, method)
-            state['link'] = link
+            route, path_params = self.router.lookup(path, method)
+            state['route'] = route
             state['path_params'] = path_params
-            response = self.injector.run(handler, state)
+            response = self.injector.run(route.handler, state)
         except Exception as exc:
             state['exc'] = exc
             response = self.injector.run(self.exception_handler, state)

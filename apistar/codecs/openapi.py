@@ -333,7 +333,8 @@ class OpenAPICodec(BaseCodec):
         )
 
     def encode(self, document, **options):
-        paths = self.get_paths(document)
+        schema_defs = {}
+        paths = self.get_paths(document, schema_defs=schema_defs)
         openapi = OPEN_API.validate({
             'openapi': '3.0.0',
             'info': {
@@ -347,6 +348,9 @@ class OpenAPICodec(BaseCodec):
             'paths': paths
         })
 
+        if schema_defs:
+            openapi['components'] = {'schemas': schema_defs}
+
         kwargs = {
             'ensure_ascii': False,
             'indent': 4,
@@ -354,7 +358,7 @@ class OpenAPICodec(BaseCodec):
         }
         return json.dumps(openapi, **kwargs).encode('utf-8')
 
-    def get_paths(self, document):
+    def get_paths(self, document, schema_defs=None):
         paths = dict_type()
 
         for link, name, sections in document.walk_links():
@@ -365,11 +369,11 @@ class OpenAPICodec(BaseCodec):
 
             if path not in paths:
                 paths[path] = {}
-            paths[path][method] = self.get_operation(link, operation_id, tag=tag)
+            paths[path][method] = self.get_operation(link, operation_id, tag=tag, schema_defs=schema_defs)
 
         return paths
 
-    def get_operation(self, link, operation_id, tag=None):
+    def get_operation(self, link, operation_id, tag=None, schema_defs=None):
         operation = {
             'operationId': operation_id
         }
@@ -379,11 +383,32 @@ class OpenAPICodec(BaseCodec):
             operation['description'] = link.description
         if tag:
             operation['tags'] = [tag]
-        if link.fields:
-            operation['parameters'] = [self.get_parameter(field) for field in link.fields]
+        if link.get_path_fields() or link.get_query_fields():
+            operation['parameters'] = [
+                self.get_parameter(field, schema_defs) for field in
+                link.get_path_fields() + link.get_query_fields()
+            ]
+        if link.get_body_field():
+            schema = link.get_body_field().schema
+            if schema is None:
+                content_info = {}
+            else:
+                content_info = {
+                    'schema': JSONSchemaCodec().encode_to_data_structure(
+                        schema,
+                        schema_defs,
+                        '#/components/schemas/'
+                    )
+                }
+
+            operation['responseBody'] = {
+                'content': {
+                    link.encoding: content_info
+                }
+            }
         return operation
 
-    def get_parameter(self, field):
+    def get_parameter(self, field, schema_defs=None):
         parameter = {
             'name': field.name,
             'in': field.location
@@ -393,5 +418,9 @@ class OpenAPICodec(BaseCodec):
         if field.description:
             parameter['description'] = field.description
         if field.schema:
-            parameter['schema'] = JSONSchemaCodec().encode_to_data_structure(field.schema)
+            parameter['schema'] = JSONSchemaCodec().encode_to_data_structure(
+                field.schema,
+                schema_defs,
+                '#/components/schemas/'
+            )
         return parameter

@@ -39,8 +39,8 @@ def test_nullable_date():
     example = Example({
         'when': None
     })
-    assert example.when == None
-    assert example['when'] == None
+    assert example.when is None
+    assert example['when'] is None
 
 
 def test_time():
@@ -75,8 +75,8 @@ def test_nullable_time():
     example = Example({
         'when': None
     })
-    assert example.when == None
-    assert example['when'] == None
+    assert example.when is None
+    assert example['when'] is None
 
 
 def test_datetime():
@@ -118,5 +118,5 @@ def test_nullable_datetime():
     example = Example({
         'when': None
     })
-    assert example.when == None
-    assert example['when'] == None
+    assert example.when is None
+    assert example['when'] is None

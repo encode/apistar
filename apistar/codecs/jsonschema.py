@@ -14,7 +14,7 @@ JSON_SCHEMA = validators.Object(
         ('definitions', validators.Object(additional_properties=validators.Ref('JSONSchema'))),
 
         # String
-        ('minLength', validators.Integer(minimum=0, default=0)),
+        ('minLength', validators.Integer(minimum=0)),
         ('maxLength', validators.Integer(minimum=0)),
         ('pattern', validators.String(format='regex')),
         ('format', validators.String()),
@@ -22,13 +22,13 @@ JSON_SCHEMA = validators.Object(
         # Numeric
         ('minimum', validators.Number()),
         ('maximum', validators.Number()),
-        ('exclusiveMinimum', validators.Boolean(default=False)),
-        ('exclusiveMaximum', validators.Boolean(default=False)),
+        ('exclusiveMinimum', validators.Boolean()),
+        ('exclusiveMaximum', validators.Boolean()),
         ('multipleOf', validators.Number(minimum=0.0, exclusive_minimum=True)),
 
         # Object
         ('properties', validators.Object(additional_properties=validators.Ref('JSONSchema'))),
-        ('minProperties', validators.Integer(minimum=0, default=0)),
+        ('minProperties', validators.Integer(minimum=0)),
         ('maxProperties', validators.Integer(minimum=0)),
         ('patternProperties', validators.Object(additional_properties=validators.Ref('JSONSchema'))),
         ('additionalProperties', validators.Ref('JSONSchema') | validators.Boolean()),
@@ -37,7 +37,7 @@ JSON_SCHEMA = validators.Object(
         # Array
         ('items', validators.Ref('JSONSchema') | validators.Array(items=validators.Ref('JSONSchema'), min_items=1)),
         ('additionalItems', validators.Ref('JSONSchema') | validators.Boolean()),
-        ('minItems', validators.Integer(minimum=0, default=0)),
+        ('minItems', validators.Integer(minimum=0)),
         ('maxItems', validators.Integer(minimum=0)),
         ('uniqueItems', validators.Boolean()),
     ]
@@ -196,7 +196,9 @@ class JSONSchemaCodec(BaseCodec):
         return decode(jsonschema)
 
     def encode(self, item, **options):
-        struct = self.encode_to_data_structure(item)
+        defs = {}
+        struct = self.encode_to_data_structure(item, defs=defs, def_prefix='#/definitions/')
+        struct['definitions'] = defs
         if options.get('to_data_structure'):
             return struct
 
@@ -215,12 +217,28 @@ class JSONSchemaCodec(BaseCodec):
             }
         return json.dumps(struct, **kwargs).encode('utf-8')
 
-    def encode_to_data_structure(self, item):
+    def encode_to_data_structure(self, item, defs=None, def_prefix=None, is_def=False):
         if issubclass(item, types.Type):
             item = item.validator
 
+        if defs is not None and item.def_name and not is_def:
+            defs[item.def_name] = self.encode_to_data_structure(
+                item, defs, def_prefix, is_def=True
+            )
+            return {'$ref': def_prefix + item.def_name}
+
+        value = {}
+        if item.title:
+            value['title'] = item.title
+        if item.description:
+            value['description'] = item.description
+        if item.has_default():
+            value['default'] = item.default
+        if getattr(item, 'allow_null') is True:
+            value['nullable'] = True
+
         if isinstance(item, validators.String):
-            value = {'type': 'string'}
+            value['type'] = 'string'
             if item.max_length is not None:
                 value['maxLength'] = item.max_length
             if item.min_length is not None:
@@ -231,11 +249,11 @@ class JSONSchemaCodec(BaseCodec):
                 value['format'] = item.format
             return value
 
-        if isinstance(item, validators.NumericType):
+        elif isinstance(item, validators.NumericType):
             if isinstance(item, validators.Integer):
-                value = {'type': 'integer'}
+                value['type'] = 'integer'
             else:
-                value = {'type': 'number'}
+                value['type'] = 'number'
 
             if item.minimum is not None:
                 value['minimum'] = item.minimum
@@ -251,24 +269,25 @@ class JSONSchemaCodec(BaseCodec):
                 value['format'] = item.format
             return value
 
-        if isinstance(item, validators.Boolean):
-            return {'type': 'boolean'}
+        elif isinstance(item, validators.Boolean):
+            value['type'] = 'boolean'
+            return value
 
-        if isinstance(item, validators.Object):
-            value = {'type': 'object'}
+        elif isinstance(item, validators.Object):
+            value['type'] = 'object'
             if item.properties:
                 value['properties'] = {
-                    key: self.encode_to_data_structure(value)
+                    key: self.encode_to_data_structure(value, defs, def_prefix)
                     for key, value in item.properties.items()
                 }
             if item.required:
                 value['required'] = item.required
             return value
 
-        if isinstance(item, validators.Array):
-            value = {'type': 'array'}
+        elif isinstance(item, validators.Array):
+            value['type'] = 'array'
             if item.items is not None:
-                value['items'] = self.encode_to_data_structure(item.items)
+                value['items'] = self.encode_to_data_structure(item.items, defs, def_prefix)
             if item.additional_items:
                 value['additionalItems'] = item.additional_items
             if item.min_items is not None:

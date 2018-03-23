@@ -3,8 +3,8 @@ import typing
 
 from apistar import codecs, exceptions, http, types, validators
 from apistar.conneg import negotiate_content_type
-from apistar.document import Link
 from apistar.server.components import Component
+from apistar.server.core import Route
 
 ValidatedPathParams = typing.NewType('ValidatedPathParams', dict)
 ValidatedQueryParams = typing.NewType('ValidatedQueryParams', dict)
@@ -39,9 +39,9 @@ class RequestDataComponent(Component):
 
 class ValidatePathParamsComponent(Component):
     def resolve(self,
-                link: Link,
+                route: Route,
                 path_params: http.PathParams) -> ValidatedPathParams:
-        path_fields = link.get_path_fields()
+        path_fields = route.link.get_path_fields()
 
         validator = validators.Object(
             properties=[
@@ -60,9 +60,9 @@ class ValidatePathParamsComponent(Component):
 
 class ValidateQueryParamsComponent(Component):
     def resolve(self,
-                link: Link,
+                route: Route,
                 query_params: http.QueryParams) -> ValidatedQueryParams:
-        query_fields = link.get_query_fields()
+        query_fields = route.link.get_query_fields()
 
         validator = validators.Object(
             properties=[
@@ -84,9 +84,9 @@ class ValidateRequestDataComponent(Component):
         return parameter.annotation is ValidatedRequestData
 
     def resolve(self,
-                link: Link,
+                route: Route,
                 data: http.RequestData):
-        body_field = link.get_body_field()
+        body_field = route.link.get_body_field()
 
         if not body_field or not body_field.schema:
             return data
