@@ -27,6 +27,21 @@ def test_date():
         Example({'when': 'abc'})
     assert exc.value.detail == {'when': 'Must be a valid date.'}
 
+    with pytest.raises(exceptions.ValidationError) as exc:
+        Example({'when': None})
+    assert exc.value.detail == {'when': 'May not be null.'}
+
+
+def test_nullable_date():
+    class Example(types.Type):
+        when = validators.Date(allow_null=True)
+
+    example = Example({
+        'when': None
+    })
+    assert example.when == None
+    assert example['when'] == None
+
 
 def test_time():
     class Example(types.Type):
@@ -47,6 +62,21 @@ def test_time():
     with pytest.raises(exceptions.ValidationError) as exc:
         Example({'when': 'abc'})
     assert exc.value.detail == {'when': 'Must be a valid time.'}
+
+    with pytest.raises(exceptions.ValidationError) as exc:
+        Example({'when': None})
+    assert exc.value.detail == {'when': 'May not be null.'}
+
+
+def test_nullable_time():
+    class Example(types.Type):
+        when = validators.Time(allow_null=True)
+
+    example = Example({
+        'when': None
+    })
+    assert example.when == None
+    assert example['when'] == None
 
 
 def test_datetime():
@@ -69,9 +99,24 @@ def test_datetime():
         Example({'when': 'abc'})
     assert exc.value.detail == {'when': 'Must be a valid datetime.'}
 
+    with pytest.raises(exceptions.ValidationError) as exc:
+        Example({'when': None})
+    assert exc.value.detail == {'when': 'May not be null.'}
+
     example = Example({
         'when': '2020-01-01T12:00:00-02:00'
     })
     tzinfo = datetime.timezone(-datetime.timedelta(hours=2))
     assert example.when == datetime.datetime(2020, 1, 1, 12, 0, 0, tzinfo=tzinfo)
     assert example['when'] == '2020-01-01T12:00:00-02:00'
+
+
+def test_nullable_datetime():
+    class Example(types.Type):
+        when = validators.DateTime(allow_null=True)
+
+    example = Example({
+        'when': None
+    })
+    assert example.when == None
+    assert example['when'] == None
