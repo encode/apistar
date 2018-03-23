@@ -11,7 +11,7 @@ from apistar.utils import encode_json
 
 def exception_handler(exc: Exception) -> Response:
     if isinstance(exc, exceptions.HTTPException):
-        return Response(exc.detail, exc.status_code, exc.get_headers())
+        return Response({'msg':exc.detail}, exc.status_code, exc.get_headers())
     raise
 
 
