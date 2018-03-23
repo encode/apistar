@@ -42,8 +42,9 @@ class HTMLRenderer(Renderer):
 
 
 def negotiate_renderer(accept: typing.Optional[str],
-                       renderers: typing.List[Renderer]) -> typing.Optional[Renderer]:
-    if accept is None:
+                       renderers: typing.List[Renderer],
+                       force: bool=False) -> typing.Optional[Renderer]:
+    if accept is None or force:
         return renderers[0]
 
     for media_type, quality in parse_accept_header(accept):
