@@ -4,6 +4,8 @@ import pytest
 
 from apistar import exceptions, types, validators
 from apistar.utils import encode_jsonschema
+from apistar.exceptions import ValidationError
+
 
 utc = datetime.timezone.utc
 
@@ -181,7 +183,6 @@ def test_as_jsonschema():
         ]
     }
 
-from apistar.exceptions import ValidationError
 
 class Bla(types.Type):
     a = validators.String()
