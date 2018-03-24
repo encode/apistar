@@ -1,5 +1,5 @@
 from abc import ABCMeta
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 
 from apistar import validators
 from apistar.exceptions import ConfigurationError, ValidationError
@@ -8,6 +8,7 @@ from apistar.exceptions import ConfigurationError, ValidationError
 class TypeMetaclass(ABCMeta):
     def __new__(cls, name, bases, attrs):
         properties = []
+        required = []
         for key, value in list(attrs.items()):
             if key in ['keys', 'items', 'values', 'get', 'validator']:
                 msg = (
@@ -15,6 +16,8 @@ class TypeMetaclass(ABCMeta):
                     'clashes with the class interface.'
                 )
                 raise ConfigurationError(msg % (key, name))
+            if key == "required" and isinstance(value, Sequence):
+                required=value
 
             elif isinstance(value, validators.Validator):
                 attrs.pop(key)
@@ -24,10 +27,11 @@ class TypeMetaclass(ABCMeta):
             properties,
             key=lambda item: item[1]._creation_counter
         )
-        required = [
-            key for key, value in properties
-            if not value.has_default()
-        ]
+        if not required:
+            required = [
+                key for key, value in properties
+                if not value.has_default()
+            ]
 
         attrs['validator'] = validators.Object(
             def_name=name,

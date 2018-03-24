@@ -180,3 +180,33 @@ def test_as_jsonschema():
             "created"
         ]
     }
+
+from apistar.exceptions import ValidationError
+
+class Bla(types.Type):
+    a = validators.String()
+    b = validators.String()
+    c = validators.String(default="c")
+
+    required = ['a']
+
+def test_required():
+    with pytest.raises(ValidationError) as e:
+        Bla()
+        print(e)
+    assert str(e.value) == "{'a': 'This field is required.'}"
+
+    bla = Bla(a = "a")
+    assert bla.a == "a" and bla.c =="c"
+
+class Bla2(types.Type):
+    a = validators.String()
+    b = validators.String()
+    c = validators.String(default="c")
+
+def test_required_default():
+    with pytest.raises(ValidationError) as e:
+        Bla2()
+    assert str(e.value) == "{'a': 'This field is required.', 'b': 'This field is required.'}"
+    bla = Bla(a = "a", b="b")
+    assert bla.a == "a" and bla.c =="c" and bla.b == "b"
