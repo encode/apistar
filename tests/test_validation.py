@@ -1,48 +1,48 @@
-from apistar import http, test, types, validators
+from apistar import test, types, validators
 from apistar.document import Document, Field, Link
 from apistar.server.app import App
 from apistar.server.core import bind
 from apistar.server.validation import ValidatedRequestData
 
 
-def str_path_param(param: str) -> http.Response:
-    return http.Response({'param': param})
+def str_path_param(param: str):
+    return {'param': param}
 
 
-def int_path_param(param: int) -> http.Response:
-    return http.Response({'param': param})
+def int_path_param(param: int):
+    return {'param': param}
 
 
-def str_query_param(param: str) -> http.Response:
-    return http.Response({'param': param})
+def str_query_param(param: str):
+    return {'param': param}
 
 
-def int_query_param(param: int) -> http.Response:
-    return http.Response({'param': param})
+def int_query_param(param: int):
+    return {'param': param}
 
 
-def str_query_param_with_default(param: str='') -> http.Response:
-    return http.Response({'param': param})
+def str_query_param_with_default(param: str=''):
+    return {'param': param}
 
 
-def int_query_param_with_default(param: int=None) -> http.Response:
-    return http.Response({'param': param})
+def int_query_param_with_default(param: int=None):
+    return {'param': param}
 
 
-def schema_enforced_str_path_param(param) -> http.Response:
-    return http.Response({'param': param})
+def schema_enforced_str_path_param(param):
+    return {'param': param}
 
 
-def schema_enforced_int_path_param(param) -> http.Response:
-    return http.Response({'param': param})
+def schema_enforced_int_path_param(param):
+    return {'param': param}
 
 
-def schema_enforced_str_query_param(param) -> http.Response:
-    return http.Response({'param': param})
+def schema_enforced_str_query_param(param):
+    return {'param': param}
 
 
-def schema_enforced_int_query_param(param) -> http.Response:
-    return http.Response({'param': param})
+def schema_enforced_int_query_param(param):
+    return {'param': param}
 
 
 class User(types.Type):

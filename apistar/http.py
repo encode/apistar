@@ -1,6 +1,9 @@
+import json
 import typing
 from http import HTTPStatus
 from urllib.parse import urlparse
+
+from apistar import types
 
 Method = typing.NewType('Method', str)
 Scheme = typing.NewType('Scheme', str)
@@ -17,9 +20,12 @@ RequestData = typing.TypeVar('RequestData')
 
 
 RESPONSE_STATUS_TEXT = {
+    code: str(code) for code in range(100, 600)
+}
+RESPONSE_STATUS_TEXT.update({
     status.value: "%d %s" % (status.value, status.phrase)
     for status in HTTPStatus
-}
+})
 
 
 class URL(str):
@@ -156,7 +162,21 @@ class Headers(typing.Mapping[str, str]):
         return sorted(self._list) == sorted(other._list)
 
     def __repr__(self):
-        return 'Headers(%s)' % repr(self._list)
+        return '%s(%s)' % (self.__class__.__name__, repr(self._list))
+
+
+class MutableHeaders(Headers):
+    def __setitem__(self, key: str, value: str):
+        key = key.lower()
+        if key in self._dict:
+            self._dict[key] = value
+            self._list = [
+                (item_key, value) if item_key == key else (item_key, item_value)
+                for item_key, item_value in self._list
+            ]
+        else:
+            self._dict[key] = value
+            self._list.append((key, value))
 
 
 class Request():
@@ -173,11 +193,52 @@ class Request():
 
 class Response():
     def __init__(self,
-                 content: typing.Any=b'',
+                 content: bytes=b'',
                  status_code: int=200,
-                 headers: StringPairs=None,
-                 content_type: str=None) -> None:
+                 headers: StringPairs=None) -> None:
+        assert isinstance(content, bytes)
         self.content = content
         self.status_code = status_code
-        self.headers = Headers() if (headers is None) else Headers(headers)
-        self.content_type = content_type
+        self.headers = MutableHeaders(headers)
+
+
+class JSONResponse(Response):
+    media_type = 'application/json'
+    kwargs = {
+        'ensure_ascii': False,
+        'allow_nan': False,
+        'indent': None,
+        'separators': (',', ':'),
+    }
+
+    def __init__(self,
+                 content: typing.Any,
+                 status_code: int=200,
+                 headers: StringPairs=None) -> None:
+        self.content = json.dumps(content, default=self.default, **self.kwargs).encode('utf-8')
+        self.status_code = status_code
+        self.headers = MutableHeaders(headers)
+        if 'Content-Type' not in self.headers:
+            self.headers['Content-Type'] = self.media_type
+
+    def default(self, obj):
+        if isinstance(obj, types.Type):
+            return dict(obj)
+        type_name = type(obj).__name__
+        return TypeError("Object of type '%s' is not JSON serializable" % type_name)
+
+
+class HTMLResponse(Response):
+    media_type = 'text/html'
+    charset = 'utf-8'
+
+    def __init__(self,
+                 content: str,
+                 status_code: int=200,
+                 headers: StringPairs=None) -> None:
+        self.content = content.encode(self.charset)
+        self.status_code = status_code
+        self.headers = MutableHeaders(headers)
+        if 'Content-Type' not in self.headers:
+            content_type = '%s; charset=%s' % (self.media_type, self.charset)
+            self.headers['Content-Type'] = content_type

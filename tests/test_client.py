@@ -9,19 +9,19 @@ from apistar import (
 
 
 def no_parameter():
-    return http.Response({'hello': 'world'})
+    return http.JSONResponse({'hello': 'world'})
 
 
 def query_parameter(params: http.QueryParams):
-    return http.Response({'params': dict(params)})
+    return http.JSONResponse({'params': dict(params)})
 
 
 def body_parameter(data: http.RequestData):
-    return http.Response({'data': data})
+    return http.JSONResponse({'data': data})
 
 
 def text_response():
-    return http.Response('Hello, world!', headers={'Content-Type': 'text/plain'})
+    return http.HTMLResponse('Hello, world!')
 
 
 def empty_response():
@@ -29,7 +29,7 @@ def empty_response():
 
 
 def error_response():
-    return http.Response({'error': 'failed'}, status_code=400)
+    return http.JSONResponse({'error': 'failed'}, status_code=400)
 
 
 def download_response():

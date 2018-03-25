@@ -4,69 +4,69 @@ from apistar.server.app import App
 # HTTP Components as parameters
 
 
-def get_request(request: http.Request) -> http.Response:
-    return http.Response({
+def get_request(request: http.Request):
+    return {
         'method': request.method,
         'url': request.url,
         'headers': dict(request.headers),
         'body': request.body.decode('utf-8')
-    })
+    }
 
 
-def get_method(method: http.Method) -> http.Response:
-    return http.Response({'method': method})
+def get_method(method: http.Method):
+    return {'method': method}
 
 
-def get_scheme(scheme: http.Scheme) -> http.Response:
-    return http.Response({'scheme': scheme})
+def get_scheme(scheme: http.Scheme):
+    return {'scheme': scheme}
 
 
-def get_host(host: http.Host) -> http.Response:
-    return http.Response({'host': host})
+def get_host(host: http.Host):
+    return {'host': host}
 
 
-def get_port(port: http.Port) -> http.Response:
-    return http.Response({'port': port})
+def get_port(port: http.Port):
+    return {'port': port}
 
 
-def get_path(path: http.Path) -> http.Response:
-    return http.Response({'path': path})
+def get_path(path: http.Path):
+    return {'path': path}
 
 
-def get_query_string(query_string: http.QueryString) -> http.Response:
-    return http.Response({'query_string': query_string})
+def get_query_string(query_string: http.QueryString):
+    return {'query_string': query_string}
 
 
-def get_query_params(query_string: http.QueryString, query_params: http.QueryParams) -> http.Response:
-    return http.Response({'query_params': dict(query_params)})
+def get_query_params(query_string: http.QueryString, query_params: http.QueryParams):
+    return {'query_params': dict(query_params)}
 
 
-def get_page_query_param(page: http.QueryParam) -> http.Response:
-    return http.Response({'page': page})
+def get_page_query_param(page: http.QueryParam):
+    return {'page': page}
 
 
-def get_url(url: http.URL) -> http.Response:
-    return http.Response({'url': url, 'url.components': url.components})
+def get_url(url: http.URL):
+    return {'url': url, 'url.components': url.components}
 
 
-def get_body(body: http.Body) -> http.Response:
-    return http.Response({'body': body.decode('utf-8')})
+def get_body(body: http.Body):
+    return {'body': body.decode('utf-8')}
 
 
-def get_headers(headers: http.Headers) -> http.Response:
-    return http.Response({'headers': dict(headers)})
+def get_headers(headers: http.Headers):
+    return {'headers': dict(headers)}
 
 
-def get_accept_header(accept: http.Header) -> http.Response:
-    return http.Response({'accept': accept})
+def get_accept_header(accept: http.Header):
+    return {'accept': accept}
 
 
-def get_path_params(params: http.PathParams) -> http.Response:
-    return http.Response({'params': params})
+def get_path_params(params: http.PathParams):
+    return {'params': params}
 
 
-def get_request_data(data: http.RequestData) -> http.Response:
-    return http.Response({'data': data})
+def get_request_data(data: http.RequestData):
+    return {'data': data}
 
 
 routes = [

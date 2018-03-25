@@ -1,23 +1,32 @@
+import werkzeug
+
 from apistar import exceptions
-from apistar.http import RESPONSE_STATUS_TEXT, PathParams, Response
+from apistar.http import (
+    RESPONSE_STATUS_TEXT, HTMLResponse, JSONResponse, PathParams, Response
+)
 from apistar.server.core import Route, generate_document
 from apistar.server.injector import Injector
 from apistar.server.router import Router
 from apistar.server.templates import Templates
 from apistar.server.validation import VALIDATION_COMPONENTS
 from apistar.server.wsgi import WSGI_COMPONENTS, WSGIEnviron
-from apistar.utils import encode_json
 
 
-def exception_handler(exc: Exception) -> Response:
+def exception_handler(exc: Exception):
     if isinstance(exc, exceptions.HTTPException):
-        return Response(exc.detail, exc.status_code, exc.get_headers())
+        return JSONResponse(exc.detail, exc.status_code, exc.get_headers())
     raise
 
 
 class App():
-    def __init__(self, routes, template_dir=None, template_apps=None, components=None):
+    def __init__(self, routes, template_dir=None, template_apps=None, components=None, schema_url=None):
         components = list(components) if components else []
+
+        if schema_url is not None:
+            from apistar.server.handlers import serve_schema
+            routes = routes + [
+                Route(schema_url, method='GET', handler=serve_schema, documented=False)
+            ]
 
         self.document = generate_document(routes)
         self.router = self.init_router(routes)
@@ -55,18 +64,13 @@ class App():
     def static_url(self, path: str):
         return '#'
 
-    def render_response(self, response):
-        if isinstance(response, Response):
-            return response
+    def render_response(self, data):
+        if isinstance(data, str):
+            return HTMLResponse(data)
+        return JSONResponse(data)
 
-        if isinstance(response, str):
-            content = response.encode('utf-8')
-            headers = {'Content-Type': 'text/html; charset=utf-8'}
-            return Response(content, headers=headers)
-
-        content = encode_json(response)
-        headers = {'Content-Type': 'application/json'}
-        return Response(content, headers=headers)
+    def serve(self, host, port, use_debugger=False):
+        werkzeug.run_simple(host, port, self, use_debugger=use_debugger)
 
     def __call__(self, environ, start_response):
         state = {
@@ -87,21 +91,12 @@ class App():
             state['exc'] = exc
             response = self.injector.run(self.exception_handler, state)
 
-        response = self.render_response(response)
-
-        # Get the WSGI response information, given the Response instance.
-        try:
-            status_text = RESPONSE_STATUS_TEXT[response.status_code]
-        except KeyError:
-            status_text = str(response.status_code)
-
-        if isinstance(response.content, str):
-            content = [response.content.encode('utf-8')]
-        elif isinstance(response.content, bytes):
-            content = [response.content]
-        else:
-            content = [encode_json(response.content)]
+        if not isinstance(response, Response):
+            response = self.render_response(response)
 
         # Return the WSGI response.
-        start_response(status_text, list(response.headers))
-        return content
+        start_response(
+            RESPONSE_STATUS_TEXT[response.status_code],
+            list(response.headers)
+        )
+        return [response.content]
