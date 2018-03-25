@@ -130,10 +130,10 @@ def load_type(typename, struct, allow_null):
 
     if typename == 'object':
         if 'properties' in struct:
-            attrs['properties'] = {
-                key: decode(value)
+            attrs['properties'] = dict_type([
+                (key, decode(value))
                 for key, value in struct['properties'].items()
-            }
+            ])
         if 'required' in struct:
             attrs['required'] = struct['required']
         if 'minProperties' in struct:
@@ -143,10 +143,10 @@ def load_type(typename, struct, allow_null):
         if 'required' in struct:
             attrs['required'] = struct['required']
         if 'patternProperties' in struct:
-            attrs['pattern_properties'] = {
-                key: decode(value)
+            attrs['pattern_properties'] = dict_type([
+                (key, decode(value))
                 for key, value in struct['patternProperties'].items()
-            }
+            ])
         if 'additionalProperties' in struct:
             if isinstance(struct['additionalProperties'], bool):
                 attrs['additional_properties'] = struct['additionalProperties']
@@ -196,7 +196,7 @@ class JSONSchemaCodec(BaseCodec):
         return decode(jsonschema)
 
     def encode(self, item, **options):
-        defs = {}
+        defs = dict_type()
         struct = self.encode_to_data_structure(item, defs=defs, def_prefix='#/definitions/')
         struct['definitions'] = defs
         if options.get('to_data_structure'):
@@ -227,7 +227,7 @@ class JSONSchemaCodec(BaseCodec):
             )
             return {'$ref': def_prefix + item.def_name}
 
-        value = {}
+        value = dict_type()
         if item.title:
             value['title'] = item.title
         if item.description:
@@ -276,10 +276,10 @@ class JSONSchemaCodec(BaseCodec):
         elif isinstance(item, validators.Object):
             value['type'] = 'object'
             if item.properties:
-                value['properties'] = {
-                    key: self.encode_to_data_structure(value, defs, def_prefix)
+                value['properties'] = dict_type([
+                    (key, self.encode_to_data_structure(value, defs, def_prefix))
                     for key, value in item.properties.items()
-                }
+                ])
             if item.required:
                 value['required'] = item.required
             return value
