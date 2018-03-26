@@ -632,6 +632,7 @@ class Uniqueness():
 
         return element
 
+
 class Email(String):
     def __init__(self, **kwargs):
         super().__init__(pattern=EMAIL_RE, **kwargs)

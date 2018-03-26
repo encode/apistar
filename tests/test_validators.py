@@ -1,6 +1,8 @@
+import pytest
+
 from apistar import validators
 from apistar.exceptions import ValidationError
-import pytest 
+
 
 def test_email():
     a = validators.Email()
