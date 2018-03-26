@@ -4,9 +4,8 @@ import json
 import pytest
 
 from apistar import exceptions, types, validators
-from apistar.utils import encode_jsonschema
 from apistar.exceptions import ValidationError
-
+from apistar.utils import encode_jsonschema
 
 utc = datetime.timezone.utc
 
@@ -192,24 +191,27 @@ class Bla(types.Type):
 
     required = ['a']
 
+
 def test_required():
     with pytest.raises(ValidationError) as e:
         Bla()
         print(e)
     assert str(e.value) == "{'a': 'This field is required.'}"
 
-    bla = Bla(a = "a")
-    assert bla.a == "a" and bla.c =="c"
+    bla = Bla(a="a")
+    assert bla.a == "a" and bla.c == "c"
+
 
 class Bla2(types.Type):
     a = validators.String()
     b = validators.String()
     c = validators.String(default="c")
 
+
 def test_required_default():
     with pytest.raises(ValidationError) as exc:
         Bla2()
-    res  = str(exc.value).replace("'", '"')
+    res = str(exc.value).replace("'", '"')
     assert json.loads(res) == {'a': 'This field is required.', 'b': 'This field is required.'}
-    bla = Bla(a = "a", b="b")
-    assert bla.a == "a" and bla.c =="c" and bla.b == "b"
+    bla = Bla(a="a", b="b")
+    assert bla.a == "a" and bla.c == "c" and bla.b == "b"

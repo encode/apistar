@@ -17,7 +17,7 @@ class TypeMetaclass(ABCMeta):
                 )
                 raise ConfigurationError(msg % (key, name))
             if key == "required" and isinstance(value, Sequence):
-                required=value
+                required = value
 
             elif isinstance(value, validators.Validator):
                 attrs.pop(key)
