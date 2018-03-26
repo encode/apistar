@@ -1,4 +1,5 @@
 import datetime
+import json
 
 import pytest
 
@@ -208,6 +209,7 @@ class Bla2(types.Type):
 def test_required_default():
     with pytest.raises(ValidationError) as exc:
         Bla2()
-    assert str(exc.value) == "{'a': 'This field is required.', 'b': 'This field is required.'}"
+    res  = str(exc.value).replace("'", '"')
+    assert json.loads(res) == {'a': 'This field is required.', 'b': 'This field is required.'}
     bla = Bla(a = "a", b="b")
     assert bla.a == "a" and bla.c =="c" and bla.b == "b"
