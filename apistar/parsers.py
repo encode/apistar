@@ -17,7 +17,7 @@ class JSONParser():
             raise exceptions.BadRequest(detail='Empty JSON')
         try:
             return json.loads(body.decode('utf-8'))
-        except json.JSONDecodeError:
+        except (json.JSONDecodeError, UnicodeDecodeError):
             raise exceptions.BadRequest(detail='Invalid JSON')
 
 

@@ -377,6 +377,17 @@ def test_request_with_invalid_json(client):
 
 
 @pytest.mark.parametrize('client', [wsgi_client, async_client])
+def test_request_with_invalid_encoding(client):
+    response = client.post(
+        'http://example.com/data/',
+        headers={'Content-Type': 'application/json'},
+        data='{"language": "français"}'.encode('iso-8859-1')
+    )
+    assert response.status_code == 400
+    assert response.json() == {'message': 'Invalid JSON'}
+
+
+@pytest.mark.parametrize('client', [wsgi_client, async_client])
 def test_request_with_empty_json(client):
     response = client.post(
         'http://example.com/data/',
