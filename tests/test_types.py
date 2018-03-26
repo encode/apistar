@@ -206,8 +206,8 @@ class Bla2(types.Type):
     c = validators.String(default="c")
 
 def test_required_default():
-    with pytest.raises(ValidationError) as e:
+    with pytest.raises(ValidationError) as exc:
         Bla2()
-    assert str(e.value) == "{'a': 'This field is required.', 'b': 'This field is required.'}"
+    assert str(exc.value) == "{'a': 'This field is required.', 'b': 'This field is required.'}"
     bla = Bla(a = "a", b="b")
     assert bla.a == "a" and bla.c =="c" and bla.b == "b"
