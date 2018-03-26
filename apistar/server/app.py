@@ -18,30 +18,53 @@ def exception_handler(exc: Exception):
     raise
 
 
+def render_response(response):
+    if isinstance(response, Response):
+        return response
+    elif isinstance(response, str):
+        return HTMLResponse(response)
+    return JSONResponse(response)
+
+
 class App():
-    def __init__(self, routes, template_dir=None, template_apps=None, components=None, schema_url=None):
-        components = list(components) if components else []
+    def __init__(self,
+                 routes,
+                 template_dir=None,
+                 template_apps=None,
+                 components=None,
+                 schema_url=None,
+                 run_before_handler=None,
+                 run_after_handler=None,
+                 run_on_exception=None):
+        routes = routes + self.include_extra_routes(schema_url)
+        self.init_document(routes)
+        self.init_router(routes)
+        self.init_templates(template_dir, template_apps)
+        self.init_injector(components)
+        self.init_hooks(run_before_handler, run_after_handler, run_on_exception)
 
-        if schema_url is not None:
-            from apistar.server.handlers import serve_schema
-            routes = routes + [
-                Route(schema_url, method='GET', handler=serve_schema, documented=False)
-            ]
+    def include_extra_routes(self, schema_url=None):
+        if schema_url is None:
+            return []
 
+        from apistar.server.handlers import serve_schema
+
+        return [
+            Route(schema_url, method='GET', handler=serve_schema, documented=False)
+        ]
+
+    def init_document(self, routes):
         self.document = generate_document(routes)
-        self.router = self.init_router(routes)
-        self.templates = self.init_templates(template_dir, template_apps)
-        self.injector = self.init_injector(components)
-        self.exception_handler = exception_handler
 
     def init_router(self, routes):
-        return Router(routes)
+        self.router = Router(routes)
 
     def init_templates(self, template_dir: str=None, template_apps: list=None):
-        return Templates(template_dir, template_apps, {
+        template_globals = {
             'reverse_url': self.reverse_url,
             'static_url': self.static_url
-        })
+        }
+        self.templates = Templates(template_dir, template_apps, template_globals)
 
     def init_injector(self, components=None):
         components = components if components else []
@@ -53,7 +76,23 @@ class App():
             'path_params': PathParams,
             'route': Route
         }
-        return Injector(components, initial_components)
+        self.injector = Injector(components, initial_components)
+
+    def init_hooks(self, run_before_handler=None, run_after_handler=None, run_on_exception=None):
+        if run_before_handler is None:
+            self.run_before_handler = []
+        else:
+            self.run_before_handler = list(run_before_handler)
+
+        if run_before_handler is None:
+            self.run_after_handler = [render_response]
+        else:
+            self.run_after_handler = list(run_after_handler)
+
+        if run_on_exception is None:
+            self.run_on_exception = [exception_handler]
+        else:
+            self.run_on_exception = list(run_on_exception)
 
     def reverse_url(self, name: str, **params):
         return self.router.reverse_url(name, **params)
@@ -63,11 +102,6 @@ class App():
 
     def static_url(self, path: str):
         return '#'
-
-    def render_response(self, data):
-        if isinstance(data, str):
-            return HTMLResponse(data)
-        return JSONResponse(data)
 
     def serve(self, host, port, use_debugger=False):
         werkzeug.run_simple(host, port, self, use_debugger=use_debugger)
@@ -86,13 +120,12 @@ class App():
             route, path_params = self.router.lookup(path, method)
             state['route'] = route
             state['path_params'] = path_params
-            response = self.injector.run(route.handler, state)
+            funcs = self.run_before_handler + [route.handler] + self.run_after_handler
+            response = self.injector.run(funcs, state)
         except Exception as exc:
             state['exc'] = exc
-            response = self.injector.run(self.exception_handler, state)
-
-        if not isinstance(response, Response):
-            response = self.render_response(response)
+            funcs = self.run_on_exception
+            response = self.injector.run(funcs, state)
 
         # Return the WSGI response.
         start_response(

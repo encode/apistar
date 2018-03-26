@@ -19,7 +19,7 @@ class Injector(BaseInjector):
 
     def resolve_function(self, func, output_name=None, seen_state=None, parent_parameter=None):
         if output_name is None:
-            output_name = 'return'
+            output_name = 'response'
         if seen_state is None:
             seen_state = set(self.initial)
 
@@ -29,6 +29,11 @@ class Injector(BaseInjector):
 
         parameters = inspect.signature(func).parameters.values()
         for parameter in parameters:
+            # The 'response' keyword always indicates the previous return value.
+            if parameter.name == 'response':
+                kwargs['response'] = 'response'
+                continue
+
             # Check if the parameter class exists in 'initial'.
             if parameter.annotation in self.reverse_initial:
                 initial_kwarg = self.reverse_initial[parameter.annotation]
@@ -64,16 +69,17 @@ class Injector(BaseInjector):
         steps.append(step)
         return steps
 
-    def run(self, func, state):
-        try:
-            steps = self.resolver_cache[func]
-        except KeyError:
-            steps = self.resolve_function(func)
-            self.resolver_cache[func] = steps
+    def run(self, funcs, state):
+        for func in funcs:
+            try:
+                steps = self.resolver_cache[func]
+            except KeyError:
+                steps = self.resolve_function(func)
+                self.resolver_cache[func] = steps
 
-        for func, kwargs, consts, output_name in steps:
-            func_kwargs = {key: state[val] for key, val in kwargs.items()}
-            func_kwargs.update(consts)
-            state[output_name] = func(**func_kwargs)
+            for func, kwargs, consts, output_name in steps:
+                func_kwargs = {key: state[val] for key, val in kwargs.items()}
+                func_kwargs.update(consts)
+                state[output_name] = func(**func_kwargs)
 
-        return state['return']
+        return state['response']
