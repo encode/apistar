@@ -69,8 +69,8 @@ class App():
             return HTMLResponse(data)
         return JSONResponse(data)
 
-    def serve(self, host, port, use_debugger=False):
-        werkzeug.run_simple(host, port, self, use_debugger=use_debugger)
+    def serve(self, host, port, use_debugger=False, **kwargs):
+        werkzeug.run_simple(host, port, self, use_debugger=use_debugger, **kwargs)
 
     def __call__(self, environ, start_response):
         state = {
