@@ -107,12 +107,12 @@ class App():
         if run_after_handler is None:
             self.run_after_handler = [render_response, finalize_wsgi]
         else:
-            self.run_after_handler = list(run_after_handler)
+            self.run_after_handler = list(run_after_handler) + [render_response, finalize_wsgi]
 
         if run_on_exception is None:
             self.run_on_exception = [exception_handler, finalize_wsgi]
         else:
-            self.run_on_exception = list(run_on_exception)
+            self.run_on_exception = list(run_on_exception) + [exception_handler, finalize_wsgi]
 
     def reverse_url(self, name: str, **params):
         return self.router.reverse_url(name, **params)
