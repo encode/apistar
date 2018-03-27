@@ -1,9 +1,9 @@
-from importlib.util import find_spec
 import os
+from importlib.util import find_spec
+
 import whitenoise
 
 from apistar import exceptions
-from apistar.server.wsgi import WSGIEnviron, WSGIStartResponse
 
 
 class BaseStaticFiles():

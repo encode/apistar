@@ -79,10 +79,7 @@ class App():
         self.router = Router(routes)
 
     def init_templates(self, template_dir: str=None, template_packages: list=None):
-        template_globals = {
-            'reverse_url': self.reverse_url,
-            'static_url': self.static_url
-        }
+        template_globals = {'reverse_url': self.reverse_url}
         self.templates = Templates(template_dir, template_packages, template_globals)
 
     def init_staticfiles(self, static_url: str, static_dir: str=None, static_packages: list=None):
@@ -107,7 +104,7 @@ class App():
         else:
             self.run_before_handler = list(run_before_handler)
 
-        if run_before_handler is None:
+        if run_after_handler is None:
             self.run_after_handler = [render_response, finalize_wsgi]
         else:
             self.run_after_handler = list(run_after_handler)
@@ -122,9 +119,6 @@ class App():
 
     def render_template(self, path: str, **context):
         return self.templates.render_template(path, **context)
-
-    def static_url(self, path: str):
-        return '#'
 
     def serve(self, host, port, use_debugger=False):
         werkzeug.run_simple(host, port, self, use_debugger=use_debugger)
