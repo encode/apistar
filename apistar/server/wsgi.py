@@ -9,6 +9,7 @@ from apistar import http
 from apistar.server.components import Component
 
 WSGIEnviron = typing.NewType('WSGIEnviron', dict)
+WSGIStartResponse = typing.NewType('WSGIEnviron', callable)
 
 
 class MethodComponent(Component):

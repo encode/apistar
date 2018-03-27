@@ -9,14 +9,14 @@ class BaseTemplates():
 class Templates(BaseTemplates):
     def __init__(self,
                  template_dir: str=None,
-                 template_apps: list=None,
+                 template_packages: list=None,
                  global_context: dict=None):
-        template_apps = template_apps if template_apps else []
+        template_packages = template_packages if template_packages else []
         global_context = global_context if global_context else {}
 
         loader = jinja2.PrefixLoader({
-            app_name: jinja2.PackageLoader(app_name, 'templates')
-            for app_name in template_apps
+            package_name: jinja2.PackageLoader(package_name, 'templates')
+            for package_name in template_packages
         })
         if template_dir is not None:
             loader = loader.ChoiceLoader([
