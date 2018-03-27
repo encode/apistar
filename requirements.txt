@@ -1,7 +1,8 @@
 # Core requirements
 requests
-werkzeug
 jinja2
+werkzeug
+whitenoise
 
 # Testing requirements
 codecov
