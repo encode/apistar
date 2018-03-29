@@ -19,16 +19,16 @@ class MethodComponent(Component):
 class URLComponent(Component):
     def resolve(self,
                 scope: ASGIScope) -> http.URL:
-        scheme = message['scheme']
-        host, port = message['server']
-        path = message['path']
+        scheme = scope['scheme']
+        host, port = scope['server']
+        path = scope['path']
 
         if (scheme == 'http' and port != 80) or (scheme == 'https' and port != 443):
             url = '%s://%s:%s%s' % (scheme, host, port, path)
         else:
             url = '%s://%s%s' % (scheme, host, path)
 
-        query_string = message['query_string']
+        query_string = scope['query_string']
         if query_string:
             url += '?' + query_string.decode()
 
