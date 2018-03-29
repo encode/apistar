@@ -4,35 +4,14 @@ from apistar import exceptions
 from apistar.http import (
     RESPONSE_STATUS_TEXT, HTMLResponse, JSONResponse, PathParams, Response
 )
+from apistar.server.asgi import ASGI_COMPONENTS, ASGIScope, ASGIReceive, ASGISend
 from apistar.server.core import Route, generate_document
-from apistar.server.injector import Injector
+from apistar.server.injector import Injector, ASyncInjector
 from apistar.server.router import Router
 from apistar.server.staticfiles import StaticFiles
 from apistar.server.templates import Templates
 from apistar.server.validation import VALIDATION_COMPONENTS
 from apistar.server.wsgi import WSGI_COMPONENTS, WSGIEnviron, WSGIStartResponse
-
-
-def exception_handler(exc: Exception):
-    if isinstance(exc, exceptions.HTTPException):
-        return JSONResponse(exc.detail, exc.status_code, exc.get_headers())
-    raise
-
-
-def render_response(response):
-    if isinstance(response, Response):
-        return response
-    elif isinstance(response, str):
-        return HTMLResponse(response)
-    return JSONResponse(response)
-
-
-def finalize_wsgi(response, start_response: WSGIStartResponse):
-    start_response(
-        RESPONSE_STATUS_TEXT[response.status_code],
-        list(response.headers)
-    )
-    return [response.content]
 
 
 class App():
@@ -105,12 +84,12 @@ class App():
             self.run_before_handler = list(run_before_handler)
 
         if run_after_handler is None:
-            self.run_after_handler = [render_response, finalize_wsgi]
+            self.run_after_handler = [self.render_response, self.finalize_wsgi]
         else:
             self.run_after_handler = list(run_after_handler)
 
         if run_on_exception is None:
-            self.run_on_exception = [exception_handler, finalize_wsgi]
+            self.run_on_exception = [self.exception_handler, self.finalize_wsgi]
         else:
             self.run_on_exception = list(run_on_exception)
 
@@ -122,6 +101,25 @@ class App():
 
     def serve(self, host, port, use_debugger=False):
         werkzeug.run_simple(host, port, self, use_debugger=use_debugger)
+
+    def render_response(self, response):
+        if isinstance(response, Response):
+            return response
+        elif isinstance(response, str):
+            return HTMLResponse(response)
+        return JSONResponse(response)
+
+    def finalize_wsgi(self, response, start_response: WSGIStartResponse):
+        start_response(
+            RESPONSE_STATUS_TEXT[response.status_code],
+            list(response.headers)
+        )
+        return [response.content]
+
+    def exception_handler(self, exc: Exception):
+        if isinstance(exc, exceptions.HTTPException):
+            return JSONResponse(exc.detail, exc.status_code, exc.get_headers())
+        raise
 
     def __call__(self, environ, start_response):
         state = {
@@ -151,3 +149,83 @@ class App():
             state['exc'] = exc
             funcs = self.run_on_exception
             return self.injector.run(funcs, state)
+
+
+class ASyncApp(App):
+    def init_injector(self, components=None):
+        components = components if components else []
+        components = list(ASGI_COMPONENTS + VALIDATION_COMPONENTS) + components
+        initial_components = {
+            'scope': ASGIScope,
+            'receive': ASGIReceive,
+            'send': ASGISend,
+            'exc': Exception,
+            'app': App,
+            'path_params': PathParams,
+            'route': Route
+        }
+        self.injector = ASyncInjector(components, initial_components)
+
+    def init_hooks(self, run_before_handler=None, run_after_handler=None, run_on_exception=None):
+        if run_before_handler is None:
+            self.run_before_handler = []
+        else:
+            self.run_before_handler = list(run_before_handler)
+
+        if run_after_handler is None:
+            self.run_after_handler = [self.render_response, self.finalize_asgi]
+        else:
+            self.run_after_handler = list(run_after_handler)
+
+        if run_on_exception is None:
+            self.run_on_exception = [self.exception_handler, self.finalize_asgi]
+        else:
+            self.run_on_exception = list(run_on_exception)
+
+    def __call__(self, scope):
+        async def asgi_callable(receive, send):
+            msg = await receive()
+
+            state = {
+                'scope': scope,
+                'receive': receive,
+                'send': send,
+                'exc': None,
+                'app': self,
+                'path_params': None,
+                'route': None
+            }
+            method = scope['method']
+            path = scope['path']
+            try:
+                route, path_params = self.router.lookup(path, method)
+                state['route'] = route
+                state['path_params'] = path_params
+                if route.standalone:
+                    funcs = [route.handler]
+                else:
+                    funcs = (
+                        self.run_before_handler +
+                        [route.handler] +
+                        self.run_after_handler
+                    )
+                await self.injector.run_async(funcs, state)
+            except Exception as exc:
+                state['exc'] = exc
+                funcs = self.run_on_exception
+                await self.injector.run_async(funcs, state)
+        return asgi_callable
+
+    async def finalize_asgi(self, response, send: ASGISend):
+        await send({
+            'type': 'http.response.start',
+            'status': response.status_code,
+            'headers': [
+                [key.encode(), value.encode()]
+                for key, value in response.headers
+            ]
+        })
+        await send({
+            'type': 'http.response.body',
+            'body': response.content
+        })

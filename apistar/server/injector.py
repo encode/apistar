@@ -1,3 +1,4 @@
+import asyncio
 import inspect
 
 from apistar.exceptions import ConfigurationError
@@ -9,6 +10,8 @@ class BaseInjector():
 
 
 class Injector(BaseInjector):
+    allow_async = False
+
     def __init__(self, components, initial):
         self.components = components
         self.initial = initial
@@ -65,7 +68,12 @@ class Injector(BaseInjector):
                 msg = 'No component able to handle parameter "%s" on function "%s".'
                 raise ConfigurationError(msg % (parameter.name, func.__name__))
 
-        step = (func, kwargs, consts, output_name)
+        is_async = asyncio.iscoroutinefunction(func)
+        if is_async and not self.allow_async:
+            msg = 'Function "%s" may not be async.'
+            raise ConfigurationError(msg % (func.__name__, ))
+
+        step = (func, is_async, kwargs, consts, output_name)
         steps.append(step)
         return steps
 
@@ -77,9 +85,31 @@ class Injector(BaseInjector):
                 steps = self.resolve_function(func)
                 self.resolver_cache[func] = steps
 
-            for func, kwargs, consts, output_name in steps:
+            for func, is_async, kwargs, consts, output_name in steps:
                 func_kwargs = {key: state[val] for key, val in kwargs.items()}
                 func_kwargs.update(consts)
                 state[output_name] = func(**func_kwargs)
+
+        return state['response']
+
+
+class ASyncInjector(Injector):
+    allow_async = True
+
+    async def run_async(self, funcs, state):
+        for func in funcs:
+            try:
+                steps = self.resolver_cache[func]
+            except KeyError:
+                steps = self.resolve_function(func)
+                self.resolver_cache[func] = steps
+
+            for func, is_async, kwargs, consts, output_name in steps:
+                func_kwargs = {key: state[val] for key, val in kwargs.items()}
+                func_kwargs.update(consts)
+                if is_async:
+                    state[output_name] = await func(**func_kwargs)
+                else:
+                    state[output_name] = func(**func_kwargs)
 
         return state['response']

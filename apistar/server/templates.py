@@ -24,7 +24,7 @@ class Templates(BaseTemplates):
                 loader
             ])
 
-        self.env = jinja2.Environment(loader=loader)
+        self.env = jinja2.Environment(autoescape=True, loader=loader)
         for key, value in global_context.items():
             self.env.globals[key] = value
 

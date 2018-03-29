@@ -1,65 +1,74 @@
 import typing
 from inspect import Parameter
 from urllib.parse import parse_qsl
-from wsgiref.util import request_uri
-
-from werkzeug.wsgi import get_input_stream
 
 from apistar import http
 from apistar.server.components import Component
 
-WSGIEnviron = typing.NewType('WSGIEnviron', dict)
-WSGIStartResponse = typing.NewType('WSGIStartResponse', typing.Callable)
+ASGIScope = typing.NewType('ASGIScope', dict)
+ASGIReceive = typing.NewType('ASGIReceive', typing.Callable)
+ASGISend = typing.NewType('ASGISend', typing.Callable)
 
 
 class MethodComponent(Component):
     def resolve(self,
-                environ: WSGIEnviron) -> http.Method:
-        return http.Method(environ['REQUEST_METHOD'].upper())
+                scope: ASGIScope) -> http.Method:
+        return http.Method(scope['method'])
 
 
 class URLComponent(Component):
     def resolve(self,
-                environ: WSGIEnviron) -> http.URL:
-        return http.URL(request_uri(environ))
+                scope: ASGIScope) -> http.URL:
+        scheme = message['scheme']
+        host, port = message['server']
+        path = message['path']
+
+        if (scheme == 'http' and port != 80) or (scheme == 'https' and port != 443):
+            url = '%s://%s:%s%s' % (scheme, host, port, path)
+        else:
+            url = '%s://%s%s' % (scheme, host, path)
+
+        query_string = message['query_string']
+        if query_string:
+            url += '?' + query_string.decode()
+
+        return http.URL(url)
 
 
 class SchemeComponent(Component):
     def resolve(self,
-                environ: WSGIEnviron) -> http.Scheme:
-        return http.Scheme(environ['wsgi.url_scheme'])
+                scope: ASGIScope) -> http.Scheme:
+        return http.Scheme(scope['scheme'])
 
 
 class HostComponent(Component):
     def resolve(self,
-                environ: WSGIEnviron) -> http.Host:
-        return http.Host(environ.get('HTTP_HOST') or environ['SERVER_NAME'])
+                scope: ASGIScope) -> http.Host:
+        return http.Host(scope['server'][0])
 
 
 class PortComponent(Component):
     def resolve(self,
-                environ: WSGIEnviron) -> http.Port:
-        if environ['wsgi.url_scheme'] == 'https':
-            return http.Port(int(environ.get('SERVER_PORT', 443)))
-        return http.Port(int(environ.get('SERVER_PORT', 80)))
+                scope: ASGIScope) -> http.Port:
+        return http.Port(scope['server'][1])
 
 
 class PathComponent(Component):
     def resolve(self,
-                environ: WSGIEnviron) -> http.Path:
-        return http.Path(environ['SCRIPT_NAME'] + environ['PATH_INFO'])
+                scope: ASGIScope) -> http.Path:
+        return http.Path(scope.get('root_path', '') + scope['path'])
 
 
 class QueryStringComponent(Component):
     def resolve(self,
-                environ: WSGIEnviron) -> http.QueryString:
-        return http.QueryString(environ.get('QUERY_STRING', ''))
+                scope: ASGIScope) -> http.QueryString:
+        return http.QueryString(scope['query_string'])
 
 
 class QueryParamsComponent(Component):
     def resolve(self,
-                environ: WSGIEnviron) -> http.QueryParams:
-        query_string = environ.get('QUERY_STRING', '')
+                scope: ASGIScope) -> http.QueryParams:
+        query_string = scope['query_string'].decode()
         return http.QueryParams(parse_qsl(query_string))
 
 
@@ -75,16 +84,11 @@ class QueryParamComponent(Component):
 
 class HeadersComponent(Component):
     def resolve(self,
-                environ: WSGIEnviron) -> http.Headers:
-        header_items = []
-        for key, value in environ.items():
-            if key.startswith('HTTP_'):
-                header = (key[5:].lower().replace('_', '-'), value)
-                header_items.append(header)
-            elif key in ('CONTENT_TYPE', 'CONTENT_LENGTH'):
-                header = (key.lower().replace('_', '-'), value)
-                header_items.append(header)
-        return http.Headers(header_items)
+                scope: ASGIScope) -> http.Headers:
+        return http.Headers([
+            (key.decode(), value.decode())
+            for key, value in message['headers']
+        ])
 
 
 class HeaderComponent(Component):
@@ -99,8 +103,8 @@ class HeaderComponent(Component):
 
 class BodyComponent(Component):
     def resolve(self,
-                environ: WSGIEnviron) -> http.Body:
-        return http.Body(get_input_stream(environ).read())
+                receive: ASGIReceive) -> http.Body:
+        return http.Body(b'...')
 
 
 class RequestComponent(Component):
@@ -112,7 +116,7 @@ class RequestComponent(Component):
         return http.Request(method, url, headers, body)
 
 
-WSGI_COMPONENTS = (
+ASGI_COMPONENTS = (
     MethodComponent(),
     URLComponent(),
     SchemeComponent(),
