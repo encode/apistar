@@ -4,9 +4,11 @@ from apistar import exceptions
 from apistar.http import (
     RESPONSE_STATUS_TEXT, HTMLResponse, JSONResponse, PathParams, Response
 )
-from apistar.server.asgi import ASGI_COMPONENTS, ASGIScope, ASGIReceive, ASGISend
+from apistar.server.asgi import (
+    ASGI_COMPONENTS, ASGIReceive, ASGIScope, ASGISend
+)
 from apistar.server.core import Route, generate_document
-from apistar.server.injector import Injector, ASyncInjector
+from apistar.server.injector import ASyncInjector, Injector
 from apistar.server.router import Router
 from apistar.server.staticfiles import StaticFiles
 from apistar.server.templates import Templates
@@ -184,8 +186,6 @@ class ASyncApp(App):
 
     def __call__(self, scope):
         async def asgi_callable(receive, send):
-            msg = await receive()
-
             state = {
                 'scope': scope,
                 'receive': receive,

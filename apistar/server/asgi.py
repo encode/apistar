@@ -87,7 +87,7 @@ class HeadersComponent(Component):
                 scope: ASGIScope) -> http.Headers:
         return http.Headers([
             (key.decode(), value.decode())
-            for key, value in message['headers']
+            for key, value in scope['headers']
         ])
 
 
