@@ -17,6 +17,8 @@ from apistar.server.wsgi import WSGI_COMPONENTS, WSGIEnviron, WSGIStartResponse
 
 
 class App():
+    interface = 'wsgi'
+
     def __init__(self,
                  routes,
                  template_dir=None,
@@ -154,6 +156,8 @@ class App():
 
 
 class ASyncApp(App):
+    interface = 'asgi'
+
     def init_injector(self, components=None):
         components = components if components else []
         components = list(ASGI_COMPONENTS + VALIDATION_COMPONENTS) + components
