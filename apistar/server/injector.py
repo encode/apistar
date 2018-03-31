@@ -1,3 +1,4 @@
+import asyncio
 import inspect
 
 from apistar.exceptions import ConfigurationError
@@ -9,6 +10,8 @@ class BaseInjector():
 
 
 class Injector(BaseInjector):
+    allow_async = False
+
     def __init__(self, components, initial):
         self.components = components
         self.initial = initial
@@ -19,7 +22,7 @@ class Injector(BaseInjector):
 
     def resolve_function(self, func, output_name=None, seen_state=None, parent_parameter=None):
         if output_name is None:
-            output_name = 'return'
+            output_name = 'response'
         if seen_state is None:
             seen_state = set(self.initial)
 
@@ -29,6 +32,11 @@ class Injector(BaseInjector):
 
         parameters = inspect.signature(func).parameters.values()
         for parameter in parameters:
+            # The 'response' keyword always indicates the previous return value.
+            if parameter.name == 'response':
+                kwargs['response'] = 'response'
+                continue
+
             # Check if the parameter class exists in 'initial'.
             if parameter.annotation in self.reverse_initial:
                 initial_kwarg = self.reverse_initial[parameter.annotation]
@@ -60,20 +68,48 @@ class Injector(BaseInjector):
                 msg = 'No component able to handle parameter "%s" on function "%s".'
                 raise ConfigurationError(msg % (parameter.name, func.__name__))
 
-        step = (func, kwargs, consts, output_name)
+        is_async = asyncio.iscoroutinefunction(func)
+        if is_async and not self.allow_async:
+            msg = 'Function "%s" may not be async.'
+            raise ConfigurationError(msg % (func.__name__, ))
+
+        step = (func, is_async, kwargs, consts, output_name)
         steps.append(step)
         return steps
 
-    def run(self, func, state):
-        try:
-            steps = self.resolver_cache[func]
-        except KeyError:
-            steps = self.resolve_function(func)
-            self.resolver_cache[func] = steps
+    def run(self, funcs, state):
+        for func in funcs:
+            try:
+                steps = self.resolver_cache[func]
+            except KeyError:
+                steps = self.resolve_function(func)
+                self.resolver_cache[func] = steps
 
-        for func, kwargs, consts, output_name in steps:
-            func_kwargs = {key: state[val] for key, val in kwargs.items()}
-            func_kwargs.update(consts)
-            state[output_name] = func(**func_kwargs)
+            for func, is_async, kwargs, consts, output_name in steps:
+                func_kwargs = {key: state[val] for key, val in kwargs.items()}
+                func_kwargs.update(consts)
+                state[output_name] = func(**func_kwargs)
 
-        return state['return']
+        return state['response']
+
+
+class ASyncInjector(Injector):
+    allow_async = True
+
+    async def run_async(self, funcs, state):
+        for func in funcs:
+            try:
+                steps = self.resolver_cache[func]
+            except KeyError:
+                steps = self.resolve_function(func)
+                self.resolver_cache[func] = steps
+
+            for func, is_async, kwargs, consts, output_name in steps:
+                func_kwargs = {key: state[val] for key, val in kwargs.items()}
+                func_kwargs.update(consts)
+                if is_async:
+                    state[output_name] = await func(**func_kwargs)
+                else:
+                    state[output_name] = func(**func_kwargs)
+
+        return state['response']

@@ -6,12 +6,13 @@ from apistar.document import Document, Field, Link, Section
 
 
 class Route():
-    def __init__(self, url, method, handler, name=None, documented=True, link=None):
+    def __init__(self, url, method, handler, name=None, documented=True, standalone=False, link=None):
         self.url = url
         self.method = method
         self.handler = handler
         self.name = name or handler.__name__
         self.documented = documented
+        self.standalone = standalone
         if link is None:
             self.link = self.generate_link(url, method, handler, self.name)
         else:
