@@ -42,9 +42,8 @@ class URL(str):
 
 
 # Type annotations for valid `__init__` values to QueryParams and Headers.
-StringPairsSequence = typing.Sequence[typing.Tuple[str, str]]
-StringPairsMapping = typing.Mapping[str, str]
-StringPairs = typing.Union[StringPairsSequence, StringPairsMapping]
+StrPairs = typing.Sequence[typing.Tuple[str, str]]
+StrMapping = typing.Mapping[str, str]
 
 
 class QueryParams(typing.Mapping[str, str]):
@@ -52,12 +51,12 @@ class QueryParams(typing.Mapping[str, str]):
     An immutable multidict.
     """
 
-    def __init__(self, value: StringPairs) -> None:
+    def __init__(self, value: typing.Union[StrMapping, StrPairs]=None) -> None:
+        if value is None:
+            value = []
         if hasattr(value, 'items'):
-            value = typing.cast(StringPairsMapping, value)
             items = list(value.items())
         else:
-            value = typing.cast(StringPairsSequence, value)
             items = list(value)
         self._dict = {k: v for k, v in reversed(items)}
         self._list = items
@@ -109,14 +108,12 @@ class Headers(typing.Mapping[str, str]):
     An immutable, case-insensitive multidict.
     """
 
-    def __init__(self, value: StringPairs=None) -> None:
+    def __init__(self, value: typing.Union[StrMapping, StrPairs]=None) -> None:
         if value is None:
             value = []
         if hasattr(value, 'items'):
-            value = typing.cast(StringPairsMapping, value)
             items = [(k.lower(), str(v)) for k, v in list(value.items())]
         else:
-            value = typing.cast(StringPairsSequence, value)
             items = [(k.lower(), str(v)) for k, v in list(value)]
         self._dict = {k: v for k, v in reversed(items)}
         self._list = items
@@ -137,7 +134,7 @@ class Headers(typing.Mapping[str, str]):
     def items(self):
         return list(self._list)
 
-    def get(self, key, default=None):
+    def get(self, key: str, default: str=None):
         key = key.lower()
         if key in self._dict:
             return self._dict[key]
@@ -147,7 +144,7 @@ class Headers(typing.Mapping[str, str]):
     def __getitem__(self, key: str):
         return self._dict[key.lower()]
 
-    def __contains__(self, key):
+    def __contains__(self, key: str):
         return key.lower() in self._dict
 
     def __iter__(self):
@@ -169,15 +166,16 @@ class MutableHeaders(Headers):
     def __setitem__(self, key: str, value: str):
         key = key.lower()
         value = str(value)
-        if key in self._dict:
+
+        if key not in self._dict:
+            self._dict[key] = value
+            self._list.append((key, value))
+        else:
             self._dict[key] = value
             self._list = [
                 (item_key, value) if item_key == key else (item_key, item_value)
                 for item_key, item_value in self._list
             ]
-        else:
-            self._dict[key] = value
-            self._list.append((key, value))
 
 
 class Request():
@@ -199,20 +197,22 @@ class Response():
     def __init__(self,
                  content: typing.Any,
                  status_code: int=200,
-                 headers: StringPairs=None) -> None:
+                 headers: typing.Union[StrMapping, StrPairs]=None) -> None:
         self.content = self.render(content)
         self.status_code = status_code
         self.headers = MutableHeaders(headers)
         self.set_default_headers()
 
-    def render(self, content: typing.Any):
+    def render(self, content: typing.Any) -> bytes:
         if isinstance(content, bytes):
             return content
-        elif isinstance(content, str):
+        elif isinstance(content, str) and self.charset is not None:
             return content.encode(self.charset)
+
+        valid_types = "bytes" if self.charset is None else "string or bytes"
         raise RuntimeError(
-            "Response content must be a string or bytes. Got %s." %
-            type(content).__name__
+            "%s content must be %s. Got %s." %
+            (self.__class__.__name__, valid_types, type(content).__name__)
         )
 
     def set_default_headers(self):
@@ -220,32 +220,34 @@ class Response():
             self.headers['Content-Length'] = str(len(self.content))
 
         if 'Content-Type' not in self.headers and self.media_type is not None:
-            if self.charset is None:
-                content_type = self.media_type
-            else:
-                content_type = '%s; charset=%s' % (self.media_type, self.charset)
+            content_type = self.media_type
+            if self.charset is not None:
+                content_type += '; charset=%s' % self.charset
             self.headers['Content-Type'] = content_type
+
+
+class HTMLResponse(Response):
+    media_type = 'text/html'
+    charset = 'utf-8'
 
 
 class JSONResponse(Response):
     media_type = 'application/json'
-    kwargs = {
+    charset = None
+    options = {
         'ensure_ascii': False,
         'allow_nan': False,
         'indent': None,
         'separators': (',', ':'),
     }
 
-    def render(self, content):
-        return json.dumps(content, default=self.default, **self.kwargs).encode('utf-8')
+    def render(self, content: typing.Any) -> bytes:
+        options = {'default': self.default}
+        options.update(self.options)
+        return json.dumps(content, **options).encode('utf-8')
 
-    def default(self, obj):
+    def default(self, obj: typing.Any) -> typing.Any:
         if isinstance(obj, types.Type):
             return dict(obj)
-        type_name = type(obj).__name__
-        return TypeError("Object of type '%s' is not JSON serializable" % type_name)
-
-
-class HTMLResponse(Response):
-    media_type = 'text/html'
-    charset = 'utf-8'
+        error = "Object of type '%s' is not JSON serializable."
+        return TypeError(error % type(obj).__name_)
