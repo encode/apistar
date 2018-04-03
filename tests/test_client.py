@@ -25,7 +25,7 @@ def text_response():
 
 
 def empty_response():
-    return http.Response(status_code=204)
+    return http.Response(content=b'', status_code=204)
 
 
 def error_response():

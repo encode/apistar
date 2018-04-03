@@ -114,10 +114,10 @@ class Headers(typing.Mapping[str, str]):
             value = []
         if hasattr(value, 'items'):
             value = typing.cast(StringPairsMapping, value)
-            items = [(k.lower(), v) for k, v in list(value.items())]
+            items = [(k.lower(), str(v)) for k, v in list(value.items())]
         else:
             value = typing.cast(StringPairsSequence, value)
-            items = [(k.lower(), v) for k, v in list(value)]
+            items = [(k.lower(), str(v)) for k, v in list(value)]
         self._dict = {k: v for k, v in reversed(items)}
         self._list = items
 
@@ -168,6 +168,7 @@ class Headers(typing.Mapping[str, str]):
 class MutableHeaders(Headers):
     def __setitem__(self, key: str, value: str):
         key = key.lower()
+        value = str(value)
         if key in self._dict:
             self._dict[key] = value
             self._list = [
@@ -192,14 +193,38 @@ class Request():
 
 
 class Response():
+    media_type = None
+    charset = 'utf-8'
+
     def __init__(self,
-                 content: bytes=b'',
+                 content: typing.Any,
                  status_code: int=200,
                  headers: StringPairs=None) -> None:
-        assert isinstance(content, bytes)
-        self.content = content
+        self.content = self.render(content)
         self.status_code = status_code
         self.headers = MutableHeaders(headers)
+        self.set_default_headers()
+
+    def render(self, content: typing.Any):
+        if isinstance(content, bytes):
+            return content
+        elif isinstance(content, str):
+            return content.encode(self.charset)
+        raise RuntimeError(
+            "Response content must be a string or bytes. Got %s." %
+            type(content).__name__
+        )
+
+    def set_default_headers(self):
+        if 'Content-Length' not in self.headers:
+            self.headers['Content-Length'] = str(len(self.content))
+
+        if 'Content-Type' not in self.headers and self.media_type is not None:
+            if self.charset is None:
+                content_type = self.media_type
+            else:
+                content_type = '%s; charset=%s' % (self.media_type, self.charset)
+            self.headers['Content-Type'] = content_type
 
 
 class JSONResponse(Response):
@@ -211,15 +236,8 @@ class JSONResponse(Response):
         'separators': (',', ':'),
     }
 
-    def __init__(self,
-                 content: typing.Any,
-                 status_code: int=200,
-                 headers: StringPairs=None) -> None:
-        self.content = json.dumps(content, default=self.default, **self.kwargs).encode('utf-8')
-        self.status_code = status_code
-        self.headers = MutableHeaders(headers)
-        if 'Content-Type' not in self.headers:
-            self.headers['Content-Type'] = self.media_type
+    def render(self, content):
+        return json.dumps(content, default=self.default, **self.kwargs).encode('utf-8')
 
     def default(self, obj):
         if isinstance(obj, types.Type):
@@ -231,14 +249,3 @@ class JSONResponse(Response):
 class HTMLResponse(Response):
     media_type = 'text/html'
     charset = 'utf-8'
-
-    def __init__(self,
-                 content: str,
-                 status_code: int=200,
-                 headers: StringPairs=None) -> None:
-        self.content = content.encode(self.charset)
-        self.status_code = status_code
-        self.headers = MutableHeaders(headers)
-        if 'Content-Type' not in self.headers:
-            content_type = '%s; charset=%s' % (self.media_type, self.charset)
-            self.headers['Content-Type'] = content_type
