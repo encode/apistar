@@ -142,6 +142,8 @@ class _ASGIAdapter(requests.adapters.HTTPAdapter):
             body = request.body
             if isinstance(body, str):
                 body_bytes = body.encode("utf-8")  # type: bytes
+            elif body is None:
+                body_bytes = b''
             else:
                 body_bytes = body
             return {

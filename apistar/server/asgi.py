@@ -104,8 +104,16 @@ class HeaderComponent(Component):
 class BodyComponent(Component):
     async def resolve(self,
                       receive: ASGIReceive) -> http.Body:
-        message = await receive()
-        return http.Body(message['body'])
+        body = b''
+        while True:
+            message = await receive()
+            if not message['type'] == 'http.request':
+                raise Exception('Disconnect')
+            body += message.get('body', b'')
+            if not message.get('more_body', False):
+                break
+
+        return http.Body(body)
 
 
 class RequestComponent(Component):
