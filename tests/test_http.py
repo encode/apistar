@@ -1,5 +1,7 @@
+import pytest
+
 from apistar import Route, http, test
-from apistar.server.app import App
+from apistar.server.app import App, ASyncApp
 
 # HTTP Components as parameters
 
@@ -61,6 +63,10 @@ def get_accept_header(accept: http.Header):
     return {'accept': accept}
 
 
+def get_missing_header(missing: http.Header):
+    return {'missing': missing}
+
+
 def get_path_params(params: http.PathParams):
     return {'params': params}
 
@@ -85,16 +91,23 @@ routes = [
     Route('/headers/', 'GET', get_headers),
     Route('/headers/', 'POST', get_headers, name='post_headers'),
     Route('/accept_header/', 'GET', get_accept_header),
+    Route('/missing_header/', 'GET', get_missing_header),
     Route('/path_params/{example}/', 'GET', get_path_params),
     Route('/full_path_params/{+example}', 'GET', get_path_params, name='full_path_params'),
     Route('/request_data/', 'POST', get_request_data),
 ]
 
-app = App(routes=routes)
-client = test.TestClient(app)
+
+@pytest.fixture(scope='module', params=['wsgi', 'asgi'])
+def client(request):
+    if request.param == 'asgi':
+        app = ASyncApp(routes=routes)
+    else:
+        app = App(routes=routes)
+    return test.TestClient(app)
 
 
-def test_request():
+def test_request(client):
     response = client.get('/request/')
     assert response.json() == {
         'method': 'GET',
@@ -110,26 +123,26 @@ def test_request():
     }
 
 
-def test_method():
+def test_method(client):
     response = client.get('/method/')
     assert response.json() == {'method': 'GET'}
     response = client.post('/method/')
     assert response.json() == {'method': 'POST'}
 
 
-def test_scheme():
+def test_scheme(client):
     response = client.get('http://example.com/scheme/')
     assert response.json() == {'scheme': 'http'}
     response = client.get('https://example.com/scheme/')
     assert response.json() == {'scheme': 'https'}
 
 
-def test_host():
+def test_host(client):
     response = client.get('http://example.com/host/')
     assert response.json() == {'host': 'example.com'}
 
 
-def test_port():
+def test_port(client):
     response = client.get('http://example.com/port/')
     assert response.json() == {'port': 80}
     response = client.get('https://example.com/port/')
@@ -140,19 +153,19 @@ def test_port():
     assert response.json() == {'port': 123}
 
 
-def test_path():
+def test_path(client):
     response = client.get('/path/')
     assert response.json() == {'path': '/path/'}
 
 
-def test_query_string():
+def test_query_string(client):
     response = client.get('/query_string/')
     assert response.json() == {'query_string': ''}
     response = client.get('/query_string/?a=1&a=2&b=3')
     assert response.json() == {'query_string': 'a=1&a=2&b=3'}
 
 
-def test_query_params():
+def test_query_params(client):
     response = client.get('/query_params/')
     assert response.json() == {'query_params': {}}
     response = client.get('/query_params/?a=1&a=2&b=3')
@@ -161,7 +174,7 @@ def test_query_params():
     }
 
 
-def test_single_query_param():
+def test_single_query_param(client):
     response = client.get('/page_query_param/')
     assert response.json() == {'page': None}
     response = client.get('/page_query_param/?page=123')
@@ -170,7 +183,7 @@ def test_single_query_param():
     assert response.json() == {'page': '123'}
 
 
-def test_url():
+def test_url(client):
     response = client.get('http://example.com/url/')
     assert response.json() == {
         'url': 'http://example.com/url/',
@@ -198,12 +211,12 @@ def test_url():
     }
 
 
-def test_body():
+def test_body(client):
     response = client.post('/body/', data="content")
     assert response.json() == {'body': 'content'}
 
 
-def test_headers():
+def test_headers(client):
     response = client.get('http://example.com/headers/')
     assert response.json() == {'headers': {
         'accept': '*/*',
@@ -236,12 +249,17 @@ def test_headers():
     }}
 
 
-def test_accept_header():
+def test_accept_header(client):
     response = client.get('/accept_header/')
     assert response.json() == {'accept': '*/*'}
 
 
-def test_path_params():
+def test_missing_header(client):
+    response = client.get('/missing_header/')
+    assert response.json() == {'missing': None}
+
+
+def test_path_params(client):
     response = client.get('/path_params/abc/')
     assert response.json() == {'params': {'example': 'abc'}}
     response = client.get('/path_params/a%20b%20c/')
@@ -250,12 +268,12 @@ def test_path_params():
     assert response.status_code == 404
 
 
-def test_full_path_params():
+def test_full_path_params(client):
     response = client.get('/full_path_params/abc/def/')
     assert response.json() == {'params': {'example': 'abc/def/'}}
 
 
-def test_request_data():
+def test_request_data(client):
     response = client.post('/request_data/', json={'abc': 123})
     assert response.json() == {'data': {'abc': 123}}
     response = client.post('/request_data/')
@@ -266,7 +284,7 @@ def test_request_data():
     assert response.status_code == 400
 
 
-def test_headers_type():
+def test_headers_type(client):
     h = http.Headers([('a', '123'), ('A', '456'), ('b', '789')])
     assert 'a' in h
     assert 'A' in h
@@ -288,7 +306,7 @@ def test_headers_type():
     assert [('B', '456'), ('a', '123')] == http.Headers({'a': '123', 'b': '456'})
 
 
-def test_queryparams_type():
+def test_queryparams_type(client):
     q = http.QueryParams([('a', '123'), ('a', '456'), ('b', '789')])
     assert 'a' in q
     assert 'A' not in q

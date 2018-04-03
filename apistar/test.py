@@ -1,3 +1,4 @@
+import asyncio
 import io
 import typing
 from urllib.parse import unquote, urlparse
@@ -97,10 +98,79 @@ class _WSGIAdapter(requests.adapters.HTTPAdapter):
         return self.build_response(request, raw)
 
 
+class _ASGIAdapter(requests.adapters.HTTPAdapter):
+    def __init__(self, app: typing.Callable) -> None:
+        self.app = app
+
+    def send(self, request, *args, **kwargs):
+        url_components = urlparse(request.url)
+        default_port = {
+            'http': 80,
+            'https': 443,
+        }
+
+        scope = {
+            'type': 'http',
+            'http_version': '1.1',
+            'method': request.method,
+            'path': unquote(url_components.path),
+            'root_path': '',
+            'scheme': url_components.scheme,
+            'query_string': url_components.query.encode(),
+            'headers': [
+                [key.encode(), value.encode()]
+                for key, value in request.headers.items()
+            ],
+            'client': ['testclient', 50000],
+            'server': [url_components.hostname,
+                       url_components.port or default_port[url_components.scheme]],
+        }
+
+        async def receive():
+            body = request.body
+            if isinstance(body, str):
+                body_bytes = body.encode("utf-8")  # type: bytes
+            else:
+                body_bytes = body
+            return {
+                'type': 'http.request',
+                'body': body_bytes,
+            }
+
+        async def send(message):
+            if message['type'] == 'http.response.start':
+                raw_kwargs['version'] = 11
+                raw_kwargs['status'] = message['status']
+                raw_kwargs['headers'] = [
+                    (key.decode(), value.decode())
+                    for key, value in message['headers']
+                ]
+                raw_kwargs['preload_content'] = False
+                raw_kwargs['original_response'] = _MockOriginalResponse(raw_kwargs['headers'])
+            elif message['type'] == 'http.response.body':
+                raw_kwargs['body'] = io.BytesIO(message['body'])
+            elif message['type'] == 'http.disconnect':
+                pass
+            else:
+                raise Exception("Unknown ASGI message type: %s" % message['type'])
+
+        raw_kwargs = {}
+        connection = self.app(scope)
+
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(connection(receive, send))
+
+        raw = requests.packages.urllib3.HTTPResponse(**raw_kwargs)
+        return self.build_response(request, raw)
+
+
 class _TestClient(requests.Session):
     def __init__(self, app: typing.Callable, scheme: str, hostname: str) -> None:
         super(_TestClient, self).__init__()
-        adapter = _WSGIAdapter(app)
+        if app.interface == 'asgi':
+            adapter = _ASGIAdapter(app)
+        else:
+            adapter = _WSGIAdapter(app)
         self.mount('http://', adapter)
         self.mount('https://', adapter)
         self.headers.update({'User-Agent': 'testclient'})

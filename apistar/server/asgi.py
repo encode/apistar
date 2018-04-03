@@ -62,7 +62,7 @@ class PathComponent(Component):
 class QueryStringComponent(Component):
     def resolve(self,
                 scope: ASGIScope) -> http.QueryString:
-        return http.QueryString(scope['query_string'])
+        return http.QueryString(scope['query_string'].decode())
 
 
 class QueryParamsComponent(Component):
@@ -88,6 +88,8 @@ class HeadersComponent(Component):
         return http.Headers([
             (key.decode(), value.decode())
             for key, value in scope['headers']
+        ] + [
+            ('host', scope['server'][0]),
         ])
 
 
@@ -102,9 +104,10 @@ class HeaderComponent(Component):
 
 
 class BodyComponent(Component):
-    def resolve(self,
-                receive: ASGIReceive) -> http.Body:
-        return http.Body(b'...')
+    async def resolve(self,
+                      receive: ASGIReceive) -> http.Body:
+        message = await receive()
+        return http.Body(message['body'])
 
 
 class RequestComponent(Component):
