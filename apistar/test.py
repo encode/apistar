@@ -105,8 +105,8 @@ class _ASGIAdapter(requests.adapters.HTTPAdapter):
     def send(self, request, *args, **kwargs):
         scheme, netloc, path, params, query, fragement = urlparse(request.url)
         if ':' in netloc:
-            host = netloc.split(':')[0]
-            port = int(netloc.split(':')[1])
+            host, port = netloc.split(':', 1)
+            port = int(port)
         else:
             host = netloc
             port = {'http': 80, 'https': 443}[scheme]

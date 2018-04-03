@@ -7,11 +7,12 @@ class ASGItoWSGIAdapter(object):
     """
     Expose an WSGI interface, given an ASGI application.
 
-    We want this so that we can use the werkzeug development server and
+    We want this so that we can use the Werkzeug development server and
     debugger together with an ASGI application.
     """
     def __init__(self, asgi):
         self.asgi = asgi
+        self.loop = asyncio.get_event_loop()
 
     def __call__(self, environ, start_response):
         return_bytes = []
@@ -36,8 +37,7 @@ class ASGItoWSGIAdapter(object):
                 'body': environ['wsgi.input'].read()
             }
 
-        loop = asyncio.get_event_loop()
-        loop.run_until_complete(asgi_coroutine(recieve, send))
+        self.loop.run_until_complete(asgi_coroutine(recieve, send))
         return return_bytes
 
     def environ_to_message(self, environ):
@@ -65,8 +65,10 @@ class ASGItoWSGIAdapter(object):
             headers.append([b'content-length', environ['CONTENT_LENGTH'].encode('latin-1')])
         for key, val in environ.items():
             if key.startswith('HTTP_'):
-                key_bytes = key[5:].replace('_', '-').upper().encode('latin-1')
+                key_bytes = key[5:].replace('_', '-').lower().encode('latin-1')
                 val_bytes = val.encode()
                 headers.append([key_bytes, val_bytes])
+
+        message['headers'] = headers
 
         return message
