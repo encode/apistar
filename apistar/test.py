@@ -103,27 +103,39 @@ class _ASGIAdapter(requests.adapters.HTTPAdapter):
         self.app = app
 
     def send(self, request, *args, **kwargs):
-        url_components = urlparse(request.url)
-        default_port = {
-            'http': 80,
-            'https': 443,
-        }
+        scheme, netloc, path, params, query, fragement = urlparse(request.url)
+        if ':' in netloc:
+            host = netloc.split(':')[0]
+            port = int(netloc.split(':')[1])
+        else:
+            host = netloc
+            port = {'http': 80, 'https': 443}[scheme]
+
+        # Include the 'host' header.
+        if 'host' in request.headers:
+            headers = []
+        elif port == 80:
+            headers = [[b'host', host.encode()]]
+        else:
+            headers = [[b'host', ('%s:%d' % (host, port)).encode()]]
+
+        # Include other request headers.
+        headers += [
+            [key.encode(), value.encode()]
+            for key, value in request.headers.items()
+        ]
 
         scope = {
             'type': 'http',
             'http_version': '1.1',
             'method': request.method,
-            'path': unquote(url_components.path),
+            'path': unquote(path),
             'root_path': '',
-            'scheme': url_components.scheme,
-            'query_string': url_components.query.encode(),
-            'headers': [
-                [key.encode(), value.encode()]
-                for key, value in request.headers.items()
-            ],
+            'scheme': scheme,
+            'query_string': query.encode(),
+            'headers': headers,
             'client': ['testclient', 50000],
-            'server': [url_components.hostname,
-                       url_components.port or default_port[url_components.scheme]],
+            'server': [host, port],
         }
 
         async def receive():

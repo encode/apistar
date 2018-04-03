@@ -88,8 +88,6 @@ class HeadersComponent(Component):
         return http.Headers([
             (key.decode(), value.decode())
             for key, value in scope['headers']
-        ] + [
-            ('host', scope['server'][0]),
         ])
 
 
