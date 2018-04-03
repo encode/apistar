@@ -4,6 +4,7 @@ from apistar import exceptions
 from apistar.http import (
     RESPONSE_STATUS_TEXT, HTMLResponse, JSONResponse, PathParams, Response
 )
+from apistar.server.adapters import ASGItoWSGIAdapter
 from apistar.server.asgi import (
     ASGI_COMPONENTS, ASGIReceive, ASGIScope, ASGISend
 )
@@ -233,3 +234,7 @@ class ASyncApp(App):
             'type': 'http.response.body',
             'body': response.content
         })
+
+    def serve(self, host, port, **options):
+        wsgi = ASGItoWSGIAdapter(self)
+        werkzeug.run_simple(host, port, wsgi, **options)
