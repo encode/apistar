@@ -616,7 +616,7 @@ class UserComponent(BaseComponent):
 
 
 def hello_user(user: User=None) -> dict:
-    return {'hello': None if (user is None) else user.username}
+    return {'hello': user.username if user else None}
 
 
 routes = [
