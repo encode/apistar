@@ -19,8 +19,8 @@ class Templates(BaseTemplates):
             for package_name in template_packages
         })
         if template_dir is not None:
-            loader = loader.ChoiceLoader([
-                loader.FileSystemLoader(template_dir),
+            loader = jinja2.ChoiceLoader([
+                jinja2.FileSystemLoader(template_dir),
                 loader
             ])
 

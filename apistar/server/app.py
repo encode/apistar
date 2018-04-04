@@ -1,5 +1,8 @@
+import os
+
 import werkzeug
 
+import __main__
 from apistar import exceptions
 from apistar.http import (
     RESPONSE_STATUS_TEXT, HTMLResponse, JSONResponse, PathParams, Response
@@ -22,13 +25,20 @@ class App():
 
     def __init__(self,
                  routes,
-                 template_dir=None,
-                 static_dir=None,
+                 base_dir=None,
+                 template_dir='templates',
+                 static_dir='static',
                  installed_packages=('apistar',),
                  schema_url='/schema/',
                  static_url='/static/',
                  components=None,
                  event_hooks=None):
+        if base_dir is None:
+            base_dir = os.path.abspath(os.path.dirname(__main__.__file__))
+
+        template_dir = os.path.join(base_dir, template_dir) if template_dir else None
+        static_dir = os.path.join(base_dir, static_dir) if static_dir else None
+
         routes = routes + self.include_extra_routes(schema_url, static_url)
         self.init_document(routes)
         self.init_router(routes)
