@@ -260,7 +260,7 @@ app = App(routes=routes)
 
 ### Building URLS
 
-You can generate URL strings that match your routing configuration by using `app.url(name, **parameters)`.
+You can generate URL strings that match your routing configuration by using `app.reverse_url(name, **parameters)`.
 
 ```python
 from apistar import App, Route, exceptions
