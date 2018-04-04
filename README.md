@@ -223,13 +223,15 @@ Use `{curly_braces}` in your URL conf to include a URL path parameter.
 from apistar import App, Route
 
 
-def echo_username(username):
+def echo_username(username: str) -> dict:
     return {'message': 'Welcome, %s!' % username}
 
 
-app = App(routes=[
+routes = [
     Route('/users/{username}/', 'GET', echo_username)
-])
+]
+
+app = App(routes=routes)
 ```
 
 Use type annotation on a handler to match integers or floats in the URL string.
@@ -240,7 +242,7 @@ from apistar import App, Route, exceptions
 
 USERS = {1: 'hazel', 2: 'james', 3: 'ana'}
 
-def echo_username(user_id: int):
+def echo_username(user_id: int) -> dict:
     if user_id not in USERS:
         raise exceptions.NotFound()
     return {'message': 'Welcome, %s!' % USERS[user_id]}
@@ -255,15 +257,17 @@ app = App(routes=routes)
 If you want to capture a complete URL path parameter *including any `/`
 characters* then use `{+curly_braces}`.
 
-```
-app = App(routes=[
+```python
+routes = [
     Route('/static/{+path}', method='GET', handler=serve_file)
-])
+]
+
+app = App(routes=routes)
 ```
 
 ### Building URLS
 
-You can generate URL strings that match your routing configuration by using `app.build_url(name, **parameters)`.
+You can generate URL strings that match your routing configuration by using `app.url(name, **parameters)`.
 
 ```python
 from apistar import App, Route, exceptions
@@ -271,20 +275,20 @@ from apistar import App, Route, exceptions
 
 USERS = {1: 'hazel', 2: 'james', 3: 'ana'}
 
-def list_users(user_id: int, app: App):
+def list_users(app: App) -> list:
     return [
         {
             'username': username,
-            'url': app.build_url('get_user', user_id=user_id)
+            'url': app.reverse_url('get_user', user_id=user_id)
         } for user_id, username in USERS.items()
     ]
 
-def get_user(user_id: int, app: App):
+def get_user(app: App, user_id: int) -> dict:
     if user_id not in USERS:
         raise exceptions.NotFound()
     return {
         'username': USERS[user_id],
-        'url': app.build_url('get_user', user_id=user_id)
+        'url': app.reverse_url('get_user', user_id=user_id)
     }
 
 routes = [
@@ -308,20 +312,20 @@ from apistar import Route, exceptions
 
 USERS = {1: 'hazel', 2: 'james', 3: 'ana'}
 
-def list_users(user_id: int, app: App):
+def list_users(user_id: int, app: App) -> list:
     return [
         {
             'username': username,
-            'url': app.build_url('users:get_user', user_id=user_id)
+            'url': app.reverse_url('users:get_user', user_id=user_id)
         } for user_id, username in USERS.items()
     ]
 
-def get_user(user_id: int, app: App):
+def get_user(user_id: int, app: App) -> dict:
     if user_id not in USERS:
         raise exceptions.NotFound()
     return {
         'username': USERS[user_id],
-        'url': app.build_url('users:get_user', user_id=user_id)
+        'url': app.reverse_url('users:get_user', user_id=user_id)
     }
 
 routes = [
@@ -333,7 +337,7 @@ routes = [
 **app.py:**
 
 ```python
-from apistar import
+from apistar import App, Include
 from myproject import users
 
 routes = [
@@ -354,23 +358,62 @@ expected inputs and outputs of your interface.
 Here’s a quick example of what the type system in API Star looks like:
 
 ```python
-from apistar import types, fields
+from apistar import types, validators
 
 
 class Product(types.Type):
-    name = fields.String(max_length=100)
-    rating = fields.Integer(minimum=1, maximum=5)
-    in_stock = fields.Boolean()
-    size = fields.String(enum=['small', 'medium', 'large'])
+    name = validators.String(max_length=100)
+    rating = validators.Integer(minimum=1, maximum=5)
+    in_stock = validators.Boolean(default=False)
+    size = validators.String(enum=['small', 'medium', 'large'])
 ```
 
 You can use the type system both for validation of incoming request data, and
 for serializing outgoing response data.
 
+Invalid data will result in a `ValidationError` being raised.
+
+```python
+>>> data = {'name': 't-shirt', 'size': 'big'}
+>>> product = Product(data)
+apistar.exceptions.ValidationError: {'rating': 'This field is required.', 'size': 'Must be a valid choice.'}
+```
+
+Valid data will instantiate a new `Type` instance.
+
+```python
+>>> data = {'name': 't-shirt', 'rating': 4, 'size': 'large'}
+>>> product = Product(data)
+<Product(name='t-shirt', rating=4, in_stock=False, size='large')>
+```
+
+You can access the values on a `Type` instance as attributes.
+
+```python
+>>> product.name
+'t-shirt'
+```
+
+Or treat a `Type` as a dictionary-like object.
+
+```python
+>>> product['rating']:
+4
+>>> dict(product)
+{'name': 't-shirt', 'rating': 4, 'in_stock': False, 'size': 'large'}
+```
+
 ## Validation
+
+You can use API Star `Type` classes as annotations inside your handler functions.
+
+When you do so, validation will be handled automatically prior to running
+the handler function. The type information will also be made available
+in the application's API Schema.
 
 ```python
 def create_product(product: Product):
+    # Save a new product record in the database.
     ...
 
 routes = [
@@ -380,7 +423,12 @@ routes = [
 
 ## Serialization
 
-...
+You may also want to using the type system for data serialization,
+and include the type as a return annotation on handler functions.
+
+Again, doing so will expose the type information to the application's
+API Schema, and will help ensure that the information your system
+returns matches its documented return types.
 
 ```python
 import typing
@@ -397,7 +445,7 @@ The following typesystem types are supported:
 
 ### String
 
-Validates string data. A subclass of `str`.
+Validates string data.
 
 * `default` - A default to be used if a field using this typesystem is missing from a parent `Object`.
 * `max_length` - A maximum valid length for the data.
@@ -409,7 +457,7 @@ Validates string data. A subclass of `str`.
 
 ### Number
 
-Validates numeric data. A subclass of `float`.
+Validates numeric data.
 
 * `default` - A default to be used if a field using this typesystem is missing from a parent `Object`.
 * `maximum` - A float representing the maximum valid value for the data.
@@ -421,7 +469,7 @@ Validates numeric data. A subclass of `float`.
 
 ### Integer
 
-Validates integer data. A subclass of `int`.
+Validates integer data.
 
 * `default` - A default to be used if a field using this typesystem is missing from a parent `Object`.
 * `maximum` - An int representing the maximum valid value for the data.
@@ -433,14 +481,14 @@ Validates integer data. A subclass of `int`.
 
 ### Boolean
 
-Validates boolean input. Returns either `True` or `False`.
+Validates boolean input.
 
 * `default` - A default to be used if a field using this typesystem is missing from a parent `Object`.
 * `description` - A description for online documentation
 
 ### Object
 
-Validates dictionary or object input.
+Validates dictionary input.
 
 * `default` - A default to be used if a field using this typesystem is missing from a parent `Object`.
 * `properties` - A dictionary mapping string key names to typesystem or type values.
@@ -450,7 +498,7 @@ Note that child properties are considered to be required if they do not have a `
 
 ### Array
 
-Validates list or tuple input.
+Validates list input.
 
 * `items` - A typesystem or type or a list of typesystems or types.
 * `additional_items` - Whether additional items past the end of the listed typesystem types are permitted.
@@ -475,17 +523,151 @@ Validates list or tuple input.
 
 # Testing
 
+API Star isn't coupled to any particular testing framework, but we'd probably
+recommend using `py.test`.
+
+To make it easier to run tests against your application, API Star includes
+a test client, that acts as an adpater for the excellent python `requests`
+library, allowing you to make requests directly to your application.
+
+You can use the API test client with *any* WSGI or ASGI application.
+
+```python
+from apistar import test
+from myproject import app
+
+
+client = test.Client(app)
+
+def test_hello_world():
+    response = client.get('/hello_world/')
+    assert response.status_code == 200
+    assert response.json() ==  {'hello': 'world'}
+```
+
 ---
 
 # Event Hooks
 
+Sometimes you'll want to always run some code before or after a handler function.
+
+API Star provides something very similar to middleware, that lets you register
+a group of functions to be run in response to particular events.
+
+Here's an example...
+
+```python
+class CustomHeadersHook():
+    def on_response(self, response: http.Response):
+        response.headers['x-custom'] = 'Ran on_response()'
+        return response
+
+event_hooks = [CustomHeadersHook()]
+
+app = App(routes=routes, event_hooks=event_hooks)
+```
+
+An event hook instance may include any or all of the following methods:
+
+* `on_request(self)` - Runs before the handler function.
+* `on_response(self, response, ...)` - Runs after the handler function. Should return the response.
+* `on_error(self, response, ...)` - Runs after any exception occurs. Should return the response.
+
+The signature of the method may include any components that would be available
+on a handler function.
+
 ---
 
-# Components
+# Dependency Injection
+
+API Star allows you to include various parameters on handler functions and
+event hooks, and will automatically provide those parameters as required.
+
+You can add additional components, making them available to handler functions
+if they are included in an annotation.
+
+Here's an example that makes the `User` annotation available to handler functions.
+
+```python
+from apistar import App, Route, exceptions, http
+from apistar.server.components import BaseComponent
+
+
+class User(object):
+    def __init__(self, username: str):
+        self.username = username
+
+
+class UserComponent(BaseComponent):
+    def provide(authorization: http.Header) -> User:
+        """
+        Determine the user associated with a request, using HTTP Basic Authentication.
+        """
+        if authorization is None:
+            return None
+
+        scheme, token = authorization.split()
+        if scheme.lower() != 'basic':
+            return None
+
+        username, password = base64.b64decode(token).decode('utf-8').split(':')
+        if not self.check_authentication(username, password):
+            raise exceptions.PermissionDenied('Incorrect username or password.')
+
+        return User(username)
+
+    def check_authentication(self, username: str, password: str) -> bool:
+        # Just an example here. You'd normally want to make a database lookup,
+        # and check against a hash of the password.
+        return password == 'secret'
+
+
+def hello_user(user: User=None) -> dict:
+    return {'hello': None if (user is None) else user.username}
+
+
+routes = [
+    Route('/', method='GET', handler=hello_user)
+]
+components = [UserComponent()]
+
+app = App(routes=routes, components=components)
+```
+
+You can combine components and event hooks in order to have a component
+that always runs, regardless of if it is used in a handler function.
+
+```python
+class MustBeAuthenticated():
+    def on_request(self, user: User=None) -> None:
+        if user is None:
+            raise exceptions.NotAuthenticated()
+
+
+def hello_user(user: User) -> dict:
+    return {'hello': user.username}
+
+
+routes = [
+    Route('/', method='GET', handler=hello_user)
+]
+components = [UserComponent()]
+event_hooks = [MustBeAuthenticated()]
+
+app = App(routes=routes, components=components, event_hooks=event_hooks)
+```
+
+## Reference
+
+The following components are already installed by default.
+
+**TODO**
 
 ---
 
 # Performance
+
+**TODO**
 
 ---
 
