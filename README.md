@@ -9,22 +9,6 @@ A smart Web API framework, designed for Python 3.
 
 **Community:** https://discuss.apistar.org/ 🤔 💭 🤓 💬 😎
 
-![screenshot](docs/img/apistar.gif)
-
----
-
-# Features
-
-Why should you consider using API Star for your next Web API project?
-
-* **API documentation** - Interactive API documentation, that's guaranteed to always
-be in sync with your codebase.
-* **Client libraries** - JavaScript and Python client libraries, driven by the typesystems that API Star generates.
-* **Schema generation** - Support for generating Swagger or RAML API typesystems.
-* **Expressive** - Type annotated views, that make for expressive, testable code.
-* **Performance** - Dynamic behaviour for determining how to run each view makes API Star incredibly efficient.
-* **Throughput** - Support for asyncio to allow for building high-throughput non-blocking applications.
-
 ---
 
 # Table of Contents
@@ -108,17 +92,26 @@ Most existing database adapters, ORMs, and other networking components are
 designed to work within this context. If you're not sure which of the two modes
 you want, then you probably want to use the standard `App` instance.
 
-For web services where you need particularly high throughput-per-instance
+For IO-bound web services where you need particularly high throughput
 you might want to choose the asyncio mode. If you do so then you'll need to
 make sure that you're only ever making network requests or disk access using
 async operations, and packages designed to work with asyncio.
 
 For an asyncio-based application, you should use the `ASyncApp` class.
 
-```python
-from apistar import ASyncApp
+Once you're using `ASyncApp` you'll be able to route to either standard
+functions, or to `async` functions.
 
-...
+```python
+from apistar import ASyncApp, Route
+
+async def hello_world() -> dict:
+    # We can perform some network I/O here, asyncronously.
+    return {'hello': 'async'}
+
+routes = [
+    Route('/', method='GET', handler=hello_world)
+]
 
 app = ASyncApp(routes=routes)
 ```
@@ -172,7 +165,7 @@ Some of the components you might use most often:
 | `http.Header`      | Lookup a single request header, corresponding to the argument name.<br/>Returns a string or `None`. |
 | `http.QueryParams` | The request query parameters, returned as a dictionary-like object. |
 | `http.QueryParam`  | Lookup a single query parameter, corresponding to the argument name.<br/>Returns a string or `None`. |
-| `http.Body`        | The request body. Returns a bytestring. |
+| `http.Body`        | The request body, as a bytestring. |
 
 ## Responses
 
@@ -307,12 +300,12 @@ Use `Include` to add a list of routes under a single URL prefix.
 **myproject/users.py**
 
 ```python
-from apistar import Route, exceptions
+from apistar import App, Route, exceptions
 
 
 USERS = {1: 'hazel', 2: 'james', 3: 'ana'}
 
-def list_users(user_id: int, app: App) -> list:
+def list_users(app: App) -> list:
     return [
         {
             'username': username,
@@ -320,7 +313,7 @@ def list_users(user_id: int, app: App) -> list:
         } for user_id, username in USERS.items()
     ]
 
-def get_user(user_id: int, app: App) -> dict:
+def get_user(app: App, user_id: int) -> dict:
     if user_id not in USERS:
         raise exceptions.NotFound()
     return {
