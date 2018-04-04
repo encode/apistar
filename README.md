@@ -504,13 +504,143 @@ Validates list input.
 
 # Template & Static files
 
+API Star is particularly designed around building APIs, but is equally
+capable of being used to build web applications.
+
 ## Templates
 
+To include templates in your application, create a `templates` directory
+alongside your `app.py` file, and use `app.render_template(template_name, **context)`.
+
+By default `jinja2` is used for template rendering.
+
+**templates/index.html**:
+
+```
+<html>
+    <body>
+        {% if name %}
+        <h1>Hello, {{ name }}!</h1>
+        {% else %}
+        <h1>Hello!</h1>
+        {% endif %}
+    </body>
+</html>
+```
+
+**app.py**:
+
+```
+from apistar import App, Route
+
+
+def welcome(app: App, name=None):
+    return app.render_template('index.html', name=name)
+
+
+routes = [
+    Route('/', method='GET', handler=welcome),
+]
+
+app = App(routes=routes)
+
+
+if __name__ == '__main__':
+    app.serve('127.0.0.1', 8080, use_debugger=True)
+```
+
+You can configure where templates are served from by using the `template_dir`
+argument when instantiating an application.
+
 ## Static Files
+
+To serve static files from your application, create a `static` directory
+alongside your `app.py` file.
+
+You can configure where templates are served from by using the `static_dir`
+argument when instantiating an application.
+
+By default anything under the URL path `/static/...` will be served as a static
+file. You can modify this behaviour, or disable static file serving completely,
+using the `static_url` argument.
+
+```python
+app = App(routes=routes, static_url=None)
+```
 
 ---
 
 # API Schemas
+
+By default API Star will serve an Open API schema for your application,
+at '/schema/'.
+
+Let's take a look at that with a trivial example...
+
+```python
+from apistar import App, Route
+
+
+def welcome(name=None):
+    if name is None:
+        return {'message': 'Welcome to API Star!'}
+    return {'message': 'Welcome to API Star, %s!' % name}
+
+routes = [
+    Route('/', method='GET', handler=welcome),
+]
+
+app = App(routes=routes)
+
+
+if __name__ == '__main__':
+    app.serve('127.0.0.1', 8080, use_debugger=True)
+```
+
+Start the application running...
+
+```bash
+$ python ./example.py
+ * Running on http://127.0.0.1:8080/ (Press CTRL+C to quit)
+```
+
+And download the schema...
+
+```bash
+$ curl http://127.0.0.1:8080/schema/
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "",
+        "description": "",
+        "version": ""
+    },
+    "servers": [
+        {
+            "url": ""
+        }
+    ],
+    "paths": {
+        "/": {
+            "get": {
+                "operationId": "welcome",
+                "parameters": [
+                    {
+                        "name": "name",
+                        "in": "query"
+                    }
+                ]
+            }
+        }
+    }
+}
+```
+
+You can disable the schema generation by using the `schema_url` argument.
+
+```python
+app = App(routes=routes, schema_url=None)
+```
 
 ---
 
