@@ -516,7 +516,7 @@ By default `jinja2` is used for template rendering.
 
 **templates/index.html**:
 
-```
+```html
 <html>
     <body>
         {% if name %}
@@ -530,7 +530,7 @@ By default `jinja2` is used for template rendering.
 
 **app.py**:
 
-```
+```python
 from apistar import App, Route
 
 
