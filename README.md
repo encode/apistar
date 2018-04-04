@@ -438,17 +438,9 @@ Validates boolean input. Returns either `True` or `False`.
 * `default` - A default to be used if a field using this typesystem is missing from a parent `Object`.
 * `description` - A description for online documentation
 
-### Enum
-
-Validates string input, against a list of valid choices. A subclass of `str`.
-
-* `default` - A default to be used if a field using this typesystem is missing from a parent `Object`.
-* `enum` - A list of valid string values for the data.
-* `description` - A description for online documentation
-
 ### Object
 
-Validates dictionary or object input. A subclass of `dict`.
+Validates dictionary or object input.
 
 * `default` - A default to be used if a field using this typesystem is missing from a parent `Object`.
 * `properties` - A dictionary mapping string key names to typesystem or type values.
@@ -458,7 +450,7 @@ Note that child properties are considered to be required if they do not have a `
 
 ### Array
 
-Validates list or tuple input. A subclass of `list`.
+Validates list or tuple input.
 
 * `items` - A typesystem or type or a list of typesystems or types.
 * `additional_items` - Whether additional items past the end of the listed typesystem types are permitted.
