@@ -23,18 +23,17 @@ class App():
     def __init__(self,
                  routes,
                  template_dir=None,
-                 template_packages=None,
                  static_dir=None,
-                 static_packages=None,
-                 schema_url=None,
-                 static_url=None,
+                 installed_packages=('apistar',),
+                 schema_url='/schema/',
+                 static_url='/static/',
                  components=None,
                  event_hooks=None):
         routes = routes + self.include_extra_routes(schema_url, static_url)
         self.init_document(routes)
         self.init_router(routes)
-        self.init_templates(template_dir, template_packages)
-        self.init_staticfiles(static_url, static_dir, static_packages)
+        self.init_templates(template_dir, installed_packages)
+        self.init_staticfiles(static_url, static_dir, installed_packages)
         self.init_injector(components)
         self.init_hooks(event_hooks)
 
@@ -60,12 +59,12 @@ class App():
     def init_router(self, routes):
         self.router = Router(routes)
 
-    def init_templates(self, template_dir: str=None, template_packages: list=None):
+    def init_templates(self, template_dir: str=None, installed_packages: list=None):
         template_globals = {'reverse_url': self.reverse_url}
-        self.templates = Templates(template_dir, template_packages, template_globals)
+        self.templates = Templates(template_dir, installed_packages, template_globals)
 
-    def init_staticfiles(self, static_url: str, static_dir: str=None, static_packages: list=None):
-        self.statics = StaticFiles(static_url, static_dir, static_packages)
+    def init_staticfiles(self, static_url: str, static_dir: str=None, installed_packages: list=None):
+        self.statics = StaticFiles(static_url, static_dir, installed_packages)
 
     def init_injector(self, components=None):
         components = components if components else []
