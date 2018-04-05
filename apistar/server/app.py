@@ -14,7 +14,7 @@ from apistar.server.asgi import (
 from apistar.server.core import Route, generate_document
 from apistar.server.injector import ASyncInjector, Injector
 from apistar.server.router import Router
-from apistar.server.staticfiles import StaticFiles
+from apistar.server.staticfiles import ASyncStaticFiles, StaticFiles
 from apistar.server.templates import Templates
 from apistar.server.validation import VALIDATION_COMPONENTS
 from apistar.server.wsgi import WSGI_COMPONENTS, WSGIEnviron, WSGIStartResponse
@@ -50,7 +50,7 @@ class App():
     def include_extra_routes(self, schema_url=None, static_url=None):
         extra_routes = []
 
-        from apistar.server.handlers import serve_schema, serve_static
+        from apistar.server.handlers import serve_schema, serve_static_wsgi
 
         if schema_url:
             extra_routes += [
@@ -59,7 +59,7 @@ class App():
         if static_url:
             static_url = static_url.rstrip('/') + '/{+filename}'
             extra_routes += [
-                Route(static_url, method='GET', handler=serve_static, documented=False, standalone=True)
+                Route(static_url, method='GET', handler=serve_static_wsgi, documented=False, standalone=True)
             ]
         return extra_routes
 
@@ -169,6 +169,22 @@ class App():
 class ASyncApp(App):
     interface = 'asgi'
 
+    def include_extra_routes(self, schema_url=None, static_url=None):
+        extra_routes = []
+
+        from apistar.server.handlers import serve_schema, serve_static_asgi
+
+        if schema_url:
+            extra_routes += [
+                Route(schema_url, method='GET', handler=serve_schema, documented=False)
+            ]
+        if static_url:
+            static_url = static_url.rstrip('/') + '/{+filename}'
+            extra_routes += [
+                Route(static_url, method='GET', handler=serve_static_asgi, documented=False, standalone=True)
+            ]
+        return extra_routes
+
     def init_injector(self, components=None):
         components = components if components else []
         components = list(ASGI_COMPONENTS + VALIDATION_COMPONENTS) + components
@@ -201,6 +217,9 @@ class ASyncApp(App):
             hook.on_error for hook in event_hooks
             if hasattr(hook, 'on_error')
         ] + [self.finalize_asgi]
+
+    def init_staticfiles(self, static_url: str, static_dir: str=None, installed_packages: list=None):
+        self.statics = ASyncStaticFiles(static_url, static_dir, installed_packages)
 
     def __call__(self, scope):
         async def asgi_callable(receive, send):
