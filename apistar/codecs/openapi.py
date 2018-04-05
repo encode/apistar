@@ -351,6 +351,9 @@ class OpenAPICodec(BaseCodec):
         if schema_defs:
             openapi['components'] = {'schemas': schema_defs}
 
+        if not document.url:
+            openapi.pop('servers')
+
         kwargs = {
             'ensure_ascii': False,
             'indent': 4,

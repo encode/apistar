@@ -31,11 +31,6 @@ expected_schema = """{
         "description": "",
         "version": ""
     },
-    "servers": [
-        {
-            "url": ""
-        }
-    ],
     "paths": {
         "/get-endpoint/": {
             "get": {
