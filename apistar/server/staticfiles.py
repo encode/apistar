@@ -21,7 +21,7 @@ class StaticFiles(BaseStaticFiles):
 
     def check_requirements(self):
         if whitenoise is None:
-            raise RuntimeError('`whitenoise` must be installed to use `StaticFiles`')
+            raise RuntimeError('`whitenoise` must be installed to use `StaticFiles`.')
 
     def __call__(self, environ, start_response):
         return self.whitenoise(environ, start_response)
@@ -36,9 +36,9 @@ class ASyncStaticFiles(StaticFiles):
     """
     def check_requirements(self):
         if whitenoise is None:
-            raise RuntimeError('`whitenoise` must be installed to use `ASyncStaticFiles`')
+            raise RuntimeError('`whitenoise` must be installed to use `ASyncStaticFiles`.')
         if aiofiles is None:
-            raise RuntimeError('`aiofiles` must be installed to use `ASyncStaticFiles`')
+            raise RuntimeError('`aiofiles` must be installed to use `ASyncStaticFiles`.')
 
     def __call__(self, scope):
         path = scope['path'].encode('iso-8859-1', 'replace').decode('utf-8', 'replace')

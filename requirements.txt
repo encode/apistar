@@ -1,7 +1,10 @@
 # Core requirements
 requests
-jinja2
 werkzeug
+
+# Optional
+aiofiles
+jinja2
 whitenoise
 
 # Testing requirements

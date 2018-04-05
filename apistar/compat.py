@@ -8,15 +8,21 @@ else:
 
 
 try:
-    import whitenoise
-except ImportError:
-    whitenoise = None
-
-
-try:
     import aiofiles
 except ImportError:
     aiofiles = None
+
+
+try:
+    import jinja2
+except ImportError:
+    jinja2 = None
+
+
+try:
+    import whitenoise
+except ImportError:
+    whitenoise = None
 
 
 try:

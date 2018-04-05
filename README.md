@@ -509,10 +509,24 @@ capable of being used to build web applications.
 
 ## Templates
 
-To include templates in your application, create a `templates` directory
-alongside your `app.py` file, and use `app.render_template(template_name, **context)`.
+You'll need to install `jinja2` to use the default template backend.
 
-By default `jinja2` is used for template rendering.
+To include templates in your application, create a directory to contain the templates,
+and include it with the `template_dir` argument when instantiating the app.
+
+```python
+import os
+
+BASE_DIR = os.path.dirname(__file__)
+TEMPLATE_DIR = os.path.join(BASE_DIR, 'templates')
+
+...
+
+app = App(routes=routes, template_dir=TEMPLATE_DIR)
+```
+
+You can now use `app.render_template(template_name, **context)` in your handler
+functions.
 
 **templates/index.html**:
 
@@ -531,18 +545,22 @@ By default `jinja2` is used for template rendering.
 **app.py**:
 
 ```python
+import os
 from apistar import App, Route
+
+
+BASE_DIR = os.path.dirname(__file__)
+TEMPLATE_DIR = os.path.join(BASE_DIR, 'templates')
 
 
 def welcome(app: App, name=None):
     return app.render_template('index.html', name=name)
 
-
 routes = [
     Route('/', method='GET', handler=welcome),
 ]
 
-app = App(routes=routes)
+app = App(routes=routes, template_dir=TEMPLATE_DIR)
 
 
 if __name__ == '__main__':
@@ -554,19 +572,25 @@ argument when instantiating an application.
 
 ## Static Files
 
-To serve static files from your application, create a `static` directory
-alongside your `app.py` file.
+You'll need to install `whitenoise` to use the default static files backend.
+If you're using `ASyncApp` you'll also need to install `aiofiles`.
 
-You can configure where templates are served from by using the `static_dir`
-argument when instantiating an application.
-
-By default anything under the URL path `/static/...` will be served as a static
-file. You can modify this behaviour, or disable static file serving completely,
-using the `static_url` argument.
+To include static files in your application, create a directory to contain the static files,
+and include it with the `static_dir` argument when instantiating the app.
 
 ```python
-app = App(routes=routes, static_url=None)
+import os
+
+BASE_DIR = os.path.dirname(__file__)
+STATIC_DIR = os.path.join(BASE_DIR, 'static')
+
+...
+
+app = App(routes=routes, static_dir=STATIC_DIR)
 ```
+
+The default behavior is to serve static files from the URL prefix `/static/`.
+You can modify this by also including a `static_url` argument.
 
 ---
 
