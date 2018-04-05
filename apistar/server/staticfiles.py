@@ -1,12 +1,7 @@
-import os
 from http import HTTPStatus
-from importlib.util import find_spec
-
-import aiofiles
-import whitenoise
-from whitenoise.string_utils import decode_path_info
 
 from apistar import exceptions
+from apistar.compat import aiofiles, whitenoise
 
 
 class BaseStaticFiles():
@@ -19,15 +14,14 @@ class StaticFiles(BaseStaticFiles):
     Static file handling for WSGI applications, using `whitenoise`.
     """
 
-    def __init__(self, prefix, static_dir=None, static_packages=None):
+    def __init__(self, prefix, static_dir=None):
+        self.check_requirements()
         self.whitenoise = whitenoise.WhiteNoise(application=self.not_found)
-        if static_dir is not None:
-            self.whitenoise.add_files(static_dir, prefix=prefix)
-        for package in static_packages or []:
-            package_dir = os.path.dirname(find_spec(package).origin)
-            package_dir = os.path.join(package_dir, 'static')
-            package_prefix = prefix.rstrip('/') + '/' + package
-            self.whitenoise.add_files(package_dir, prefix=package_prefix)
+        self.whitenoise.add_files(static_dir, prefix=prefix)
+
+    def check_requirements(self):
+        if whitenoise is None:
+            raise RuntimeError('`whitenoise` must be installed to use `StaticFiles`')
 
     def __call__(self, environ, start_response):
         return self.whitenoise(environ, start_response)
@@ -40,9 +34,14 @@ class ASyncStaticFiles(StaticFiles):
     """
     Static file handling for ASGI applications, using `whitenoise` and `aiofiles`.
     """
+    def check_requirements(self):
+        if whitenoise is None:
+            raise RuntimeError('`whitenoise` must be installed to use `ASyncStaticFiles`')
+        if aiofiles is None:
+            raise RuntimeError('`aiofiles` must be installed to use `ASyncStaticFiles`')
 
     def __call__(self, scope):
-        path = decode_path_info(scope['path'])
+        path = scope['path'].encode('iso-8859-1', 'replace').decode('utf-8', 'replace')
         if self.whitenoise.autorefresh:
             static_file = self.whitenoise.find_file(path)
         else:

@@ -9,21 +9,9 @@ class BaseTemplates():
 class Templates(BaseTemplates):
     def __init__(self,
                  template_dir: str=None,
-                 template_packages: list=None,
                  global_context: dict=None):
-        template_packages = template_packages if template_packages else []
         global_context = global_context if global_context else {}
-
-        loader = jinja2.PrefixLoader({
-            package_name: jinja2.PackageLoader(package_name, 'templates')
-            for package_name in template_packages
-        })
-        if template_dir is not None:
-            loader = jinja2.ChoiceLoader([
-                jinja2.FileSystemLoader(template_dir),
-                loader
-            ])
-
+        loader = jinja2.FileSystemLoader(template_dir)
         self.env = jinja2.Environment(autoescape=True, loader=loader)
         for key, value in global_context.items():
             self.env.globals[key] = value

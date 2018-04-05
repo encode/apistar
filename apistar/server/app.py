@@ -28,7 +28,6 @@ class App():
                  base_dir=None,
                  template_dir='templates',
                  static_dir='static',
-                 installed_packages=('apistar',),
                  schema_url='/schema/',
                  static_url='/static/',
                  components=None,
@@ -42,8 +41,8 @@ class App():
         routes = routes + self.include_extra_routes(schema_url, static_url)
         self.init_document(routes)
         self.init_router(routes)
-        self.init_templates(template_dir, installed_packages)
-        self.init_staticfiles(static_url, static_dir, installed_packages)
+        self.init_templates(template_dir)
+        self.init_staticfiles(static_url, static_dir)
         self.init_injector(components)
         self.init_hooks(event_hooks)
 
@@ -69,12 +68,12 @@ class App():
     def init_router(self, routes):
         self.router = Router(routes)
 
-    def init_templates(self, template_dir: str=None, installed_packages: list=None):
+    def init_templates(self, template_dir: str=None):
         template_globals = {'reverse_url': self.reverse_url}
-        self.templates = Templates(template_dir, installed_packages, template_globals)
+        self.templates = Templates(template_dir, template_globals)
 
-    def init_staticfiles(self, static_url: str, static_dir: str=None, installed_packages: list=None):
-        self.statics = StaticFiles(static_url, static_dir, installed_packages)
+    def init_staticfiles(self, static_url: str, static_dir: str=None):
+        self.statics = StaticFiles(static_url, static_dir)
 
     def init_injector(self, components=None):
         components = components if components else []
@@ -218,8 +217,8 @@ class ASyncApp(App):
             if hasattr(hook, 'on_error')
         ] + [self.finalize_asgi]
 
-    def init_staticfiles(self, static_url: str, static_dir: str=None, installed_packages: list=None):
-        self.statics = ASyncStaticFiles(static_url, static_dir, installed_packages)
+    def init_staticfiles(self, static_url: str, static_dir: str=None):
+        self.statics = ASyncStaticFiles(static_url, static_dir)
 
     def __call__(self, scope):
         async def asgi_callable(receive, send):

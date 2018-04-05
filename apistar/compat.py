@@ -8,6 +8,18 @@ else:
 
 
 try:
+    import whitenoise
+except ImportError:
+    whitenoise = None
+
+
+try:
+    import aiofiles
+except ImportError:
+    aiofiles = None
+
+
+try:
     # Ideally we subclass `_TemporaryFileWrapper` to present a clear __repr__
     # for downloaded files.
     from tempfile import _TemporaryFileWrapper
