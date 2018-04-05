@@ -713,7 +713,7 @@ Here's an example that makes the `User` annotation available to handler function
 
 ```python
 from apistar import App, Route, exceptions, http
-from apistar.server.components import BaseComponent
+from apistar.server.components import Component
 
 
 class User(object):
@@ -721,8 +721,8 @@ class User(object):
         self.username = username
 
 
-class UserComponent(BaseComponent):
-    def provide(authorization: http.Header) -> User:
+class UserComponent(Component):
+    def resolve(authorization: http.Header) -> User:
         """
         Determine the user associated with a request, using HTTP Basic Authentication.
         """
