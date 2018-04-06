@@ -113,8 +113,8 @@ class App():
     def render_template(self, path: str, **context):
         return self.templates.render_template(path, **context)
 
-    def serve(self, host, port, use_debugger=False):
-        werkzeug.run_simple(host, port, self, use_debugger=use_debugger)
+    def serve(self, host, port, **options):
+        werkzeug.run_simple(host, port, self, **options)
 
     def render_response(self, response):
         if isinstance(response, Response):
