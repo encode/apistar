@@ -5,6 +5,7 @@ cache: pip
 python:
     - "3.5"
     - "3.6"
+    - "pypy3.5"
 
 env:
     - DB_URL=postgresql://:@localhost/apistar
