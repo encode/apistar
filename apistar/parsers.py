@@ -51,7 +51,7 @@ class MultiPartParser():
         content_length = self.get_content_length(headers)
         parser = FormDataParser()
         stream, form, files = parser.parse(stream, mimetype, content_length, options)
-        return ImmutableMultiDict(list(form.items()) + list(files.items()))
+        return ImmutableMultiDict(list(form.items(multi=True)) + list(files.items(multi=True)))
 
 
 DEFAULT_PARSERS = [
