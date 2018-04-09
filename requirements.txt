@@ -11,5 +11,6 @@ whitenoise
 codecov
 flake8
 isort
+# mypy ; implementation_name != 'pypy'
 pytest
 pytest-cov

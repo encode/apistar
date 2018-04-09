@@ -9,4 +9,6 @@ set -x
 
 ${PREFIX}flake8 apistar tests
 ${PREFIX}isort apistar tests --recursive --check-only
-#${PREFIX}mypy apistar tests --ignore-missing-imports
+# if ! expr "$TRAVIS_PYTHON_VERSION" : 'pypy'; then
+#     ${PREFIX}mypy apistar tests --ignore-missing-imports
+# fi
