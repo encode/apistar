@@ -78,7 +78,7 @@ def get_stream(environ: WSGIEnviron):
 def get_request_data(headers: http.Headers, injector: Injector, settings: Settings):
     content_type = headers.get('Content-Type')
     if not content_type:
-        return None
+        raise exceptions.ValidationError(detail='No content type specified')
 
     media_type, _ = parse_options_header(content_type)
     parser_mapping = {
