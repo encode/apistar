@@ -67,6 +67,7 @@ be in sync with your codebase.
     - [0.3 Release](#03-release)
     - [0.2 Release](#02-release)
 - [Development](#development)
+- [Common 3rd party packages](#common-3rd-party-packages)
 
 ---
 
@@ -1464,6 +1465,13 @@ To run the continuous integration tests and code linting:
 $ ./scripts/test
 $ ./scripts/lint
 ```
+---
+
+# Common 3rd party packages
+
+- [apistar-jwt](https://github.com/audiolion/apistar-jwt)
+- [apistar_alembic_migrations](https://github.com/colanconnon/apistar_alembic_migrations)
+
 ---
 
 <p align="center"><i>API Star is <a href="https://github.com/tomchristie/apistar/blob/master/LICENSE.md">BSD licensed</a> code.<br/>Designed & built in Brighton, England.</i><br/>&mdash; ⭐️ &mdash;</p>
