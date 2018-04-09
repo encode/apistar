@@ -1327,7 +1327,7 @@ $ apistar run
 # Serve on port 9001 and use IPv6 only
 $ apistar run --port 9001 --host ::1
 # If you don't like the Werkzeug web debugger, turn it off
-$ apistar run --no-debugger
+$ apistar run --no-debug
 ```
 ## Running in Production
 
