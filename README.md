@@ -1345,6 +1345,10 @@ Typically you'll want to run as many workers as you have CPU cores on the server
 ### Running an ASyncIOApp project
 
 For asyncio applications, use `uvicorn`.
+
+**Note that you'll need to make sure to install `uvicorn==0.0.15`, since the latest
+version updates the messaging interface to use ASGI.**
+
 ```bash
 $ uvicorn app:app --workers=4 --bind=0.0.0.0:5000 --pid=pid
 ```
