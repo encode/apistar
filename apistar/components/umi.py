@@ -16,7 +16,7 @@ def get_method(message: UMIMessage):
 
 def get_url(message: UMIMessage):
     scheme = message['scheme']
-    host, port = message['server']
+    host, port = message['server'][0:2]
     path = message['path']
 
     if (scheme == 'http' and port != 80) or (scheme == 'https' and port != 443):
