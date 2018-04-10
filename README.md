@@ -718,6 +718,8 @@ An event hook instance may include any or all of the following methods:
 The signature of the method may include any components that would be available
 on a handler function.
 
+If no valid route is found (HTTP 404 Exception), then `on_request` and `on_response` won't be called. Only `on_error` will be called.
+
 ---
 
 # Dependency Injection
