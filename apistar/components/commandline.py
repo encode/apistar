@@ -5,7 +5,7 @@ import typing
 
 from apistar import exceptions
 from apistar.interfaces import CommandLineClient
-from apistar.types import CommandConfig, HandlerLookup
+from apistar.types import CommandConfig, HandlerLookup, AppLoader
 
 
 def main(usage):
@@ -33,10 +33,19 @@ class ArgParseCommandLineClient(CommandLineClient):
                 if annotation is inspect.Parameter.empty:
                     annotation = str
 
-                if issubclass(annotation, (str, int, float, bool)):
+                supported_types = (str, int, float, bool, typing.Callable)
+                if issubclass(annotation, supported_types):
                     name = param_name.replace('_', '-')
                     default = param.default
-                    if default is inspect.Parameter.empty:
+
+                    if annotation in [AppLoader]:
+                        command.add_positional(
+                            param_name,
+                            metavar=name.upper(),
+                            help=description,
+                            type=default
+                        )
+                    elif default is inspect.Parameter.empty:
                         command.add_positional(
                             param_name,
                             metavar=name.upper(),

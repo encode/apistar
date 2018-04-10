@@ -2,6 +2,9 @@ import pytest
 
 from apistar import Command, exceptions
 from apistar.frameworks.cli import CliApp
+from apistar.frameworks.wsgi import WSGIApp
+from apistar.types import AppLoader
+from apistar.commands.run import import_app
 
 
 def no_args():
@@ -28,12 +31,27 @@ def default_args(a=True, b=False, c: int=None, d: float=None):
     return 'a=%s, b=%s, c=%s, d=%s' % (a, b, c, d)
 
 
+def app_loader_args(a: AppLoader=import_app):
+    """
+    Returns the values for a.
+
+    Args:
+      a: A parameter.
+    """
+    return 'a=%s' % type(a)
+
+
 commands = [
     Command('no_args', no_args),
     Command('required_args', required_args),
-    Command('default_args', default_args)
+    Command('default_args', default_args),
+    Command('app_loader_args', app_loader_args)
 ]
 app = CliApp(commands=commands)
+
+
+wsgi_app = WSGIApp()
+wsgi_app.__call__ = lambda *args, **kwargs: print('ok.')
 
 
 def _get_help_lines(content):
@@ -53,7 +71,6 @@ def test_main():
 
 def test_help():
     ret = app.main(['--help'], standalone_mode=False)
-    print(ret)
     assert _get_help_lines(ret) == [
         "Usage: <progname> COMMAND [OPTIONS] [ARGS]...",
         "",
@@ -63,10 +80,14 @@ def test_help():
         "  --help  Show this message and exit.",
         "",
         "Commands:",
-        "  new            Create a new project in TARGET_DIR.",
-        "  no_args        ",
-        "  required_args  Returns the values for a and b.",
-        "  default_args   Returns the values for a, b, c, and d, which have default values."
+        "  new              Create a new project in TARGET_DIR.",
+        "  run              Run the development server.",
+        "  schema           Generate an API schema.",
+        "  test             Run the test suite.",
+        "  no_args          ",
+        "  required_args    Returns the values for a and b.",
+        "  default_args     Returns the values for a, b, c, and d, which have default values.",
+        "  app_loader_args  Returns the values for a.",
     ]
 
 
@@ -111,6 +132,19 @@ def test_default_args_subcommand_help():
     ]
 
 
+def test_app_loader_subcommand_help():
+    ret = app.main(['app_loader_args', '--help'], standalone_mode=False)
+    lines = _get_help_lines(ret)
+    assert lines == [
+        "Usage: <progname> app_loader_args A [OPTIONS]",
+        "",
+        "  Returns the values for a.",
+        "",
+        "Options:",
+        "  --help  Show this message and exit.",
+    ]
+
+
 def test_noargs():
     ret = app.main(['no_args'], standalone_mode=False)
     assert ret == 'abc'
@@ -136,6 +170,11 @@ def test_default_args():
 
     ret = app.main(['default_args', '--d', '123'], standalone_mode=False)
     assert ret == 'a=True, b=False, c=None, d=123.0'
+
+
+def test_app_loader_args():
+    ret = app.main(['app_loader_args', 'tests.test_commandline:wsgi_app'], standalone_mode=False)
+    assert ret == "a=<class 'apistar.frameworks.wsgi.WSGIApp'>"
 
 
 def test_unknown_command():

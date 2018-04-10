@@ -54,6 +54,7 @@ Settings = typing.NewType('Settings', dict)
 # that a component is being injected into. These allow for behavior such
 # as components that make a lookup based on the parameter name used.
 
+AppLoader = typing.Callable[[str], typing.Any]
 ParamName = typing.NewType('ParamName', str)
 ParamAnnotation = typing.NewType('ParamAnnotation', type)
 ReturnValue = typing.TypeVar('ReturnValue')
