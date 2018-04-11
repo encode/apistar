@@ -15,7 +15,7 @@ from apistar import test
 from myproject import app
 
 
-client = test.Client(app)
+client = test.TestClient(app)
 
 def test_hello_world():
     response = client.get('/hello_world/')
