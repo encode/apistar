@@ -47,7 +47,7 @@ version = get_version('apistar')
 setup(
     name='apistar',
     version=version,
-    url='http://discuss.apistar.org',
+    url='http://www.encode.io/apistar/',
     license='BSD',
     description='Blazingly fast & beautifully expressive Web APIs',
     author='Tom Christie',
@@ -55,16 +55,11 @@ setup(
     packages=get_packages('apistar'),
     package_data=get_package_data('apistar'),
     install_requires=[
-        'coreapi',
         'jinja2',
-        'pytest',
         'requests',
         'werkzeug',
         'whitenoise'
     ],
-    extras_require={
-        'asyncio': ['uvicorn', 'uvitools']
-    },
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Environment :: Web Environment',
@@ -76,9 +71,4 @@ setup(
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
     ],
-    entry_points={
-        'console_scripts': [
-            'apistar=apistar:main'
-        ],
-    },
 )
