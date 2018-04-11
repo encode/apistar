@@ -2,12 +2,12 @@
     "docs": [
         {
             "location": "/", 
-            "text": "API Star\n\n\nA smart Web API framework, designed for Python 3.\n\n\n\n\n\nCommunity:\n \nhttps://discuss.apistar.org/\n \ud83e\udd14 \ud83d\udcad \ud83e\udd13 \ud83d\udcac \ud83d\ude0e\n\n\n\n\nQuickstart\n\n\nInstall API Star:\n\n\n$ pip3 install apistar\n\n\n\n\nCreate a new project in \napp.py\n:\n\n\nfrom apistar import App, Route\n\n\ndef welcome(name=None):\n    if name is None:\n        return {'message': 'Welcome to API Star!'}\n    return {'message': 'Welcome to API Star, %s!' % name}\n\n\nroutes = [\n    Route('/', method='GET', handler=welcome),\n]\n\napp = App(routes=routes)\n\n\nif __name__ == '__main__':\n    app.serve('127.0.0.1', 5000, use_debugger=True, use_reloader=True)", 
+            "text": "API Star\n\n\nA smart Web API framework, designed for Python 3.\n\n\n\n\n\nCommunity:\n \nhttps://discuss.apistar.org/\n \ud83e\udd14 \ud83d\udcad \ud83e\udd13 \ud83d\udcac \ud83d\ude0e\n\n\nRepository\n: \nhttps://github.com/encode/apistar\n \ud83d\udcbb\n\n\n\n\nQuickstart\n\n\nInstall API Star:\n\n\n$ pip3 install apistar\n\n\n\n\nCreate a new project in \napp.py\n:\n\n\nfrom apistar import App, Route\n\n\ndef welcome(name=None):\n    if name is None:\n        return {'message': 'Welcome to API Star!'}\n    return {'message': 'Welcome to API Star, %s!' % name}\n\n\nroutes = [\n    Route('/', method='GET', handler=welcome),\n]\n\napp = App(routes=routes)\n\n\nif __name__ == '__main__':\n    app.serve('127.0.0.1', 5000, use_debugger=True, use_reloader=True)", 
             "title": "Home"
         }, 
         {
             "location": "/#api-star", 
-            "text": "A smart Web API framework, designed for Python 3.   Community:   https://discuss.apistar.org/  \ud83e\udd14 \ud83d\udcad \ud83e\udd13 \ud83d\udcac \ud83d\ude0e", 
+            "text": "A smart Web API framework, designed for Python 3.   Community:   https://discuss.apistar.org/  \ud83e\udd14 \ud83d\udcad \ud83e\udd13 \ud83d\udcac \ud83d\ude0e  Repository :  https://github.com/encode/apistar  \ud83d\udcbb", 
             "title": "API Star"
         }, 
         {
