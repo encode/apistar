@@ -77,18 +77,26 @@ class Injector(BaseInjector):
         steps.append(step)
         return steps
 
-    def run(self, funcs, state):
+    def resolve_functions(self, funcs):
+        steps = []
+        seen_state = set(self.initial)
         for func in funcs:
-            try:
-                steps = self.resolver_cache[func]
-            except KeyError:
-                steps = self.resolve_function(func)
-                self.resolver_cache[func] = steps
+            func_steps = self.resolve_function(func, seen_state=seen_state)
+            steps.extend(func_steps)
+        return steps
 
-            for func, is_async, kwargs, consts, output_name in steps:
-                func_kwargs = {key: state[val] for key, val in kwargs.items()}
-                func_kwargs.update(consts)
-                state[output_name] = func(**func_kwargs)
+    def run(self, funcs, state):
+        funcs = tuple(funcs)
+        try:
+            steps = self.resolver_cache[funcs]
+        except KeyError:
+            steps = self.resolve_functions(funcs)
+            self.resolver_cache[funcs] = steps
+
+        for func, is_async, kwargs, consts, output_name in steps:
+            func_kwargs = {key: state[val] for key, val in kwargs.items()}
+            func_kwargs.update(consts)
+            state[output_name] = func(**func_kwargs)
 
         return state['response']
 
@@ -97,19 +105,19 @@ class ASyncInjector(Injector):
     allow_async = True
 
     async def run_async(self, funcs, state):
-        for func in funcs:
-            try:
-                steps = self.resolver_cache[func]
-            except KeyError:
-                steps = self.resolve_function(func)
-                self.resolver_cache[func] = steps
+        funcs = tuple(funcs)
+        try:
+            steps = self.resolver_cache[funcs]
+        except KeyError:
+            steps = self.resolve_functions(funcs)
+            self.resolver_cache[funcs] = steps
 
-            for func, is_async, kwargs, consts, output_name in steps:
-                func_kwargs = {key: state[val] for key, val in kwargs.items()}
-                func_kwargs.update(consts)
-                if is_async:
-                    state[output_name] = await func(**func_kwargs)
-                else:
-                    state[output_name] = func(**func_kwargs)
+        for func, is_async, kwargs, consts, output_name in steps:
+            func_kwargs = {key: state[val] for key, val in kwargs.items()}
+            func_kwargs.update(consts)
+            if is_async:
+                state[output_name] = await func(**func_kwargs)
+            else:
+                state[output_name] = func(**func_kwargs)
 
         return state['response']
