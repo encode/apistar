@@ -8,6 +8,7 @@ from apistar.server.adapters import ASGItoWSGIAdapter
 from apistar.server.asgi import (
     ASGI_COMPONENTS, ASGIReceive, ASGIScope, ASGISend
 )
+from apistar.server.components import Component
 from apistar.server.core import Route, generate_document
 from apistar.server.injector import ASyncInjector, Injector
 from apistar.server.router import Router
@@ -31,6 +32,14 @@ class App():
 
         if static_dir is None:
             static_url = None
+
+        # Guard against some easy misconfiguration.
+        if components:
+            msg = 'components must be a list of instances of Component.'
+            assert all([isinstance(component, Component) for component in components]), msg
+        if event_hooks:
+            msg = 'event_hooks must be a list of instances, not classes.'
+            assert not any([isinstance(event_hook, type) for event_hook in event_hooks]), msg
 
         routes = routes + self.include_extra_routes(schema_url, static_url)
         self.init_document(routes)
