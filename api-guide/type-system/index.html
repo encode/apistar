@@ -136,6 +136,7 @@
             <li><a href="#validation">Validation</a></li>
             <li><a href="#serialization">Serialization</a></li>
             <li><a href="#api-reference">API Reference</a></li>
+            <li><a href="#formats">Formats</a></li>
     </ul>
 </div></div>
                 <div class="col-md-9" role="main">
@@ -213,59 +214,128 @@ def list_products() -&gt; typing.List[Product]:
 <h3 id="string">String</h3>
 <p>Validates string data.</p>
 <ul>
-<li><code>default</code> - A default to be used if a field using this typesystem is missing from a parent <code>Object</code>.</li>
+<li><code>default</code> - A default to be used if a field using this typesystem is missing from a parent <code>Type</code>.</li>
+<li><code>title</code> - A title to use in API schemas and documentation.</li>
+<li><code>description</code> - A description to use in API schemas and documentation.</li>
 <li><code>max_length</code> - A maximum valid length for the data.</li>
 <li><code>min_length</code> - A minimum valid length for the data.</li>
 <li><code>pattern</code> - A string or compiled regex that the data must match.</li>
+<li><code>enum</code> - A list of valid strings that the input must match against.</li>
 <li><code>format</code> - An identifier indicating a complex datatype with a string representation. For example <code>"date"</code>, to represent an ISO 8601 formatted date string.</li>
-<li><code>trim_whitespace</code> - <code>True</code> if leading and trailing whitespace should be stripped from the data. Defaults to <code>True</code>.</li>
-<li><code>description</code> - A description for online documentation</li>
+<li><code>allow_null</code> - Indicates if <code>None</code> should be considered a valid value. Defaults to <code>False</code>.</li>
 </ul>
 <h3 id="number">Number</h3>
 <p>Validates numeric data.</p>
 <ul>
-<li><code>default</code> - A default to be used if a field using this typesystem is missing from a parent <code>Object</code>.</li>
+<li><code>default</code> - A default to be used if a field using this typesystem is missing from a parent <code>Type</code>.</li>
+<li><code>title</code> - A title to use in API schemas and documentation.</li>
+<li><code>description</code> - A description to use in API schemas and documentation.</li>
 <li><code>maximum</code> - A float representing the maximum valid value for the data.</li>
 <li><code>minimum</code> - A float representing the minimum valid value for the data.</li>
 <li><code>exclusive_maximum</code> - <code>True</code> for an exclusive maximum limit. Defaults to <code>False</code>.</li>
 <li><code>exclusive_minimum</code> - <code>True</code> for an exclusive minimum limit. Defaults to <code>False</code>.</li>
 <li><code>multiple_of</code> - A float that the data must be strictly divisible by, in order to be valid.</li>
-<li><code>description</code> - A description for online documentation</li>
+<li><code>enum</code> - A list of valid numbers that the input must match against.</li>
+<li><code>allow_null</code> - Indicates if <code>None</code> should be considered a valid value. Defaults to <code>False</code>.</li>
 </ul>
 <h3 id="integer">Integer</h3>
 <p>Validates integer data.</p>
 <ul>
-<li><code>default</code> - A default to be used if a field using this typesystem is missing from a parent <code>Object</code>.</li>
+<li><code>default</code> - A default to be used if a field using this typesystem is missing from a parent <code>Type</code>.</li>
+<li><code>title</code> - A title to use in API schemas and documentation.</li>
+<li><code>description</code> - A description to use in API schemas and documentation.</li>
 <li><code>maximum</code> - An int representing the maximum valid value for the data.</li>
 <li><code>minimum</code> - An int representing the minimum valid value for the data.</li>
 <li><code>exclusive_maximum</code> - <code>True</code> for an exclusive maximum limit. Defaults to <code>False</code>.</li>
 <li><code>exclusive_minimum</code> - <code>True</code> for an exclusive minimum limit. Defaults to <code>False</code>.</li>
 <li><code>multiple_of</code> - An integer that the data must be strictly divisible by, in order to be valid.</li>
-<li><code>description</code> - A description for online documentation</li>
+<li><code>enum</code> - A list of valid numbers that the input must match against.</li>
+<li><code>allow_null</code> - Indicates if <code>None</code> should be considered a valid value. Defaults to <code>False</code>.</li>
 </ul>
 <h3 id="boolean">Boolean</h3>
 <p>Validates boolean input.</p>
 <ul>
-<li><code>default</code> - A default to be used if a field using this typesystem is missing from a parent <code>Object</code>.</li>
-<li><code>description</code> - A description for online documentation</li>
+<li><code>default</code> - A default to be used if a field using this typesystem is missing from a parent <code>Type</code>.</li>
+<li><code>title</code> - A title to use in API schemas and documentation.</li>
+<li><code>description</code> - A description to use in API schemas and documentation.</li>
+<li><code>allow_null</code> - Indicates if <code>None</code> should be considered a valid value. Defaults to <code>False</code>.</li>
 </ul>
 <h3 id="object">Object</h3>
 <p>Validates dictionary input.</p>
 <ul>
-<li><code>default</code> - A default to be used if a field using this typesystem is missing from a parent <code>Object</code>.</li>
-<li><code>properties</code> - A dictionary mapping string key names to typesystem or type values.</li>
-<li><code>description</code> - A description for online documentation</li>
+<li><code>default</code> - A default to be used if a field using this typesystem is missing from a parent <code>Type</code>.</li>
+<li><code>title</code> - A title to use in API schemas and documentation.</li>
+<li><code>description</code> - A description to use in API schemas and documentation.</li>
+<li><code>properties</code> - A dictionary mapping string key names to child validators.</li>
+<li><code>pattern_properties</code> - A dictionary mapping regex key names to child validators.</li>
+<li><code>additional_properties</code> - <code>True</code> if additional properties should be allowed. <code>None</code> if additional properties should be discarded. <code>False</code> if additional properties should raise errors. Or a validator instance, to type check any additional properties against.</li>
+<li><code>min_properties</code> - An integer indicating the minimum number of properties that may be present. Defaults to <code>None</code>.</li>
+<li><code>max_properties</code> - An integer indicating the maximum number of properties that may be present. Defaults to <code>None</code>.</li>
+<li><code>required</code> - A list of strings, indicating which properties are required.</li>
+<li><code>allow_null</code> - Indicates if <code>None</code> should be considered a valid value. Defaults to <code>False</code>.</li>
 </ul>
-<p>Note that child properties are considered to be required if they do not have a <code>default</code> value.</p>
+<p>You'll typically want to use the simpler declarative <code>Type</code> style for
+describing dictionary inputs, but the <code>Object</code> validator may be useful if you
+need more general purpose validation.</p>
 <h3 id="array">Array</h3>
 <p>Validates list input.</p>
 <ul>
-<li><code>items</code> - A typesystem or type or a list of typesystems or types.</li>
+<li><code>default</code> - A default to be used if a field using this typesystem is missing from a parent <code>Type</code>.</li>
+<li><code>title</code> - A title to use in API schemas and documentation.</li>
+<li><code>description</code> - A description to use in API schemas and documentation.</li>
+<li><code>items</code> - A validator or a list of validators.</li>
 <li><code>additional_items</code> - Whether additional items past the end of the listed typesystem types are permitted.</li>
 <li><code>min_items</code> - The minimum number of items the array must contain.</li>
 <li><code>max_items</code> - The maximum number of items the array must contain.</li>
 <li><code>unique_items</code> - Whether repeated items are permitted in the array.</li>
 <li><code>description</code> - A description for online documentation</li>
+<li><code>allow_null</code> - Indicates if <code>None</code> should be considered a valid value. Defaults to <code>False</code>.</li>
+</ul>
+<h2 id="formats">Formats</h2>
+<p>The following validators return a native python representation, but can be serialized to strings.</p>
+<p>Let's declare a new type to see how they work...</p>
+<pre><code class="python">from apistar import types, validators
+
+
+class Event(types.Type):
+    when = validators.DateTime()
+    description = validators.String(max_length=100)
+</code></pre>
+
+<p>When accessed as attributes on a type, these validators return the native python value.</p>
+<pre><code class="python">&gt;&gt;&gt; data = {'when': '2021-06-15T12:31:38.269545', 'description': 'New customer signup'}
+&gt;&gt;&gt; event = Event(when)
+&gt;&gt;&gt; event.when
+datetime.datetime(2018, 4, 11, 12, 31, 38, 269000)
+</code></pre>
+
+<p>You can also access the serialized string representation if needed.</p>
+<pre><code class="python">&gt;&gt;&gt; event['when']
+'2021-04-11T12:31:38.269545'
+&gt;&gt;&gt; dict(event)
+{'when': '2018-06-15T12:31:38.269545', 'description': 'New customer signup'}
+</code></pre>
+
+<h3 id="date">Date</h3>
+<ul>
+<li><code>default</code> - A default to be used if a field using this typesystem is missing from a parent <code>Type</code>.</li>
+<li><code>title</code> - A title to use in API schemas and documentation.</li>
+<li><code>description</code> - A description to use in API schemas and documentation.</li>
+<li><code>allow_null</code> - Indicates if <code>None</code> should be considered a valid value. Defaults to <code>False</code>.</li>
+</ul>
+<h3 id="time">Time</h3>
+<ul>
+<li><code>default</code> - A default to be used if a field using this typesystem is missing from a parent <code>Type</code>.</li>
+<li><code>title</code> - A title to use in API schemas and documentation.</li>
+<li><code>description</code> - A description to use in API schemas and documentation.</li>
+<li><code>allow_null</code> - Indicates if <code>None</code> should be considered a valid value. Defaults to <code>False</code>.</li>
+</ul>
+<h3 id="datetime">DateTime</h3>
+<ul>
+<li><code>default</code> - A default to be used if a field using this typesystem is missing from a parent <code>Type</code>.</li>
+<li><code>title</code> - A title to use in API schemas and documentation.</li>
+<li><code>description</code> - A description to use in API schemas and documentation.</li>
+<li><code>allow_null</code> - Indicates if <code>None</code> should be considered a valid value. Defaults to <code>False</code>.</li>
 </ul></div>
         </div>
 
