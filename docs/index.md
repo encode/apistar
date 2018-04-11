@@ -14,6 +14,8 @@ A smart Web API framework, designed for Python 3.
 
 **Community:** [https://discuss.apistar.org/](https://discuss.apistar.org/) 🤔 💭 🤓 💬 😎
 
+**Repository**: [https://github.com/encode/apistar](https://github.com/encode/apistar) 💻
+
 ---
 
 # Quickstart
