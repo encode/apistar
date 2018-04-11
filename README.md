@@ -18,7 +18,7 @@ Why might you consider using API Star for your next Web API project?
 * **Schema generation** - Support for automatically generating OpenAPI schemas.
 * **Expressive** - Type annotated views, that make for expressive, testable code.
 * **Performance** - Dynamic behaviour for determining how to run each view makes API Star incredibly efficient.
-* **Throughput** - Support for asyncio to allow for building high-throughput non-blocking applications.
+* **Throughput** - Support for asyncio allows for building high-throughput non-blocking applications.
 
 ---
 
