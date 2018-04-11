@@ -197,9 +197,9 @@ When accessed as attributes on a type, these validators return the native python
 
 ```python
 >>> data = {'when': '2021-06-15T12:31:38.269545', 'description': 'New customer signup'}
->>> event = Event(when)
+>>> event = Event(data)
 >>> event.when
-datetime.datetime(2018, 4, 11, 12, 31, 38, 269000)
+datetime.datetime(2021, 06, 15, 12, 31, 38, 269545)
 ```
 
 You can also access the serialized string representation if needed.
@@ -208,7 +208,7 @@ You can also access the serialized string representation if needed.
 >>> event['when']
 '2021-04-11T12:31:38.269545'
 >>> dict(event)
-{'when': '2018-06-15T12:31:38.269545', 'description': 'New customer signup'}
+{'when': '2021-04-11T12:31:38.269545', 'description': 'New customer signup'}
 ```
 
 ### Date
