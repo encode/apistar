@@ -32,7 +32,7 @@ class UserComponent(Component):
 
         username, password = base64.b64decode(token).decode('utf-8').split(':')
         if not self.check_authentication(username, password):
-            raise exceptions.PermissionDenied('Incorrect username or password.')
+            raise exceptions.Forbidden('Incorrect username or password.')
 
         return User(username)
 
