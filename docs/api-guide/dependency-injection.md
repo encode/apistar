@@ -83,21 +83,20 @@ The following components are already installed by default.
 
 Class                          | Notes
 -------------------------------|-------
-http.Method                    |
-http.URL                       |
-http.Scheme                    |
-http.Host                      |
-http.Port                      |
-http.Path                      |
-http.QueryString               |
-http.QueryParams               |
+http.Method                    | The http method, as an uppercased string.
+http.URL                       | The full request URL, as a string-like object.
+http.Scheme                    | The scheme, either `http` or `https`.
+http.Host                      | The server hostname, as a string.
+http.Port                      | The server port, as an integer.
+http.Path                      | The URL path, excluding any querystring.
+http.QueryString               | The querystring from the URL. eg. "color=red&size=medium".
 http.QueryParam                | A single query parameter, looked up against the parameter name.
-http.Headers                   |
+http.Headers                   | A multidict
 http.Header                    | A single query parameter, looked up against the parameter name.
-http.Body                      |
-http.Request                   |
+http.Body                      | The request body, as a bytestring.
+http.Request                   | The incoming request. Includes `url`, `method`, `headers`, and `body` attributes.
 http.PathParams                | The matched path parameters for the incoming request.
-App                            | The current application. Made available as `App` for both sync and async applications.
+App                            | The current application. Made available as `App` for both multithreaded and async applications.
 Route                          | The matched route for the incoming request.
 Exception                      | `None` unless exception handling is running.
 server.wsgi.WSGIEnviron        | Only for `App`.
