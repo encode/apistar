@@ -13,3 +13,5 @@ pages:
         - Dependency Injection: api-guide/dependency-injection.md
         - Testing: api-guide/testing.md
         - Deployment: api-guide/deployment.md
+    - Topics:
+        - Release Notes: topics/release-notes.md
