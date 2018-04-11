@@ -81,4 +81,27 @@ app = App(routes=routes, components=components, event_hooks=event_hooks)
 
 The following components are already installed by default.
 
-**TODO**
+Class                          | Notes
+-------------------------------|-------
+http.Method                    |
+http.URL                       |
+http.Scheme                    |
+http.Host                      |
+http.Port                      |
+http.Path                      |
+http.QueryString               |
+http.QueryParams               |
+http.QueryParam                | A single query parameter, looked up against the parameter name.
+http.Headers                   |
+http.Header                    | A single query parameter, looked up against the parameter name.
+http.Body                      |
+http.Request                   |
+http.PathParams                | The matched path parameters for the incoming request.
+App                            | The current application. Made available as `App` for both sync and async applications.
+Route                          | The matched route for the incoming request.
+Exception                      | `None` unless exception handling is running.
+server.wsgi.WSGIEnviron        | Only for `App`.
+server.wsgi.WSGIStartResponse  | Only for `App`.
+server.asgi.ASGIScope          | Only for `ASyncApp`.
+server.asgi.ASGIReceive        | Only for `ASyncApp`.
+server.asgi.ASGISend           | Only for `ASyncApp`.
