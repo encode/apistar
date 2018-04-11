@@ -9,6 +9,7 @@ yet made their way back in to the project:
 * The API Docs have not yet been re-introduced.
 * The command routing has not yet been re-introduced.
 * The `apistar` command line tool has not yet been re-introduced.
+* The ORM components have been removed. We'll be pushing for this kind of functionality to be addressed as third-party packages instead.
 
 However the overall state of the project is in a much better place than it
 was in 0.3, and I'm confident that we've now got a great base to build on.
