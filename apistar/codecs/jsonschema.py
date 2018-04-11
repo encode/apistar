@@ -67,12 +67,17 @@ def get_typestrings(struct):
     """
     type_strings = struct.get('type', [])
     if isinstance(type_strings, str):
-        type_strings = set([type_strings])
+        type_strings = {
+            type_strings
+        }
     else:
         type_strings = set(type_strings)
 
     if not type_strings:
-        type_strings = set(['null', 'boolean', 'object', 'array', 'number', 'string'])
+        type_strings = {
+            'null', 'boolean', 'object',
+            'array', 'number', 'string'
+        }
 
     if 'integer' in type_strings and 'number' in type_strings:
         type_strings.remove('integer')
@@ -84,13 +89,13 @@ def is_any(type_strings, struct):
     """
     Return true if all types are valid, and there are no type constraints.
     """
-    ALL_PROPERTY_NAMES = set([
-        'exclusiveMaximum', 'format', 'minItems', 'pattern', 'required',
-        'multipleOf', 'maximum', 'minimum', 'maxItems', 'minLength',
-        'uniqueItems', 'additionalItems', 'maxLength', 'items',
-        'exclusiveMinimum', 'properties', 'additionalProperties',
-        'minProperties', 'maxProperties', 'patternProperties'
-    ])
+    ALL_PROPERTY_NAMES = {
+        'exclusiveMaximum', 'format', 'minItems', 'pattern', 'required', 'multipleOf', 'maximum',
+        'minimum', 'maxItems', 'minLength', 'uniqueItems', 'additionalItems', 'maxLength', 'items',
+        'exclusiveMinimum', 'properties', 'additionalProperties', 'minProperties', 'maxProperties',
+        'patternProperties'
+    }
+
     return len(type_strings) == 6 and not set(struct.keys()) & ALL_PROPERTY_NAMES
 
 
@@ -100,29 +105,40 @@ def load_type(typename, struct, allow_null):
     if typename == 'string':
         if 'minLength' in struct:
             attrs['min_length'] = struct['minLength']
+
         if 'maxLength' in struct:
             attrs['max_length'] = struct['maxLength']
+
         if 'pattern' in struct:
             attrs['pattern'] = struct['pattern']
+
         if 'format' in struct:
             attrs['format'] = struct['format']
+
         return validators.String(**attrs)
 
     if typename in ['number', 'integer']:
         if 'minimum' in struct:
             attrs['minimum'] = struct['minimum']
+
         if 'maximum' in struct:
             attrs['maximum'] = struct['maximum']
+
         if 'exclusiveMinimum' in struct:
             attrs['exclusive_minimum'] = struct['exclusiveMinimum']
+
         if 'exclusiveMaximum' in struct:
             attrs['exclusive_maximum'] = struct['exclusiveMaximum']
+
         if 'multipleOf' in struct:
             attrs['multiple_of'] = struct['multipleOf']
+
         if 'format' in struct:
             attrs['format'] = struct['format']
+
         if typename == 'integer':
             return validators.Integer(**attrs)
+
         return validators.Number(**attrs)
 
     if typename == 'boolean':
@@ -134,24 +150,31 @@ def load_type(typename, struct, allow_null):
                 (key, decode(value))
                 for key, value in struct['properties'].items()
             ])
+
         if 'required' in struct:
             attrs['required'] = struct['required']
+
         if 'minProperties' in struct:
             attrs['min_properties'] = struct['minProperties']
+
         if 'maxProperties' in struct:
             attrs['max_properties'] = struct['maxProperties']
+
         if 'required' in struct:
             attrs['required'] = struct['required']
+
         if 'patternProperties' in struct:
             attrs['pattern_properties'] = dict_type([
                 (key, decode(value))
                 for key, value in struct['patternProperties'].items()
             ])
+
         if 'additionalProperties' in struct:
             if isinstance(struct['additionalProperties'], bool):
                 attrs['additional_properties'] = struct['additionalProperties']
             else:
                 attrs['additional_properties'] = decode(struct['additionalProperties'])
+
         return validators.Object(**attrs)
 
     if typename == 'array':
@@ -160,17 +183,22 @@ def load_type(typename, struct, allow_null):
                 attrs['items'] = [decode(item) for item in struct['items']]
             else:
                 attrs['items'] = decode(struct['items'])
+
         if 'additionalItems' in struct:
             if isinstance(struct['additionalItems'], bool):
                 attrs['additional_items'] = struct['additionalItems']
             else:
                 attrs['additional_items'] = decode(struct['additionalItems'])
+
         if 'minItems' in struct:
             attrs['min_items'] = struct['minItems']
+
         if 'maxItems' in struct:
             attrs['max_items'] = struct['maxItems']
+
         if 'uniqueItems' in struct:
             attrs['unique_items'] = struct['uniqueItems']
+
         return validators.Array(**attrs)
 
     assert False
@@ -215,6 +243,7 @@ class JSONSchemaCodec(BaseCodec):
                 'indent': None,
                 'separators': (',', ':')
             }
+
         return json.dumps(struct, **kwargs).encode('utf-8')
 
     def encode_to_data_structure(self, item, defs=None, def_prefix=None, is_def=False):

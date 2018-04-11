@@ -52,9 +52,11 @@ class Client():
 
     def get_content_and_encoding(self, link, params):
         body_field = link.get_body_field()
+
         if body_field and body_field.name in params:
-            return (params[body_field.name], link.encoding)
-        return (None, None)
+            return params[body_field.name], link.encoding
+
+        return None, None
 
     def request(self, name: str, **params):
         link = self.lookup_link(name)
@@ -64,12 +66,13 @@ class Client():
             required=[field.name for field in link.fields if field.required],
             additional_properties=False
         )
+
         validator.validate(params)
 
         method = link.method
         url = self.get_url(link, params)
         query_params = self.get_query_params(link, params)
-        (content, encoding) = self.get_content_and_encoding(link, params)
+        content, encoding = self.get_content_and_encoding(link, params)
 
         return self.transport.send(
             method,

@@ -39,6 +39,7 @@ class Route():
                     float: validators.Number(),
                     str: validators.String()
                 }[param.annotation]
+
                 field = Field(name=name, location='path', schema=schema)
                 fields.append(field)
 
@@ -49,6 +50,7 @@ class Route():
                     kwargs = {'default': None, 'allow_null': True}
                 else:
                     kwargs = {'default': param.default}
+
                 schema = {
                     param.empty: None,
                     int: validators.Integer(**kwargs),
@@ -56,6 +58,7 @@ class Route():
                     bool: validators.Boolean(**kwargs),
                     str: validators.String(**kwargs)
                 }[param.annotation]
+
                 field = Field(name=name, location='query', schema=schema)
                 fields.append(field)
 
@@ -101,6 +104,7 @@ def generate_document(routes):
             content.append(item.link)
         elif isinstance(item, Include) and item.documented:
             content.append(item.section)
+
     return Document(content=content)
 
 

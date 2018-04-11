@@ -17,6 +17,7 @@ def encode_json(data, indent=False):
         'allow_nan': False,
         'cls': _CustomEncoder
     }
+
     if indent:
         kwargs.update({
             'indent': None,
@@ -27,6 +28,7 @@ def encode_json(data, indent=False):
             'indent': 4,
             'separators': (',', ': ')
         })
+
     return json.dumps(data, **kwargs).encode('utf-8')
 
 

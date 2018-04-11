@@ -1,20 +1,22 @@
 import os
+
 from collections import namedtuple
 from http import cookiejar
+from typing import Any
 
 File = namedtuple('File', 'name content content_type')
 File.__new__.__defaults__ = (None,)
 
 
-def is_file(obj):
+def is_stream_object(obj: Any) -> bool:
+    return hasattr(obj, '__iter__') and not isinstance(obj, (str, list, tuple, dict))
+
+
+def is_file(obj: Any) -> bool:
     if isinstance(obj, File):
         return True
 
-    if hasattr(obj, '__iter__') and not isinstance(obj, (str, list, tuple, dict)):
-        # A stream object.
-        return True
-
-    return False
+    return is_stream_object(obj)
 
 
 def guess_filename(obj):

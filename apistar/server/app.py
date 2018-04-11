@@ -153,12 +153,15 @@ class App():
             'path_params': None,
             'route': None
         }
+
         method = environ['REQUEST_METHOD'].upper()
         path = environ['PATH_INFO']
+
         try:
             route, path_params = self.router.lookup(path, method)
             state['route'] = route
             state['path_params'] = path_params
+
             if route.standalone:
                 funcs = [route.handler]
             else:
@@ -167,6 +170,7 @@ class App():
                     [route.handler] +
                     self.on_response_functions
                 )
+
             return self.injector.run(funcs, state)
         except Exception as exc:
             state['exc'] = exc
@@ -186,6 +190,7 @@ class ASyncApp(App):
             extra_routes += [
                 Route(schema_url, method='GET', handler=serve_schema, documented=False)
             ]
+
         if static_url:
             static_url = static_url.rstrip('/') + '/{+filename}'
             extra_routes += [
@@ -243,8 +248,10 @@ class ASyncApp(App):
                 'path_params': None,
                 'route': None
             }
+
             method = scope['method']
             path = scope['path']
+
             try:
                 route, path_params = self.router.lookup(path, method)
                 state['route'] = route

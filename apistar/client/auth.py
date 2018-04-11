@@ -43,6 +43,8 @@ class SessionAuthentication(AuthBase):
     def __call__(self, request):
         if self.csrf_token and self.csrf_header_name is not None and (request.method not in self.safe_methods):
             request.headers[self.csrf_header_name] = self.csrf_token
+
         if self.csrf_cookie_name is not None:
             request.register_hook('response', self.store_csrf_token)
+
         return request
