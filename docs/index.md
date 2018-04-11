@@ -18,7 +18,7 @@ A smart Web API framework, designed for Python 3.
 
 ---
 
-# Quickstart
+## Quickstart
 
 Install API Star:
 
