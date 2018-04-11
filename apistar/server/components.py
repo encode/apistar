@@ -23,9 +23,14 @@ class Component():
 
     def can_handle_parameter(self, parameter: inspect.Parameter):
         # Return `True` if this component can handle the given parameter.
-        # The default behavior is for components to handle a particular
-        # class or set of classes, however you could override this if you
-        # wanted name-based parameter resolution.
+        #
+        # The default behavior is for components to handle whatever class
+        # is used as the return annotation by the `resolve` method.
+        #
+        # You can override this for more customized styles, for example if you
+        # wanted name-based parameter resolution, or if you want to provide
+        # a value for a range of different types.
+        #
         # Eg. Include the `Request` instance for any parameter named `request`.
         return_annotation = inspect.signature(self.resolve).return_annotation
         if return_annotation is inspect.Signature.empty:
