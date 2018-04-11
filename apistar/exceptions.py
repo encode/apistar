@@ -1,47 +1,49 @@
 from typing import Union
 
 
-class TypeSystemError(Exception):
-    def __init__(self,
-                 detail: Union[str, dict]=None,
-                 cls: type=None,
-                 code: str=None) -> None:
-
-        if cls is not None and code is not None:
-            errors = getattr(cls, 'errors')
-            detail = errors[code].format(**cls.__dict__)
-
+class ValidationError(Exception):
+    def __init__(self, detail):
+        assert isinstance(detail, (str, dict))
         self.detail = detail
-        super().__init__(detail)
+        super(ValidationError, self).__init__(detail)
+
+
+class ParseError(Exception):
+    """
+    Raised by a Codec when `decode` fails due to malformed syntax.
+    """
+    pass
 
 
 class NoReverseMatch(Exception):
+    """
+    Raised by a Router when `reverse_url` is passed an invalid handler name.
+    """
     pass
 
 
-class TemplateNotFound(Exception):
+class ErrorResponse(Exception):
+    """
+    Raised when a client request results in an error response being returned.
+    """
+    def __init__(self, title, content):
+        self.title = title
+        self.content = content
+
+
+class RequestError(Exception):
+    """
+    Raised when some invalid parameter is used in a client request.
+    """
     pass
 
 
-class CouldNotResolveDependency(Exception):
+class NoCodecAvailable(Exception):
     pass
 
 
 class ConfigurationError(Exception):
     pass
-
-
-class CommandLineError(Exception):
-    def __init__(self, message: str, exit_code: int=1) -> None:
-        self.exit_code = exit_code
-        self.message = message
-        super().__init__(message)
-
-
-class CommandLineExit(Exception):
-    def __init__(self, message: str) -> None:
-        self.message = message
-        super().__init__(message)
 
 
 # HTTP exceptions
@@ -58,6 +60,9 @@ class HTTPException(Exception):
         assert self.detail is not None, '"detail" is required.'
         assert self.status_code is not None, '"status_code" is required.'
 
+    def get_headers(self):
+        return {}
+
 
 class Found(HTTPException):
     default_status_code = 302
@@ -70,10 +75,8 @@ class Found(HTTPException):
         self.location = location
         super().__init__(detail, status_code)
 
-
-class ValidationError(HTTPException):
-    default_status_code = 400
-    default_detail = 'Validation error'
+    def get_headers(self):
+        return {'Location': self.location}
 
 
 class BadRequest(HTTPException):
@@ -103,4 +106,4 @@ class NotAcceptable(HTTPException):
 
 class UnsupportedMediaType(HTTPException):
     default_status_code = 415
-    default_detail = 'Unsupported media type'
+    default_detail = 'Unsupported Content-Type header in request'

@@ -1,20 +1,15 @@
 # Core requirements
-coreapi
-jinja2
 requests
 werkzeug
-whitenoise
 
 # Optional
-django
-psycopg2
-sqlalchemy
-dj-database-url
+aiofiles
+jinja2
+whitenoise
 
 # Testing requirements
 codecov
 flake8
 isort
-mypy
 pytest
 pytest-cov

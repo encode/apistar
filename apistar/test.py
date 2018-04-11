@@ -1,31 +1,9 @@
 import asyncio
 import io
 import typing
-from http import HTTPStatus
 from urllib.parse import unquote, urlparse
 
 import requests
-
-from apistar.interfaces import App
-
-
-def _get_reason_phrase(status_code: int) -> str:
-    try:
-        return HTTPStatus(status_code).phrase
-    except ValueError:
-        return ''
-
-
-def _coerce_to_str(item: typing.Union[str, bytes]):
-    if isinstance(item, bytes):
-        return item.decode()
-    return item
-
-
-def _coerce_to_bytes(item: typing.Union[str, bytes]):
-    if isinstance(item, str):
-        return item.encode()
-    return item
 
 
 class _HeaderDict(requests.packages.urllib3._collections.HTTPHeaderDict):
@@ -89,7 +67,7 @@ class _WSGIAdapter(requests.adapters.HTTPAdapter):
             key = key.upper().replace('-', '_')
             if key not in ('CONTENT_LENGTH', 'CONTENT_TYPE'):
                 key = 'HTTP_' + key
-            environ[key] = _coerce_to_str(value)
+            environ[key] = value
 
         return environ
 
@@ -120,118 +98,93 @@ class _WSGIAdapter(requests.adapters.HTTPAdapter):
         return self.build_response(request, raw)
 
 
-class _MockReplyChannel():
-    def __init__(self):
-        self.status = None
-        self.headers = None
-        self.body = b''
-
-    async def send(self, message):
-        if 'status' in message:
-            self.status = message['status']
-        if 'headers' in message:
-            self.headers = message['headers']
-        if 'content' in message:
-            self.body += message['content']
-
-
-class _UMIAdapter(requests.adapters.HTTPAdapter):
-    """
-    A transport adapter for `requests` that makes requests directly to a
-    asyncio app, rather than making actual HTTP requests over the network.
-    """
+class _ASGIAdapter(requests.adapters.HTTPAdapter):
     def __init__(self, app: typing.Callable) -> None:
         self.app = app
 
-    def get_message(self, request: requests.PreparedRequest) -> typing.Dict[str, typing.Any]:
-        """
-        Given a `requests.PreparedRequest` instance, return a WSGI environ dict.
-        """
-        body = request.body
-        if isinstance(body, str):
-            body_bytes = body.encode("utf-8")  # type: bytes
+    def send(self, request, *args, **kwargs):
+        scheme, netloc, path, params, query, fragement = urlparse(request.url)
+        if ':' in netloc:
+            host, port = netloc.split(':', 1)
+            port = int(port)
         else:
-            body_bytes = body
+            host = netloc
+            port = {'http': 80, 'https': 443}[scheme]
 
-        url_components = urlparse(request.url)
-        message = {
-            'method': request.method,
-            'scheme': url_components.scheme,
-            'path': unquote(url_components.path),
-            'body': body_bytes,
-            'query_string': url_components.query.encode()
-        }  # type: typing.Dict[str, typing.Any]
-
-        if url_components.port:
-            message['server'] = [
-                url_components.hostname,
-                url_components.port
-            ]
+        # Include the 'host' header.
+        if 'host' in request.headers:
+            headers = []
+        elif port == 80:
+            headers = [[b'host', host.encode()]]
         else:
-            message['server'] = [
-                url_components.hostname,
-                443 if (url_components.scheme == 'https') else 80
-            ]
+            headers = [[b'host', ('%s:%d' % (host, port)).encode()]]
 
-        message['headers'] = [
-            [b'host', url_components.hostname.encode()]
-        ] + [
-            [_coerce_to_bytes(key), _coerce_to_bytes(value)]
+        # Include other request headers.
+        headers += [
+            [key.encode(), value.encode()]
             for key, value in request.headers.items()
         ]
 
-        return message
-
-    def send(self, request, *args, **kwargs):
-        """
-        Make an outgoing request to a WSGI application.
-        """
-        # Make the outgoing request via WSGI.
-        reply = _MockReplyChannel()
-        message = self.get_message(request)
-        channels = {'reply': reply}
-
-        task = self.app(message, channels)
-        loop = asyncio.get_event_loop()
-        loop.run_until_complete(task)
-
-        status = reply.status
-        headers = reply.headers
-        body = reply.body
-
-        assert status is not None
-        assert headers is not None
-
-        string_headers = [
-            (key.decode(), value.decode())
-            for key, value in headers
-        ]
-
-        raw_kwargs = {
-            'status': status,
-            'reason': _get_reason_phrase(status),
-            'headers': string_headers,
-            'version': 11,
-            'preload_content': False,
-            'original_response': _MockOriginalResponse(string_headers),
-            'body': io.BytesIO(body)
+        scope = {
+            'type': 'http',
+            'http_version': '1.1',
+            'method': request.method,
+            'path': unquote(path),
+            'root_path': '',
+            'scheme': scheme,
+            'query_string': query.encode(),
+            'headers': headers,
+            'client': ['testclient', 50000],
+            'server': [host, port],
         }
 
-        # Build the underlying urllib3.HTTPResponse
-        raw = requests.packages.urllib3.HTTPResponse(**raw_kwargs)
+        async def receive():
+            body = request.body
+            if isinstance(body, str):
+                body_bytes = body.encode("utf-8")  # type: bytes
+            elif body is None:
+                body_bytes = b''
+            else:
+                body_bytes = body
+            return {
+                'type': 'http.request',
+                'body': body_bytes,
+            }
 
-        # Build the requests.Response
+        async def send(message):
+            if message['type'] == 'http.response.start':
+                raw_kwargs['version'] = 11
+                raw_kwargs['status'] = message['status']
+                raw_kwargs['headers'] = [
+                    (key.decode(), value.decode())
+                    for key, value in message['headers']
+                ]
+                raw_kwargs['preload_content'] = False
+                raw_kwargs['original_response'] = _MockOriginalResponse(raw_kwargs['headers'])
+            elif message['type'] == 'http.response.body':
+                raw_kwargs['body'] = io.BytesIO(message['body'])
+            elif message['type'] == 'http.disconnect':
+                pass
+            else:
+                raise Exception("Unknown ASGI message type: %s" % message['type'])
+
+        raw_kwargs = {}
+        connection = self.app(scope)
+
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(connection(receive, send))
+
+        raw = requests.packages.urllib3.HTTPResponse(**raw_kwargs)
         return self.build_response(request, raw)
 
 
 class _TestClient(requests.Session):
-    def __init__(self, app: App, scheme: str, hostname: str) -> None:
+    def __init__(self, app: typing.Callable, scheme: str, hostname: str) -> None:
         super(_TestClient, self).__init__()
-        app_callable = typing.cast(typing.Callable, app)
-        if asyncio.iscoroutinefunction(getattr(app, '__call__')):
-            adapter = _UMIAdapter(app_callable)  # type: requests.adapters.HTTPAdapter
+        if app.interface == 'asgi':
+            adapter = _ASGIAdapter(app)
         else:
-            adapter = _WSGIAdapter(app_callable)
+            adapter = _WSGIAdapter(app)
         self.mount('http://', adapter)
         self.mount('https://', adapter)
         self.headers.update({'User-Agent': 'testclient'})
@@ -249,7 +202,7 @@ class _TestClient(requests.Session):
         return super().request(method, url, **kwargs)
 
 
-def TestClient(app: App, scheme: str='http', hostname: str='testserver') -> _TestClient:
+def TestClient(app: typing.Callable, scheme: str='http', hostname: str='testserver') -> _TestClient:
     """
     We have to work around py.test discovery attempting to pick up
     the `TestClient` class, by declaring this as a function.

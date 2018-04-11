@@ -1,7 +1,9 @@
-import collections
-import io
+import json
 import typing
+from http import HTTPStatus
 from urllib.parse import urlparse
+
+from apistar import types
 
 Method = typing.NewType('Method', str)
 Scheme = typing.NewType('Scheme', str)
@@ -12,10 +14,18 @@ QueryString = typing.NewType('QueryString', str)
 QueryParam = typing.NewType('QueryParam', str)
 Header = typing.NewType('Header', str)
 Body = typing.NewType('Body', bytes)
-
-RequestStream = typing.NewType('RequestStream', io.BufferedIOBase)
+PathParams = typing.NewType('PathParams', dict)
+PathParam = typing.NewType('PathParam', str)
 RequestData = typing.TypeVar('RequestData')
-ResponseData = typing.TypeVar('ResponseData')
+
+
+RESPONSE_STATUS_TEXT = {
+    code: str(code) for code in range(100, 600)
+}
+RESPONSE_STATUS_TEXT.update({
+    status.value: "%d %s" % (status.value, status.phrase)
+    for status in HTTPStatus
+})
 
 
 class URL(str):
@@ -32,9 +42,8 @@ class URL(str):
 
 
 # Type annotations for valid `__init__` values to QueryParams and Headers.
-StringPairsSequence = typing.Sequence[typing.Tuple[str, str]]
-StringPairsMapping = typing.Mapping[str, str]
-StringPairs = typing.Union[StringPairsSequence, StringPairsMapping]
+StrPairs = typing.Sequence[typing.Tuple[str, str]]
+StrMapping = typing.Mapping[str, str]
 
 
 class QueryParams(typing.Mapping[str, str]):
@@ -42,12 +51,12 @@ class QueryParams(typing.Mapping[str, str]):
     An immutable multidict.
     """
 
-    def __init__(self, value: StringPairs) -> None:
+    def __init__(self, value: typing.Union[StrMapping, StrPairs]=None) -> None:
+        if value is None:
+            value = []
         if hasattr(value, 'items'):
-            value = typing.cast(StringPairsMapping, value)
             items = list(value.items())
         else:
-            value = typing.cast(StringPairsSequence, value)
             items = list(value)
         self._dict = {k: v for k, v in reversed(items)}
         self._list = items
@@ -66,6 +75,12 @@ class QueryParams(typing.Mapping[str, str]):
 
     def items(self):
         return list(self._list)
+
+    def get(self, key, default=None):
+        if key in self._dict:
+            return self._dict[key]
+        else:
+            return default
 
     def __getitem__(self, key):
         return self._dict[key]
@@ -93,15 +108,13 @@ class Headers(typing.Mapping[str, str]):
     An immutable, case-insensitive multidict.
     """
 
-    def __init__(self, value: StringPairs=None) -> None:
+    def __init__(self, value: typing.Union[StrMapping, StrPairs]=None) -> None:
         if value is None:
             value = []
         if hasattr(value, 'items'):
-            value = typing.cast(StringPairsMapping, value)
-            items = [(k.lower(), v) for k, v in list(value.items())]
+            items = [(k.lower(), str(v)) for k, v in list(value.items())]
         else:
-            value = typing.cast(StringPairsSequence, value)
-            items = [(k.lower(), v) for k, v in list(value)]
+            items = [(k.lower(), str(v)) for k, v in list(value)]
         self._dict = {k: v for k, v in reversed(items)}
         self._list = items
 
@@ -121,10 +134,17 @@ class Headers(typing.Mapping[str, str]):
     def items(self):
         return list(self._list)
 
+    def get(self, key: str, default: str=None):
+        key = key.lower()
+        if key in self._dict:
+            return self._dict[key]
+        else:
+            return default
+
     def __getitem__(self, key: str):
         return self._dict[key.lower()]
 
-    def __contains__(self, key):
+    def __contains__(self, key: str):
         return key.lower() in self._dict
 
     def __iter__(self):
@@ -139,72 +159,23 @@ class Headers(typing.Mapping[str, str]):
         return sorted(self._list) == sorted(other._list)
 
     def __repr__(self):
-        return 'Headers(%s)' % repr(self._list)
+        return '%s(%s)' % (self.__class__.__name__, repr(self._list))
 
 
-class ResponseHeaders(Headers):
-    def __setitem__(self, key: str, value: str) -> None:
-        """
-        Add or update a header.
-        """
-        key_lower = key.lower()
-        if key_lower in self._dict:
-            # Drop any existing occurances from the list.
+class MutableHeaders(Headers):
+    def __setitem__(self, key: str, value: str):
+        key = key.lower()
+        value = str(value)
+
+        if key not in self._dict:
+            self._dict[key] = value
+            self._list.append((key, value))
+        else:
+            self._dict[key] = value
             self._list = [
-                (item_key, item_value) for item_key, item_value in self._list
-                if item_key != key_lower
+                (item_key, value) if item_key == key else (item_key, item_value)
+                for item_key, item_value in self._list
             ]
-        self._dict[key_lower] = value
-        self._list.append((key_lower, value))
-
-    def append(self, key: str, value: str) -> None:
-        """
-        Add a header, preserving any existing occurances.
-        """
-        key_lower = key.lower()
-        if key_lower not in self._dict:
-            self._dict[key_lower] = value
-        self._list.append((key_lower, value))
-
-    def update(self, other: StringPairs) -> None:
-        if hasattr(other, 'items'):
-            other = typing.cast(StringPairsMapping, other)
-            for key, value in other.items():
-                self[key] = value
-        else:
-            other = typing.cast(StringPairsSequence, other)
-            for key, value in other:
-                self[key] = value
-
-
-class Session(object):
-    def __init__(self, session_id: str, data: typing.Dict[str, typing.Any]=None) -> None:
-        if data is not None:
-            self.data = data
-            self.is_new = False
-        else:
-            self.data = {}
-            self.is_new = True
-
-        self.is_modified = False
-        self.session_id = session_id
-
-    def __getitem__(self, key: str) -> typing.Any:
-        return self.data[key]
-
-    def __contains__(self, key: str) -> bool:
-        return key in self.data
-
-    def get(self, key: str, default=None) -> typing.Any:
-        return self.data.get(key, default)
-
-    def __setitem__(self, key: str, value: typing.Any) -> None:
-        self.data[key] = value
-        self.is_modified = True
-
-    def __delitem__(self, key: str):
-        del self.data[key]
-        self.is_modified = True
 
 
 class Request():
@@ -213,27 +184,70 @@ class Request():
                  url: URL,
                  headers: Headers=None,
                  body: Body=None) -> None:
-        if headers is None:  # pragma: nocover
-            headers = Headers({})
-        if body is None:  # pragma: nocover
-            body = Body(b'')
-
         self.method = method
         self.url = url
-        self.headers = headers
-        self.body = body
+        self.headers = Headers() if (headers is None) else headers
+        self.body = Body(b'') if (body is None) else body
 
 
-class Response(collections.abc.Iterable):
+class Response():
+    media_type = None
+    charset = 'utf-8'
+
     def __init__(self,
-                 content: typing.Any=b'',
-                 status: int=200,
-                 headers: StringPairs=None,
-                 content_type: str=None) -> None:
-        self.content = content
-        self.status = status
-        self.headers = ResponseHeaders(headers) or ResponseHeaders()
-        self.content_type = content_type
+                 content: typing.Any,
+                 status_code: int=200,
+                 headers: typing.Union[StrMapping, StrPairs]=None) -> None:
+        self.content = self.render(content)
+        self.status_code = status_code
+        self.headers = MutableHeaders(headers)
+        self.set_default_headers()
 
-    def __iter__(self) -> typing.Iterator:
-        return iter((self.content, self.status, self.headers, self.content_type))
+    def render(self, content: typing.Any) -> bytes:
+        if isinstance(content, bytes):
+            return content
+        elif isinstance(content, str) and self.charset is not None:
+            return content.encode(self.charset)
+
+        valid_types = "bytes" if self.charset is None else "string or bytes"
+        raise RuntimeError(
+            "%s content must be %s. Got %s." %
+            (self.__class__.__name__, valid_types, type(content).__name__)
+        )
+
+    def set_default_headers(self):
+        if 'Content-Length' not in self.headers:
+            self.headers['Content-Length'] = str(len(self.content))
+
+        if 'Content-Type' not in self.headers and self.media_type is not None:
+            content_type = self.media_type
+            if self.charset is not None:
+                content_type += '; charset=%s' % self.charset
+            self.headers['Content-Type'] = content_type
+
+
+class HTMLResponse(Response):
+    media_type = 'text/html'
+    charset = 'utf-8'
+
+
+class JSONResponse(Response):
+    media_type = 'application/json'
+    charset = None
+    options = {
+        'ensure_ascii': False,
+        'allow_nan': False,
+        'indent': None,
+        'separators': (',', ':'),
+    }
+
+    def render(self, content: typing.Any) -> bytes:
+        options = {'default': self.default}
+        options.update(self.options)
+        return json.dumps(content, **options).encode('utf-8')
+
+    def default(self, obj: typing.Any) -> typing.Any:
+        if isinstance(obj, types.Type):
+            return dict(obj)
+        error = "Object of type '%s' is not JSON serializable."
+        return TypeError(error % type(obj).__name_)

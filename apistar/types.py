@@ -1,69 +1,102 @@
-"""
-Type annotations that may be used in handler functions.
-"""
-import typing
+from abc import ABCMeta
+from collections.abc import Mapping
 
-from apistar import typesystem
-from apistar.core import Command, Include, Route
-
-# URL & Command Routing
-# =====================
-
-# The handler and kwargs associated with a URL lookup or parsed CLI arguments.
-
-Handler = typing.TypeVar('Handler')
-KeywordArgs = typing.Dict[str, typing.Any]
-HandlerLookup = typing.Tuple[Handler, KeywordArgs]
+from apistar import validators
+from apistar.exceptions import ConfigurationError, ValidationError
 
 
-# HTTP environment
-# ================
+class TypeMetaclass(ABCMeta):
+    def __new__(cls, name, bases, attrs):
+        properties = []
+        for key, value in list(attrs.items()):
+            if key in ['keys', 'items', 'values', 'get', 'validator']:
+                msg = (
+                    'Cannot use reserved name "%s" on Type "%s", as it '
+                    'clashes with the class interface.'
+                )
+                raise ConfigurationError(msg % (key, name))
 
-# The raw information for an incoming HTTP request, either as a WSGI
-# environment, or using the Uvicorn Messaging Interface.
+            elif isinstance(value, validators.Validator):
+                attrs.pop(key)
+                properties.append((key, value))
 
-WSGIEnviron = typing.NewType('WSGIEnviron', dict)
-UMIMessage = typing.NewType('UMIMessage', dict)
-UMIChannels = typing.NewType('UMIChannels', dict)
+        properties = sorted(
+            properties,
+            key=lambda item: item[1]._creation_counter
+        )
+        required = [
+            key for key, value in properties
+            if not value.has_default()
+        ]
 
-
-# App config
-# ==========
-
-# Used for the 'routes' configuration of an app.
-
-RouteConfig = typing.Sequence[typing.Union[Route, Include]]
-RouteConfig.__name__ = 'RouteConfig'
-
-
-# Used for the 'commands' configuration of an app.
-
-CommandConfig = typing.Sequence[Command]
-CommandConfig.__name__ = 'CommandConfig'
-
-
-# Used for the 'settings' configuration of an app.
-
-Settings = typing.NewType('Settings', dict)
-
-
-# Dependency Injection
-# ====================
-
-# These types may be used to access meta-information about the parameter
-# that a component is being injected into. These allow for behavior such
-# as components that make a lookup based on the parameter name used.
-
-ParamName = typing.NewType('ParamName', str)
-ParamAnnotation = typing.NewType('ParamAnnotation', type)
-ReturnValue = typing.TypeVar('ReturnValue')
+        attrs['validator'] = validators.Object(
+            def_name=name,
+            properties=properties,
+            required=required,
+            additional_properties=None
+        )
+        return super(TypeMetaclass, cls).__new__(cls, name, bases, attrs)
 
 
-# Routing
-# =======
+class Type(Mapping, metaclass=TypeMetaclass):
+    def __init__(self, *args, **kwargs):
+        if args:
+            assert len(args) == 1
+            assert not kwargs
 
-# A string subclass that may be used for wildcard-matching URL kwargs,
-# unlike the default match which may not include the '/' character.
+            if args[0] is None or isinstance(args[0], (bool, int, float, list)):
+                raise ValidationError('Must be an object.')
+            elif isinstance(args[0], dict):
+                # Instantiated with a dict.
+                value = args[0]
+            else:
+                # Instantiated with an object instance.
+                value = {
+                    key: getattr(args[0], key)
+                    for key in self.validator.properties.keys()
+                }
+        else:
+            # Instantiated with keyword arguments.
+            value = kwargs
 
-class PathWildcard(typesystem.String):
-    pass
+        value = self.validate(value)
+        object.__setattr__(self, '_dict', value)
+
+    def validate(self, value):
+        return self.validator.validate(value)
+
+    def __repr__(self):
+        args = ['%s=%s' % (key, repr(value)) for key, value in self.items()]
+        arg_string = ', '.join(args)
+        return '<%s(%s)>' % (self.__class__.__name__, arg_string)
+
+    def __setattr__(self, key, value):
+        if key not in self._dict:
+            raise AttributeError('Invalid attribute "%s"' % key)
+        value = self.validator.properties[key].validate(value)
+        self._dict[key] = value
+
+    def __setitem__(self, key, value):
+        if key not in self._dict:
+            raise KeyError('Invalid key "%s"' % key)
+        value = self.validator.properties[key].validate(value)
+        self._dict[key] = value
+
+    def __getattr__(self, key):
+        return self._dict[key]
+
+    def __getitem__(self, key):
+        value = self._dict[key]
+        if value is None:
+            return None
+        validator = self.validator.properties[key]
+        if hasattr(validator, 'format') and validator.format in validators.FORMATS:
+            formatter = validators.FORMATS[validator.format]
+            return formatter.to_string(value)
+        return value
+
+    def __len__(self):
+        return len(self._dict)
+
+    def __iter__(self):
+        return iter(self._dict)

@@ -1,122 +1,78 @@
 import pytest
 
-from apistar import Route, TestClient, annotate, http
-from apistar.frameworks.asyncio import ASyncIOApp
-from apistar.frameworks.wsgi import WSGIApp
-from apistar.renderers import HTMLRenderer
-
-
-def to_native(obj):  # pragma: nocover  (Some cases only included for completeness)
-    if isinstance(obj, dict):
-        return {key: to_native(value) for key, value in obj.items()}
-    elif isinstance(obj, list):
-        return [to_native(value) for value in obj]
-    elif hasattr(obj, 'read'):
-        content = obj.read()
-        if isinstance(content, bytes):
-            content = content.decode('utf-8')
-        return content
-    elif hasattr(obj, '__dict__'):
-        return str(obj)
-    return obj
-
+from apistar import Route, http, test
+from apistar.server.app import App, ASyncApp
 
 # HTTP Components as parameters
 
-def get_request(request: http.Request) -> http.Response:
-    return http.Response({
+
+def get_request(request: http.Request):
+    return {
         'method': request.method,
         'url': request.url,
         'headers': dict(request.headers),
         'body': request.body.decode('utf-8')
-    })
+    }
 
 
-def get_method(method: http.Method) -> http.Response:
-    return http.Response({'method': method})
+def get_method(method: http.Method):
+    return {'method': method}
 
 
-def get_scheme(scheme: http.Scheme) -> http.Response:
-    return http.Response({'scheme': scheme})
+def get_scheme(scheme: http.Scheme):
+    return {'scheme': scheme}
 
 
-def get_host(host: http.Host) -> http.Response:
-    return http.Response({'host': host})
+def get_host(host: http.Host):
+    return {'host': host}
 
 
-def get_port(port: http.Port) -> http.Response:
-    return http.Response({'port': port})
+def get_port(port: http.Port):
+    return {'port': port}
 
 
-def get_path(path: http.Path) -> http.Response:
-    return http.Response({'path': path})
+def get_path(path: http.Path):
+    return {'path': path}
 
 
-def get_query_string(query_string: http.QueryString) -> http.Response:
-    return http.Response({'query_string': query_string})
+def get_query_string(query_string: http.QueryString):
+    return {'query_string': query_string}
 
 
-def get_query_params(query_string: http.QueryString, query_params: http.QueryParams) -> http.Response:
-    return http.Response({'query_params': dict(query_params)})
+def get_query_params(query_string: http.QueryString, query_params: http.QueryParams):
+    return {'query_params': dict(query_params)}
 
 
-def get_page_query_param(page: http.QueryParam) -> http.Response:
-    return http.Response({'page': page})
+def get_page_query_param(page: http.QueryParam):
+    return {'page': page}
 
 
-def get_url(url: http.URL) -> http.Response:
-    return http.Response({'url': url, 'url.components': url.components})
+def get_url(url: http.URL):
+    return {'url': url, 'url.components': url.components}
 
 
-def get_body(body: http.Body) -> http.Response:
-    return http.Response({'body': body.decode('utf-8')})
+def get_body(body: http.Body):
+    return {'body': body.decode('utf-8')}
 
 
-def get_stream(stream: http.RequestStream) -> http.Response:
-    return http.Response({'stream': stream.read().decode('utf-8')})
+def get_headers(headers: http.Headers):
+    return {'headers': dict(headers)}
 
 
-def get_data(data: http.RequestData) -> http.Response:
-    return http.Response({'data': to_native(data)})
+def get_accept_header(accept: http.Header):
+    return {'accept': accept}
 
 
-def get_headers(headers: http.Headers) -> http.Response:
-    return http.Response({'headers': dict(headers)})
+def get_missing_header(missing: http.Header):
+    return {'missing': missing}
 
 
-def get_accept_header(accept: http.Header) -> http.Response:
-    return http.Response({'accept': accept})
+def get_path_params(params: http.PathParams):
+    return {'params': params}
 
 
-# Different response types
-
-@annotate(renderers=[HTMLRenderer()])
-def binary_response():
-    return b'<html><h1>Hello, world</h1></html>'
-
-
-@annotate(renderers=[HTMLRenderer()])
-def text_response():
-    return '<html><h1>Hello, world</h1></html>'
-
-
-def data_response():
-    return {'hello': 'world'}
-
-
-def empty_response():
-    return None
-
-
-def unknown_status_code() -> http.Response:
-    data = {'hello': 'world'}
-    return http.Response(data, status=600)
-
-
-def response_headers() -> http.Response:
-    data = {'hello': 'world'}
-    headers = {'Content-Language': 'de'}
-    return http.Response(data, headers=headers)
+def get_request_data(data: http.RequestData):
+    return {'data': data}
 
 
 routes = [
@@ -132,52 +88,48 @@ routes = [
     Route('/page_query_param/', 'GET', get_page_query_param),
     Route('/url/', 'GET', get_url),
     Route('/body/', 'POST', get_body),
-    Route('/stream/', 'POST', get_stream),
-    Route('/data/', 'POST', get_data),
     Route('/headers/', 'GET', get_headers),
     Route('/headers/', 'POST', get_headers, name='post_headers'),
     Route('/accept_header/', 'GET', get_accept_header),
-    Route('/binary/', 'GET', binary_response),
-    Route('/text/', 'GET', text_response),
-    Route('/data/', 'GET', data_response),
-    Route('/empty/', 'GET', empty_response),
-    Route('/unknown_status_code/', 'GET', unknown_status_code),
-    Route('/response_headers/', 'GET', response_headers),
+    Route('/missing_header/', 'GET', get_missing_header),
+    Route('/path_params/{example}/', 'GET', get_path_params),
+    Route('/full_path_params/{+example}', 'GET', get_path_params, name='full_path_params'),
+    Route('/request_data/', 'POST', get_request_data),
 ]
 
-wsgi_app = WSGIApp(routes=routes)
-wsgi_client = TestClient(wsgi_app)
 
-async_app = ASyncIOApp(routes=routes)
-async_client = TestClient(async_app)
+@pytest.fixture(scope='module', params=['wsgi', 'asgi'])
+def client(request):
+    if request.param == 'asgi':
+        app = ASyncApp(routes=routes)
+    else:
+        app = App(routes=routes)
+    return test.TestClient(app)
 
 
-@pytest.mark.parametrize('client', [wsgi_client, async_client])
 def test_request(client):
-    response = client.get('http://example.com/request/')
+    response = client.get('/request/')
     assert response.json() == {
         'method': 'GET',
-        'url': 'http://example.com/request/',
+        'url': 'http://testserver/request/',
         'headers': {
             'accept': '*/*',
             'accept-encoding': 'gzip, deflate',
             'connection': 'keep-alive',
-            'host': 'example.com',
+            'host': 'testserver',
             'user-agent': 'testclient'
         },
         'body': ''
     }
 
 
-@pytest.mark.parametrize('client', [wsgi_client, async_client])
 def test_method(client):
-    response = client.get('http://example.com/method/')
+    response = client.get('/method/')
     assert response.json() == {'method': 'GET'}
-    response = client.post('http://example.com/method/')
+    response = client.post('/method/')
     assert response.json() == {'method': 'POST'}
 
 
-@pytest.mark.parametrize('client', [wsgi_client, async_client])
 def test_scheme(client):
     response = client.get('http://example.com/scheme/')
     assert response.json() == {'scheme': 'http'}
@@ -185,13 +137,11 @@ def test_scheme(client):
     assert response.json() == {'scheme': 'https'}
 
 
-@pytest.mark.parametrize('client', [wsgi_client, async_client])
 def test_host(client):
     response = client.get('http://example.com/host/')
     assert response.json() == {'host': 'example.com'}
 
 
-@pytest.mark.parametrize('client', [wsgi_client, async_client])
 def test_port(client):
     response = client.get('http://example.com/port/')
     assert response.json() == {'port': 80}
@@ -203,41 +153,36 @@ def test_port(client):
     assert response.json() == {'port': 123}
 
 
-@pytest.mark.parametrize('client', [wsgi_client, async_client])
 def test_path(client):
-    response = client.get('http://example.com/path/')
+    response = client.get('/path/')
     assert response.json() == {'path': '/path/'}
 
 
-@pytest.mark.parametrize('client', [wsgi_client, async_client])
 def test_query_string(client):
-    response = client.get('http://example.com/query_string/')
+    response = client.get('/query_string/')
     assert response.json() == {'query_string': ''}
-    response = client.get('http://example.com/query_string/?a=1&a=2&b=3')
+    response = client.get('/query_string/?a=1&a=2&b=3')
     assert response.json() == {'query_string': 'a=1&a=2&b=3'}
 
 
-@pytest.mark.parametrize('client', [wsgi_client, async_client])
 def test_query_params(client):
-    response = client.get('http://example.com/query_params/')
+    response = client.get('/query_params/')
     assert response.json() == {'query_params': {}}
-    response = client.get('http://example.com/query_params/?a=1&a=2&b=3')
+    response = client.get('/query_params/?a=1&a=2&b=3')
     assert response.json() == {
         'query_params': {'a': '1', 'b': '3'}
     }
 
 
-@pytest.mark.parametrize('client', [wsgi_client, async_client])
 def test_single_query_param(client):
-    response = client.get('http://example.com/page_query_param/')
+    response = client.get('/page_query_param/')
     assert response.json() == {'page': None}
-    response = client.get('http://example.com/page_query_param/?page=123')
+    response = client.get('/page_query_param/?page=123')
     assert response.json() == {'page': '123'}
-    response = client.get('http://example.com/page_query_param/?page=123&page=456')
+    response = client.get('/page_query_param/?page=123&page=456')
     assert response.json() == {'page': '123'}
 
 
-@pytest.mark.parametrize('client', [wsgi_client, async_client])
 def test_url(client):
     response = client.get('http://example.com/url/')
     assert response.json() == {
@@ -266,38 +211,11 @@ def test_url(client):
     }
 
 
-@pytest.mark.parametrize('client', [wsgi_client, async_client])
 def test_body(client):
-    response = client.post('http://example.com/body/', data="content")
+    response = client.post('/body/', data="content")
     assert response.json() == {'body': 'content'}
 
 
-@pytest.mark.parametrize('client', [wsgi_client, async_client])
-def test_stream(client):
-    response = client.post('http://example.com/stream/', data="content")
-    assert response.json() == {'stream': 'content'}
-
-
-@pytest.mark.parametrize('client', [wsgi_client, async_client])
-def test_data(client):
-    response = client.post('http://example.com/data/', json={"hello": 123})
-    assert response.json() == {'data': {'hello': 123}}
-
-    response = client.post('http://example.com/data/')
-    assert response.json() == {'data': None}
-
-    response = client.post('http://example.com/data/', data={'abc': 123})
-    assert response.json() == {'data': {'abc': '123'}}
-
-    csv_file = ('report.csv', '1,2,3\n4,5,6\n')
-    response = client.post('http://example.com/data/', files={'file': csv_file})
-    assert response.json() == {'data': {'file': '1,2,3\n4,5,6\n'}}
-
-    response = client.post('http://example.com/data/', headers={b'content-type': b'unknown'})
-    assert response.status_code == 415
-
-
-@pytest.mark.parametrize('client', [wsgi_client, async_client])
 def test_headers(client):
     response = client.get('http://example.com/headers/')
     assert response.json() == {'headers': {
@@ -331,79 +249,47 @@ def test_headers(client):
     }}
 
 
-@pytest.mark.parametrize('client', [wsgi_client, async_client])
 def test_accept_header(client):
-    response = client.get('http://example.com/accept_header/')
+    response = client.get('/accept_header/')
     assert response.json() == {'accept': '*/*'}
 
 
-@pytest.mark.parametrize('client', [wsgi_client, async_client])
-def test_binary_response(client):
-    response = client.get('/binary/')
-    assert response.text == '<html><h1>Hello, world</h1></html>'
-    assert response.headers['Content-Type'] == 'text/html; charset=utf-8'
+def test_missing_header(client):
+    response = client.get('/missing_header/')
+    assert response.json() == {'missing': None}
 
 
-@pytest.mark.parametrize('client', [wsgi_client, async_client])
-def test_text_response(client):
-    response = client.get('/text/')
-    assert response.text == '<html><h1>Hello, world</h1></html>'
-    assert response.headers['Content-Type'] == 'text/html; charset=utf-8'
+def test_path_params(client):
+    response = client.get('/path_params/abc/')
+    assert response.json() == {'params': {'example': 'abc'}}
+    response = client.get('/path_params/a%20b%20c/')
+    assert response.json() == {'params': {'example': 'a b c'}}
+    response = client.get('/path_params/abc/def/')
+    assert response.status_code == 404
 
 
-@pytest.mark.parametrize('client', [wsgi_client, async_client])
-def test_data_response(client):
-    response = client.get('/data/')
-    assert response.json() == {'hello': 'world'}
-    assert response.headers['Content-Type'] == 'application/json'
+def test_full_path_params(client):
+    response = client.get('/full_path_params/abc/def/')
+    assert response.json() == {'params': {'example': 'abc/def/'}}
 
 
-@pytest.mark.parametrize('client', [wsgi_client, async_client])
-def test_empty_response(client):
-    response = client.get('/empty/')
-    assert response.status_code == 204
-    assert response.text == ''
-
-
-@pytest.mark.parametrize('client', [wsgi_client, async_client])
-def test_request_with_invalid_json(client):
-    response = client.post(
-        'http://example.com/data/',
-        headers={'Content-Type': 'application/json'},
-        data='"hello": 123}'
-    )
+def test_request_data(client):
+    response = client.post('/request_data/', json={'abc': 123})
+    assert response.json() == {'data': {'abc': 123}}
+    response = client.post('/request_data/')
+    assert response.json() == {'data': None}
+    response = client.post('/request_data/', data=b'...', headers={'content-type': 'unknown'})
+    assert response.status_code == 415
+    response = client.post('/request_data/', data=b'...', headers={'content-type': 'application/json'})
     assert response.status_code == 400
-    assert response.json() == {'message': 'Invalid JSON'}
 
 
-@pytest.mark.parametrize('client', [wsgi_client, async_client])
-def test_request_with_empty_json(client):
-    response = client.post(
-        'http://example.com/data/',
-        headers={'Content-Type': 'application/json'}
-    )
-    assert response.status_code == 400
-    assert response.json() == {'message': 'Empty JSON'}
-
-
-@pytest.mark.parametrize('client', [wsgi_client, async_client])
-def test_unknown_status_code(client):
-    response = client.get('/unknown_status_code/')
-    assert response.status_code == 600
-    assert response.json() == {'hello': 'world'}
-    assert response.headers['Content-Type'] == 'application/json'
-
-
-@pytest.mark.parametrize('client', [wsgi_client, async_client])
-def test_response_headers(client):
-    response = client.get('/response_headers/')
-    assert response.headers['Content-Language'] == 'de'
-
-
-def test_headers_type():
+def test_headers_type(client):
     h = http.Headers([('a', '123'), ('A', '456'), ('b', '789')])
     assert 'a' in h
     assert 'A' in h
+    assert 'b' in h
+    assert 'B' in h
     assert 'c' not in h
     assert h['a'] == '123'
     assert h.get_list('a') == ['123', '456']
@@ -420,7 +306,7 @@ def test_headers_type():
     assert [('B', '456'), ('a', '123')] == http.Headers({'a': '123', 'b': '456'})
 
 
-def test_queryparams_type():
+def test_queryparams_type(client):
     q = http.QueryParams([('a', '123'), ('a', '456'), ('b', '789')])
     assert 'a' in q
     assert 'A' not in q
