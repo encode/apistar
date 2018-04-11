@@ -109,13 +109,14 @@ class PrimitiveParamComponent(Component):
                 query_params: ValidatedQueryParams):
         params = path_params if (parameter.name in path_params) else query_params
         has_default = parameter.default is not parameter.empty
+        allow_null = parameter.default is None
 
         param_validator = {
             parameter.empty: validators.Any(),
-            str: validators.String(),
-            int: validators.Integer(),
-            float: validators.Number(),
-            bool: validators.Boolean()
+            str: validators.String(allow_null=allow_null),
+            int: validators.Integer(allow_null=allow_null),
+            float: validators.Number(allow_null=allow_null),
+            bool: validators.Boolean(allow_null=allow_null)
         }[parameter.annotation]
 
         validator = validators.Object(
