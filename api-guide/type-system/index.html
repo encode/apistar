@@ -304,16 +304,16 @@ class Event(types.Type):
 
 <p>When accessed as attributes on a type, these validators return the native python value.</p>
 <pre><code class="python">&gt;&gt;&gt; data = {'when': '2021-06-15T12:31:38.269545', 'description': 'New customer signup'}
-&gt;&gt;&gt; event = Event(when)
+&gt;&gt;&gt; event = Event(data)
 &gt;&gt;&gt; event.when
-datetime.datetime(2018, 4, 11, 12, 31, 38, 269000)
+datetime.datetime(2021, 06, 15, 12, 31, 38, 269545)
 </code></pre>
 
 <p>You can also access the serialized string representation if needed.</p>
 <pre><code class="python">&gt;&gt;&gt; event['when']
 '2021-04-11T12:31:38.269545'
 &gt;&gt;&gt; dict(event)
-{'when': '2018-06-15T12:31:38.269545', 'description': 'New customer signup'}
+{'when': '2021-04-11T12:31:38.269545', 'description': 'New customer signup'}
 </code></pre>
 
 <h3 id="date">Date</h3>
