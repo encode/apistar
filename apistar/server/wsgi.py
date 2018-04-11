@@ -1,4 +1,5 @@
 import typing
+from http import HTTPStatus
 from inspect import Parameter
 from urllib.parse import parse_qsl
 from wsgiref.util import request_uri
@@ -10,6 +11,15 @@ from apistar.server.components import Component
 
 WSGIEnviron = typing.NewType('WSGIEnviron', dict)
 WSGIStartResponse = typing.NewType('WSGIStartResponse', typing.Callable)
+
+
+RESPONSE_STATUS_TEXT = {
+    code: str(code) for code in range(100, 600)
+}
+RESPONSE_STATUS_TEXT.update({
+    status.value: "%d %s" % (status.value, status.phrase)
+    for status in HTTPStatus
+})
 
 
 class MethodComponent(Component):

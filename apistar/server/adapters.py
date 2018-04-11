@@ -1,6 +1,6 @@
 import asyncio
 
-from apistar.http import RESPONSE_STATUS_TEXT
+from apistar.server.wsgi import RESPONSE_STATUS_TEXT
 
 
 class ASGItoWSGIAdapter(object):

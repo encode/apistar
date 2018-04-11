@@ -1,6 +1,5 @@
 import json
 import typing
-from http import HTTPStatus
 from urllib.parse import urlparse
 
 from apistar import types
@@ -17,15 +16,6 @@ Body = typing.NewType('Body', bytes)
 PathParams = typing.NewType('PathParams', dict)
 PathParam = typing.NewType('PathParam', str)
 RequestData = typing.TypeVar('RequestData')
-
-
-RESPONSE_STATUS_TEXT = {
-    code: str(code) for code in range(100, 600)
-}
-RESPONSE_STATUS_TEXT.update({
-    status.value: "%d %s" % (status.value, status.phrase)
-    for status in HTTPStatus
-})
 
 
 class URL(str):
