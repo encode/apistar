@@ -13,7 +13,11 @@ ValidatedRequestData = typing.TypeVar('ValidatedRequestData')
 
 class RequestDataComponent(Component):
     def __init__(self):
-        self.codecs = [codecs.JSONCodec()]
+        self.codecs = [
+            codecs.JSONCodec(),
+            codecs.URLEncodedCodec(),
+            codecs.MultiPartCodec(),
+        ]
 
     def can_handle_parameter(self, parameter: inspect.Parameter):
         return parameter.annotation is http.RequestData
