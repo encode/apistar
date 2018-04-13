@@ -380,19 +380,25 @@ class OpenAPICodec(BaseCodec):
         operation = {
             'operationId': operation_id
         }
+
         if link.title:
             operation['summary'] = link.title
+
         if link.description:
             operation['description'] = link.description
+
         if tag:
             operation['tags'] = [tag]
+
         if link.get_path_fields() or link.get_query_fields():
             operation['parameters'] = [
                 self.get_parameter(field, schema_defs) for field in
                 link.get_path_fields() + link.get_query_fields()
             ]
+
         if link.get_body_field():
             schema = link.get_body_field().schema
+
             if schema is None:
                 content_info = {}
             else:
@@ -409,6 +415,7 @@ class OpenAPICodec(BaseCodec):
                     link.encoding: content_info
                 }
             }
+
         return operation
 
     def get_parameter(self, field, schema_defs=None):
@@ -416,14 +423,18 @@ class OpenAPICodec(BaseCodec):
             'name': field.name,
             'in': field.location
         }
+
         if field.required:
             parameter['required'] = True
+
         if field.description:
             parameter['description'] = field.description
+
         if field.schema:
             parameter['schema'] = JSONSchemaCodec().encode_to_data_structure(
                 field.schema,
                 schema_defs,
                 '#/components/schemas/'
             )
+
         return parameter

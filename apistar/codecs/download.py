@@ -111,6 +111,7 @@ def _unique_output_path(path):
     while os.path.exists(path):
         idx += 1
         path = "%s (%d)%s" % (basename, idx, ext)
+
     return path
 
 
@@ -175,12 +176,16 @@ def _get_filename(base_url=None, content_type=None, content_disposition=None):
     Determine an output filename to use for the download.
     """
     filename = None
+
     if content_disposition:
         filename = _get_filename_from_content_disposition(content_disposition)
+
     if base_url and not filename:
         filename = _get_filename_from_url(base_url, content_type)
+
     if not filename:
         return None  # Ensure empty filenames return as `None` for consistency.
+
     return filename
 
 
@@ -235,4 +240,5 @@ class DownloadCodec(BaseCodec):
         output_file = open(output_path, 'rb')
         downloaded = DownloadedFile(output_file, output_path, delete=self._delete_on_close)
         downloaded.basename = output_filename
+
         return downloaded

@@ -76,7 +76,7 @@ class QueryParamsComponent(Component):
 class QueryParamComponent(Component):
     def resolve(self,
                 parameter: Parameter,
-                query_params: http.QueryParams) -> http.QueryParam:
+                query_params: http.QueryParams) -> typing.Optional[http.QueryParam]:
         name = parameter.name
         if name not in query_params:
             return None
@@ -100,7 +100,7 @@ class HeadersComponent(Component):
 class HeaderComponent(Component):
     def resolve(self,
                 parameter: Parameter,
-                headers: http.Headers) -> http.Header:
+                headers: http.Headers) -> typing.Optional[http.Header]:
         name = parameter.name.replace('_', '-')
         if name not in headers:
             return None

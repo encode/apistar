@@ -1,4 +1,4 @@
-class BaseCodec():
+class BaseCodec:
     media_type = None
 
     def decode(self, bytestring, **options):

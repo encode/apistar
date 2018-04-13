@@ -1,4 +1,5 @@
 import mimetypes
+from typing import Optional, Any
 
 import requests
 
@@ -8,7 +9,7 @@ from apistar.client.utils import (
 )
 
 
-class BaseTransport():
+class BaseTransport:
     schemes = None
 
     def send(self, method, url, query_params=None, content=None, encoding=None):
@@ -17,6 +18,7 @@ class BaseTransport():
 
 class HTTPTransport(BaseTransport):
     schemes = ['http', 'https']
+
     default_decoders = [
         codecs.JSONCodec(),
         codecs.TextCodec(),
@@ -28,8 +30,10 @@ class HTTPTransport(BaseTransport):
 
         if session is None:
             session = requests.Session()
+
         if auth is not None:
             session.auth = auth
+
         if not getattr(session.auth, 'allow_cookies', False):
             session.cookies.set_policy(BlockAllCookies())
 
@@ -50,7 +54,7 @@ class HTTPTransport(BaseTransport):
         response = self.session.request(method, url, **options)
         result = self.decode_response_content(response)
 
-        if response.status_code >= 400 and response.status_code <= 599:
+        if 400 <= response.status_code <= 599:
             title = '%d %s' % (response.status_code, response.reason)
             raise exceptions.ErrorResponse(title, result)
 
@@ -86,6 +90,7 @@ class HTTPTransport(BaseTransport):
                     options['data'] = content.content
                 else:
                     options['data'] = content
+
                 upload_headers = self.get_upload_headers(content)
                 options['headers'].update(upload_headers)
 
@@ -115,7 +120,7 @@ class HTTPTransport(BaseTransport):
             'Content-Disposition': content_disposition or 'attachment'
         }
 
-    def decode_response_content(self, response):
+    def decode_response_content(self, response) -> Optional[Any]:
         """
         Given an HTTP response, return the decoded data.
         """
@@ -128,8 +133,10 @@ class HTTPTransport(BaseTransport):
         options = {
             'base_url': response.url
         }
+
         if 'content-type' in response.headers:
             options['content_type'] = response.headers['content-type']
+
         if 'content-disposition' in response.headers:
             options['content_disposition'] = response.headers['content-disposition']
 

@@ -14,5 +14,5 @@ from apistar.test import TestClient
 __version__ = '0.4.3'
 __all__ = [
     'App', 'ASyncApp', 'Client', 'Component', 'Document', 'Section', 'Link', 'Field',
-    'Route', 'Include', 'TestClient', 'http'
+    'Route', 'Include', 'TestClient', 'http', '__version__'
 ]

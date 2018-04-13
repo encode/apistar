@@ -1,4 +1,5 @@
 import typing
+
 from inspect import Parameter
 from urllib.parse import parse_qsl
 
@@ -94,10 +95,12 @@ class HeadersComponent(Component):
 class HeaderComponent(Component):
     def resolve(self,
                 parameter: Parameter,
-                headers: http.Headers) -> http.Header:
+                headers: http.Headers) -> typing.Optional[http.Header]:
         name = parameter.name.replace('_', '-')
+
         if name not in headers:
             return None
+
         return http.Header(headers[name])
 
 
@@ -105,12 +108,15 @@ class BodyComponent(Component):
     async def resolve(self,
                       receive: ASGIReceive) -> http.Body:
         body = b''
+
         while True:
             message = await receive()
             if not message['type'] == 'http.request':
                 error = "'Unexpected ASGI message type '%s'."
                 raise Exception(error % message['type'])
+
             body += message.get('body', b'')
+
             if not message.get('more_body', False):
                 break
 

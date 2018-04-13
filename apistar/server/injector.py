@@ -23,6 +23,7 @@ class Injector(BaseInjector):
     def resolve_function(self, func, output_name=None, seen_state=None, parent_parameter=None):
         if output_name is None:
             output_name = 'response'
+
         if seen_state is None:
             seen_state = set(self.initial)
 

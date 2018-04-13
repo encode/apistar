@@ -55,14 +55,17 @@ class ASGItoWSGIAdapter(object):
 
         if 'REMOTE_ADDR' in environ and 'REMOTE_PORT' in environ:
             message['client'] = [environ['REMOTE_ADDR'], int(environ['REMOTE_PORT'])]
+
         if 'SERVER_NAME' in environ and 'SERVER_PORT' in environ:
             message['server'] = [environ['SERVER_NAME'], int(environ['SERVER_PORT'])]
 
         headers = []
         if environ.get('CONTENT_TYPE'):
             headers.append([b'content-type', environ['CONTENT_TYPE'].encode('latin-1')])
+
         if environ.get('CONTENT_LENGTH'):
             headers.append([b'content-length', environ['CONTENT_LENGTH'].encode('latin-1')])
+
         for key, val in environ.items():
             if key.startswith('HTTP_'):
                 key_bytes = key[5:].replace('_', '-').lower().encode('latin-1')

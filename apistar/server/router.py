@@ -99,7 +99,7 @@ class Router(BaseRouter):
         if len(self._lookup_cache) > self._lookup_cache_size:
             self._lookup_cache.pop(next(iter(self._lookup_cache)))
 
-        return (route, path_params)
+        return route, path_params
 
     def reverse_url(self, name: str, **params) -> str:
         try:

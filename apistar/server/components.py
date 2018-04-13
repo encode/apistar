@@ -41,5 +41,5 @@ class Component():
             raise exceptions.ConfigurationError(msg % self.__class__.__name__)
         return parameter.annotation is return_annotation
 
-    def resolve(self):
+    def resolve(self, *args):
         raise NotImplementedError()
