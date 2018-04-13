@@ -106,7 +106,7 @@ class String(Validator):
 
         assert max_length is None or isinstance(max_length, int)
         assert min_length is None or isinstance(min_length, int)
-        assert pattern is None or isinstance(pattern, str)
+        assert pattern is None or isinstance(pattern, (str, re._pattern_type))
         assert enum is None or isinstance(enum, list) and all([isinstance(i, str) for i in enum])
         assert format is None or isinstance(format, str)
 
