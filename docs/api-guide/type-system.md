@@ -100,7 +100,7 @@ Validates string data.
 * `description` - A description to use in API schemas and documentation.
 * `max_length` - A maximum valid length for the data.
 * `min_length` - A minimum valid length for the data.
-* `pattern` - A string or compiled regex that the data must match.
+* `pattern` - A string that the data must match.
 * `enum` - A list of valid strings that the input must match against.
 * `format` - An identifier indicating a complex datatype with a string representation. For example `"date"`, to represent an ISO 8601 formatted date string.
 * `allow_null` - Indicates if `None` should be considered a valid value. Defaults to `False`.
