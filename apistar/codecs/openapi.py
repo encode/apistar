@@ -404,7 +404,7 @@ class OpenAPICodec(BaseCodec):
                     )
                 }
 
-            operation['responseBody'] = {
+            operation['requestBody'] = {
                 'content': {
                     link.encoding: content_info
                 }
