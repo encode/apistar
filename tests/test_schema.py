@@ -60,7 +60,7 @@ expected_schema = """{
         "/post-endpoint/": {
             "post": {
                 "operationId": "post_endpoint",
-                "responseBody": {
+                "requestBody": {
                     "content": {
                         "application/json": {
                             "schema": {
