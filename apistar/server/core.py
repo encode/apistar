@@ -23,7 +23,14 @@ class Route():
         encoding = None
         if any([f.location == 'body' for f in fields]):
             encoding = 'application/json'
-        return Link(url=url, method=method, name=name, encoding=encoding, fields=fields)
+        return Link(
+            url=url,
+            method=method,
+            name=name,
+            encoding=encoding,
+            fields=fields,
+            description=handler.__doc__
+        )
 
     def generate_fields(self, url, method, handler):
         fields = []
