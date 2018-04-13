@@ -8,6 +8,7 @@ class User(types.Type):
 
 
 def get_endpoint(name: str, age: int=None):
+    """endpoint description"""
     raise NotImplementedError()
 
 
@@ -34,6 +35,7 @@ expected_schema = """{
     "paths": {
         "/get-endpoint/": {
             "get": {
+                "description": "endpoint description",
                 "operationId": "get_endpoint",
                 "parameters": [
                     {
