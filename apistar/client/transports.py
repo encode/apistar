@@ -50,7 +50,7 @@ class HTTPTransport(BaseTransport):
         response = self.session.request(method, url, **options)
         result = self.decode_response_content(response)
 
-        if response.status_code >= 400 and response.status_code <= 599:
+        if 400 <= response.status_code <= 599:
             title = '%d %s' % (response.status_code, response.reason)
             raise exceptions.ErrorResponse(title, result)
 

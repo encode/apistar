@@ -20,7 +20,7 @@ DATETIME_REGEX = re.compile(
 )
 
 
-class BaseFormat():
+class BaseFormat:
     def is_native_type(self, value):
         raise NotImplementedError()
 

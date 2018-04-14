@@ -15,7 +15,7 @@ FORMATS = {
 }
 
 
-class Validator():
+class Validator:
     errors = {}
     _creation_counter = 0
 

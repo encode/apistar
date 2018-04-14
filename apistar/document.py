@@ -7,7 +7,7 @@ from apistar.validators import Validator
 LinkInfo = collections.namedtuple('LinkInfo', ['link', 'name', 'sections'])
 
 
-class Document():
+class Document:
     def __init__(self,
                  content: typing.Sequence[typing.Union['Section', 'Link']]=None,
                  url: str='',
@@ -52,7 +52,7 @@ class Document():
         return link_info_list
 
 
-class Section():
+class Section:
     def __init__(self,
                  name: str,
                  content: typing.Sequence[typing.Union['Section', 'Link']]=None,
@@ -97,7 +97,7 @@ class Section():
         return link_info_list
 
 
-class Link():
+class Link:
     """
     Links represent the actions that a client may perform.
     """
@@ -161,7 +161,7 @@ class Link():
         return None
 
 
-class Field():
+class Field:
     def __init__(self,
                  name: str,
                  location: str,
