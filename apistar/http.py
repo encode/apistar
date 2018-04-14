@@ -168,7 +168,7 @@ class MutableHeaders(Headers):
             ]
 
 
-class Request():
+class Request:
     def __init__(self,
                  method: Method,
                  url: URL,
@@ -180,7 +180,7 @@ class Request():
         self.body = Body(b'') if (body is None) else body
 
 
-class Response():
+class Response:
     media_type = None
     charset = 'utf-8'
 

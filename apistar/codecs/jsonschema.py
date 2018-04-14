@@ -67,12 +67,15 @@ def get_typestrings(struct):
     """
     type_strings = struct.get('type', [])
     if isinstance(type_strings, str):
-        type_strings = set([type_strings])
+        type_strings = {type_strings}
     else:
         type_strings = set(type_strings)
 
     if not type_strings:
-        type_strings = set(['null', 'boolean', 'object', 'array', 'number', 'string'])
+        type_strings = {
+            'null', 'boolean', 'object',
+            'array', 'number', 'string'
+        }
 
     if 'integer' in type_strings and 'number' in type_strings:
         type_strings.remove('integer')
@@ -84,13 +87,13 @@ def is_any(type_strings, struct):
     """
     Return true if all types are valid, and there are no type constraints.
     """
-    ALL_PROPERTY_NAMES = set([
-        'exclusiveMaximum', 'format', 'minItems', 'pattern', 'required',
-        'multipleOf', 'maximum', 'minimum', 'maxItems', 'minLength',
-        'uniqueItems', 'additionalItems', 'maxLength', 'items',
-        'exclusiveMinimum', 'properties', 'additionalProperties',
-        'minProperties', 'maxProperties', 'patternProperties'
-    ])
+    ALL_PROPERTY_NAMES = {
+        'exclusiveMaximum', 'format', 'minItems', 'pattern', 'required', 'multipleOf', 'maximum',
+        'minimum', 'maxItems', 'minLength', 'uniqueItems', 'additionalItems', 'maxLength', 'items',
+        'exclusiveMinimum', 'properties', 'additionalProperties', 'minProperties', 'maxProperties',
+        'patternProperties'
+    }
+
     return len(type_strings) == 6 and not set(struct.keys()) & ALL_PROPERTY_NAMES
 
 
