@@ -41,6 +41,7 @@ try:
         def __str__(self):
             return self.__repr__()
 
+
 except ImportError:
     # On some platforms (eg GAE) the private _TemporaryFileWrapper may not be
     # available, just use the standard `NamedTemporaryFile` function

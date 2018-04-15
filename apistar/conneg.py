@@ -9,9 +9,9 @@ def negotiate_content_type(codecs, content_type=None):
     if content_type is None:
         return codecs[0]
 
-    content_type = content_type.split(';')[0].strip().lower()
-    main_type = content_type.split('/')[0] + '/*'
-    wildcard_type = '*/*'
+    content_type = content_type.split(";")[0].strip().lower()
+    main_type = content_type.split("/")[0] + "/*"
+    wildcard_type = "*/*"
 
     for codec in codecs:
         if codec.media_type in (content_type, main_type, wildcard_type):

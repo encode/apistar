@@ -7,7 +7,7 @@ class User(types.Type):
     age = validators.Integer(allow_null=True, default=None)
 
 
-def get_endpoint(name: str, age: int=None):
+def get_endpoint(name: str, age: int = None):
     raise NotImplementedError()
 
 
@@ -16,9 +16,9 @@ def post_endpoint(user: User):
 
 
 routes = [
-    Route(url='/get-endpoint/', method='GET', handler=get_endpoint),
-    Route(url='/post-endpoint/', method='POST', handler=post_endpoint),
-    Route(url='/schema/', method='GET', handler=serve_schema, documented=False),
+    Route(url="/get-endpoint/", method="GET", handler=get_endpoint),
+    Route(url="/post-endpoint/", method="POST", handler=post_endpoint),
+    Route(url="/schema/", method="GET", handler=serve_schema, documented=False),
 ]
 app = App(routes=routes)
 test_client = TestClient(app)
@@ -95,6 +95,6 @@ expected_schema = """{
 
 
 def test_get_schema():
-    response = test_client.get('/schema/')
+    response = test_client.get("/schema/")
     assert response.status_code == 200
     assert response.text == expected_schema
