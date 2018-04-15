@@ -4,7 +4,11 @@ import requests
 
 from apistar import codecs, conneg, exceptions
 from apistar.client.utils import (
-    BlockAllCookies, File, ForceMultiPartDict, guess_filename, is_file
+    BlockAllCookies,
+    File,
+    ForceMultiPartDict,
+    guess_filename,
+    is_file
 )
 
 

@@ -13,7 +13,7 @@ from apistar import (
     Section,
     TestClient,
     exceptions,
-    http,
+    http
 )
 
 
