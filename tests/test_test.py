@@ -1,5 +1,4 @@
 from apistar import App, Route, TestClient, types, validators
-from apistar.server.handlers import serve_schema
 
 
 class WSGIMiddleware:
@@ -12,10 +11,6 @@ class WSGIMiddleware:
             headers.append(('Result', 'OK'))
             return start_response(status, headers, exc_info)
         return self.app(environ, custom_start_response)
-
-
-class User(types.Type):
-    name = validators.String()
 
 
 def get_endpoint():
