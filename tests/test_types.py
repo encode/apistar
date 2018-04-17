@@ -151,59 +151,6 @@ def test_setattr():
     assert exc.value.detail == 'May not be null.'
 
 
-def test_extended_setattr():
-    when = datetime.datetime(2020, 1, 1, 12, 0, 0, tzinfo=utc)
-    product = ReviewedProduct(name='abc', rating=20, created=when, reviewer='me')
-
-    assert product.name == 'abc'
-    assert product.rating == 20
-    assert product.created == when
-    assert product.reviewer == 'me'
-    assert dict(product) == {
-        'name': 'abc',
-        'rating': 20,
-        'created': '2020-01-01T12:00:00Z',
-        'reviewer': 'me'
-    }
-
-    # Set a format field, using a native type.
-    product.created = datetime.datetime(2030, 2, 2, 13, 30, 0, tzinfo=utc)
-    assert dict(product) == {
-        'name': 'abc',
-        'rating': 20,
-        'created': '2030-02-02T13:30:00Z',
-        'reviewer': 'me'
-    }
-
-    # Set format field, using a string.
-    product.created = '2040-03-03T15:45:00Z'
-    assert dict(product) == {
-        'name': 'abc',
-        'rating': 20,
-        'created': '2040-03-03T15:45:00Z',
-        'reviewer': 'me'
-    }
-
-    # Set a format field, using a string.
-    product.reviewer = 'you'
-    assert dict(product) == {
-        'name': 'abc',
-        'rating': 20,
-        'created': '2040-03-03T15:45:00Z',
-        'reviewer': 'you'
-    }
-
-    # Set with an invalid value on parent property
-    with pytest.raises(exceptions.ValidationError) as exc:
-        product.name = None
-    assert exc.value.detail == 'May not be null.'
-
-    # Set with an invalid value on extended property
-    with pytest.raises(exceptions.ValidationError) as exc:
-        product.reviewer = None
-    assert exc.value.detail == 'May not be null.'
-
-
 def test_setitem():
     when = datetime.datetime(2020, 1, 1, 12, 0, 0, tzinfo=utc)
     product = Product(name='abc', rating=20, created=when)
@@ -239,59 +186,6 @@ def test_setitem():
     assert exc.value.detail == 'May not be null.'
 
 
-def test_extended_setitem():
-    when = datetime.datetime(2020, 1, 1, 12, 0, 0, tzinfo=utc)
-    product = ReviewedProduct(name='abc', rating=20, created=when, reviewer='me')
-
-    assert product.name == 'abc'
-    assert product.rating == 20
-    assert product.created == when
-    assert product.reviewer == 'me'
-    assert dict(product) == {
-        'name': 'abc',
-        'rating': 20,
-        'created': '2020-01-01T12:00:00Z',
-        'reviewer': 'me'
-    }
-
-    # Set a format field, using a native type.
-    product['created'] = datetime.datetime(2030, 2, 2, 13, 30, 0, tzinfo=utc)
-    assert dict(product) == {
-        'name': 'abc',
-        'rating': 20,
-        'created': '2030-02-02T13:30:00Z',
-        'reviewer': 'me'
-    }
-
-    # Set format field, using a string.
-    product['created'] = '2040-03-03T15:45:00Z'
-    assert dict(product) == {
-        'name': 'abc',
-        'rating': 20,
-        'created': '2040-03-03T15:45:00Z',
-        'reviewer': 'me'
-    }
-
-    # Set format field, using a string.
-    product['reviewer'] = 'you'
-    assert dict(product) == {
-        'name': 'abc',
-        'rating': 20,
-        'created': '2040-03-03T15:45:00Z',
-        'reviewer': 'you'
-    }
-
-    # Set with an invalid value.
-    with pytest.raises(exceptions.ValidationError) as exc:
-        product['name'] = None
-    assert exc.value.detail == 'May not be null.'
-
-    # Set with an invalid value.
-    with pytest.raises(exceptions.ValidationError) as exc:
-        product['reviewer'] = None
-    assert exc.value.detail == 'May not be null.'
-
-
 def test_misc():
     when = datetime.datetime(2020, 1, 1, 12, 0, 0, tzinfo=utc)
     instance = Instance(name='abc', rating=20, created=when)
@@ -307,23 +201,6 @@ def test_misc():
         product['other'] = 456
     with pytest.raises(exceptions.ValidationError):
         Product([])
-
-
-def test_extended_misc():
-    when = datetime.datetime(2020, 1, 1, 12, 0, 0, tzinfo=utc)
-    instance = Instance(name='abc', rating=20, created=when, reviewer='me')
-    product = ReviewedProduct(instance)
-
-    assert len(product) == 4
-    assert repr(product) == "<ReviewedProduct(name='abc', rating=20, created='2020-01-01T12:00:00Z', reviewer='me')>"
-    assert len(product._dict) == 4
-    assert list(product.keys()) == ['name', 'rating', 'created', 'reviewer']
-    with pytest.raises(AttributeError):
-        product.other = 456
-    with pytest.raises(KeyError):
-        product['other'] = 456
-    with pytest.raises(exceptions.ValidationError):
-        ReviewedProduct([])
 
 
 def test_reserved_keys():
@@ -366,55 +243,6 @@ def test_as_jsonschema():
 
 
 def test_extended_as_jsonschema_flat():
-    """
-    When allOf is implemented in apistar, the struct should look more like the following, give or take the "type"
-
-    assert struct == {
-        "$ref": "#/definitions/ReviewedProduct",
-        "definitions": {
-            "Product": {
-                "type": "object",
-                "properties": {
-                    "name": {
-                        "type": "string",
-                        "maxLength": 10
-                    },
-                    "rating": {
-                        "type": "integer",
-                        "minimum": 0,
-                        "maximum": 100,
-                        "default": None,
-                        "nullable": True
-                    },
-                    "created": {
-                        "type": "string",
-                        "format": "datetime"
-                    }
-                },
-                "required": [
-                    "name",
-                    "created"
-                ]
-            },
-            "ReviewedProduct": {
-                "allOf": {
-                    "$ref": "#/definitions/Product"
-                },
-                "type": "object",
-                "properties": {
-                    "reviewer": {
-                        "type": "string",
-                        "maxLength": 20
-                    }
-                },
-                "required": [
-                    "reviewer"
-                ]
-            }
-        }
-    }
-
-    """
     struct = encode_jsonschema(ReviewedProduct, to_data_structure=True)
     assert struct == {
         "$ref": "#/definitions/ReviewedProduct",
