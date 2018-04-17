@@ -32,11 +32,6 @@ class Injector(BaseInjector):
 
         parameters = inspect.signature(func).parameters.values()
         for parameter in parameters:
-            # The 'response' keyword always indicates the previous return value.
-            if parameter.name == 'response':
-                kwargs['response'] = 'response'
-                continue
-
             # Check if the parameter class exists in 'initial'.
             if parameter.annotation in self.reverse_initial:
                 initial_kwarg = self.reverse_initial[parameter.annotation]

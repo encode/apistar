@@ -93,7 +93,8 @@ class App():
             'exc': Exception,
             'app': App,
             'path_params': PathParams,
-            'route': Route
+            'route': Route,
+            'response': Response
         }
         self.injector = Injector(components, initial_components)
 
@@ -125,14 +126,14 @@ class App():
     def serve(self, host, port, **options):
         werkzeug.run_simple(host, port, self, **options)
 
-    def render_response(self, response):
+    def render_response(self, response: Response) -> Response:
         if isinstance(response, Response):
             return response
         elif isinstance(response, str):
             return HTMLResponse(response)
         return JSONResponse(response)
 
-    def finalize_wsgi(self, response, start_response: WSGIStartResponse):
+    def finalize_wsgi(self, response: Response, start_response: WSGIStartResponse):
         start_response(
             RESPONSE_STATUS_TEXT[response.status_code],
             list(response.headers)
@@ -151,7 +152,8 @@ class App():
             'exc': None,
             'app': self,
             'path_params': None,
-            'route': None
+            'route': None,
+            'response': None,
         }
         method = environ['REQUEST_METHOD'].upper()
         path = environ['PATH_INFO']
@@ -203,7 +205,8 @@ class ASyncApp(App):
             'exc': Exception,
             'app': App,
             'path_params': PathParams,
-            'route': Route
+            'route': Route,
+            'response': Response,
         }
         self.injector = ASyncInjector(components, initial_components)
 
@@ -264,7 +267,7 @@ class ASyncApp(App):
                 await self.injector.run_async(funcs, state)
         return asgi_callable
 
-    async def finalize_asgi(self, response, send: ASGISend):
+    async def finalize_asgi(self, response: Response, send: ASGISend):
         await send({
             'type': 'http.response.start',
             'status': response.status_code,
