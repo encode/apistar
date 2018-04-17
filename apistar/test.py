@@ -77,7 +77,9 @@ class _WSGIAdapter(requests.adapters.HTTPAdapter):
         """
         raw_kwargs = {}
 
-        def start_response(wsgi_status, wsgi_headers):
+        def start_response(wsgi_status, wsgi_headers, exc_info=None):
+            if exc_info:
+                raise exc_info[0].with_traceback(exc_info[1], exc_info[2])
             status, _, reason = wsgi_status.partition(' ')
             raw_kwargs['status'] = int(status)
             raw_kwargs['reason'] = reason
