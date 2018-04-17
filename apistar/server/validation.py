@@ -101,7 +101,8 @@ class ValidateRequestDataComponent(Component):
 
 class PrimitiveParamComponent(Component):
     def can_handle_parameter(self, parameter: inspect.Parameter):
-        return parameter.annotation in (str, int, float, bool, parameter.empty)
+        return (parameter.annotation in (str, int, float, bool, parameter.empty)
+                or issubclass(parameter.annotation, validators.Validator))
 
     def resolve(self,
                 parameter: inspect.Parameter,
@@ -111,13 +112,16 @@ class PrimitiveParamComponent(Component):
         has_default = parameter.default is not parameter.empty
         allow_null = parameter.default is None
 
-        param_validator = {
-            parameter.empty: validators.Any(),
-            str: validators.String(allow_null=allow_null),
-            int: validators.Integer(allow_null=allow_null),
-            float: validators.Number(allow_null=allow_null),
-            bool: validators.Boolean(allow_null=allow_null)
-        }[parameter.annotation]
+        if parameter.annotation in (str, int, float, bool, parameter.empty):
+            param_validator = {
+                parameter.empty: validators.Any(),
+                str: validators.String(allow_null=allow_null),
+                int: validators.Integer(allow_null=allow_null),
+                float: validators.Number(allow_null=allow_null),
+                bool: validators.Boolean(allow_null=allow_null)
+            }[parameter.annotation]
+        else:
+            param_validator = parameter.annotation()
 
         validator = validators.Object(
             properties=[(parameter.name, param_validator)],

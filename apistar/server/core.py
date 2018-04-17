@@ -33,12 +33,16 @@ class Route():
         parameters = inspect.signature(handler).parameters
         for name, param in parameters.items():
             if name in path_names:
-                schema = {
-                    param.empty: None,
-                    int: validators.Integer(),
-                    float: validators.Number(),
-                    str: validators.String()
-                }[param.annotation]
+                if inspect.isclass(param.annotation) and issubclass(param.annotation, validators.Validator):
+                    schema = param.annotation()
+                else:
+                    schema = {
+                        param.empty: None,
+                        int: validators.Integer(),
+                        float: validators.Number(),
+                        str: validators.String()
+                    }[param.annotation]
+
                 field = Field(name=name, location='path', schema=schema)
                 fields.append(field)
 
@@ -57,6 +61,10 @@ class Route():
                     str: validators.String(**kwargs)
                 }[param.annotation]
                 field = Field(name=name, location='query', schema=schema)
+                fields.append(field)
+            elif inspect.isclass(param.annotation) and issubclass(param.annotation, validators.Validator):
+                kwargs = {'default': param.default} if param.default is not param.empty else {}
+                field = Field(name=name, location='query', schema=param.annotation(**kwargs))
                 fields.append(field)
 
             elif issubclass(param.annotation, types.Type):
