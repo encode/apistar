@@ -6,7 +6,7 @@ from apistar.server.adapters import ASGItoWSGIAdapter
 from apistar.server.asgi import (
     ASGI_COMPONENTS, ASGIReceive, ASGIScope, ASGISend
 )
-from apistar.server.components import Component
+from apistar.server.components import Component, ReturnValue
 from apistar.server.core import Route, generate_document
 from apistar.server.injector import ASyncInjector, Injector
 from apistar.server.router import Router
@@ -126,12 +126,12 @@ class App():
     def serve(self, host, port, **options):
         werkzeug.run_simple(host, port, self, **options)
 
-    def render_response(self, response: Response) -> Response:
-        if isinstance(response, Response):
-            return response
-        elif isinstance(response, str):
-            return HTMLResponse(response)
-        return JSONResponse(response)
+    def render_response(self, return_value: ReturnValue) -> Response:
+        if isinstance(return_value, Response):
+            return return_value
+        elif isinstance(return_value, str):
+            return HTMLResponse(return_value)
+        return JSONResponse(return_value)
 
     def finalize_wsgi(self, response: Response, start_response: WSGIStartResponse):
         start_response(
@@ -140,7 +140,7 @@ class App():
         )
         return [response.content]
 
-    def exception_handler(self, exc: Exception):
+    def exception_handler(self, exc: Exception) -> Response:
         if isinstance(exc, exceptions.HTTPException):
             return JSONResponse(exc.detail, exc.status_code, exc.get_headers())
         raise

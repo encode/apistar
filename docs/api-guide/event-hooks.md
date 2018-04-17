@@ -11,7 +11,6 @@ Here's an example...
 class CustomHeadersHook():
     def on_response(self, response: http.Response):
         response.headers['x-custom'] = 'Ran on_response()'
-        return response
 
 event_hooks = [CustomHeadersHook()]
 
@@ -20,9 +19,9 @@ app = App(routes=routes, event_hooks=event_hooks)
 
 An event hook instance may include any or all of the following methods:
 
-* `on_request(self)` - Runs before the handler function.
-* `on_response(self, response, ...)` - Runs after the handler function. Should return the response.
-* `on_error(self, response, ...)` - Runs after any exception occurs. Should return the response.
+* `on_request(self, ...)` - Runs before the handler function.
+* `on_response(self, ...)` - Runs after the handler function.
+* `on_error(self, ...)` - Runs after any exception occurs.
 
-The signature of the method may include any components that would be available
-on a handler function.
+The signature of the method may include any annotations that would be available
+on a handler function, or the `http.Response` annotation.
