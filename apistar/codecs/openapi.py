@@ -27,6 +27,10 @@ OPEN_API = validators.Object(
         ('tags', validators.Array(items=validators.Ref('Tag'))),
         ('externalDocs', validators.Ref('ExternalDocumentation'))
     ],
+    pattern_properties={
+        '^x-': validators.Any()
+    },
+    additional_properties=False,
     required=['openapi', 'info'],
     definitions={
         'Info': validators.Object(
@@ -38,6 +42,10 @@ OPEN_API = validators.Object(
                 ('license', validators.Ref('License')),
                 ('version', validators.String())
             ],
+            pattern_properties={
+                '^x-': validators.Any()
+            },
+            additional_properties=False,
             required=['title', 'version']
         ),
         'Contact': validators.Object(
@@ -45,14 +53,22 @@ OPEN_API = validators.Object(
                 ('name', validators.String()),
                 ('url', validators.String(format='url')),
                 ('email', validators.String(format='email'))
-            ]
+            ],
+            pattern_properties={
+                '^x-': validators.Any()
+            },
+            additional_properties=False,
         ),
         'License': validators.Object(
             properties=[
                 ('name', validators.String()),
                 ('url', validators.String(format='url'))
             ],
-            required=['name']
+            required=['name'],
+            pattern_properties={
+                '^x-': validators.Any()
+            },
+            additional_properties=False,
         ),
         'Server': validators.Object(
             properties=[
@@ -60,6 +76,10 @@ OPEN_API = validators.Object(
                 ('description', validators.String(format='textarea')),
                 ('variables', validators.Object(additional_properties=validators.Ref('ServerVariable')))
             ],
+            pattern_properties={
+                '^x-': validators.Any()
+            },
+            additional_properties=False,
             required=['url']
         ),
         'ServerVariable': validators.Object(
@@ -68,12 +88,18 @@ OPEN_API = validators.Object(
                 ('default', validators.String()),
                 ('description', validators.String(format='textarea'))
             ],
+            pattern_properties={
+                '^x-': validators.Any()
+            },
+            additional_properties=False,
             required=['default']
         ),
         'Paths': validators.Object(
             pattern_properties=[
-                ('^/', validators.Ref('Path'))  # TODO: Path | ReferenceObject
-            ]
+                ('^/', validators.Ref('Path')),  # TODO: Path | ReferenceObject
+                ('^x-', validators.Any()),
+            ],
+            additional_properties=False,
         ),
         'Path': validators.Object(
             properties=[
@@ -89,7 +115,11 @@ OPEN_API = validators.Object(
                 ('trace', validators.Ref('Operation')),
                 ('servers', validators.Array(items=validators.Ref('Server'))),
                 ('parameters', validators.Array(items=validators.Ref('Parameter')))  # TODO: | ReferenceObject
-            ]
+            ],
+            pattern_properties={
+                '^x-': validators.Any()
+            },
+            additional_properties=False,
         ),
         'Operation': validators.Object(
             properties=[
@@ -105,13 +135,21 @@ OPEN_API = validators.Object(
                 ('deprecated', validators.Boolean()),
                 ('security', validators.Array(validators.Ref('SecurityRequirement'))),
                 ('servers', validators.Array(items=validators.Ref('Server')))
-            ]
+            ],
+            pattern_properties={
+                '^x-': validators.Any()
+            },
+            additional_properties=False,
         ),
         'ExternalDocumentation': validators.Object(
             properties=[
                 ('description', validators.String(format='textarea')),
                 ('url', validators.String(format='url'))
             ],
+            pattern_properties={
+                '^x-': validators.Any()
+            },
+            additional_properties=False,
             required=['url']
         ),
         'Parameter': validators.Object(
@@ -126,6 +164,10 @@ OPEN_API = validators.Object(
                 ('example', validators.Any())
                 # TODO: Other fields
             ],
+            pattern_properties={
+                '^x-': validators.Any()
+            },
+            additional_properties=False,
             required=['name', 'in']
         ),
         'RequestBody': validators.Object(
@@ -133,19 +175,31 @@ OPEN_API = validators.Object(
                 ('description', validators.String()),
                 ('content', validators.Object(additional_properties=validators.Ref('MediaType'))),
                 ('required', validators.Boolean())
-            ]
+            ],
+            pattern_properties={
+                '^x-': validators.Any()
+            },
+            additional_properties=False,
         ),
         'MediaType': validators.Object(
             properties=[
                 ('schema', JSON_SCHEMA | SCHEMA_REF),
                 ('example', validators.Any())
                 # TODO 'examples', 'encoding'
-            ]
+            ],
+            pattern_properties={
+                '^x-': validators.Any()
+            },
+            additional_properties=False,
         ),
         'Components': validators.Object(
             properties=[
                 ('schemas', validators.Object(additional_properties=JSON_SCHEMA)),
-            ]
+            ],
+            pattern_properties={
+                '^x-': validators.Any()
+            },
+            additional_properties=False,
         ),
         'Tag': validators.Object(
             properties=[
@@ -153,6 +207,10 @@ OPEN_API = validators.Object(
                 ('description', validators.String(format='textarea')),
                 ('externalDocs', validators.Ref('ExternalDocumentation'))
             ],
+            pattern_properties={
+                '^x-': validators.Any()
+            },
+            additional_properties=False,
             required=['name']
         ),
         'SecurityRequirement': validators.Object(
@@ -404,7 +462,7 @@ class OpenAPICodec(BaseCodec):
                     )
                 }
 
-            operation['responseBody'] = {
+            operation['requestBody'] = {
                 'content': {
                     link.encoding: content_info
                 }
