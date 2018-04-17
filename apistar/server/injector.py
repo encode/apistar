@@ -2,6 +2,7 @@ import asyncio
 import inspect
 
 from apistar.exceptions import ConfigurationError
+from apistar.server.components import ReturnValue
 
 
 class BaseInjector():
@@ -14,15 +15,13 @@ class Injector(BaseInjector):
 
     def __init__(self, components, initial):
         self.components = components
-        self.initial = initial
+        self.initial = dict(initial)
         self.reverse_initial = {
             val: key for key, val in initial.items()
         }
         self.resolver_cache = {}
 
     def resolve_function(self, func, output_name=None, seen_state=None, parent_parameter=None):
-        if output_name is None:
-            output_name = 'response'
         if seen_state is None:
             seen_state = set(self.initial)
 
@@ -30,11 +29,17 @@ class Injector(BaseInjector):
         kwargs = {}
         consts = {}
 
-        parameters = inspect.signature(func).parameters.values()
-        for parameter in parameters:
-            # The 'response' keyword always indicates the previous return value.
-            if parameter.name == 'response':
-                kwargs['response'] = 'response'
+        signature = inspect.signature(func)
+
+        if output_name is None:
+            if signature.return_annotation in self.reverse_initial:
+                output_name = self.reverse_initial[signature.return_annotation]
+            else:
+                output_name = 'return_value'
+
+        for parameter in signature.parameters.values():
+            if parameter.annotation is ReturnValue:
+                kwargs[parameter.name] = 'return_value'
                 continue
 
             # Check if the parameter class exists in 'initial'.
@@ -98,7 +103,7 @@ class Injector(BaseInjector):
             func_kwargs.update(consts)
             state[output_name] = func(**func_kwargs)
 
-        return state['response']
+        return state[output_name]
 
 
 class ASyncInjector(Injector):
