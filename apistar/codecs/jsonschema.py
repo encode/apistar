@@ -40,7 +40,7 @@ JSON_SCHEMA = validators.Object(
         ('minItems', validators.Integer(minimum=0)),
         ('maxItems', validators.Integer(minimum=0)),
         ('uniqueItems', validators.Boolean()),
-    ]
+    ],
 )
 
 
