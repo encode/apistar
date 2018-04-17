@@ -1,4 +1,5 @@
 import inspect
+import typing
 
 from apistar import exceptions
 
@@ -43,3 +44,6 @@ class Component():
 
     def resolve(self):
         raise NotImplementedError()
+
+
+ReturnValue = typing.TypeVar('ReturnValue')

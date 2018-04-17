@@ -1,6 +1,27 @@
 # Release Notes
 
-## Version 0.4
+## Version 0.4.x
+
+### 0.4.4
+
+* OpenAPI schema uses `requestBody` instead of the incorrect `responseBody`.
+* Include `http.Response` component.
+* Drop requirement of returning response from event hooks.
+* Use `shutil.move` in preference to `os.rename` in `DownloadCodec`.
+
+### 0.4.3
+
+* Drop erroneous commit.
+
+### 0.4.2
+
+* Move `RESPONSE_STATUS_TEXT` out of `http` and into `wsgi`.
+
+### 0.4.1
+
+* Update package info.
+
+### 0.4
 
 The Version 0.4 release is a significant re-working of the API Star codebase.
 As part of this there are a number of features that have been removed and not
@@ -21,6 +42,7 @@ We've also gained a number of new features and improvements:
 * We now have an event hooks API.
 * The dependency injection now has a much cleaner, simpler API and implementation.
 * The type system now has a much cleaner, simpler API and implementation.
+* Settings are much cleaner, with each component configured at the point of instantiation, rather than one big global settings object that's available everywhere.
 
 If you do need to continue working against the 0.3 version, you should refer
 to [the older documentation on GitHub][0.3]. You should also make sure to serve any

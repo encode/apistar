@@ -95,6 +95,7 @@ http.Headers                   | A multidict
 http.Header                    | A single query parameter, looked up against the parameter name.
 http.Body                      | The request body, as a bytestring.
 http.Request                   | The incoming request. Includes `url`, `method`, `headers`, and `body` attributes.
+http.Response                  | The outgoing response. Only available to event hooks that run after the main handler function.
 http.PathParams                | The matched path parameters for the incoming request.
 App                            | The current application. Made available as `App` for both multithreaded and async applications.
 Route                          | The matched route for the incoming request.
@@ -104,3 +105,4 @@ server.wsgi.WSGIStartResponse  | Only for `App`.
 server.asgi.ASGIScope          | Only for `ASyncApp`.
 server.asgi.ASGIReceive        | Only for `ASyncApp`.
 server.asgi.ASGISend           | Only for `ASyncApp`.
+server.components.ReturnValue  | Used internally to access the return value of the preceeding function in a dependency injection chain.
