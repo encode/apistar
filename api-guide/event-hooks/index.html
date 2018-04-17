@@ -145,7 +145,6 @@ a group of functions to be run in response to particular events.</p>
 <pre><code class="python">class CustomHeadersHook():
     def on_response(self, response: http.Response):
         response.headers['x-custom'] = 'Ran on_response()'
-        return response
 
 event_hooks = [CustomHeadersHook()]
 
@@ -154,12 +153,12 @@ app = App(routes=routes, event_hooks=event_hooks)
 
 <p>An event hook instance may include any or all of the following methods:</p>
 <ul>
-<li><code>on_request(self)</code> - Runs before the handler function.</li>
-<li><code>on_response(self, response, ...)</code> - Runs after the handler function. Should return the response.</li>
-<li><code>on_error(self, response, ...)</code> - Runs after any exception occurs. Should return the response.</li>
+<li><code>on_request(self, ...)</code> - Runs before the handler function.</li>
+<li><code>on_response(self, ...)</code> - Runs after the handler function.</li>
+<li><code>on_error(self, ...)</code> - Runs after any exception occurs.</li>
 </ul>
-<p>The signature of the method may include any components that would be available
-on a handler function.</p></div>
+<p>The signature of the method may include any annotations that would be available
+on a handler function, or the <code>http.Response</code> annotation.</p></div>
         </div>
 
         <footer class="col-md-12">

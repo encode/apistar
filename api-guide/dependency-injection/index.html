@@ -269,6 +269,10 @@ app = App(routes=routes, components=components, event_hooks=event_hooks)
 <td>The incoming request. Includes <code>url</code>, <code>method</code>, <code>headers</code>, and <code>body</code> attributes.</td>
 </tr>
 <tr>
+<td>http.Response</td>
+<td>The outgoing response. Only available to event hooks that run after the main handler function.</td>
+</tr>
+<tr>
 <td>http.PathParams</td>
 <td>The matched path parameters for the incoming request.</td>
 </tr>
@@ -303,6 +307,10 @@ app = App(routes=routes, components=components, event_hooks=event_hooks)
 <tr>
 <td>server.asgi.ASGISend</td>
 <td>Only for <code>ASyncApp</code>.</td>
+</tr>
+<tr>
+<td>server.components.ReturnValue</td>
+<td>Used internally to access the return value of the preceeding function in a dependency injection chain.</td>
 </tr>
 </tbody>
 </table></div>
