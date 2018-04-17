@@ -42,6 +42,7 @@ We've also gained a number of new features and improvements:
 * We now have an event hooks API.
 * The dependency injection now has a much cleaner, simpler API and implementation.
 * The type system now has a much cleaner, simpler API and implementation.
+* Settings are much cleaner, with each component configured at the point of instantiation, rather than one big global settings object that's available everywhere.
 
 If you do need to continue working against the 0.3 version, you should refer
 to [the older documentation on GitHub][0.3]. You should also make sure to serve any
