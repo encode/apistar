@@ -9,7 +9,7 @@ from apistar.server.asgi import (
     ASGIScope,
     ASGISend
 )
-from apistar.server.components import Component
+from apistar.server.components import Component, ReturnValue
 from apistar.server.core import Route, generate_document
 from apistar.server.injector import ASyncInjector, Injector
 from apistar.server.router import Router
@@ -106,12 +106,13 @@ class App():
         components = components if components else []
         components = list(WSGI_COMPONENTS + VALIDATION_COMPONENTS) + components
         initial_components = {
-            "environ": WSGIEnviron,
-            "start_response": WSGIStartResponse,
-            "exc": Exception,
-            "app": App,
-            "path_params": PathParams,
-            "route": Route,
+            'environ': WSGIEnviron,
+            'start_response': WSGIStartResponse,
+            'exc': Exception,
+            'app': App,
+            'path_params': PathParams,
+            'route': Route,
+            'response': Response,
         }
         self.injector = Injector(components, initial_components)
 
@@ -144,22 +145,22 @@ class App():
     def serve(self, host, port, **options):
         werkzeug.run_simple(host, port, self, **options)
 
-    def render_response(self, response):
-        if isinstance(response, Response):
-            return response
+    def render_response(self, return_value: ReturnValue) -> Response:
+        if isinstance(return_value, Response):
+            return return_value
 
-        elif isinstance(response, str):
-            return HTMLResponse(response)
+        elif isinstance(return_value, str):
+            return HTMLResponse(return_value)
 
-        return JSONResponse(response)
+        return JSONResponse(return_value)
 
-    def finalize_wsgi(self, response, start_response: WSGIStartResponse):
+    def finalize_wsgi(self, response: Response, start_response: WSGIStartResponse):
         start_response(
             RESPONSE_STATUS_TEXT[response.status_code], list(response.headers)
         )
         return [response.content]
 
-    def exception_handler(self, exc: Exception):
+    def exception_handler(self, exc: Exception) -> Response:
         if isinstance(exc, exceptions.HTTPException):
             return JSONResponse(exc.detail, exc.status_code, exc.get_headers())
 
@@ -167,12 +168,13 @@ class App():
 
     def __call__(self, environ, start_response):
         state = {
-            "environ": environ,
-            "start_response": start_response,
-            "exc": None,
-            "app": self,
-            "path_params": None,
-            "route": None,
+            'environ': environ,
+            'start_response': start_response,
+            'exc': None,
+            'app': self,
+            'path_params': None,
+            'route': None,
+            'response': None,
         }
         method = environ["REQUEST_METHOD"].upper()
         path = environ["PATH_INFO"]
@@ -225,13 +227,14 @@ class ASyncApp(App):
         components = components if components else []
         components = list(ASGI_COMPONENTS + VALIDATION_COMPONENTS) + components
         initial_components = {
-            "scope": ASGIScope,
-            "receive": ASGIReceive,
-            "send": ASGISend,
-            "exc": Exception,
-            "app": App,
-            "path_params": PathParams,
-            "route": Route,
+            'scope': ASGIScope,
+            'receive': ASGIReceive,
+            'send': ASGISend,
+            'exc': Exception,
+            'app': App,
+            'path_params': PathParams,
+            'route': Route,
+            'response': Response,
         }
         self.injector = ASyncInjector(components, initial_components)
 
@@ -295,7 +298,7 @@ class ASyncApp(App):
 
         return asgi_callable
 
-    async def finalize_asgi(self, response, send: ASGISend):
+    async def finalize_asgi(self, response: Response, send: ASGISend):
         await send(
             {
                 "type": "http.response.start",

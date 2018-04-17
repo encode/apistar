@@ -1,6 +1,7 @@
 import cgi
 import os
 import posixpath
+import shutil
 import tempfile
 from urllib.parse import unquote, urlparse
 
@@ -236,7 +237,7 @@ class DownloadCodec(BaseCodec):
         # Move the temporary download file to the final location.
         if output_path != temp_path:
             output_path = _unique_output_path(output_path)
-            os.rename(temp_path, output_path)
+            shutil.move(temp_path, output_path)
 
         # Open the file and return the file object.
         output_file = open(output_path, "rb")
