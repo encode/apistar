@@ -1,6 +1,27 @@
 # Release Notes
 
-## Version 0.4
+## Version 0.4.x
+
+### 0.4.4
+
+* OpenAPI schema uses `requestBody` instead of the incorrect `responseBody`.
+* Include `http.Response` component.
+* Drop requirement of returning response from event hooks.
+* Use `shutil.move` in preference to `os.rename` in `DownloadCodec`.
+
+### 0.4.3
+
+* Drop erroneous commit.
+
+### 0.4.2
+
+* Move `RESPONSE_STATUS_TEXT` out of `http` and into `wsgi`.
+
+### 0.4.1
+
+* Update package info.
+
+### 0.4
 
 The Version 0.4 release is a significant re-working of the API Star codebase.
 As part of this there are a number of features that have been removed and not
