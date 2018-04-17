@@ -10,161 +10,174 @@ from apistar.document import Document, Field, Link, Section
 from apistar.exceptions import ParseError
 
 SCHEMA_REF = validators.Object(
-    properties={'$ref': validators.String(pattern='^#/components/schemas/')}
+    properties={"$ref": validators.String(pattern="^#/components/schemas/")}
 )
 
 
 OPEN_API = validators.Object(
-    def_name='OpenAPI',
-    title='OpenAPI',
+    def_name="OpenAPI",
+    title="OpenAPI",
     properties=[
-        ('openapi', validators.String()),
-        ('info', validators.Ref('Info')),
-        ('servers', validators.Array(items=validators.Ref('Server'))),
-        ('paths', validators.Ref('Paths')),
-        ('components', validators.Ref('Components')),
-        ('security', validators.Ref('SecurityRequirement')),
-        ('tags', validators.Array(items=validators.Ref('Tag'))),
-        ('externalDocs', validators.Ref('ExternalDocumentation'))
+        ("openapi", validators.String()),
+        ("info", validators.Ref("Info")),
+        ("servers", validators.Array(items=validators.Ref("Server"))),
+        ("paths", validators.Ref("Paths")),
+        ("components", validators.Ref("Components")),
+        ("security", validators.Ref("SecurityRequirement")),
+        ("tags", validators.Array(items=validators.Ref("Tag"))),
+        ("externalDocs", validators.Ref("ExternalDocumentation")),
     ],
-    required=['openapi', 'info'],
+    required=["openapi", "info"],
     definitions={
-        'Info': validators.Object(
+        "Info": validators.Object(
             properties=[
-                ('title', validators.String()),
-                ('description', validators.String(format='textarea')),
-                ('termsOfService', validators.String(format='url')),
-                ('contact', validators.Ref('Contact')),
-                ('license', validators.Ref('License')),
-                ('version', validators.String())
+                ("title", validators.String()),
+                ("description", validators.String(format="textarea")),
+                ("termsOfService", validators.String(format="url")),
+                ("contact", validators.Ref("Contact")),
+                ("license", validators.Ref("License")),
+                ("version", validators.String()),
             ],
-            required=['title', 'version']
+            required=["title", "version"],
         ),
-        'Contact': validators.Object(
+        "Contact": validators.Object(
             properties=[
-                ('name', validators.String()),
-                ('url', validators.String(format='url')),
-                ('email', validators.String(format='email'))
+                ("name", validators.String()),
+                ("url", validators.String(format="url")),
+                ("email", validators.String(format="email")),
             ]
         ),
-        'License': validators.Object(
+        "License": validators.Object(
             properties=[
-                ('name', validators.String()),
-                ('url', validators.String(format='url'))
+                ("name", validators.String()), ("url", validators.String(format="url"))
             ],
-            required=['name']
+            required=["name"],
         ),
-        'Server': validators.Object(
+        "Server": validators.Object(
             properties=[
-                ('url', validators.String()),
-                ('description', validators.String(format='textarea')),
-                ('variables', validators.Object(additional_properties=validators.Ref('ServerVariable')))
+                ("url", validators.String()),
+                ("description", validators.String(format="textarea")),
+                (
+                    "variables",
+                    validators.Object(
+                        additional_properties=validators.Ref("ServerVariable")
+                    ),
+                ),
             ],
-            required=['url']
+            required=["url"],
         ),
-        'ServerVariable': validators.Object(
+        "ServerVariable": validators.Object(
             properties=[
-                ('enum', validators.Array(items=validators.String())),
-                ('default', validators.String()),
-                ('description', validators.String(format='textarea'))
+                ("enum", validators.Array(items=validators.String())),
+                ("default", validators.String()),
+                ("description", validators.String(format="textarea")),
             ],
-            required=['default']
+            required=["default"],
         ),
-        'Paths': validators.Object(
+        "Paths": validators.Object(
             pattern_properties=[
-                ('^/', validators.Ref('Path'))  # TODO: Path | ReferenceObject
+                ("^/", validators.Ref("Path"))  # TODO: Path | ReferenceObject
             ]
         ),
-        'Path': validators.Object(
+        "Path": validators.Object(
             properties=[
-                ('summary', validators.String()),
-                ('description', validators.String(format='textarea')),
-                ('get', validators.Ref('Operation')),
-                ('put', validators.Ref('Operation')),
-                ('post', validators.Ref('Operation')),
-                ('delete', validators.Ref('Operation')),
-                ('options', validators.Ref('Operation')),
-                ('head', validators.Ref('Operation')),
-                ('patch', validators.Ref('Operation')),
-                ('trace', validators.Ref('Operation')),
-                ('servers', validators.Array(items=validators.Ref('Server'))),
-                ('parameters', validators.Array(items=validators.Ref('Parameter')))  # TODO: | ReferenceObject
+                ("summary", validators.String()),
+                ("description", validators.String(format="textarea")),
+                ("get", validators.Ref("Operation")),
+                ("put", validators.Ref("Operation")),
+                ("post", validators.Ref("Operation")),
+                ("delete", validators.Ref("Operation")),
+                ("options", validators.Ref("Operation")),
+                ("head", validators.Ref("Operation")),
+                ("patch", validators.Ref("Operation")),
+                ("trace", validators.Ref("Operation")),
+                ("servers", validators.Array(items=validators.Ref("Server"))),
+                (
+                    "parameters", validators.Array(items=validators.Ref("Parameter"))
+                ),  # TODO: | ReferenceObject
             ]
         ),
-        'Operation': validators.Object(
+        "Operation": validators.Object(
             properties=[
-                ('tags', validators.Array(items=validators.String())),
-                ('summary', validators.String()),
-                ('description', validators.String(format='textarea')),
-                ('externalDocs', validators.Ref('ExternalDocumentation')),
-                ('operationId', validators.String()),
-                ('parameters', validators.Array(items=validators.Ref('Parameter'))),  # TODO: | ReferenceObject
-                ('requestBody', validators.Ref('RequestBody')),  # TODO: RequestBody | ReferenceObject
+                ("tags", validators.Array(items=validators.String())),
+                ("summary", validators.String()),
+                ("description", validators.String(format="textarea")),
+                ("externalDocs", validators.Ref("ExternalDocumentation")),
+                ("operationId", validators.String()),
+                (
+                    "parameters", validators.Array(items=validators.Ref("Parameter"))
+                ),  # TODO: | ReferenceObject
+                (
+                    "requestBody", validators.Ref("RequestBody")
+                ),  # TODO: RequestBody | ReferenceObject
                 # TODO: 'responses'
                 # TODO: 'callbacks'
-                ('deprecated', validators.Boolean()),
-                ('security', validators.Array(validators.Ref('SecurityRequirement'))),
-                ('servers', validators.Array(items=validators.Ref('Server')))
+                ("deprecated", validators.Boolean()),
+                ("security", validators.Array(validators.Ref("SecurityRequirement"))),
+                ("servers", validators.Array(items=validators.Ref("Server"))),
             ]
         ),
-        'ExternalDocumentation': validators.Object(
+        "ExternalDocumentation": validators.Object(
             properties=[
-                ('description', validators.String(format='textarea')),
-                ('url', validators.String(format='url'))
+                ("description", validators.String(format="textarea")),
+                ("url", validators.String(format="url")),
             ],
-            required=['url']
+            required=["url"],
         ),
-        'Parameter': validators.Object(
+        "Parameter": validators.Object(
             properties=[
-                ('name', validators.String()),
-                ('in', validators.String(enum=['query', 'header', 'path', 'cookie'])),
-                ('description', validators.String(format='textarea')),
-                ('required', validators.Boolean()),
-                ('deprecated', validators.Boolean()),
-                ('allowEmptyValue', validators.Boolean()),
-                ('schema', JSON_SCHEMA | SCHEMA_REF),
-                ('example', validators.Any())
+                ("name", validators.String()),
+                ("in", validators.String(enum=["query", "header", "path", "cookie"])),
+                ("description", validators.String(format="textarea")),
+                ("required", validators.Boolean()),
+                ("deprecated", validators.Boolean()),
+                ("allowEmptyValue", validators.Boolean()),
+                ("schema", JSON_SCHEMA | SCHEMA_REF),
+                ("example", validators.Any())
                 # TODO: Other fields
             ],
-            required=['name', 'in']
+            required=["name", "in"],
         ),
-        'RequestBody': validators.Object(
+        "RequestBody": validators.Object(
             properties=[
-                ('description', validators.String()),
-                ('content', validators.Object(additional_properties=validators.Ref('MediaType'))),
-                ('required', validators.Boolean())
+                ("description", validators.String()),
+                (
+                    "content",
+                    validators.Object(
+                        additional_properties=validators.Ref("MediaType")
+                    ),
+                ),
+                ("required", validators.Boolean()),
             ]
         ),
-        'MediaType': validators.Object(
+        "MediaType": validators.Object(
             properties=[
-                ('schema', JSON_SCHEMA | SCHEMA_REF),
-                ('example', validators.Any())
+                ("schema", JSON_SCHEMA | SCHEMA_REF),
+                ("example", validators.Any())
                 # TODO 'examples', 'encoding'
             ]
         ),
-        'Components': validators.Object(
+        "Components": validators.Object(
             properties=[
-                ('schemas', validators.Object(additional_properties=JSON_SCHEMA)),
+                ("schemas", validators.Object(additional_properties=JSON_SCHEMA))
             ]
         ),
-        'Tag': validators.Object(
+        "Tag": validators.Object(
             properties=[
-                ('name', validators.String()),
-                ('description', validators.String(format='textarea')),
-                ('externalDocs', validators.Ref('ExternalDocumentation'))
+                ("name", validators.String()),
+                ("description", validators.String(format="textarea")),
+                ("externalDocs", validators.Ref("ExternalDocumentation")),
             ],
-            required=['name']
+            required=["name"],
         ),
-        'SecurityRequirement': validators.Object(
+        "SecurityRequirement": validators.Object(
             additional_properties=validators.Array(items=validators.String())
-        )
-    }
+        ),
+    },
 )
 
 
-METHODS = [
-    'get', 'put', 'post', 'delete', 'options', 'head', 'patch', 'trace'
-]
+METHODS = ["get", "put", "post", "delete", "options", "head", "patch", "trace"]
 
 
 def lookup(value, keys, default=None):
@@ -173,6 +186,7 @@ def lookup(value, keys, default=None):
             value = value[key]
         except (KeyError, IndexError, TypeError):
             return default
+
     return value
 
 
@@ -183,42 +197,49 @@ def _relative_url(base_url, url):
     * If the have the same scheme and hostname, return the path & query params.
     * Otherwise return the full URL.
     """
-    base_prefix = '%s://%s' % urlparse(base_url or '')[0:2]
-    url_prefix = '%s://%s' % urlparse(url or '')[0:2]
-    if base_prefix == url_prefix and url_prefix != '://':
+    base_prefix = "%s://%s" % urlparse(base_url or "")[0:2]
+    url_prefix = "%s://%s" % urlparse(url or "")[0:2]
+    if base_prefix == url_prefix and url_prefix != "://":
         return url[len(url_prefix):]
+
     return url
 
 
 def _simple_slugify(text):
     text = text.lower()
-    text = re.sub(r'[^a-z0-9]+', '_', text)
-    text = re.sub(r'[_]+', '_', text)
-    return text.strip('_')
+    text = re.sub(r"[^a-z0-9]+", "_", text)
+    text = re.sub(r"[_]+", "_", text)
+    return text.strip("_")
 
 
 class OpenAPICodec(BaseCodec):
-    media_type = 'application/vnd.oai.openapi'
-    format = 'openapi'
+    media_type = "application/vnd.oai.openapi"
+    format = "openapi"
 
     def decode(self, bytestring, **options):
         try:
-            data = json.loads(bytestring.decode('utf-8'))
+            data = json.loads(bytestring.decode("utf-8"))
         except ValueError as exc:
-            raise ParseError('Malformed JSON. %s' % exc) from None
+            raise ParseError("Malformed JSON. %s" % exc) from None
 
         openapi = OPEN_API.validate(data)
-        title = lookup(openapi, ['info', 'title'])
-        description = lookup(openapi, ['info', 'description'])
-        version = lookup(openapi, ['info', 'version'])
-        base_url = lookup(openapi, ['servers', 0, 'url'])
+        title = lookup(openapi, ["info", "title"])
+        description = lookup(openapi, ["info", "description"])
+        version = lookup(openapi, ["info", "version"])
+        base_url = lookup(openapi, ["servers", 0, "url"])
         schema_definitions = self.get_schema_definitions(openapi)
         content = self.get_content(openapi, base_url, schema_definitions)
-        return Document(title=title, description=description, version=version, url=base_url, content=content)
+        return Document(
+            title=title,
+            description=description,
+            version=version,
+            url=base_url,
+            content=content,
+        )
 
     def get_schema_definitions(self, openapi):
         definitions = {}
-        schemas = lookup(openapi, ['components', 'schemas'], {})
+        schemas = lookup(openapi, ["components", "schemas"], {})
         for key, value in schemas.items():
             definitions[key] = JSONSchemaCodec().decode_from_data_structure(value)
         return definitions
@@ -230,14 +251,18 @@ class OpenAPICodec(BaseCodec):
         links_by_tag = dict_type()
         links = []
 
-        for path, path_info in openapi.get('paths', {}).items():
-            operations = {
-                key: path_info[key] for key in path_info
-                if key in METHODS
-            }
+        for path, path_info in openapi.get("paths", {}).items():
+            operations = {key: path_info[key] for key in path_info if key in METHODS}
             for operation, operation_info in operations.items():
-                tag = lookup(operation_info, ['tags', 0])
-                link = self.get_link(base_url, path, path_info, operation, operation_info, schema_definitions)
+                tag = lookup(operation_info, ["tags", 0])
+                link = self.get_link(
+                    base_url,
+                    path,
+                    path_info,
+                    operation,
+                    operation_info,
+                    schema_definitions,
+                )
                 if link is None:
                     continue
 
@@ -254,13 +279,15 @@ class OpenAPICodec(BaseCodec):
         ]
         return links + sections
 
-    def get_link(self, base_url, path, path_info, operation, operation_info, schema_definitions):
+    def get_link(
+        self, base_url, path, path_info, operation, operation_info, schema_definitions
+    ):
         """
         Return a single link in the document.
         """
-        name = operation_info.get('operationId')
-        title = operation_info.get('summary')
-        description = operation_info.get('description')
+        name = operation_info.get("operationId")
+        title = operation_info.get("summary")
+        description = operation_info.get("description")
 
         if name is None:
             name = _simple_slugify(title)
@@ -268,32 +295,33 @@ class OpenAPICodec(BaseCodec):
                 return None
 
         # Allow path info and operation info to override the base url.
-        base_url = lookup(path_info, ['servers', 0, 'url'], default=base_url)
-        base_url = lookup(operation_info, ['servers', 0, 'url'], default=base_url)
+        base_url = lookup(path_info, ["servers", 0, "url"], default=base_url)
+        base_url = lookup(operation_info, ["servers", 0, "url"], default=base_url)
 
         # Parameters are taken both from the path info, and from the operation.
-        parameters = path_info.get('parameters', [])
-        parameters += operation_info.get('parameters', [])
+        parameters = path_info.get("parameters", [])
+        parameters += operation_info.get("parameters", [])
 
         fields = [
-            self.get_field(parameter, schema_definitions)
-            for parameter in parameters
+            self.get_field(parameter, schema_definitions) for parameter in parameters
         ]
 
         # TODO: Handle media type generically here...
-        body_schema = lookup(operation_info, ['requestBody', 'content', 'application/json', 'schema'])
+        body_schema = lookup(
+            operation_info, ["requestBody", "content", "application/json", "schema"]
+        )
 
         encoding = None
         if body_schema:
-            encoding = 'application/json'
-            if '$ref' in body_schema:
-                ref = body_schema['$ref'][len('#/components/schemas/'):]
+            encoding = "application/json"
+            if "$ref" in body_schema:
+                ref = body_schema["$ref"][len("#/components/schemas/"):]
                 schema = schema_definitions.get(ref)
             else:
                 schema = JSONSchemaCodec().decode_from_data_structure(body_schema)
             if isinstance(schema, validators.Object):
                 for key, value in schema.properties.items():
-                    fields += [Field(name=key, location='form', schema=value)]
+                    fields += [Field(name=key, location="form", schema=value)]
 
         return Link(
             name=name,
@@ -302,23 +330,23 @@ class OpenAPICodec(BaseCodec):
             title=title,
             description=description,
             fields=fields,
-            encoding=encoding
+            encoding=encoding,
         )
 
     def get_field(self, parameter, schema_definitions):
         """
         Return a single field in a link.
         """
-        name = parameter.get('name')
-        location = parameter.get('in')
-        description = parameter.get('description')
-        required = parameter.get('required', False)
-        schema = parameter.get('schema')
-        example = parameter.get('example')
+        name = parameter.get("name")
+        location = parameter.get("in")
+        description = parameter.get("description")
+        required = parameter.get("required", False)
+        schema = parameter.get("schema")
+        example = parameter.get("example")
 
         if schema is not None:
-            if '$ref' in schema:
-                ref = schema['$ref'][len('#/components/schemas/'):]
+            if "$ref" in schema:
+                ref = schema["$ref"][len("#/components/schemas/"):]
                 schema = schema_definitions.get(ref)
             else:
                 schema = JSONSchemaCodec().decode_from_data_structure(schema)
@@ -329,37 +357,33 @@ class OpenAPICodec(BaseCodec):
             description=description,
             required=required,
             schema=schema,
-            example=example
+            example=example,
         )
 
     def encode(self, document, **options):
         schema_defs = {}
         paths = self.get_paths(document, schema_defs=schema_defs)
-        openapi = OPEN_API.validate({
-            'openapi': '3.0.0',
-            'info': {
-                'version': document.version,
-                'title': document.title,
-                'description': document.description
-            },
-            'servers': [{
-                'url': document.url
-            }],
-            'paths': paths
-        })
+        openapi = OPEN_API.validate(
+            {
+                "openapi": "3.0.0",
+                "info": {
+                    "version": document.version,
+                    "title": document.title,
+                    "description": document.description,
+                },
+                "servers": [{"url": document.url}],
+                "paths": paths,
+            }
+        )
 
         if schema_defs:
-            openapi['components'] = {'schemas': schema_defs}
+            openapi["components"] = {"schemas": schema_defs}
 
         if not document.url:
-            openapi.pop('servers')
+            openapi.pop("servers")
 
-        kwargs = {
-            'ensure_ascii': False,
-            'indent': 4,
-            'separators': (',', ': ')
-        }
-        return json.dumps(openapi, **kwargs).encode('utf-8')
+        kwargs = {"ensure_ascii": False, "indent": 4, "separators": (",", ": ")}
+        return json.dumps(openapi, **kwargs).encode("utf-8")
 
     def get_paths(self, document, schema_defs=None):
         paths = dict_type()
@@ -372,24 +396,24 @@ class OpenAPICodec(BaseCodec):
 
             if path not in paths:
                 paths[path] = {}
-            paths[path][method] = self.get_operation(link, operation_id, tag=tag, schema_defs=schema_defs)
+            paths[path][method] = self.get_operation(
+                link, operation_id, tag=tag, schema_defs=schema_defs
+            )
 
         return paths
 
     def get_operation(self, link, operation_id, tag=None, schema_defs=None):
-        operation = {
-            'operationId': operation_id
-        }
+        operation = {"operationId": operation_id}
         if link.title:
-            operation['summary'] = link.title
+            operation["summary"] = link.title
         if link.description:
-            operation['description'] = link.description
+            operation["description"] = link.description
         if tag:
-            operation['tags'] = [tag]
+            operation["tags"] = [tag]
         if link.get_path_fields() or link.get_query_fields():
-            operation['parameters'] = [
-                self.get_parameter(field, schema_defs) for field in
-                link.get_path_fields() + link.get_query_fields()
+            operation["parameters"] = [
+                self.get_parameter(field, schema_defs)
+                for field in link.get_path_fields() + link.get_query_fields()
             ]
         if link.get_body_field():
             schema = link.get_body_field().schema
@@ -397,33 +421,22 @@ class OpenAPICodec(BaseCodec):
                 content_info = {}
             else:
                 content_info = {
-                    'schema': JSONSchemaCodec().encode_to_data_structure(
-                        schema,
-                        schema_defs,
-                        '#/components/schemas/'
+                    "schema": JSONSchemaCodec().encode_to_data_structure(
+                        schema, schema_defs, "#/components/schemas/"
                     )
                 }
 
-            operation['responseBody'] = {
-                'content': {
-                    link.encoding: content_info
-                }
-            }
+            operation["responseBody"] = {"content": {link.encoding: content_info}}
         return operation
 
     def get_parameter(self, field, schema_defs=None):
-        parameter = {
-            'name': field.name,
-            'in': field.location
-        }
+        parameter = {"name": field.name, "in": field.location}
         if field.required:
-            parameter['required'] = True
+            parameter["required"] = True
         if field.description:
-            parameter['description'] = field.description
+            parameter["description"] = field.description
         if field.schema:
-            parameter['schema'] = JSONSchemaCodec().encode_to_data_structure(
-                field.schema,
-                schema_defs,
-                '#/components/schemas/'
+            parameter["schema"] = JSONSchemaCodec().encode_to_data_structure(
+                field.schema, schema_defs, "#/components/schemas/"
             )
         return parameter

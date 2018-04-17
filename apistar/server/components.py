@@ -5,6 +5,7 @@ from apistar import exceptions
 
 
 class Component():
+
     def identity(self, parameter: inspect.Parameter):
         """
         Each component needs a unique identifier string that we use for lookups
@@ -17,7 +18,7 @@ class Component():
         # that is additionally parameterized by the parameter name.
         args = inspect.signature(self.resolve).parameters.values()
         if inspect.Parameter in [arg.annotation for arg in args]:
-            return annotation_name + ':' + parameter_name
+            return annotation_name + ":" + parameter_name
 
         # Standard case is to use the class name, lowercased.
         return annotation_name
@@ -37,9 +38,10 @@ class Component():
         if return_annotation is inspect.Signature.empty:
             msg = (
                 'Component "%s" must include a return annotation on the '
-                '`resolve()` method, or override `can_handle_parameter`'
+                "`resolve()` method, or override `can_handle_parameter`"
             )
             raise exceptions.ConfigurationError(msg % self.__class__.__name__)
+
         return parameter.annotation is return_annotation
 
     def resolve(self):

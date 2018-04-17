@@ -6,6 +6,7 @@ from apistar.server.components import ReturnValue
 
 
 class BaseInjector():
+
     def run(self, func, state):
         raise NotImplementedError()
 
@@ -16,12 +17,12 @@ class Injector(BaseInjector):
     def __init__(self, components, initial):
         self.components = components
         self.initial = dict(initial)
-        self.reverse_initial = {
-            val: key for key, val in initial.items()
-        }
+        self.reverse_initial = {val: key for key, val in initial.items()}
         self.resolver_cache = {}
 
-    def resolve_function(self, func, output_name=None, seen_state=None, parent_parameter=None):
+    def resolve_function(
+        self, func, output_name=None, seen_state=None, parent_parameter=None
+    ):
         if seen_state is None:
             seen_state = set(self.initial)
 
@@ -66,9 +67,10 @@ class Injector(BaseInjector):
                             func=component.resolve,
                             output_name=identity,
                             seen_state=seen_state,
-                            parent_parameter=parameter
+                            parent_parameter=parameter,
                         )
                     break
+
             else:
                 msg = 'No component able to handle parameter "%s" on function "%s".'
                 raise ConfigurationError(msg % (parameter.name, func.__name__))
@@ -76,7 +78,7 @@ class Injector(BaseInjector):
         is_async = asyncio.iscoroutinefunction(func)
         if is_async and not self.allow_async:
             msg = 'Function "%s" may not be async.'
-            raise ConfigurationError(msg % (func.__name__, ))
+            raise ConfigurationError(msg % (func.__name__,))
 
         step = (func, is_async, kwargs, consts, output_name)
         steps.append(step)
@@ -125,4 +127,4 @@ class ASyncInjector(Injector):
             else:
                 state[output_name] = func(**func_kwargs)
 
-        return state['response']
+        return state[output_name]

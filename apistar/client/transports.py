@@ -4,7 +4,11 @@ import requests
 
 from apistar import codecs, conneg, exceptions
 from apistar.client.utils import (
-    BlockAllCookies, File, ForceMultiPartDict, guess_filename, is_file
+    BlockAllCookies,
+    File,
+    ForceMultiPartDict,
+    guess_filename,
+    is_file
 )
 
 
@@ -16,12 +20,8 @@ class BaseTransport():
 
 
 class HTTPTransport(BaseTransport):
-    schemes = ['http', 'https']
-    default_decoders = [
-        codecs.JSONCodec(),
-        codecs.TextCodec(),
-        codecs.DownloadCodec()
-    ]
+    schemes = ["http", "https"]
+    default_decoders = [codecs.JSONCodec(), codecs.TextCodec(), codecs.DownloadCodec()]
 
     def __init__(self, auth=None, decoders=None, headers=None, session=None):
         from apistar import __version__
@@ -30,20 +30,17 @@ class HTTPTransport(BaseTransport):
             session = requests.Session()
         if auth is not None:
             session.auth = auth
-        if not getattr(session.auth, 'allow_cookies', False):
+        if not getattr(session.auth, "allow_cookies", False):
             session.cookies.set_policy(BlockAllCookies())
 
         self.session = session
         self.decoders = list(decoders) if decoders else list(self.default_decoders)
         self.headers = {
-            'accept': '%s, */*' % self.decoders[0].media_type,
-            'user-agent': 'apistar %s' % __version__
+            "accept": "%s, */*" % self.decoders[0].media_type,
+            "user-agent": "apistar %s" % __version__,
         }
         if headers:
-            self.headers.update({
-                key.lower(): value
-                for key, value in headers.items()
-            })
+            self.headers.update({key.lower(): value for key, value in headers.items()})
 
     def send(self, method, url, query_params=None, content=None, encoding=None):
         options = self.get_request_options(query_params, content, encoding)
@@ -51,7 +48,7 @@ class HTTPTransport(BaseTransport):
         result = self.decode_response_content(response)
 
         if 400 <= response.status_code <= 599:
-            title = '%d %s' % (response.status_code, response.reason)
+            title = "%d %s" % (response.status_code, response.reason)
             raise exceptions.ErrorResponse(title, result)
 
         return result
@@ -61,17 +58,15 @@ class HTTPTransport(BaseTransport):
         Returns a dictionary of keyword parameters to include when making
         the outgoing request.
         """
-        options = {
-            'headers': dict(self.headers)
-        }
+        options = {"headers": dict(self.headers)}
 
         if query_params:
-            options['params'] = query_params
+            options["params"] = query_params
 
         if content is not None:
-            if encoding == 'application/json':
-                options['json'] = content
-            elif encoding == 'multipart/form-data':
+            if encoding == "application/json":
+                options["json"] = content
+            elif encoding == "multipart/form-data":
                 data = {}
                 files = ForceMultiPartDict()
                 for key, value in content.items():
@@ -79,15 +74,15 @@ class HTTPTransport(BaseTransport):
                         files[key] = value
                     else:
                         data[key] = value
-            elif encoding == 'application/x-www-form-urlencoded':
-                options['data'] = content
-            elif encoding == 'application/octet-stream':
+            elif encoding == "application/x-www-form-urlencoded":
+                options["data"] = content
+            elif encoding == "application/octet-stream":
                 if isinstance(content, File):
-                    options['data'] = content.content
+                    options["data"] = content.content
                 else:
-                    options['data'] = content
+                    options["data"] = content
                 upload_headers = self.get_upload_headers(content)
-                options['headers'].update(upload_headers)
+                options["headers"].update(upload_headers)
 
         return options
 
@@ -101,7 +96,7 @@ class HTTPTransport(BaseTransport):
         content_disposition = None
 
         # Determine the content type of the upload.
-        if getattr(file_obj, 'content_type', None):
+        if getattr(file_obj, "content_type", None):
             content_type = file_obj.content_type
         elif name:
             content_type, encoding = mimetypes.guess_type(name)
@@ -111,8 +106,8 @@ class HTTPTransport(BaseTransport):
             content_disposition = 'attachment; filename="%s"' % name
 
         return {
-            'Content-Type': content_type or 'application/octet-stream',
-            'Content-Disposition': content_disposition or 'attachment'
+            "Content-Type": content_type or "application/octet-stream",
+            "Content-Disposition": content_disposition or "attachment",
         }
 
     def decode_response_content(self, response):
@@ -122,15 +117,13 @@ class HTTPTransport(BaseTransport):
         if not response.content:
             return None
 
-        content_type = response.headers.get('content-type')
+        content_type = response.headers.get("content-type")
         codec = conneg.negotiate_content_type(self.decoders, content_type)
 
-        options = {
-            'base_url': response.url
-        }
-        if 'content-type' in response.headers:
-            options['content_type'] = response.headers['content-type']
-        if 'content-disposition' in response.headers:
-            options['content_disposition'] = response.headers['content-disposition']
+        options = {"base_url": response.url}
+        if "content-type" in response.headers:
+            options["content_type"] = response.headers["content-type"]
+        if "content-disposition" in response.headers:
+            options["content_disposition"] = response.headers["content-disposition"]
 
         return codec.decode(response.content, **options)

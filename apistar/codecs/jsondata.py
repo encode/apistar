@@ -6,8 +6,8 @@ from apistar.exceptions import ParseError
 
 
 class JSONCodec(BaseCodec):
-    media_type = 'application/json'
-    format = 'json'
+    media_type = "application/json"
+    format = "json"
 
     def decode(self, bytestring, **options):
         """
@@ -15,8 +15,8 @@ class JSONCodec(BaseCodec):
         """
         try:
             return json.loads(
-                bytestring.decode('utf-8'),
-                object_pairs_hook=collections.OrderedDict
+                bytestring.decode("utf-8"), object_pairs_hook=collections.OrderedDict
             )
+
         except ValueError as exc:
-            raise ParseError('Malformed JSON. %s' % exc) from None
+            raise ParseError("Malformed JSON. %s" % exc) from None
