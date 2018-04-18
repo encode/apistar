@@ -1,14 +1,26 @@
-# API Star ✨🚀✨🌟
-
+<p align="center">
+    <img src="https://github.com/dabapps/apistar/raw/readme-logo/docs/img/logo-200-square-light.png" alt="API Star" />
+</p>
+<p align="center">
 A smart Web API framework, designed for Python 3.
-
-[![Build Status](https://travis-ci.org/encode/apistar.svg?branch=master)](https://travis-ci.org/encode/apistar)
-[![codecov](https://codecov.io/gh/encode/apistar/branch/master/graph/badge.svg)](https://codecov.io/gh/encode/apistar)
-[![Package version](https://badge.fury.io/py/apistar.svg)](https://pypi.python.org/pypi/apistar)
-
-**Community:** https://discuss.apistar.org/ 🤔 💭 🤓 💬 😎
-
-**Documentation**: https://encode.github.io/apistar/ 📘
+</p>
+<p align="center">
+<a href="https://travis-ci.org/encode/apistar">
+    <img src="https://travis-ci.org/encode/apistar.svg?branch=master" alt="Build Status">
+</a>
+<a href="https://codecov.io/gh/encode/apistar">
+    <img src="https://codecov.io/gh/encode/apistar/branch/master/graph/badge.svg" alt="codecov">
+</a>
+<a href="https://pypi.python.org/pypi/apistar">
+    <img src="https://badge.fury.io/py/apistar.svg" alt="Package version">
+</a>
+</p>
+<p align="center">
+    <strong>Community:</strong> <a href="https://discuss.apistar.org/">https://discuss.apistar.org/</a> 🤔 💭 🤓 💬 😎
+</p>
+<p align="center">    
+    <strong>Documentation:</strong> <a href="https://encode.github.io/apistar/">https://encode.github.io/apistar/</a> 📘
+</p>
 
 ---
 
@@ -56,6 +68,9 @@ if __name__ == '__main__':
 
 ---
 
-<p align="center"><i>API Star is <a href="https://github.com/tomchristie/apistar/blob/master/LICENSE.md">BSD licensed</a> code.<br/>Designed & built in Brighton, England.</i><br/>&mdash; ⭐️ &mdash;</p>
+<p align="center"><i>API Star is <a href="https://github.com/tomchristie/apistar/blob/master/LICENSE.md">BSD licensed</a> code.<br/>Designed & built in Brighton, England.</i>
+<p align="center">
+    <img src="https://github.com/dabapps/apistar/raw/readme-logo/docs/img/ident-44-square-light.png" alt="API Star" />
+</p>
 
 [techempower]: https://www.techempower.com/benchmarks/#section=data-r14&hw=ph&test=json
