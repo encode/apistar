@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="https://github.com/encode/apistar/raw/readme-logo/docs/img/logo-200-square-light.png" alt="API Star" />
+    <img src="https://raw.githubusercontent.com/encode/apistar/master/docs/img/logo-200-square-light.png" alt="API Star" />
 </p>
 <p align="center">
 A smart Web API framework, designed for Python 3.
@@ -70,7 +70,7 @@ if __name__ == '__main__':
 
 <p align="center"><i>API Star is <a href="https://github.com/tomchristie/apistar/blob/master/LICENSE.md">BSD licensed</a> code.<br/>Designed & built in Brighton, England.</i>
 <p align="center">
-    <img src="https://github.com/encode/apistar/raw/readme-logo/docs/img/ident-44-square-light.png" alt="API Star" />
+    <img src="https://raw.githubusercontent.com/encode/apistar/master/docs/img/ident-44-square-light.png" alt="API Star" />
 </p>
 
 [techempower]: https://www.techempower.com/benchmarks/#section=data-r14&hw=ph&test=json
