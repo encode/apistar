@@ -2,7 +2,7 @@
     <img src="https://raw.githubusercontent.com/encode/apistar/master/docs/img/logo-200-square-light.png" alt="API Star" />
 </p>
 <p align="center">
-A smart Web API framework, designed for Python 3.
+    <em>A smart Web API framework, for Python 3.</em>
 </p>
 <p align="center">
 <a href="https://travis-ci.org/encode/apistar">
@@ -15,12 +15,12 @@ A smart Web API framework, designed for Python 3.
     <img src="https://badge.fury.io/py/apistar.svg" alt="Package version">
 </a>
 </p>
-<p align="center">
-    <strong>Community:</strong> <a href="https://discuss.apistar.org/">https://discuss.apistar.org/</a> 🤔 💭 🤓 💬 😎
-</p>
-<p align="center">    
-    <strong>Documentation:</strong> <a href="https://encode.github.io/apistar/">https://encode.github.io/apistar/</a> 📘
-</p>
+
+---
+
+**Community:** https://discuss.apistar.org/ 🤔 💭 🤓 💬 😎
+  
+**Documentation:** https://encode.github.io/apistar/ 📘
 
 ---
 
