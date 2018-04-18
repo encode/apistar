@@ -1,6 +1,7 @@
-# API Star ✨🚀✨🌟
+<div align="center">
+![APIstar Logo](/docs/img/logo-200-square-light.png)
 
-A smart Web API framework, designed for Python 3.
+APIstar - a smart Web API framework, designed for Python 3.
 
 [![Build Status](https://travis-ci.org/encode/apistar.svg?branch=master)](https://travis-ci.org/encode/apistar)
 [![codecov](https://codecov.io/gh/encode/apistar/branch/master/graph/badge.svg)](https://codecov.io/gh/encode/apistar)
@@ -9,7 +10,7 @@ A smart Web API framework, designed for Python 3.
 **Community:** https://discuss.apistar.org/ 🤔 💭 🤓 💬 😎
 
 **Documentation**: https://encode.github.io/apistar/ 📘
-
+</div>
 ---
 
 # Features
@@ -56,6 +57,7 @@ if __name__ == '__main__':
 
 ---
 
-<p align="center"><i>API Star is <a href="https://github.com/tomchristie/apistar/blob/master/LICENSE.md">BSD licensed</a> code.<br/>Designed & built in Brighton, England.</i><br/>&mdash; ⭐️ &mdash;</p>
+<p align="center"><i>API Star is <a href="https://github.com/tomchristie/apistar/blob/master/LICENSE.md">BSD licensed</a> code.<br/>Designed & built in Brighton, England.</i>
+<p align="center">![APIstar Logo](/docs/img/ident-44-square-light.png)</p>
 
 [techempower]: https://www.techempower.com/benchmarks/#section=data-r14&hw=ph&test=json
