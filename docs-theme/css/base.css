@@ -360,6 +360,7 @@ body:before {
 .dropdown-menu>li>a:hover,
 .dropdown-menu>li>a:focus {
     background-color: #5cb3c2;
+    outline-color:#86C3D0;
 }
 
 .navbar-brand {
@@ -369,6 +370,10 @@ body:before {
     background-position: 15px center;
     padding-left: 60px;
     font-weight: bold;
+}
+
+.navbar-default .navbar-brand {
+    outline-color:#86C3D0;
 }
 
 a {
@@ -398,5 +403,33 @@ a:visited {
     width: 58px;
     height: auto;
     padding-right: 16px;
+}
+
+.navbar-nav>li>a.btn-small {
+    padding: 3px 9px;
+    font-size: 12px;
+    line-height: 18px;
+    margin-left: 16px;
+    margin-top: 12px;
+    display: inline-block;
+}
+
+.btn-primary {
+    background-image: linear-gradient(-208deg, #86C3D0 0%, #4E90A3 66%);
+    background-repeat: no-repeat;
+    background-color: #66959f;
+    border-color: #fff;
+    border-bottom: 1px solid #ccc;
+}
+
+.btn-primary:hover,
+.btn-primary:active,
+.btn-primary.active,
+.btn-primary.disabled,
+.btn-primary[disabled] {
+    color: #ffffff;
+    
+    background-color: #66959f;
+    border-color: #ccc;
 }
 /* End API Star customisation */
