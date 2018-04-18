@@ -1,4 +1,7 @@
 site_name: API Star
+theme:
+    name: null
+    custom_dir: 'docs-theme'
 pages:
     - Home: index.md
     - API Guide:
