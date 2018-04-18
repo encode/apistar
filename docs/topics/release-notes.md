@@ -1,5 +1,11 @@
 # Release Notes
 
+## Version 0.5.x
+
+## 0.5
+
+Should have introduced a proper version bump, given the 0.4.5 changes.
+
 ## Version 0.4.x
 
 ### 0.4.5
