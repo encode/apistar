@@ -1,17 +1,15 @@
 <p align="center">
+    ![APIstar Logo](/docs/img/logo-200-square-light.png)
 
-![APIstar Logo](/docs/img/logo-200-square-light.png)
+    APIstar - a smart Web API framework, designed for Python 3.
 
-APIstar - a smart Web API framework, designed for Python 3.
+    [![Build Status](https://travis-ci.org/encode/apistar.svg?branch=master)](https://travis-ci.org/encode/apistar)
+    [![codecov](https://codecov.io/gh/encode/apistar/branch/master/graph/badge.svg)](https://codecov.io/gh/encode/apistar)
+    [![Package version](https://badge.fury.io/py/apistar.svg)](https://pypi.python.org/pypi/apistar)
 
-[![Build Status](https://travis-ci.org/encode/apistar.svg?branch=master)](https://travis-ci.org/encode/apistar)
-[![codecov](https://codecov.io/gh/encode/apistar/branch/master/graph/badge.svg)](https://codecov.io/gh/encode/apistar)
-[![Package version](https://badge.fury.io/py/apistar.svg)](https://pypi.python.org/pypi/apistar)
+    **Community:** https://discuss.apistar.org/ 🤔 💭 🤓 💬 😎
 
-**Community:** https://discuss.apistar.org/ 🤔 💭 🤓 💬 😎
-
-**Documentation**: https://encode.github.io/apistar/ 📘
-
+    **Documentation**: https://encode.github.io/apistar/ 📘
 </p>
 ---
 
