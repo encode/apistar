@@ -112,7 +112,12 @@ class App():
             if hasattr(hook, 'on_response')
         ] + [self.finalize_wsgi]
 
-        self.on_error_functions = [self.exception_handler] + [
+        self.on_exception_functions = [self.exception_handler] + [
+            hook.on_response for hook in event_hooks
+            if hasattr(hook, 'on_response')
+        ] + [self.finalize_wsgi]
+
+        self.on_error_functions = [self.error_handler] + [
             hook.on_error for hook in event_hooks
             if hasattr(hook, 'on_error')
         ] + [self.finalize_wsgi]
@@ -133,17 +138,20 @@ class App():
             return HTMLResponse(return_value)
         return JSONResponse(return_value)
 
+    def exception_handler(self, exc: Exception) -> Response:
+        if isinstance(exc, exceptions.HTTPException):
+            return JSONResponse(exc.detail, exc.status_code, exc.get_headers())
+        raise
+
+    def error_handler(self, exc: Exception) -> Response:
+        return JSONResponse('Server error', 500)
+
     def finalize_wsgi(self, response: Response, start_response: WSGIStartResponse):
         start_response(
             RESPONSE_STATUS_TEXT[response.status_code],
             list(response.headers)
         )
         return [response.content]
-
-    def exception_handler(self, exc: Exception) -> Response:
-        if isinstance(exc, exceptions.HTTPException):
-            return JSONResponse(exc.detail, exc.status_code, exc.get_headers())
-        raise
 
     def __call__(self, environ, start_response):
         state = {
@@ -171,9 +179,14 @@ class App():
                 )
             return self.injector.run(funcs, state)
         except Exception as exc:
-            state['exc'] = exc
-            funcs = self.on_error_functions
-            return self.injector.run(funcs, state)
+            try:
+                state['exc'] = exc
+                funcs = self.on_exception_functions
+                return self.injector.run(funcs, state)
+            except Exception as inner_exc:
+                state['exc'] = inner_exc
+                funcs = self.on_error_functions
+                return self.injector.run(funcs, state)
 
 
 class ASyncApp(App):
@@ -224,9 +237,14 @@ class ASyncApp(App):
             if hasattr(hook, 'on_response')
         ] + [self.finalize_asgi]
 
-        self.on_error_functions = [self.exception_handler] + [
-            hook.on_error for hook in event_hooks
-            if hasattr(hook, 'on_error')
+        self.on_exception_functions = [self.exception_handler] + [
+            hook.on_response for hook in event_hooks
+            if hasattr(hook, 'on_response')
+        ] + [self.finalize_asgi]
+
+        self.on_error_functions = [self.error_handler] + [
+            hook.on_response for hook in event_hooks
+            if hasattr(hook, 'on_response')
         ] + [self.finalize_asgi]
 
     def init_staticfiles(self, static_url: str, static_dir: str=None):
@@ -262,9 +280,14 @@ class ASyncApp(App):
                     )
                 await self.injector.run_async(funcs, state)
             except Exception as exc:
-                state['exc'] = exc
-                funcs = self.on_error_functions
-                await self.injector.run_async(funcs, state)
+                try:
+                    state['exc'] = exc
+                    funcs = self.on_exception_functions
+                    await self.injector.run_async(funcs, state)
+                except Exception as inner_exc:
+                    state['exc'] = inner_exc
+                    funcs = self.on_error_functions
+                    await self.injector.run(funcs, state)
         return asgi_callable
 
     async def finalize_asgi(self, response: Response, send: ASGISend):

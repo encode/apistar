@@ -1,4 +1,4 @@
-from apistar import App, Route, exceptions, http, test
+from apistar import App, Route, http, test
 
 
 class CustomResponseHeader():
@@ -16,7 +16,7 @@ def hello_world():
 
 
 def error():
-    raise exceptions.BadRequest()
+    assert 1 == 2
 
 
 routes = [
@@ -39,5 +39,5 @@ def test_on_response():
 
 def test_on_error():
     response = client.get('/error')
-    assert response.status_code == 400
+    assert response.status_code == 500
     assert response.headers['Custom'] == 'Ran on_error'
