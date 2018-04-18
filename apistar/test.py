@@ -77,7 +77,9 @@ class _WSGIAdapter(requests.adapters.HTTPAdapter):
         """
         raw_kwargs = {}
 
-        def start_response(wsgi_status, wsgi_headers):
+        def start_response(wsgi_status, wsgi_headers, exc_info=None):
+            if exc_info:
+                raise exc_info[0](exc_info[1]).with_traceback(exc_info[2])
             status, _, reason = wsgi_status.partition(' ')
             raw_kwargs['status'] = int(status)
             raw_kwargs['reason'] = reason
@@ -181,7 +183,8 @@ class _ASGIAdapter(requests.adapters.HTTPAdapter):
 class _TestClient(requests.Session):
     def __init__(self, app: typing.Callable, scheme: str, hostname: str) -> None:
         super(_TestClient, self).__init__()
-        if app.interface == 'asgi':
+        interface = getattr(app, 'interface', None)
+        if interface == 'asgi':
             adapter = _ASGIAdapter(app)
         else:
             adapter = _WSGIAdapter(app)
