@@ -321,3 +321,82 @@ h1:hover .headerlink, h2:hover .headerlink, h3:hover .headerlink, h4:hover .head
     -moz-border-radius: 6px 0 6px 6px;
     border-radius: 6px 0 6px 6px;
 }
+
+/* API Star customisation */
+body {
+    font-family: 'Open Sans', sans-serif;
+}
+
+body:before {
+    background: none;
+}
+
+.navbar {
+    background-image: linear-gradient(-208deg, #86C3D0 0%, #4E90A3 66%);
+}
+
+.navbar-default .navbar-nav>.active>a,
+.navbar-default .navbar-nav>.active>a:hover,
+.navbar-default .navbar-nav>.active>a:focus {
+    background-color: #3494a6;
+}
+
+.navbar-default .navbar-toggle:hover,
+.navbar-default .navbar-toggle:focus {
+    background-color: #2e7f8d;
+}
+
+.navbar-default .navbar-nav>.open>a,
+.navbar-default .navbar-nav>.open>a:hover,
+.navbar-default .navbar-nav>.open>a:focus,
+.dropdown-menu>.active>a,
+.dropdown-menu>.active>a:hover,
+.dropdown-menu>.active>a:focus {
+    background-color: #3494a6;
+}
+
+.navbar-default .navbar-nav>li>a:hover,
+.navbar-default .navbar-nav>li>a:focus,
+.dropdown-menu>li>a:hover,
+.dropdown-menu>li>a:focus {
+    background-color: #5cb3c2;
+}
+
+.navbar-brand {
+    background-image: url('../img/logomarque-small-white.png');
+    background-repeat: no-repeat;
+    background-size: 33px;
+    background-position: 15px center;
+    padding-left: 60px;
+    font-weight: bold;
+}
+
+a {
+    color: #5CAABF;
+}
+
+a:hover,
+a:focus,
+a:visited {
+    color: #66959f;
+}
+
+.navbar-default .navbar-collapse, .navbar-default .navbar-form,
+.navbar-default .navbar-toggle {
+    border-color: #4E90A3;
+}
+
+@media (min-width: 992px) {
+    .col-md-9 {
+        box-sizing: border-box;
+        padding-left: 0;
+        width: 75%;
+    }
+}
+
+.footer-logo {
+    width: 58px;
+    height: auto;
+    padding-right: 16px;
+}
+/* End API Star customisation */

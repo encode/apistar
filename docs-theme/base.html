@@ -24,6 +24,7 @@
         {%- for path in extra_css %}
         <link href="{{ path }}" rel="stylesheet">
         {%- endfor %}
+        <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
       {%- endblock %}
 
       {%- block libs %}
@@ -72,7 +73,7 @@
             {%- if config.copyright %}
                 <p>{{ config.copyright }}</p>
             {%- endif %}
-            <p>Documentation built with <a href="http://www.mkdocs.org/">MkDocs</a>.</p>
+            <p><img src="/img/logomarque.png" alt="API Star" class="footer-logo">Documentation built with <a href="http://www.mkdocs.org/">MkDocs</a>.</p>
           {%- endblock %}
         </footer>
 
