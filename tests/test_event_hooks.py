@@ -1,4 +1,8 @@
+import pytest
+
 from apistar import App, Route, http, test
+
+ON_ERROR = None
 
 
 class CustomResponseHeader():
@@ -6,9 +10,9 @@ class CustomResponseHeader():
         response.headers['Custom'] = 'Ran on_response'
         return response
 
-    def on_error(self, response: http.Response):
-        response.headers['Custom'] = 'Ran on_error'
-        return response
+    def on_error(self):
+        global ON_ERROR
+        ON_ERROR = 'Ran on_error'
 
 
 def hello_world():
@@ -38,6 +42,9 @@ def test_on_response():
 
 
 def test_on_error():
-    response = client.get('/error')
-    assert response.status_code == 500
-    assert response.headers['Custom'] == 'Ran on_error'
+    global ON_ERROR
+
+    ON_ERROR = None
+    with pytest.raises(AssertionError):
+        client.get('/error')
+    assert ON_ERROR == 'Ran on_error'

@@ -77,7 +77,9 @@ class _WSGIAdapter(requests.adapters.HTTPAdapter):
         """
         raw_kwargs = {}
 
-        def start_response(wsgi_status, wsgi_headers):
+        def start_response(wsgi_status, wsgi_headers, exc_info=None):
+            if exc_info is not None:
+                raise exc_info[0].with_traceback(exc_info[1], exc_info[2])
             status, _, reason = wsgi_status.partition(' ')
             raw_kwargs['status'] = int(status)
             raw_kwargs['reason'] = reason
@@ -136,6 +138,7 @@ class _ASGIAdapter(requests.adapters.HTTPAdapter):
             'headers': headers,
             'client': ['testclient', 50000],
             'server': [host, port],
+            'raise_exceptions': True  # Not actually part of the spec.
         }
 
         async def receive():
@@ -165,6 +168,9 @@ class _ASGIAdapter(requests.adapters.HTTPAdapter):
                 raw_kwargs['body'] = io.BytesIO(message['body'])
             elif message['type'] == 'http.disconnect':
                 pass
+            elif message['type'] == 'http.exc_info':
+                exc_info = message['exc_info']
+                raise exc_info[0].with_traceback(exc_info[1], exc_info[2])
             else:
                 raise Exception("Unknown ASGI message type: %s" % message['type'])
 

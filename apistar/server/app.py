@@ -1,3 +1,5 @@
+import sys
+
 import werkzeug
 
 from apistar import exceptions
@@ -143,13 +145,14 @@ class App():
             return JSONResponse(exc.detail, exc.status_code, exc.get_headers())
         raise
 
-    def error_handler(self, exc: Exception) -> Response:
-        return JSONResponse('Server error', 500)
+    def error_handler(self) -> Response:
+        return JSONResponse('Server error', 500, exc_info=sys.exc_info())
 
     def finalize_wsgi(self, response: Response, start_response: WSGIStartResponse):
         start_response(
             RESPONSE_STATUS_TEXT[response.status_code],
-            list(response.headers)
+            list(response.headers),
+            exc_info=response.exc_info
         )
         return [response.content]
 
@@ -243,8 +246,8 @@ class ASyncApp(App):
         ] + [self.finalize_asgi]
 
         self.on_error_functions = [self.error_handler] + [
-            hook.on_response for hook in event_hooks
-            if hasattr(hook, 'on_response')
+            hook.on_error for hook in event_hooks
+            if hasattr(hook, 'on_error')
         ] + [self.finalize_asgi]
 
     def init_staticfiles(self, static_url: str, static_dir: str=None):
@@ -290,7 +293,11 @@ class ASyncApp(App):
                     await self.injector.run(funcs, state)
         return asgi_callable
 
-    async def finalize_asgi(self, response: Response, send: ASGISend):
+    async def finalize_asgi(self, response: Response, send: ASGISend, scope: ASGIScope):
+        if response.exc_info is not None and scope.get('raise_exceptions', False):
+            exc_info = response.exc_info
+            raise exc_info[0].with_traceback(exc_info[1], exc_info[2])
+
         await send({
             'type': 'http.response.start',
             'status': response.status_code,
