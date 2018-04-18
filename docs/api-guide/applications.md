@@ -52,3 +52,20 @@ routes = [
 
 app = ASyncApp(routes=routes)
 ```
+
+## The development server
+
+To run the development server, you should include something like the following
+in your `app.py` module.
+
+```python
+if __name__ == '__main__':
+    app.serve('127.0.0.1', 5000, debug=True)
+```
+
+If `debug` is set to `True`, then the interactive debugger will be triggered on exceptions.
+If `debug` is not set, then exceptions will result in a 500 Server Error.
+
+You should only use `app.serve()` for local development. See the [deployment documentation][deployment] for information on running API Star in production.
+
+[deployment]: /api-guide/deployment
