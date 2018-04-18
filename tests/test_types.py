@@ -14,6 +14,10 @@ class Product(types.Type):
     created = validators.DateTime()
 
 
+class ReviewedProduct(Product):
+    reviewer = validators.String(max_length=20)
+
+
 class Instance():
     def __init__(self, **kwargs):
         for key, value in kwargs.items():
@@ -35,6 +39,23 @@ def test_from_object():
     }
 
 
+def test_extended_from_object():
+    when = datetime.datetime(2020, 1, 1, 12, 0, 0, tzinfo=utc)
+    instance = Instance(name='abc', rating=20, created=when, reviewer='me')
+    product = ReviewedProduct(instance)
+
+    assert product.name == 'abc'
+    assert product.rating == 20
+    assert product.created == when
+    assert product.reviewer == 'me'
+    assert dict(product) == {
+        'name': 'abc',
+        'rating': 20,
+        'created': '2020-01-01T12:00:00Z',
+        'reviewer': 'me'
+    }
+
+
 def test_from_kwargs():
     when = datetime.datetime(2020, 1, 1, 12, 0, 0, tzinfo=utc)
     product = Product(name='abc', rating=20, created=when)
@@ -49,6 +70,22 @@ def test_from_kwargs():
     }
 
 
+def test_extended_from_kwargs():
+    when = datetime.datetime(2020, 1, 1, 12, 0, 0, tzinfo=utc)
+    product = ReviewedProduct(name='abc', rating=20, created=when, reviewer='me')
+
+    assert product.name == 'abc'
+    assert product.rating == 20
+    assert product.created == when
+    assert product.reviewer == 'me'
+    assert dict(product) == {
+        'name': 'abc',
+        'rating': 20,
+        'created': '2020-01-01T12:00:00Z',
+        'reviewer': 'me'
+    }
+
+
 def test_from_dict():
     when = datetime.datetime(2020, 1, 1, 12, 0, 0, tzinfo=utc)
     product = Product({'name': 'abc', 'rating': 20, 'created': when})
@@ -60,6 +97,22 @@ def test_from_dict():
         'name': 'abc',
         'rating': 20,
         'created': '2020-01-01T12:00:00Z'
+    }
+
+
+def test_extended_from_dict():
+    when = datetime.datetime(2020, 1, 1, 12, 0, 0, tzinfo=utc)
+    product = ReviewedProduct({'name': 'abc', 'rating': 20, 'created': when, 'reviewer': 'me'})
+
+    assert product.name == 'abc'
+    assert product.rating == 20
+    assert product.created == when
+    assert product.reviewer == 'me'
+    assert dict(product) == {
+        'name': 'abc',
+        'rating': 20,
+        'created': '2020-01-01T12:00:00Z',
+        'reviewer': 'me'
     }
 
 
@@ -183,6 +236,44 @@ def test_as_jsonschema():
                 "required": [
                     "name",
                     "created"
+                ]
+            }
+        }
+    }
+
+
+def test_extended_as_jsonschema_flat():
+    struct = encode_jsonschema(ReviewedProduct, to_data_structure=True)
+    assert struct == {
+        "$ref": "#/definitions/ReviewedProduct",
+        "definitions": {
+            "ReviewedProduct": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "maxLength": 10
+                    },
+                    "rating": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 100,
+                        "default": None,
+                        "nullable": True
+                    },
+                    "created": {
+                        "type": "string",
+                        "format": "datetime"
+                    },
+                    "reviewer": {
+                        "type": "string",
+                        "maxLength": 20
+                    }
+                },
+                "required": [
+                    "name",
+                    "created",
+                    "reviewer"
                 ]
             }
         }

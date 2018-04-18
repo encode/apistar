@@ -20,6 +20,17 @@ class TypeMetaclass(ABCMeta):
                 attrs.pop(key)
                 properties.append((key, value))
 
+        # If this class is subclassing another Type, add that Type's properties.
+        # Note that we loop over the bases in reverse. This is necessary in order
+        # to maintain the correct order of properties.
+        for base in reversed(bases):
+            if hasattr(base, 'validator'):
+                properties = [
+                    (key, base.validator.properties[key]) for key
+                    in base.validator.properties
+                    if key not in attrs
+                ] + properties
+
         properties = sorted(
             properties,
             key=lambda item: item[1]._creation_counter
