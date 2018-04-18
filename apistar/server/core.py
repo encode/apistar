@@ -1,7 +1,7 @@
 import inspect
 import re
 
-from apistar import types, validators
+from apistar import http, types, validators
 from apistar.document import Document, Field, Link, Section
 
 
@@ -49,7 +49,7 @@ class Route():
                 field = Field(name=name, location='path', schema=schema)
                 fields.append(field)
 
-            elif param.annotation in (param.empty, int, float, bool, str):
+            elif param.annotation in (param.empty, int, float, bool, str, http.QueryParam):
                 if param.default is param.empty:
                     kwargs = {}
                 elif param.default is None:
@@ -61,7 +61,8 @@ class Route():
                     int: validators.Integer(**kwargs),
                     float: validators.Number(**kwargs),
                     bool: validators.Boolean(**kwargs),
-                    str: validators.String(**kwargs)
+                    str: validators.String(**kwargs),
+                    http.QueryParam: validators.String(**kwargs),
                 }[param.annotation]
                 field = Field(name=name, location='query', schema=schema)
                 fields.append(field)
