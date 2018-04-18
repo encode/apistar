@@ -4,14 +4,23 @@
 <p align="center">
 A smart Web API framework, designed for Python 3.
 </p>
-
-[![Build Status](https://travis-ci.org/encode/apistar.svg?branch=master)](https://travis-ci.org/encode/apistar)
-[![codecov](https://codecov.io/gh/encode/apistar/branch/master/graph/badge.svg)](https://codecov.io/gh/encode/apistar)
-[![Package version](https://badge.fury.io/py/apistar.svg)](https://pypi.python.org/pypi/apistar)
-
-**Community:** https://discuss.apistar.org/ 🤔 💭 🤓 💬 😎
-
-**Documentation**: https://encode.github.io/apistar/ 📘
+<p align="center">
+<a href="https://travis-ci.org/encode/apistar">
+    <img src="https://travis-ci.org/encode/apistar.svg?branch=master" alt="Build Status">
+</a>
+<a href="https://codecov.io/gh/encode/apistar">
+    <img src="https://codecov.io/gh/encode/apistar/branch/master/graph/badge.svg" alt="codecov">
+</a>
+<a href="https://pypi.python.org/pypi/apistar">
+    <img src="https://badge.fury.io/py/apistar.svg" alt="Package version">
+</a>
+</p>
+<p align="center">
+    <strong>Community:</strong> <a href="https://discuss.apistar.org/">https://discuss.apistar.org/</a> 🤔 💭 🤓 💬 😎
+</p>
+<p align="center">    
+    <strong>Documentation:</strong> <a href="https://encode.github.io/apistar/">https://encode.github.io/apistar/</a> 📘
+</p>
 
 ---
 
