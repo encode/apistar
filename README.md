@@ -15,12 +15,14 @@ A smart Web API framework, designed for Python 3.
     <img src="https://badge.fury.io/py/apistar.svg" alt="Package version">
 </a>
 </p>
-<p align="center">
-    <strong>Community:</strong> <a href="https://discuss.apistar.org/">https://discuss.apistar.org/</a> 🤔 💭 🤓 💬 😎
-</p>
-<p align="center">    
-    <strong>Documentation:</strong> <a href="https://encode.github.io/apistar/">https://encode.github.io/apistar/</a> 📘
-</p>
+
+---
+
+**Requirements:** Python 3.5+ 🐍
+
+**Community:** https://discuss.apistar.org/ 🤔 💭 🤓 💬 😎
+
+**Documentation**: https://encode.github.io/apistar/ 📘
 
 ---
 
@@ -33,7 +35,7 @@ Why might you consider using API Star for your next Web API project?
 * **Performance** - Dynamic behaviour for determining how to run each view makes API Star incredibly efficient.
 * **Throughput** - Support for asyncio allows for building high-throughput non-blocking applications.
 
----
+<p align="center">&mdash; ⭐️ &mdash;</p>
 
 # Quickstart
 
