@@ -10,8 +10,9 @@ class ASGItoWSGIAdapter(object):
     We want this so that we can use the Werkzeug development server and
     debugger together with an ASGI application.
     """
-    def __init__(self, asgi):
+    def __init__(self, asgi, raise_exceptions=False):
         self.asgi = asgi
+        self.raise_exceptions = raise_exceptions
         self.loop = asyncio.get_event_loop()
 
     def __call__(self, environ, start_response):
@@ -51,6 +52,7 @@ class ASGItoWSGIAdapter(object):
             'query_string': environ.get('QUERY_STRING', '').encode('latin-1'),
             'http_version': environ.get('SERVER_PROTOCOL', 'http/1.0').split('/', 1)[-1],
             'scheme': environ.get('wsgi.url_scheme', 'http'),
+            'raise_exceptions': self.raise_exceptions  # Not actually part of the ASGI spec
         }
 
         if 'REMOTE_ADDR' in environ and 'REMOTE_PORT' in environ:

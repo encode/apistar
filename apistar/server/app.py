@@ -50,6 +50,7 @@ class App():
         self.init_staticfiles(static_url, static_dir)
         self.init_injector(components)
         self.init_hooks(event_hooks)
+        self.debug = False
 
     def include_extra_routes(self, schema_url=None, static_url=None):
         extra_routes = []
@@ -130,7 +131,12 @@ class App():
     def render_template(self, path: str, **context):
         return self.templates.render_template(path, **context)
 
-    def serve(self, host, port, **options):
+    def serve(self, host, port, debug=False, **options):
+        self.debug = debug
+        if 'use_debugger' not in options:
+            options['use_debugger'] = debug
+        if 'use_reloader' not in options:
+            options['use_reloader'] = debug
         werkzeug.run_simple(host, port, self, **options)
 
     def render_response(self, return_value: ReturnValue) -> Response:
@@ -149,6 +155,10 @@ class App():
         return JSONResponse('Server error', 500, exc_info=sys.exc_info())
 
     def finalize_wsgi(self, response: Response, start_response: WSGIStartResponse):
+        if self.debug and response.exc_info is not None:
+            exc_info = response.exc_info
+            raise exc_info[0].with_traceback(exc_info[1], exc_info[2])
+
         start_response(
             RESPONSE_STATUS_TEXT[response.status_code],
             list(response.headers),
@@ -294,9 +304,10 @@ class ASyncApp(App):
         return asgi_callable
 
     async def finalize_asgi(self, response: Response, send: ASGISend, scope: ASGIScope):
-        if response.exc_info is not None and scope.get('raise_exceptions', False):
-            exc_info = response.exc_info
-            raise exc_info[0].with_traceback(exc_info[1], exc_info[2])
+        if response.exc_info is not None:
+            if self.debug or scope.get('raise_exceptions', False):
+                exc_info = response.exc_info
+                raise exc_info[0].with_traceback(exc_info[1], exc_info[2])
 
         await send({
             'type': 'http.response.start',
@@ -311,6 +322,11 @@ class ASyncApp(App):
             'body': response.content
         })
 
-    def serve(self, host, port, **options):
-        wsgi = ASGItoWSGIAdapter(self)
+    def serve(self, host, port, debug=False, **options):
+        self.debug = debug
+        if 'use_debugger' not in options:
+            options['use_debugger'] = debug
+        if 'use_reloader' not in options:
+            options['use_reloader'] = debug
+        wsgi = ASGItoWSGIAdapter(self, raise_exceptions=debug)
         werkzeug.run_simple(host, port, wsgi, **options)
