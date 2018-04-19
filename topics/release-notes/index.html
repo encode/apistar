@@ -139,7 +139,6 @@
     <ul class="nav bs-sidenav">
         <li class="main active"><a href="#release-notes">Release Notes</a></li>
             <li><a href="#version-05x">Version 0.5.x</a></li>
-            <li><a href="#05">0.5</a></li>
             <li><a href="#version-04x">Version 0.4.x</a></li>
     </ul>
 </div></div>
@@ -147,8 +146,18 @@
 
 <h1 id="release-notes">Release Notes</h1>
 <h2 id="version-05x">Version 0.5.x</h2>
-<h2 id="05">0.5</h2>
-<p>Should have introduced a proper version bump, given the 0.4.5 changes.</p>
+<h3 id="052">0.5.2</h3>
+<ul>
+<li>Graceful handling of cases where <code>on_error</code> handling raises errors.</li>
+</ul>
+<h3 id="051">0.5.1</h3>
+<ul>
+<li>Fix for handlers than annotate <code>Response</code>, not being available to the <code>ReturnValue</code> annotation when <code>render_response</code> is called.</li>
+</ul>
+<h3 id="05">0.5</h3>
+<ul>
+<li>Should have introduced a proper version bump, given the 0.4.5 changes.</li>
+</ul>
 <h2 id="version-04x">Version 0.4.x</h2>
 <h3 id="045">0.4.5</h3>
 <ul>
