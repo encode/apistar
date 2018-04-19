@@ -200,7 +200,8 @@ class App():
                 try:
                     state['exc'] = inner_exc
                     funcs = self.on_error_functions
-                    self.injector.run(funcs, state)
+                    if funcs:
+                        self.injector.run(funcs, state)
                 finally:
                     funcs = [self.error_handler, self.finalize_wsgi]
                     return self.injector.run(funcs, state)
@@ -305,7 +306,8 @@ class ASyncApp(App):
                     try:
                         state['exc'] = inner_exc
                         funcs = self.on_error_functions
-                        await self.injector.run(funcs, state)
+                        if funcs:
+                            await self.injector.run(funcs, state)
                     finally:
                         funcs = [self.error_handler, self.finalize_asgi]
                         await self.injector.run(funcs, state)

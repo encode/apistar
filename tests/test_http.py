@@ -73,17 +73,14 @@ def get_path_params(params: http.PathParams):
 
 
 def get_request_data(data: http.RequestData):
+    if isinstance(data, dict):
+        data = {
+            key: value if not hasattr(value, 'filename') else {
+                'filename': value.filename,
+                'content': value.read().decode('utf-8'),
+            } for key, value in data.items()
+        }
     return {'data': data}
-
-
-def get_multipart_request_data(data: http.RequestData):
-    files = {
-        name: f if isinstance(f, str) else {
-            'filename': f.filename,
-            'content': f.read().decode('utf-8'),
-        } for name, f in data.items()
-    }
-    return {'data': files}
 
 
 def return_string(data: http.RequestData) -> str:
@@ -118,7 +115,6 @@ routes = [
     Route('/path_params/{example}/', 'GET', get_path_params),
     Route('/full_path_params/{+example}', 'GET', get_path_params, name='full_path_params'),
     Route('/request_data/', 'POST', get_request_data),
-    Route('/multipart_request_data/', 'POST', get_multipart_request_data),
     Route('/return_string/', 'GET', return_string),
     Route('/return_data/', 'GET', return_data),
     Route('/return_response/', 'GET', return_response),
@@ -324,7 +320,7 @@ def test_request_data(request_params, response_status, response_json, client):
 
 
 def test_multipart_request_data(client):
-    response = client.post('/multipart_request_data/', files={'a': ('b', '123')}, data={'b': '42'})
+    response = client.post('/request_data/', files={'a': ('b', '123')}, data={'b': '42'})
     assert response.status_code == 200
     assert response.json() == {
         'data': {
