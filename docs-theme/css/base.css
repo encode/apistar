@@ -405,6 +405,21 @@ a:visited {
     padding-right: 16px;
 }
 
+.navbar-nav>li>a.repo-link {
+    padding-top: 10px;
+    padding-bottom: 8px;
+}
+
+pre {
+    background-color: #f1f7f8;
+}
+
+/* Fix menu alignment */
+@media (min-width: 768px) {
+.navbar-nav.navbar-right:last-child {
+    margin-right: 0;
+}
+
 .navbar-nav>li>a.btn-small {
     padding: 3px 9px;
     font-size: 12px;
@@ -415,11 +430,12 @@ a:visited {
 }
 
 .btn-primary {
-    background-image: linear-gradient(-208deg, #86C3D0 0%, #4E90A3 66%);
+    background-image: -webkit-linear-gradient(#5CAABF,#66959f 60%,#4E90A3);
+    background-image: linear-gradient(#5CAABF,#66959f 60%,#4E90A3);
     background-repeat: no-repeat;
+    border-bottom: 1px solid #66959f;
     background-color: #66959f;
-    border-color: #fff;
-    border-bottom: 1px solid #ccc;
+    border-color: #66959f;
 }
 
 .btn-primary:hover,
@@ -432,4 +448,5 @@ a:visited {
     background-color: #66959f;
     border-color: #ccc;
 }
+
 /* End API Star customisation */
