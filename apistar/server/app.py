@@ -1,3 +1,5 @@
+import sys
+
 import werkzeug
 
 from apistar import exceptions
@@ -48,6 +50,7 @@ class App():
         self.init_staticfiles(static_url, static_dir)
         self.init_injector(components)
         self.init_hooks(event_hooks)
+        self.debug = False
 
     def include_extra_routes(self, schema_url=None, static_url=None):
         extra_routes = []
@@ -112,7 +115,12 @@ class App():
             if hasattr(hook, 'on_response')
         ] + [self.finalize_wsgi]
 
-        self.on_error_functions = [self.exception_handler] + [
+        self.on_exception_functions = [self.exception_handler] + [
+            hook.on_response for hook in event_hooks
+            if hasattr(hook, 'on_response')
+        ] + [self.finalize_wsgi]
+
+        self.on_error_functions = [self.error_handler] + [
             hook.on_error for hook in event_hooks
             if hasattr(hook, 'on_error')
         ] + [self.finalize_wsgi]
@@ -123,7 +131,12 @@ class App():
     def render_template(self, path: str, **context):
         return self.templates.render_template(path, **context)
 
-    def serve(self, host, port, **options):
+    def serve(self, host, port, debug=False, **options):
+        self.debug = debug
+        if 'use_debugger' not in options:
+            options['use_debugger'] = debug
+        if 'use_reloader' not in options:
+            options['use_reloader'] = debug
         werkzeug.run_simple(host, port, self, **options)
 
     def render_response(self, return_value: ReturnValue) -> Response:
@@ -133,17 +146,25 @@ class App():
             return HTMLResponse(return_value)
         return JSONResponse(return_value)
 
-    def finalize_wsgi(self, response: Response, start_response: WSGIStartResponse):
-        start_response(
-            RESPONSE_STATUS_TEXT[response.status_code],
-            list(response.headers)
-        )
-        return [response.content]
-
     def exception_handler(self, exc: Exception) -> Response:
         if isinstance(exc, exceptions.HTTPException):
             return JSONResponse(exc.detail, exc.status_code, exc.get_headers())
         raise
+
+    def error_handler(self) -> Response:
+        return JSONResponse('Server error', 500, exc_info=sys.exc_info())
+
+    def finalize_wsgi(self, response: Response, start_response: WSGIStartResponse):
+        if self.debug and response.exc_info is not None:
+            exc_info = response.exc_info
+            raise exc_info[0].with_traceback(exc_info[1], exc_info[2])
+
+        start_response(
+            RESPONSE_STATUS_TEXT[response.status_code],
+            list(response.headers),
+            exc_info=response.exc_info
+        )
+        return [response.content]
 
     def __call__(self, environ, start_response):
         state = {
@@ -171,9 +192,14 @@ class App():
                 )
             return self.injector.run(funcs, state)
         except Exception as exc:
-            state['exc'] = exc
-            funcs = self.on_error_functions
-            return self.injector.run(funcs, state)
+            try:
+                state['exc'] = exc
+                funcs = self.on_exception_functions
+                return self.injector.run(funcs, state)
+            except Exception as inner_exc:
+                state['exc'] = inner_exc
+                funcs = self.on_error_functions
+                return self.injector.run(funcs, state)
 
 
 class ASyncApp(App):
@@ -224,7 +250,12 @@ class ASyncApp(App):
             if hasattr(hook, 'on_response')
         ] + [self.finalize_asgi]
 
-        self.on_error_functions = [self.exception_handler] + [
+        self.on_exception_functions = [self.exception_handler] + [
+            hook.on_response for hook in event_hooks
+            if hasattr(hook, 'on_response')
+        ] + [self.finalize_asgi]
+
+        self.on_error_functions = [self.error_handler] + [
             hook.on_error for hook in event_hooks
             if hasattr(hook, 'on_error')
         ] + [self.finalize_asgi]
@@ -262,12 +293,22 @@ class ASyncApp(App):
                     )
                 await self.injector.run_async(funcs, state)
             except Exception as exc:
-                state['exc'] = exc
-                funcs = self.on_error_functions
-                await self.injector.run_async(funcs, state)
+                try:
+                    state['exc'] = exc
+                    funcs = self.on_exception_functions
+                    await self.injector.run_async(funcs, state)
+                except Exception as inner_exc:
+                    state['exc'] = inner_exc
+                    funcs = self.on_error_functions
+                    await self.injector.run(funcs, state)
         return asgi_callable
 
-    async def finalize_asgi(self, response: Response, send: ASGISend):
+    async def finalize_asgi(self, response: Response, send: ASGISend, scope: ASGIScope):
+        if response.exc_info is not None:
+            if self.debug or scope.get('raise_exceptions', False):
+                exc_info = response.exc_info
+                raise exc_info[0].with_traceback(exc_info[1], exc_info[2])
+
         await send({
             'type': 'http.response.start',
             'status': response.status_code,
@@ -281,6 +322,11 @@ class ASyncApp(App):
             'body': response.content
         })
 
-    def serve(self, host, port, **options):
-        wsgi = ASGItoWSGIAdapter(self)
+    def serve(self, host, port, debug=False, **options):
+        self.debug = debug
+        if 'use_debugger' not in options:
+            options['use_debugger'] = debug
+        if 'use_reloader' not in options:
+            options['use_reloader'] = debug
+        wsgi = ASGItoWSGIAdapter(self, raise_exceptions=debug)
         werkzeug.run_simple(host, port, wsgi, **options)

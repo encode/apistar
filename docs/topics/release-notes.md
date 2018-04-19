@@ -1,6 +1,23 @@
 # Release Notes
 
+## Version 0.5.x
+
+## 0.5
+
+Should have introduced a proper version bump, given the 0.4.5 changes.
+
 ## Version 0.4.x
+
+### 0.4.5
+
+* on_response now runs for both regular reponses and handled exceptions.
+* on_error now only runs for unhandled exceptions (ie. 500 reponses).
+* Return 500 responses on error.
+* Test client raises exceptions instead of returning 500 responses.
+* Add debug flag to app.serve(), to switch between debugger vs. plain responses.
+* Include `http.QueryParam` annotations in schema output, as one of the parameters.
+* Include handler docstring in schema output, as the 'description'.
+* Allow subclassing of `type.Type`.
 
 ### 0.4.4
 
