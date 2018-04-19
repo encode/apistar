@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" prefix="og: http://ogp.me/ns#">
     <head>
       {%- block site_meta %}
         <meta charset="utf-8">
@@ -10,6 +10,13 @@
         {% if page and page.canonical_url %}<link rel="canonical" href="{{ page.canonical_url }}">{% endif %}
         {% if config.site_favicon %}<link rel="shortcut icon" href="{{ base_url }}/{{ config.site_favicon }}">
         {% else %}<link rel="shortcut icon" href="{{ base_url }}/img/favicon.ico">{% endif %}
+        <meta property="og:title" content="{% if page and page.title and not page.is_homepage %}{{ page.title }} - {% endif %}{{ config.site_name }}" />
+        <meta property="og:type" content="website" />
+        {% if page and page.canonical_url %}
+          <meta property="og:url" content="{{ page.canonical_url }}" />
+          <meta property="og:image" content="{{ page.canonical_url }}img/og-image.jpg" />
+        {% endif %}
+        
       {%- endblock %}
 
       {%- block htmltitle %}
