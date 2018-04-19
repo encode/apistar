@@ -187,11 +187,13 @@ class Response:
     def __init__(self,
                  content: typing.Any,
                  status_code: int=200,
-                 headers: typing.Union[StrMapping, StrPairs]=None) -> None:
+                 headers: typing.Union[StrMapping, StrPairs]=None,
+                 exc_info=None) -> None:
         self.content = self.render(content)
         self.status_code = status_code
         self.headers = MutableHeaders(headers)
         self.set_default_headers()
+        self.exc_info = exc_info
 
     def render(self, content: typing.Any) -> bytes:
         if isinstance(content, bytes):
