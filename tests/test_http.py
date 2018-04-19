@@ -75,6 +75,18 @@ def get_request_data(data: http.RequestData):
     return {'data': data}
 
 
+def return_string(data: http.RequestData) -> str:
+    return '<html><body>example content</body></html>'
+
+
+def return_data(data: http.RequestData) -> dict:
+    return {'example': 'content'}
+
+
+def return_response(data: http.RequestData) -> http.Response:
+    return http.JSONResponse({'example': 'content'})
+
+
 routes = [
     Route('/request/', 'GET', get_request),
     Route('/method/', 'GET', get_method),
@@ -95,6 +107,9 @@ routes = [
     Route('/path_params/{example}/', 'GET', get_path_params),
     Route('/full_path_params/{+example}', 'GET', get_path_params, name='full_path_params'),
     Route('/request_data/', 'POST', get_request_data),
+    Route('/return_string/', 'GET', return_string),
+    Route('/return_data/', 'GET', return_data),
+    Route('/return_response/', 'GET', return_response),
 ]
 
 
@@ -282,6 +297,21 @@ def test_request_data(client):
     assert response.status_code == 415
     response = client.post('/request_data/', data=b'...', headers={'content-type': 'application/json'})
     assert response.status_code == 400
+
+
+def test_return_string(client):
+    response = client.get('/return_string/')
+    assert response.text == '<html><body>example content</body></html>'
+
+
+def test_return_data(client):
+    response = client.get('/return_data/')
+    assert response.json() == {'example': 'content'}
+
+
+def test_return_response(client):
+    response = client.get('/return_response/')
+    assert response.json() == {'example': 'content'}
 
 
 def test_headers_type(client):

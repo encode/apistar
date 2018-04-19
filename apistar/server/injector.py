@@ -21,7 +21,7 @@ class Injector(BaseInjector):
         }
         self.resolver_cache = {}
 
-    def resolve_function(self, func, output_name=None, seen_state=None, parent_parameter=None):
+    def resolve_function(self, func, output_name=None, seen_state=None, parent_parameter=None, set_return=False):
         if seen_state is None:
             seen_state = set(self.initial)
 
@@ -78,7 +78,7 @@ class Injector(BaseInjector):
             msg = 'Function "%s" may not be async.'
             raise ConfigurationError(msg % (func.__name__, ))
 
-        step = (func, is_async, kwargs, consts, output_name)
+        step = (func, is_async, kwargs, consts, output_name, set_return)
         steps.append(step)
         return steps
 
@@ -86,7 +86,7 @@ class Injector(BaseInjector):
         steps = []
         seen_state = set(self.initial)
         for func in funcs:
-            func_steps = self.resolve_function(func, seen_state=seen_state)
+            func_steps = self.resolve_function(func, seen_state=seen_state, set_return=True)
             steps.extend(func_steps)
         return steps
 
@@ -98,10 +98,12 @@ class Injector(BaseInjector):
             steps = self.resolve_functions(funcs)
             self.resolver_cache[funcs] = steps
 
-        for func, is_async, kwargs, consts, output_name in steps:
+        for func, is_async, kwargs, consts, output_name, set_return in steps:
             func_kwargs = {key: state[val] for key, val in kwargs.items()}
             func_kwargs.update(consts)
             state[output_name] = func(**func_kwargs)
+            if set_return:
+                state['return_value'] = state[output_name]
 
         return state[output_name]
 
@@ -117,12 +119,14 @@ class ASyncInjector(Injector):
             steps = self.resolve_functions(funcs)
             self.resolver_cache[funcs] = steps
 
-        for func, is_async, kwargs, consts, output_name in steps:
+        for func, is_async, kwargs, consts, output_name, set_return in steps:
             func_kwargs = {key: state[val] for key, val in kwargs.items()}
             func_kwargs.update(consts)
             if is_async:
                 state[output_name] = await func(**func_kwargs)
             else:
                 state[output_name] = func(**func_kwargs)
+            if set_return:
+                state['return_value'] = state[output_name]
 
-        return state['response']
+        return state[output_name]

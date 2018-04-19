@@ -2,9 +2,17 @@
 
 ## Version 0.5.x
 
-## 0.5
+### 0.5.2
 
-Should have introduced a proper version bump, given the 0.4.5 changes.
+* Graceful handling of cases where `on_error` handling raises errors.
+
+### 0.5.1
+
+* Fix for handlers than annotate `Response`, not being available to the `ReturnValue` annotation when `render_response` is called.
+
+### 0.5
+
+* Should have introduced a proper version bump, given the 0.4.5 changes.
 
 ## Version 0.4.x
 
