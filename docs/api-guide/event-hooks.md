@@ -12,7 +12,7 @@ class CustomHeadersHook():
     def on_response(self, response: http.Response):
         response.headers['x-custom'] = 'Ran on_response()'
 
-event_hooks = [CustomHeadersHook()]
+event_hooks = [CustomHeadersHook]
 
 app = App(routes=routes, event_hooks=event_hooks)
 ```
@@ -36,24 +36,49 @@ For these cases, any installed `on_error` event hooks will be run. This event ho
 allows you to monitor or log exceptions.
 
 It's recommend that use of `on_error` event hooks should be kept to a minimum,
-dealing only with whatever error monitoring is required. Any exceptions thrown
-in one of these handlers will result in the raw exception being raised to the
-webserver with no further error handling taking place.
+dealing only with whatever error monitoring is required.
 
-An example of error handling:
+## Using event hooks
+
+Event hooks can pull in components such as the request, the returned response,
+or the exception that resulted in a response. For example:
 
 ```python
-class ErrorHandlingHook():
+class ErrorHandlingHook:
     def on_response(self, response: http.Response, exc: Exception):
         if exc is None:
-            print("Response OK")
+            print("Handler returned a response")
         else:
-            print("Handled exception")
-            
+            print("Exception handler returned a response")
+
     def on_error(self, response: http.Response):
-        print("Unhandled error")
+        print("An unhandled error was raised")
 
-event_hooks = [ErrorHandlingHook()]
 
-app = App(routes=routes, event_hooks=event_hooks)
+app = App(routes=routes, event_hooks=[ErrorHandlingHook])
 ```
+
+Event hooks are instantiated at the start of every request/response cycle, and can
+store state between the request and response events.
+
+```python
+class TimingHook:
+    def on_request(self):
+        self.started = time.time()
+
+    def on_response(self):
+        duration = time.time() - self.started
+        print("Response returned in %0.6f seconds." % duration)
+
+
+app = App(routes=routes, event_hooks=[TimingHook])
+```
+
+## Ordering of event hooks
+
+The `on_request` hooks are run in the order that their classes are included.
+
+The `on_response` and `on_exception` hooks are run in the reverse order that their classes are included.
+
+This behaviour ensures that event hooks run in a similar manner to stack-based middleware,
+with the each event hook wrapping everything that comes after it.
