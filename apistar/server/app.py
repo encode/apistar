@@ -120,10 +120,10 @@ class App():
             if hasattr(hook, 'on_response')
         ] + [self.finalize_wsgi]
 
-        self.on_error_functions = [self.error_handler] + [
+        self.on_error_functions = [
             hook.on_error for hook in event_hooks
             if hasattr(hook, 'on_error')
-        ] + [self.finalize_wsgi]
+        ]
 
     def reverse_url(self, name: str, **params):
         return self.router.reverse_url(name, **params)
@@ -197,9 +197,13 @@ class App():
                 funcs = self.on_exception_functions
                 return self.injector.run(funcs, state)
             except Exception as inner_exc:
-                state['exc'] = inner_exc
-                funcs = self.on_error_functions
-                return self.injector.run(funcs, state)
+                try:
+                    state['exc'] = inner_exc
+                    funcs = self.on_error_functions
+                    self.injector.run(funcs, state)
+                finally:
+                    funcs = [self.error_handler, self.finalize_wsgi]
+                    return self.injector.run(funcs, state)
 
 
 class ASyncApp(App):
@@ -255,10 +259,10 @@ class ASyncApp(App):
             if hasattr(hook, 'on_response')
         ] + [self.finalize_asgi]
 
-        self.on_error_functions = [self.error_handler] + [
+        self.on_error_functions = [
             hook.on_error for hook in event_hooks
             if hasattr(hook, 'on_error')
-        ] + [self.finalize_asgi]
+        ]
 
     def init_staticfiles(self, static_url: str, static_dir: str=None):
         if not static_dir:
@@ -298,9 +302,13 @@ class ASyncApp(App):
                     funcs = self.on_exception_functions
                     await self.injector.run_async(funcs, state)
                 except Exception as inner_exc:
-                    state['exc'] = inner_exc
-                    funcs = self.on_error_functions
-                    await self.injector.run(funcs, state)
+                    try:
+                        state['exc'] = inner_exc
+                        funcs = self.on_error_functions
+                        await self.injector.run(funcs, state)
+                    finally:
+                        funcs = [self.error_handler, self.finalize_asgi]
+                        await self.injector.run(funcs, state)
         return asgi_callable
 
     async def finalize_asgi(self, response: Response, send: ASGISend, scope: ASGIScope):
