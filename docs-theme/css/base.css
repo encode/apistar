@@ -403,4 +403,10 @@ a:visited {
 pre {
     background-color: #f1f7f8;
 }
+
+/* Fix menu alignment */
+@media (min-width: 768px) {
+.navbar-nav.navbar-right:last-child {
+    margin-right: 0;
+}
 /* End API Star customisation */
