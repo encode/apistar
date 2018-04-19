@@ -10,12 +10,23 @@
         {% if page and page.canonical_url %}<link rel="canonical" href="{{ page.canonical_url }}">{% endif %}
         {% if config.site_favicon %}<link rel="shortcut icon" href="{{ base_url }}/{{ config.site_favicon }}">
         {% else %}<link rel="shortcut icon" href="{{ base_url }}/img/favicon.ico">{% endif %}
-        <meta property="og:title" content="{% if page and page.title and not page.is_homepage %}{{ page.title }} - {% endif %}{{ config.site_name }}" />
+        
+        
         <meta property="og:type" content="website" />
+        <!--  Essential META Tags -->
+        <meta property="og:title" content="{% if page and page.title and not page.is_homepage %}{{ page.title }} - {% endif %}{{ config.site_name }}"
+        />
+        {% if page and page.is_homepage %}<meta property="og:description" content="{{ config['site_description'] }}">{% endif %}
+        
         {% if page and page.canonical_url %}
           <meta property="og:url" content="{{ page.canonical_url }}" />
           <meta property="og:image" content="{{ page.canonical_url }}img/og-image.jpg" />
         {% endif %}
+        <meta name="twitter:card" content="summary_large_image">
+        
+        <!--  Non-Essential, But Recommended -->
+        <meta property="og:site_name" content="{{ config.site_name }}">
+        <meta name="twitter:image:alt" content="{{ config.site_name }}">
         
       {%- endblock %}
 
