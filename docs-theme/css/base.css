@@ -399,4 +399,8 @@ a:visited {
     height: auto;
     padding-right: 16px;
 }
+
+pre {
+    background-color: #f1f7f8;
+}
 /* End API Star customisation */
