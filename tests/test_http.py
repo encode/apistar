@@ -1,4 +1,5 @@
 import pytest
+from pytest import param
 
 from apistar import Route, http, test
 from apistar.server.app import App, ASyncApp
@@ -75,6 +76,16 @@ def get_request_data(data: http.RequestData):
     return {'data': data}
 
 
+def get_multipart_request_data(data: http.RequestData):
+    files = {
+        name: f if isinstance(f, str) else {
+            'filename': f.filename,
+            'content': f.read().decode('utf-8'),
+        } for name, f in data.items()
+    }
+    return {'data': files}
+
+
 def return_string(data: http.RequestData) -> str:
     return '<html><body>example content</body></html>'
 
@@ -107,6 +118,7 @@ routes = [
     Route('/path_params/{example}/', 'GET', get_path_params),
     Route('/full_path_params/{+example}', 'GET', get_path_params, name='full_path_params'),
     Route('/request_data/', 'POST', get_request_data),
+    Route('/multipart_request_data/', 'POST', get_multipart_request_data),
     Route('/return_string/', 'GET', return_string),
     Route('/return_data/', 'GET', return_data),
     Route('/return_response/', 'GET', return_response),
@@ -288,15 +300,41 @@ def test_full_path_params(client):
     assert response.json() == {'params': {'example': 'abc/def/'}}
 
 
-def test_request_data(client):
-    response = client.post('/request_data/', json={'abc': 123})
-    assert response.json() == {'data': {'abc': 123}}
-    response = client.post('/request_data/')
-    assert response.json() == {'data': None}
-    response = client.post('/request_data/', data=b'...', headers={'content-type': 'unknown'})
-    assert response.status_code == 415
-    response = client.post('/request_data/', data=b'...', headers={'content-type': 'application/json'})
-    assert response.status_code == 400
+@pytest.mark.parametrize('request_params,response_status,response_json', [
+    # JSON
+    param({'json': {'abc': 123}}, 200, {'data': {'abc': 123}}, id='valid json body'),
+    param({}, 200, {'data': None}, id='empty json body'),
+
+    # Urlencoding
+    param({'data': {'abc': 123}}, 200, {'data': {'abc': '123'}}, id='valid urlencoded body'),
+    param(
+        {'headers': {'content-type': 'application/x-www-form-urlencoded'}}, 200, {'data': None},
+        id='empty urlencoded body',
+    ),
+
+    # Misc
+    param({'data': b'...', 'headers': {'content-type': 'unknown'}}, 415, None, id='unknown body type'),
+    param({'data': b'...', 'headers': {'content-type': 'application/json'}}, 400, None, id='json parse failure'),
+])
+def test_request_data(request_params, response_status, response_json, client):
+    response = client.post('/request_data/', **request_params)
+    assert response.status_code == response_status
+    if response_json is not None:
+        assert response.json() == response_json
+
+
+def test_multipart_request_data(client):
+    response = client.post('/multipart_request_data/', files={'a': ('b', '123')}, data={'b': '42'})
+    assert response.status_code == 200
+    assert response.json() == {
+        'data': {
+            'a': {
+                'filename': 'b',
+                'content': '123',
+            },
+            'b': '42',
+        }
+    }
 
 
 def test_return_string(client):
