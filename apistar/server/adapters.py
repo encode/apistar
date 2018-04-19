@@ -1,4 +1,5 @@
 import asyncio
+import sys
 
 from apistar.server.wsgi import RESPONSE_STATUS_TEXT
 
@@ -27,7 +28,7 @@ class ASGItoWSGIAdapter(object):
                     [key.decode('latin-1'), value.decode('latin-1')]
                     for key, value in message['headers']
                 ]
-                exc_info = None
+                exc_info = sys.exc_info()
                 start_response(status, headers, exc_info)
             elif message['type'] == 'http.response.body':
                 return_bytes.append(message.get('body', b''))
@@ -38,7 +39,12 @@ class ASGItoWSGIAdapter(object):
                 'body': environ['wsgi.input'].read()
             }
 
-        self.loop.run_until_complete(asgi_coroutine(recieve, send))
+        try:
+            self.loop.run_until_complete(asgi_coroutine(recieve, send))
+        except:
+            if self.raise_exceptions:
+                raise
+
         return return_bytes
 
     def environ_to_message(self, environ):
