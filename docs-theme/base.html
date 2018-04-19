@@ -24,7 +24,7 @@
         {%- for path in extra_css %}
         <link href="{{ path }}" rel="stylesheet">
         {%- endfor %}
-        <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700" rel="stylesheet">
       {%- endblock %}
 
       {%- block libs %}
@@ -73,7 +73,14 @@
             {%- if config.copyright %}
                 <p>{{ config.copyright }}</p>
             {%- endif %}
-            <p><img src="{{ base_url }}/img/logomarque.png" alt="API Star" class="footer-logo">Documentation built with <a href="http://www.mkdocs.org/">MkDocs</a>.</p>
+            
+            <p align="center">
+              <i>API Star is
+                <a href="https://github.com/tomchristie/apistar/blob/master/LICENSE.md">BSD licensed</a> code.
+                <br/>Designed & built in Brighton, England.</i>
+              <p align="center">
+                <img src="{{ base_url }}/img/logomarque.png" alt="API Star" class="footer-logo">
+              </p>
           {%- endblock %}
         </footer>
 
