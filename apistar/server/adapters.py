@@ -41,7 +41,7 @@ class ASGItoWSGIAdapter(object):
 
         try:
             self.loop.run_until_complete(asgi_coroutine(recieve, send))
-        except:
+        except Exception:
             if self.raise_exceptions:
                 raise
 
