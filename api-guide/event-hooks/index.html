@@ -142,6 +142,8 @@
     <ul class="nav bs-sidenav">
         <li class="main active"><a href="#event-hooks">Event Hooks</a></li>
             <li><a href="#error-handling">Error handling</a></li>
+            <li><a href="#using-event-hooks">Using event hooks</a></li>
+            <li><a href="#ordering-of-event-hooks">Ordering of event hooks</a></li>
     </ul>
 </div></div>
                 <div class="col-md-9" role="main">
@@ -155,7 +157,7 @@ a group of functions to be run in response to particular events.</p>
     def on_response(self, response: http.Response):
         response.headers['x-custom'] = 'Ran on_response()'
 
-event_hooks = [CustomHeadersHook()]
+event_hooks = [CustomHeadersHook]
 
 app = App(routes=routes, event_hooks=event_hooks)
 </code></pre>
@@ -175,24 +177,43 @@ and return responses, that pass through any <code>on_response</code> hooks as us
 For these cases, any installed <code>on_error</code> event hooks will be run. This event hook
 allows you to monitor or log exceptions.</p>
 <p>It's recommend that use of <code>on_error</code> event hooks should be kept to a minimum,
-dealing only with whatever error monitoring is required. Any exceptions thrown
-in one of these handlers will result in the raw exception being raised to the
-webserver with no further error handling taking place.</p>
-<p>An example of error handling:</p>
-<pre><code class="python">class ErrorHandlingHook():
+dealing only with whatever error monitoring is required.</p>
+<h2 id="using-event-hooks">Using event hooks</h2>
+<p>Event hooks can pull in components such as the request, the returned response,
+or the exception that resulted in a response. For example:</p>
+<pre><code class="python">class ErrorHandlingHook:
     def on_response(self, response: http.Response, exc: Exception):
         if exc is None:
-            print(&quot;Response OK&quot;)
+            print(&quot;Handler returned a response&quot;)
         else:
-            print(&quot;Handled exception&quot;)
+            print(&quot;Exception handler returned a response&quot;)
 
     def on_error(self, response: http.Response):
-        print(&quot;Unhandled error&quot;)
+        print(&quot;An unhandled error was raised&quot;)
 
-event_hooks = [ErrorHandlingHook()]
 
-app = App(routes=routes, event_hooks=event_hooks)
-</code></pre></div>
+app = App(routes=routes, event_hooks=[ErrorHandlingHook])
+</code></pre>
+
+<p>Event hooks are instantiated at the start of every request/response cycle, and can
+store state between the request and response events.</p>
+<pre><code class="python">class TimingHook:
+    def on_request(self):
+        self.started = time.time()
+
+    def on_response(self):
+        duration = time.time() - self.started
+        print(&quot;Response returned in %0.6f seconds.&quot; % duration)
+
+
+app = App(routes=routes, event_hooks=[TimingHook])
+</code></pre>
+
+<h2 id="ordering-of-event-hooks">Ordering of event hooks</h2>
+<p>The <code>on_request</code> hooks are run in the order that their classes are included.</p>
+<p>The <code>on_response</code> and <code>on_exception</code> hooks are run in the reverse order that their classes are included.</p>
+<p>This behaviour ensures that event hooks run in a similar manner to stack-based middleware,
+with the each event hook wrapping everything that comes after it.</p></div>
         </div>
 
         <footer class="col-md-12">
