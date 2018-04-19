@@ -2,6 +2,10 @@
 
 ## Version 0.5.x
 
+### 0.5.4
+
+* Event hooks instantiated on each request/response cycle.
+
 ### 0.5.3
 
 * Support multipart and urlencoded content in `RequestData`.

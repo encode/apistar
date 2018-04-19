@@ -40,8 +40,8 @@ class App():
             msg = 'components must be a list of instances of Component.'
             assert all([isinstance(component, Component) for component in components]), msg
         if event_hooks:
-            msg = 'event_hooks must be a list of instances, not classes.'
-            assert not any([isinstance(event_hook, type) for event_hook in event_hooks]), msg
+            msg = 'event_hooks must be a list.'
+            assert isinstance(event_hooks, (list, tuple)), msg
 
         routes = routes + self.include_extra_routes(schema_url, static_url)
         self.init_document(routes)
@@ -49,8 +49,11 @@ class App():
         self.init_templates(template_dir)
         self.init_staticfiles(static_url, static_dir)
         self.init_injector(components)
-        self.init_hooks(event_hooks)
         self.debug = False
+        self.event_hooks = event_hooks
+
+        # Ensure event hooks can all be instantiated.
+        self.get_event_hooks()
 
     def include_extra_routes(self, schema_url=None, static_url=None):
         extra_routes = []
@@ -101,29 +104,32 @@ class App():
         }
         self.injector = Injector(components, initial_components)
 
-    def init_hooks(self, event_hooks=None):
-        if event_hooks is None:
-            event_hooks = []
+    def get_event_hooks(self):
+        event_hooks = []
+        for hook in self.event_hooks or []:
+            if isinstance(hook, type):
+                # New style usage, instantiate hooks on requests.
+                event_hooks.append(hook())
+            else:
+                # Old style usage, to be deprecated on the next version bump.
+                event_hooks.append(hook)
 
-        self.on_request_functions = [
+        on_request = [
             hook.on_request for hook in event_hooks
             if hasattr(hook, 'on_request')
         ]
 
-        self.on_response_functions = [self.render_response] + [
+        on_response = [
             hook.on_response for hook in reversed(event_hooks)
             if hasattr(hook, 'on_response')
-        ] + [self.finalize_wsgi]
+        ]
 
-        self.on_exception_functions = [self.exception_handler] + [
-            hook.on_response for hook in reversed(event_hooks)
-            if hasattr(hook, 'on_response')
-        ] + [self.finalize_wsgi]
-
-        self.on_error_functions = [
+        on_error = [
             hook.on_error for hook in reversed(event_hooks)
             if hasattr(hook, 'on_error')
         ]
+
+        return on_request, on_response, on_error
 
     def reverse_url(self, name: str, **params):
         return self.router.reverse_url(name, **params)
@@ -178,6 +184,12 @@ class App():
         }
         method = environ['REQUEST_METHOD'].upper()
         path = environ['PATH_INFO']
+
+        if self.event_hooks is None:
+            on_request, on_response, on_error = [], [], []
+        else:
+            on_request, on_response, on_error = self.get_event_hooks()
+
         try:
             route, path_params = self.router.lookup(path, method)
             state['route'] = route
@@ -186,22 +198,25 @@ class App():
                 funcs = [route.handler]
             else:
                 funcs = (
-                    self.on_request_functions +
-                    [route.handler] +
-                    self.on_response_functions
+                    on_request +
+                    [route.handler, self.render_response] +
+                    on_response +
+                    [self.finalize_wsgi]
                 )
             return self.injector.run(funcs, state)
         except Exception as exc:
             try:
                 state['exc'] = exc
-                funcs = self.on_exception_functions
+                funcs = (
+                    [self.exception_handler] +
+                    on_response +
+                    [self.finalize_wsgi]
+                )
                 return self.injector.run(funcs, state)
             except Exception as inner_exc:
                 try:
                     state['exc'] = inner_exc
-                    funcs = self.on_error_functions
-                    if funcs:
-                        self.injector.run(funcs, state)
+                    self.injector.run(on_error, state)
                 finally:
                     funcs = [self.error_handler, self.finalize_wsgi]
                     return self.injector.run(funcs, state)
@@ -241,30 +256,6 @@ class ASyncApp(App):
         }
         self.injector = ASyncInjector(components, initial_components)
 
-    def init_hooks(self, event_hooks=None):
-        if event_hooks is None:
-            event_hooks = []
-
-        self.on_request_functions = [
-            hook.on_request for hook in event_hooks
-            if hasattr(hook, 'on_request')
-        ]
-
-        self.on_response_functions = [self.render_response] + [
-            hook.on_response for hook in reversed(event_hooks)
-            if hasattr(hook, 'on_response')
-        ] + [self.finalize_asgi]
-
-        self.on_exception_functions = [self.exception_handler] + [
-            hook.on_response for hook in reversed(event_hooks)
-            if hasattr(hook, 'on_response')
-        ] + [self.finalize_asgi]
-
-        self.on_error_functions = [
-            hook.on_error for hook in reversed(event_hooks)
-            if hasattr(hook, 'on_error')
-        ]
-
     def init_staticfiles(self, static_url: str, static_dir: str=None):
         if not static_dir:
             self.statics = None
@@ -284,6 +275,12 @@ class ASyncApp(App):
             }
             method = scope['method']
             path = scope['path']
+
+            if self.event_hooks is None:
+                on_request, on_response, on_error = [], [], []
+            else:
+                on_request, on_response, on_error = self.get_event_hooks()
+
             try:
                 route, path_params = self.router.lookup(path, method)
                 state['route'] = route
@@ -292,22 +289,25 @@ class ASyncApp(App):
                     funcs = [route.handler]
                 else:
                     funcs = (
-                        self.on_request_functions +
-                        [route.handler] +
-                        self.on_response_functions
+                        on_request +
+                        [route.handler, self.render_response] +
+                        on_response +
+                        [self.finalize_asgi]
                     )
                 await self.injector.run_async(funcs, state)
             except Exception as exc:
                 try:
                     state['exc'] = exc
-                    funcs = self.on_exception_functions
+                    funcs = (
+                        [self.exception_handler] +
+                        on_response +
+                        [self.finalize_asgi]
+                    )
                     await self.injector.run_async(funcs, state)
                 except Exception as inner_exc:
                     try:
                         state['exc'] = inner_exc
-                        funcs = self.on_error_functions
-                        if funcs:
-                            await self.injector.run(funcs, state)
+                        await self.injector.run(on_error, state)
                     finally:
                         funcs = [self.error_handler, self.finalize_asgi]
                         await self.injector.run(funcs, state)

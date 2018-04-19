@@ -6,9 +6,11 @@ ON_ERROR = None
 
 
 class CustomResponseHeader():
+    def on_request(self):
+        self.message = 'Ran hooks'
+
     def on_response(self, response: http.Response):
-        response.headers['Custom'] = 'Ran on_response'
-        return response
+        response.headers['Custom'] = self.message
 
     def on_error(self):
         global ON_ERROR
@@ -28,7 +30,7 @@ routes = [
     Route('/error', method='GET', handler=error),
 ]
 
-event_hooks = [CustomResponseHeader()]
+event_hooks = [CustomResponseHeader]
 
 app = App(routes=routes, event_hooks=event_hooks)
 
@@ -38,7 +40,7 @@ client = test.TestClient(app)
 def test_on_response():
     response = client.get('/hello')
     assert response.status_code == 200
-    assert response.headers['Custom'] == 'Ran on_response'
+    assert response.headers['Custom'] == 'Ran hooks'
 
 
 def test_on_error():
