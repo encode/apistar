@@ -110,7 +110,7 @@ class App():
             if hasattr(hook, 'on_request')
         ]
 
-        self.on_response_functions = [self.render_response] + [
+        self.on_response_functions = [
             hook.on_response for hook in reversed(event_hooks)
             if hasattr(hook, 'on_response')
         ] + [self.finalize_wsgi]
@@ -187,7 +187,7 @@ class App():
             else:
                 funcs = (
                     self.on_request_functions +
-                    [route.handler] +
+                    [route.handler, self.render_response] +
                     self.on_response_functions
                 )
             return self.injector.run(funcs, state)
@@ -293,7 +293,7 @@ class ASyncApp(App):
                 else:
                     funcs = (
                         self.on_request_functions +
-                        [route.handler] +
+                        [route.handler, self.render_response] +
                         self.on_response_functions
                     )
                 await self.injector.run_async(funcs, state)
