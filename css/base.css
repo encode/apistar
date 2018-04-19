@@ -325,6 +325,7 @@ h1:hover .headerlink, h2:hover .headerlink, h3:hover .headerlink, h4:hover .head
 /* API Star customisation */
 body {
     font-family: 'Open Sans', sans-serif;
+    font-size: 16px;
 }
 
 body:before {
@@ -333,6 +334,10 @@ body:before {
 
 .navbar {
     background-image: linear-gradient(-208deg, #86C3D0 0%, #4E90A3 66%);
+}
+
+.navbar-nav {
+    font-size: 14px;
 }
 
 .navbar-default .navbar-nav>.active>a,
@@ -369,6 +374,7 @@ body:before {
     background-size: 33px;
     background-position: 15px center;
     padding-left: 60px;
+    padding-right: 10px;
     font-weight: bold;
 }
 
@@ -378,6 +384,11 @@ body:before {
 
 a {
     color: #5CAABF;
+}
+
+p {
+    margin: 0 0 16px;
+    line-height: 24px;
 }
 
 a:hover,
@@ -414,10 +425,15 @@ pre {
     background-color: #f1f7f8;
 }
 
+pre code {
+    font-size: 14px;
+}
+
 /* Fix menu alignment */
 @media (min-width: 768px) {
-.navbar-nav.navbar-right:last-child {
-    margin-right: 0;
+    .navbar-nav.navbar-right:last-child {
+        margin-right: 0;
+    }
 }
 
 .navbar-nav>li>a.btn-small {
