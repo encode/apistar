@@ -95,6 +95,8 @@ class Injector(BaseInjector):
         try:
             steps = self.resolver_cache[funcs]
         except KeyError:
+            if not funcs:
+                return
             steps = self.resolve_functions(funcs)
             self.resolver_cache[funcs] = steps
 
@@ -116,6 +118,8 @@ class ASyncInjector(Injector):
         try:
             steps = self.resolver_cache[funcs]
         except KeyError:
+            if not funcs:
+                return
             steps = self.resolve_functions(funcs)
             self.resolver_cache[funcs] = steps
 
