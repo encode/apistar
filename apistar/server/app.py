@@ -111,17 +111,17 @@ class App():
         ]
 
         self.on_response_functions = [self.render_response] + [
-            hook.on_response for hook in event_hooks
+            hook.on_response for hook in reversed(event_hooks)
             if hasattr(hook, 'on_response')
         ] + [self.finalize_wsgi]
 
         self.on_exception_functions = [self.exception_handler] + [
-            hook.on_response for hook in event_hooks
+            hook.on_response for hook in reversed(event_hooks)
             if hasattr(hook, 'on_response')
         ] + [self.finalize_wsgi]
 
         self.on_error_functions = [
-            hook.on_error for hook in event_hooks
+            hook.on_error for hook in reversed(event_hooks)
             if hasattr(hook, 'on_error')
         ]
 
@@ -200,7 +200,8 @@ class App():
                 try:
                     state['exc'] = inner_exc
                     funcs = self.on_error_functions
-                    self.injector.run(funcs, state)
+                    if funcs:
+                        self.injector.run(funcs, state)
                 finally:
                     funcs = [self.error_handler, self.finalize_wsgi]
                     return self.injector.run(funcs, state)
@@ -250,17 +251,17 @@ class ASyncApp(App):
         ]
 
         self.on_response_functions = [self.render_response] + [
-            hook.on_response for hook in event_hooks
+            hook.on_response for hook in reversed(event_hooks)
             if hasattr(hook, 'on_response')
         ] + [self.finalize_asgi]
 
         self.on_exception_functions = [self.exception_handler] + [
-            hook.on_response for hook in event_hooks
+            hook.on_response for hook in reversed(event_hooks)
             if hasattr(hook, 'on_response')
         ] + [self.finalize_asgi]
 
         self.on_error_functions = [
-            hook.on_error for hook in event_hooks
+            hook.on_error for hook in reversed(event_hooks)
             if hasattr(hook, 'on_error')
         ]
 
@@ -305,7 +306,8 @@ class ASyncApp(App):
                     try:
                         state['exc'] = inner_exc
                         funcs = self.on_error_functions
-                        await self.injector.run(funcs, state)
+                        if funcs:
+                            await self.injector.run(funcs, state)
                     finally:
                         funcs = [self.error_handler, self.finalize_asgi]
                         await self.injector.run(funcs, state)
