@@ -39,3 +39,21 @@ It's recommend that use of `on_error` event hooks should be kept to a minimum,
 dealing only with whatever error monitoring is required. Any exceptions thrown
 in one of these handlers will result in the raw exception being raised to the
 webserver with no further error handling taking place.
+
+An example of error handling:
+
+```python
+class ErrorHandlingHook():
+    def on_response(self, response: http.Response, exc: Exception):
+        if exc is None:
+            print("Response OK")
+        else:
+            print("Handled exception")
+            
+    def on_error(self, response: http.Response):
+        print("Unhandled error")
+
+event_hooks = [ErrorHandlingHook()]
+
+app = App(routes=routes, event_hooks=event_hooks)
+```

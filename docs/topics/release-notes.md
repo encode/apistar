@@ -2,6 +2,11 @@
 
 ## Version 0.5.x
 
+### 0.5.3
+
+* Support multipart and urlencoded content in `RequestData`.
+* Reverse ordering of `on_response` and `on_error` event hooks.
+
 ### 0.5.2
 
 * Graceful handling of cases where `on_error` handling raises errors.
