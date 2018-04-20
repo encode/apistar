@@ -87,6 +87,31 @@ def list_products() -> typing.List[Product]:
     return [Product(record) for record in queryset]
 ```
 
+## Including additional validation
+
+If you have validation rules that cannot be expressed with the default types,
+you can include these by writing a `validation(self, value)` method on the class.
+
+This method should return the validated data, or raise a `ValidationError`.
+
+```python
+from apistar import exceptions, types, valiators
+
+
+class Organisation(types.Type):
+    is_premium = validators.Boolean()
+    expiry_date = validators.Date(allow_null=True)
+
+    def validate(self, value):
+        if value['is_premium'] and value['expiry_date'] is not None:
+            message = 'premium organisations should not have any expiry_date set.'
+            raise exceptions.ValidationError(message)
+        return value
+```
+
+You can also subclass validators and include a custom `validate` method,
+in order to create reusable field validation behaviours.
+
 ## API Reference
 
 The following typesystem types are supported:
@@ -199,7 +224,7 @@ When accessed as attributes on a type, these validators return the native python
 >>> data = {'when': '2021-06-15T12:31:38.269545', 'description': 'New customer signup'}
 >>> event = Event(data)
 >>> event.when
-datetime.datetime(2021, 06, 15, 12, 31, 38, 269545)
+datetime.datetime(2021, 6, 15, 12, 31, 38, 269545)
 ```
 
 You can also access the serialized string representation if needed.
