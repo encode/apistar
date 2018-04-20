@@ -18,9 +18,9 @@
 
 ---
 
-**Community:** https://discuss.apistar.org/ 🤔 💭 🤓 💬 😎
-  
-**Documentation:** https://encode.github.io/apistar/ 📘
+**Community:** https://discuss.apistar.org 🤔 💭 🤓 💬 😎
+
+**Documentation:** https://docs.apistar.com 📘
 
 ---
 
