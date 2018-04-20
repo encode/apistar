@@ -90,7 +90,7 @@ def list_products() -> typing.List[Product]:
 ## Including additional validation
 
 If you have validation rules that cannot be expressed with the default types,
-you can include these by writing a `validation(self, value)` method on the class.
+you can include these by writing a `validate(self, value)` method on the class.
 
 This method should return the validated data, or raise a `ValidationError`.
 
