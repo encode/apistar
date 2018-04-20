@@ -143,6 +143,7 @@
         <li class="main active"><a href="#type-system">Type System</a></li>
             <li><a href="#validation">Validation</a></li>
             <li><a href="#serialization">Serialization</a></li>
+            <li><a href="#including-additional-validation">Including additional validation</a></li>
             <li><a href="#api-reference">API Reference</a></li>
             <li><a href="#formats">Formats</a></li>
     </ul>
@@ -217,6 +218,26 @@ def list_products() -&gt; typing.List[Product]:
     return [Product(record) for record in queryset]
 </code></pre>
 
+<h2 id="including-additional-validation">Including additional validation</h2>
+<p>If you have validation rules that cannot be expressed with the default types,
+you can include these by writing a <code>validate(self, value)</code> method on the class.</p>
+<p>This method should return the validated data, or raise a <code>ValidationError</code>.</p>
+<pre><code class="python">from apistar import exceptions, types, valiators
+
+
+class Organisation(types.Type):
+    is_premium = validators.Boolean()
+    expiry_date = validators.Date(allow_null=True)
+
+    def validate(self, value):
+        if value['is_premium'] and value['expiry_date'] is not None:
+            message = 'premium organisations should not have any expiry_date set.'
+            raise exceptions.ValidationError(message)
+        return value
+</code></pre>
+
+<p>You can also subclass validators and include a custom <code>validate</code> method,
+in order to create reusable field validation behaviours.</p>
 <h2 id="api-reference">API Reference</h2>
 <p>The following typesystem types are supported:</p>
 <h3 id="string">String</h3>
@@ -314,7 +335,7 @@ class Event(types.Type):
 <pre><code class="python">&gt;&gt;&gt; data = {'when': '2021-06-15T12:31:38.269545', 'description': 'New customer signup'}
 &gt;&gt;&gt; event = Event(data)
 &gt;&gt;&gt; event.when
-datetime.datetime(2021, 06, 15, 12, 31, 38, 269545)
+datetime.datetime(2021, 6, 15, 12, 31, 38, 269545)
 </code></pre>
 
 <p>You can also access the serialized string representation if needed.</p>
