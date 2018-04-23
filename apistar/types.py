@@ -16,7 +16,7 @@ class TypeMetaclass(ABCMeta):
                 )
                 raise ConfigurationError(msg % (key, name))
 
-            elif isinstance(value, validators.Validator):
+            elif hasattr(value, 'validate'):
                 attrs.pop(key)
                 properties.append((key, value))
 
@@ -46,13 +46,20 @@ class TypeMetaclass(ABCMeta):
             required=required,
             additional_properties=None
         )
+        attrs['_creation_counter'] = validators.Validator._creation_counter
+        validators.Validator._creation_counter += 1
         return super(TypeMetaclass, cls).__new__(cls, name, bases, attrs)
 
 
 class Type(Mapping, metaclass=TypeMetaclass):
     def __init__(self, *args, **kwargs):
+        definitions = None
+        allow_coerce = False
+
         if args:
             assert len(args) == 1
+            definitions = kwargs.pop('definitions', definitions)
+            allow_coerce = kwargs.pop('allow_coerce', allow_coerce)
             assert not kwargs
 
             if args[0] is None or isinstance(args[0], (bool, int, float, list)):
@@ -70,11 +77,16 @@ class Type(Mapping, metaclass=TypeMetaclass):
             # Instantiated with keyword arguments.
             value = kwargs
 
-        value = self.validate(value)
+        value = self.validator.validate(value)
         object.__setattr__(self, '_dict', value)
 
-    def validate(self, value):
-        return self.validator.validate(value)
+    @classmethod
+    def validate(cls, value, definitions=None, allow_coerce=False):
+        return cls(value, definitions=definitions, allow_coerce=allow_coerce)
+
+    @classmethod
+    def has_default(cls):
+        return False
 
     def __repr__(self):
         args = ['%s=%s' % (key, repr(value)) for key, value in self.items()]
