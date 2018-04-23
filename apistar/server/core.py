@@ -68,8 +68,13 @@ class Route():
                 fields.append(field)
 
             elif issubclass(param.annotation, types.Type):
-                field = Field(name=name, location='body', schema=param.annotation.validator)
-                fields.append(field)
+                if method in ('GET', 'DELETE'):
+                    for name, validator in param.annotation.validator.properties.items():
+                        field = Field(name=name, location='query', schema=validator)
+                        fields.append(field)
+                else:
+                    field = Field(name=name, location='body', schema=param.annotation.validator)
+                    fields.append(field)
 
         return fields
 
