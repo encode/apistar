@@ -2,6 +2,10 @@
 
 ## Version 0.5.x
 
+### 0.5.6
+
+* Fix bool annotations.
+
 ### 0.5.5
 
 * Fix nested types.

@@ -18,11 +18,19 @@ def int_query_param(param: int):
     return {'param': param}
 
 
+def bool_query_param(param: bool):
+    return {'param': param}
+
+
 def str_query_param_with_default(param: str=''):
     return {'param': param}
 
 
 def int_query_param_with_default(param: int=None):
+    return {'param': param}
+
+
+def bool_query_param_with_default(param: bool=False):
     return {'param': param}
 
 
@@ -43,8 +51,10 @@ routes = [
     # Query parameters
     Route(url='/str_query_param/', method='GET', handler=str_query_param),
     Route(url='/int_query_param/', method='GET', handler=int_query_param),
+    Route(url='/bool_query_param/', method='GET', handler=bool_query_param),
     Route(url='/str_query_param_with_default/', method='GET', handler=str_query_param_with_default),
     Route(url='/int_query_param_with_default/', method='GET', handler=int_query_param_with_default),
+    Route(url='/bool_query_param_with_default/', method='GET', handler=bool_query_param_with_default),
 
     # Body parameters
     Route(url='/type_body_param/', method='POST', handler=type_body_param),
@@ -94,6 +104,28 @@ def test_int_query_param_with_default():
 
     response = client.get('/int_query_param_with_default/')
     assert response.json() == {'param': None}
+
+
+def test_bool_query_param():
+    response = client.get('/bool_query_param/?param=true')
+    assert response.json() == {'param': True}
+
+    response = client.get('/bool_query_param/?param=false')
+    assert response.json() == {'param': False}
+
+    response = client.get('/bool_query_param/')
+    assert response.json() == {'param': 'This field is required.'}
+
+
+def test_bool_query_param_with_default():
+    response = client.get('/bool_query_param_with_default/?param=true')
+    assert response.json() == {'param': True}
+
+    response = client.get('/bool_query_param_with_default/?param=false')
+    assert response.json() == {'param': False}
+
+    response = client.get('/bool_query_param_with_default/')
+    assert response.json() == {'param': False}
 
 
 def test_type_body_param():
