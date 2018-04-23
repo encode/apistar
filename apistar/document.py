@@ -107,6 +107,7 @@ class Link:
                  handler: typing.Callable=None,
                  name: str='',
                  encoding: str='',
+                 response: 'Response'=None,
                  title: str='',
                  description: str='',
                  fields: typing.Sequence['Field']=None):
@@ -144,6 +145,7 @@ class Link:
         self.handler = handler
         self.name = name if name else handler.__name__
         self.encoding = encoding
+        self.response = response
         self.title = title
         self.description = description
         self.fields = fields
@@ -183,3 +185,10 @@ class Field:
         self.required = required
         self.schema = schema
         self.example = example
+
+
+class Response:
+    def __init__(self, encoding: str, status_code: int=200, schema: Validator=None):
+        self.encoding = encoding
+        self.status_code = status_code
+        self.schema = schema

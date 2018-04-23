@@ -2,7 +2,7 @@ import inspect
 import re
 
 from apistar import http, types, validators
-from apistar.document import Document, Field, Link, Section
+from apistar.document import Document, Field, Link, Response, Section
 
 
 class Route():
@@ -20,6 +20,7 @@ class Route():
 
     def generate_link(self, url, method, handler, name):
         fields = self.generate_fields(url, method, handler)
+        response = self.generate_response(handler)
         encoding = None
         if any([f.location == 'body' for f in fields]):
             encoding = 'application/json'
@@ -29,6 +30,7 @@ class Route():
             name=name,
             encoding=encoding,
             fields=fields,
+            response=response,
             description=handler.__doc__
         )
 
@@ -77,6 +79,14 @@ class Route():
                     fields.append(field)
 
         return fields
+
+    def generate_response(self, handler):
+        annotation = inspect.signature(handler).return_annotation
+
+        if not issubclass(annotation, types.Type):
+            return None
+
+        return Response(encoding='application/json', status_code=200, schema=annotation)
 
 
 class Include():
