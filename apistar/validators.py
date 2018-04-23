@@ -270,6 +270,19 @@ class Boolean(Validator):
         elif value is None:
             self.error('null')
         elif not isinstance(value, bool):
+            if allow_coerce and isinstance(value, str):
+                try:
+                    return {
+                        'true': True,
+                        'false': False,
+                        'on': True,
+                        'off': False,
+                        '1': True,
+                        '0': False,
+                        '': False
+                    }[value.lower()]
+                except KeyError:
+                    pass
             self.error('type')
         return value
 

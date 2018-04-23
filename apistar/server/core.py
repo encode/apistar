@@ -110,30 +110,3 @@ def generate_document(routes):
         elif isinstance(item, Include) and item.documented:
             content.append(item.section)
     return Document(content=content)
-
-
-def bind(document, bindings, name_prefix=''):
-    """
-    Given a document and a map of {"section:link": handler} return a
-    list of `Include` and `Route` to use for routing the application.
-    """
-    routes = []
-    for item in document.content:
-        if isinstance(item, Link):
-            handler = bindings[name_prefix + item.name]
-            routes.append(Route(
-                url=item.url,
-                method=item.method,
-                name=item.name,
-                handler=handler,
-                link=item
-            ))
-        elif isinstance(item, Section):
-            section_name_prefix = name_prefix + item.name + ':'
-            children = bind(item, bindings, section_name_prefix)
-            routes.append(Include(
-                url='',
-                name=item.name,
-                routes=children
-            ))
-    return routes
