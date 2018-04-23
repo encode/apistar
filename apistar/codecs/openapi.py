@@ -186,7 +186,7 @@ OPEN_API = validators.Object(
                 ('default', validators.Ref('Response')),  # TODO: | ReferenceObject
             ],
             pattern_properties=[
-                ('^[1-5][0-9][0-9]', validators.Ref('Response')),  # TODO: | ReferenceObject
+                ('^[1-5][0-9][0-9]$', validators.Ref('Response')),  # TODO: | ReferenceObject
                 ('^x-', validators.Any()),
             ],
             additional_properties=False,
@@ -486,6 +486,21 @@ class OpenAPICodec(BaseCodec):
             operation['requestBody'] = {
                 'content': {
                     link.encoding: content_info
+                }
+            }
+        if link.response is not None:
+            operation['responses'] = {
+                str(link.response.status_code): {
+                    'description': '',
+                    'content': {
+                        link.response.encoding: {
+                            'schema': JSONSchemaCodec().encode_to_data_structure(
+                                link.response.schema,
+                                schema_defs,
+                                '#/components/schemas/'
+                            )
+                        }
+                    }
                 }
             }
         return operation
