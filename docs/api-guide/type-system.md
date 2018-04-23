@@ -3,6 +3,8 @@
 API Star comes with a type system that allows you to express constraints on the
 expected inputs and outputs of your interface.
 
+## The `Type` class
+
 Here’s a quick example of what the type system in API Star looks like:
 
 ```python
