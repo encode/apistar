@@ -141,6 +141,7 @@
                 <div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
     <ul class="nav bs-sidenav">
         <li class="main active"><a href="#type-system">Type System</a></li>
+            <li><a href="#nested-types">Nested types</a></li>
             <li><a href="#validation">Validation</a></li>
             <li><a href="#serialization">Serialization</a></li>
             <li><a href="#including-additional-validation">Including additional validation</a></li>
@@ -190,6 +191,18 @@ apistar.exceptions.ValidationError: {'rating': 'This field is required.', 'size'
 {'name': 't-shirt', 'rating': 4, 'in_stock': False, 'size': 'large'}
 </code></pre>
 
+<h3 id="nested-types">Nested types</h3>
+<p>You can include <code>Type</code> classes as fields on other <code>Type</code> classes, like so:</p>
+<pre><code class="python">class Location(types.Type):
+    latitude = validators.Number(maximum=90.0, minimum=-90.0)
+    longitude = validators.Number(maximum=180.0, minimum=-180.0)
+
+
+class Event(types.Type):
+    location = Location
+    name = validators.String(max_length=100)
+</code></pre>
+
 <h2 id="validation">Validation</h2>
 <p>You can use API Star <code>Type</code> classes as annotations inside your handler functions.</p>
 <p>When you do so, validation will be handled automatically prior to running
@@ -220,24 +233,23 @@ def list_products() -&gt; typing.List[Product]:
 
 <h2 id="including-additional-validation">Including additional validation</h2>
 <p>If you have validation rules that cannot be expressed with the default types,
-you can include these by writing a <code>validate(self, value)</code> method on the class.</p>
+you can include these by subclass the <code>__init__</code> method on the class.</p>
 <p>This method should return the validated data, or raise a <code>ValidationError</code>.</p>
-<pre><code class="python">from apistar import exceptions, types, valiators
+<pre><code class="python">from apistar import exceptions, types, validators
 
 
 class Organisation(types.Type):
     is_premium = validators.Boolean()
     expiry_date = validators.Date(allow_null=True)
 
-    def validate(self, value):
-        if value['is_premium'] and value['expiry_date'] is not None:
+    def __init__(self, *args, **kwargs):
+        value = super().__init__(*args, **kwargs)
+        if value.is_premium and value.expiry_date is not None:
             message = 'premium organisations should not have any expiry_date set.'
             raise exceptions.ValidationError(message)
         return value
 </code></pre>
 
-<p>You can also subclass validators and include a custom <code>validate</code> method,
-in order to create reusable field validation behaviours.</p>
 <h2 id="api-reference">API Reference</h2>
 <p>The following typesystem types are supported:</p>
 <h3 id="string">String</h3>
