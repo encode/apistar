@@ -2,6 +2,10 @@
 
 ## Version 0.5.x
 
+### 0.5.5
+
+* Fix nested types.
+
 ### 0.5.4
 
 * Event hooks instantiated on each request/response cycle.

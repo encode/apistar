@@ -298,10 +298,10 @@ class Object(Validator):
         required = [] if (required is None) else required
 
         assert all(isinstance(k, str) for k in properties.keys())
-        assert all(isinstance(v, Validator) for v in properties.values())
+        assert all(hasattr(v, 'validate') for v in properties.values())
         assert all(isinstance(k, str) for k in pattern_properties.keys())
-        assert all(isinstance(v, Validator) for v in pattern_properties.values())
-        assert additional_properties is None or isinstance(additional_properties, (bool, Validator))
+        assert all(hasattr(v, 'validate') for v in pattern_properties.values())
+        assert additional_properties in (None, True, False) or hasattr(additional_properties, 'validate')
         assert min_properties is None or isinstance(min_properties, int)
         assert max_properties is None or isinstance(max_properties, int)
         assert all(isinstance(i, str) for i in required)
@@ -425,11 +425,11 @@ class Array(Validator):
 
         items = list(items) if isinstance(items, (list, tuple)) else items
 
-        assert items is None or isinstance(items, Validator) or (
+        assert items is None or hasattr(items, 'validate') or (
             isinstance(items, list) and
-            all(isinstance(i, Validator) for i in items)
+            all(hasattr(i, 'validate') for i in items)
         )
-        assert additional_items is None or isinstance(additional_items, (bool, Validator))
+        assert additional_items in (None, True, False) or hasattr(additional_items, 'validate')
         assert min_items is None or isinstance(min_items, int)
         assert max_items is None or isinstance(max_items, int)
         assert isinstance(unique_items, bool)

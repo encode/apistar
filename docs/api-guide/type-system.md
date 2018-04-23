@@ -51,6 +51,21 @@ Or treat a `Type` as a dictionary-like object.
 {'name': 't-shirt', 'rating': 4, 'in_stock': False, 'size': 'large'}
 ```
 
+### Nested types
+
+You can include `Type` classes as fields on other `Type` classes, like so:
+
+```python
+class Location(types.Type):
+    latitude = validators.Number(maximum=90.0, minimum=-90.0)
+    longitude = validators.Number(maximum=180.0, minimum=-180.0)
+
+
+class Event(types.Type):
+    location = Location
+    name = validators.String(max_length=100)
+```
+
 ## Validation
 
 You can use API Star `Type` classes as annotations inside your handler functions.
@@ -90,27 +105,25 @@ def list_products() -> typing.List[Product]:
 ## Including additional validation
 
 If you have validation rules that cannot be expressed with the default types,
-you can include these by writing a `validate(self, value)` method on the class.
+you can include these by subclass the `__init__` method on the class.
 
 This method should return the validated data, or raise a `ValidationError`.
 
 ```python
-from apistar import exceptions, types, valiators
+from apistar import exceptions, types, validators
 
 
 class Organisation(types.Type):
     is_premium = validators.Boolean()
     expiry_date = validators.Date(allow_null=True)
 
-    def validate(self, value):
-        if value['is_premium'] and value['expiry_date'] is not None:
+    def __init__(self, *args, **kwargs):
+        value = super().__init__(*args, **kwargs)
+        if value.is_premium and value.expiry_date is not None:
             message = 'premium organisations should not have any expiry_date set.'
             raise exceptions.ValidationError(message)
         return value
 ```
-
-You can also subclass validators and include a custom `validate` method,
-in order to create reusable field validation behaviours.
 
 ## API Reference
 

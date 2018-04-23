@@ -278,3 +278,29 @@ def test_extended_as_jsonschema_flat():
             }
         }
     }
+
+
+class Location(types.Type):
+    latitude = validators.Number(maximum=90.0, minimum=-90.0)
+    longitude = validators.Number(maximum=180.0, minimum=-180.0)
+
+
+class Place(types.Type):
+    location = Location
+    name = validators.String(max_length=100)
+
+
+def test_nested():
+    place = Place({
+        'name': 'Brighton',
+        'location': {'latitude': 50.8225, 'longitude': -0.1372}
+    })
+
+    assert place.name == 'Brighton'
+    assert dict(place) == {
+        'name': 'Brighton',
+        'location': {
+            'latitude': 50.8225,
+            'longitude': -0.1372
+        }
+    }
