@@ -143,7 +143,7 @@ Validates string data.
 * `pattern` - A string value, giving a regular expression that the data must match.
 * `enum` - A list of valid strings that the input must match against.
 * `format` - An identifier indicating a complex datatype with a string representation. For example `"date"`, to represent an ISO 8601 formatted date string.
-* `allow_null` - Indicates if `None` should be considered a valid value. Defaults to `False`.
+* `allow_null` - Indicates if `None` should be considered a valid value. Defaults to `False`. If set to `True` and no default value is specified then default=`None` will be used.
 
 ### Number
 
@@ -158,7 +158,7 @@ Validates numeric data.
 * `exclusive_minimum` - `True` for an exclusive minimum limit. Defaults to `False`.
 * `multiple_of` - A float that the data must be strictly divisible by, in order to be valid.
 * `enum` - A list of valid numbers that the input must match against.
-* `allow_null` - Indicates if `None` should be considered a valid value. Defaults to `False`.
+* `allow_null` - Indicates if `None` should be considered a valid value. Defaults to `False`. If set to `True` and no default value is specified then default=`None` will be used.
 
 ### Integer
 
@@ -173,7 +173,7 @@ Validates integer data.
 * `exclusive_minimum` - `True` for an exclusive minimum limit. Defaults to `False`.
 * `multiple_of` - An integer that the data must be strictly divisible by, in order to be valid.
 * `enum` - A list of valid numbers that the input must match against.
-* `allow_null` - Indicates if `None` should be considered a valid value. Defaults to `False`.
+* `allow_null` - Indicates if `None` should be considered a valid value. Defaults to `False`. If set to `True` and no default value is specified then default=`None` will be used.
 
 ### Boolean
 
@@ -182,7 +182,7 @@ Validates boolean input.
 * `default` - A default to be used if a field using this typesystem is missing from a parent `Type`.
 * `title` - A title to use in API schemas and documentation.
 * `description` - A description to use in API schemas and documentation.
-* `allow_null` - Indicates if `None` should be considered a valid value. Defaults to `False`.
+* `allow_null` - Indicates if `None` should be considered a valid value. Defaults to `False`. If set to `True` and no default value is specified then default=`None` will be used.
 
 ### Object
 
@@ -197,7 +197,7 @@ Validates dictionary input.
 * `min_properties` - An integer indicating the minimum number of properties that may be present. Defaults to `None`.
 * `max_properties` - An integer indicating the maximum number of properties that may be present. Defaults to `None`.
 * `required` - A list of strings, indicating which properties are required.
-* `allow_null` - Indicates if `None` should be considered a valid value. Defaults to `False`.
+* `allow_null` - Indicates if `None` should be considered a valid value. Defaults to `False`. If set to `True` and no default value is specified then default=`None` will be used.
 
 You'll typically want to use the simpler declarative `Type` style for
 describing dictionary inputs, but the `Object` validator may be useful if you
@@ -215,8 +215,7 @@ Validates list input.
 * `min_items` - The minimum number of items the array must contain.
 * `max_items` - The maximum number of items the array must contain.
 * `unique_items` - Whether repeated items are permitted in the array.
-* `description` - A description for online documentation
-* `allow_null` - Indicates if `None` should be considered a valid value. Defaults to `False`.
+* `allow_null` - Indicates if `None` should be considered a valid value. Defaults to `False`. If set to `True` and no default value is specified then default=`None` will be used.
 
 ## Formats
 
