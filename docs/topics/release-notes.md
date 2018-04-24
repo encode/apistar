@@ -2,6 +2,10 @@
 
 ## Version 0.5.x
 
+### 0.5.9
+
+* `allow_null=True` sets default to `None` unless otherwise specified.
+
 ### 0.5.8
 
 * Add support for response schemas to OpenAPI output.
