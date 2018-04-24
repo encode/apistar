@@ -258,6 +258,15 @@ class Boolean(Validator):
         'type': 'Must be a valid boolean.',
         'null': 'May not be null.',
     }
+    values = {
+        'true': True,
+        'false': False,
+        'on': True,
+        'off': False,
+        '1': True,
+        '0': False,
+        '': False
+    }
 
     def __init__(self, allow_null=False, **kwargs):
         super().__init__(**kwargs)
@@ -272,15 +281,7 @@ class Boolean(Validator):
         elif not isinstance(value, bool):
             if allow_coerce and isinstance(value, str):
                 try:
-                    return {
-                        'true': True,
-                        'false': False,
-                        'on': True,
-                        'off': False,
-                        '1': True,
-                        '0': False,
-                        '': False
-                    }[value.lower()]
+                    return self.values[value.lower()]
                 except KeyError:
                     pass
             self.error('type')

@@ -1,3 +1,5 @@
+import typing
+
 from apistar import App, Route, TestClient, types, validators
 from apistar.server.handlers import serve_schema
 
@@ -7,7 +9,7 @@ class User(types.Type):
     age = validators.Integer(allow_null=True, default=None)
 
 
-def get_endpoint(name: str, age: int=None):
+def get_endpoint(name: str, age: int=None) -> typing.List[User]:
     """endpoint description"""
     raise NotImplementedError()
 
@@ -59,7 +61,22 @@ expected_schema = """{
                             "nullable": true
                         }
                     }
-                ]
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/User"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
         },
         "/get-endpoint-with-type/": {
