@@ -143,13 +143,6 @@ expected_schema = """{
 
 
 def test_get_schema():
-    routes = [
-        Route(url='/get-endpoint/', method='GET', handler=get_endpoint),
-        Route(url='/get-endpoint-with-type/', method='GET', handler=get_endpoint_with_type),
-        Route(url='/post-endpoint/', method='POST', handler=post_endpoint),
-        Route(url='/schema/', method='GET', handler=serve_schema, documented=False),
-    ]
-    app = App(routes=routes)
     response = test_client.get('/schema/')
     assert response.status_code == 200
     assert response.text == expected_schema
