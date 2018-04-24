@@ -83,6 +83,15 @@ def get_request_data(data: http.RequestData):
     return {'data': data}
 
 
+def get_full_request_data(data: http.RequestData):
+    return {'data': [
+        (key, value if not hasattr(value, 'filename') else {
+            'filename': value.filename,
+            'content': value.read().decode('utf-8'),
+        }) for key, value in data.items(multi=True)
+    ]}
+
+
 def return_string(data: http.RequestData) -> str:
     return '<html><body>example content</body></html>'
 
@@ -115,6 +124,7 @@ routes = [
     Route('/path_params/{example}/', 'GET', get_path_params),
     Route('/full_path_params/{+example}', 'GET', get_path_params, name='full_path_params'),
     Route('/request_data/', 'POST', get_request_data),
+    Route('/full_request_data/', 'POST', get_full_request_data),
     Route('/return_string/', 'GET', return_string),
     Route('/return_data/', 'GET', return_data),
     Route('/return_response/', 'GET', return_response),
@@ -330,6 +340,19 @@ def test_multipart_request_data(client):
             },
             'b': '42',
         }
+    }
+
+    response = client.post('/full_request_data/', files={'a': ('b', '123')}, data={'b': ['41', '42']})
+    assert response.status_code == 200
+    assert response.json() == {
+        'data': [
+            ['b', '41'],
+            ['b', '42'],
+            ['a', {
+                'filename': 'b',
+                'content': '123',
+            }],
+        ]
     }
 
 
