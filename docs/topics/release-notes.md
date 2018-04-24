@@ -2,6 +2,14 @@
 
 ## Version 0.5.x
 
+### 0.5.8
+
+* Add support for response schemas to OpenAPI output.
+
+### 0.5.7
+
+* All `Type` annotations for GET handlers.
+
 ### 0.5.6
 
 * Fix bool annotations.
