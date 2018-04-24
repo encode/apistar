@@ -2,7 +2,7 @@ import json
 import typing
 from urllib.parse import urlparse
 
-from apistar import types
+from apistar import types, validators
 
 Method = typing.NewType('Method', str)
 Scheme = typing.NewType('Scheme', str)
@@ -91,6 +91,75 @@ class QueryParams(typing.Mapping[str, str]):
 
     def __repr__(self):
         return 'QueryParams(%s)' % repr(self._list)
+
+
+class ParamBase:
+    @classmethod
+    def get_validator_class(cls):
+        raise NotImplementedError('get_validator_class')
+
+    @classmethod
+    def get_validator(cls, **kwargs):
+        Validator = cls.get_validator_class()
+        return Validator(**kwargs)
+
+
+class QueryParamBase(ParamBase):
+    pass
+
+
+class ValidatedQueryParamMetaclass(type):
+    def __getitem__(self, Validator):
+        validator_name = Validator.__name__
+
+        class ValidatedQueryParam(QueryParamBase):
+            __name__ = "ValidatedQueryParam[{}]".format(validator_name)
+
+            @classmethod
+            def get_validator_class(cls):
+                if Validator in (int, float, bool, str):
+                    return {
+                        int: validators.Integer,
+                        float: validators.Number,
+                        bool: validators.Boolean,
+                        str: validators.String,
+                    }[Validator]
+                return Validator
+
+        return ValidatedQueryParam
+
+
+class ValidatedQueryParam(metaclass=ValidatedQueryParamMetaclass):
+    pass
+
+
+class PathParamBase(ParamBase):
+    pass
+
+
+class ValidatedPathParamMetaclass(type):
+    def __getitem__(self, Validator):
+        validator_name = Validator.__name__
+
+        class ValidatedPathParam(PathParamBase):
+            __name__ = "ValidatedPathParam[{}]".format(validator_name)
+
+            @classmethod
+            def get_validator_class(cls):
+                if Validator in (int, float, bool, str):
+                    return {
+                        int: validators.Integer,
+                        float: validators.Number,
+                        bool: validators.Boolean,
+                        str: validators.String,
+                    }[Validator]
+                return Validator
+
+        return ValidatedPathParam
+
+
+class ValidatedPathParam(metaclass=ValidatedPathParamMetaclass):
+    pass
 
 
 class Headers(typing.Mapping[str, str]):

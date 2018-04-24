@@ -148,11 +148,37 @@ class CompositeParamComponent(Component):
             raise exceptions.BadRequest(exc.detail)
 
 
+class ValidatedParamComponent(Component):
+    def can_handle_parameter(self, parameter: inspect.Parameter):
+        return issubclass(parameter.annotation, http.ParamBase)
+
+    def resolve(self,
+                parameter: inspect.Parameter,
+                path_params: ValidatedPathParams,
+                query_params: ValidatedQueryParams):
+        params = path_params if (parameter.name in path_params) else query_params
+        has_default = parameter.default is not parameter.empty
+        allow_null = parameter.default is None
+        param_validator = parameter.annotation.get_validator(allow_null=allow_null)
+
+        validator = validators.Object(
+            properties=[(parameter.name, param_validator)],
+            required=[] if has_default else [parameter.name]
+        )
+
+        try:
+            params = validator.validate(params, allow_coerce=True)
+        except validators.ValidationError as exc:
+            raise exceptions.NotFound(exc.detail)
+        return params.get(parameter.name, parameter.default)
+
+
 VALIDATION_COMPONENTS = (
     RequestDataComponent(),
     ValidatePathParamsComponent(),
     ValidateQueryParamsComponent(),
     ValidateRequestDataComponent(),
     PrimitiveParamComponent(),
-    CompositeParamComponent()
+    CompositeParamComponent(),
+    ValidatedParamComponent(),
 )
