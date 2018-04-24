@@ -1,6 +1,6 @@
 import typing
 from http import HTTPStatus
-from inspect import Parameter
+from inspect import Parameter, isclass
 from urllib.parse import parse_qsl
 from wsgiref.util import request_uri
 
@@ -74,13 +74,18 @@ class QueryParamsComponent(Component):
 
 
 class QueryParamComponent(Component):
-    def resolve(self,
-                parameter: Parameter,
-                query_params: http.QueryParams) -> http.QueryParam:
+    def can_handle_parameter(self, parameter: Parameter):
+        annotation = parameter.annotation
+        return (
+            annotation is http.QueryParam
+            or (isclass(annotation) and issubclass(annotation, http.QueryParamBase))
+        )
+
+    def resolve(self, parameter: Parameter, query_params: http.QueryParams):
         name = parameter.name
         if name not in query_params:
             return None
-        return http.QueryParam(query_params[name])
+        return query_params[name]
 
 
 class HeadersComponent(Component):

@@ -1,7 +1,7 @@
 import inspect
 import re
 
-from apistar import http, types, validators
+from apistar import http, types
 from apistar.document import Document, Field, Link, Section
 
 
@@ -39,44 +39,55 @@ class Route():
         ]
         parameters = inspect.signature(handler).parameters
         for name, param in parameters.items():
+            annotation = param.annotation
             if name in path_names:
-                schema = {
-                    param.empty: None,
-                    int: validators.Integer(),
-                    float: validators.Number(),
-                    str: validators.String()
-                }[param.annotation]
+                if annotation is http.PathParam:
+                    annotation = http.ValidatedPathParam[str]
+
+                if annotation is param.empty:
+                    schema = None
+                else:
+                    if annotation in (int, float, str):
+                        annotation = http.ValidatedPathParam[annotation]
+                    elif not _issubclass(annotation, http.PathParamBase):
+                        raise TypeError('Path param annotation has to be int, float, str or http.ValidatedPathParam[V]')
+                    schema = annotation.get_validator()
                 field = Field(name=name, location='path', schema=schema)
                 fields.append(field)
 
-            elif param.annotation in (param.empty, int, float, bool, str, http.QueryParam):
+            elif (annotation in (param.empty, int, float, bool, str, http.QueryParam)
+                  or _issubclass(annotation, http.QueryParamBase)):
+                if annotation is http.QueryParam:
+                    annotation = http.ValidatedQueryParam[str]
                 if param.default is param.empty:
                     kwargs = {}
                 elif param.default is None:
                     kwargs = {'default': None, 'allow_null': True}
                 else:
                     kwargs = {'default': param.default}
-                schema = {
-                    param.empty: None,
-                    int: validators.Integer(**kwargs),
-                    float: validators.Number(**kwargs),
-                    bool: validators.Boolean(**kwargs),
-                    str: validators.String(**kwargs),
-                    http.QueryParam: validators.String(**kwargs),
-                }[param.annotation]
+
+                if annotation is param.empty:
+                    schema = None
+                else:
+                    if not _issubclass(annotation, http.QueryParamBase):
+                        annotation = http.ValidatedQueryParam[annotation]
+                    schema = annotation.get_validator(**kwargs)
                 field = Field(name=name, location='query', schema=schema)
                 fields.append(field)
-
-            elif issubclass(param.annotation, types.Type):
+            elif issubclass(annotation, types.Type):
                 if method in ('GET', 'DELETE'):
-                    for name, validator in param.annotation.validator.properties.items():
+                    for name, validator in annotation.validator.properties.items():
                         field = Field(name=name, location='query', schema=validator)
                         fields.append(field)
                 else:
-                    field = Field(name=name, location='body', schema=param.annotation.validator)
+                    field = Field(name=name, location='body', schema=annotation.validator)
                     fields.append(field)
 
         return fields
+
+
+def _issubclass(obj, cls):
+    return inspect.isclass(obj) and issubclass(obj, cls)
 
 
 class Include():
