@@ -2,6 +2,10 @@
 
 ## Version 0.5.x
 
+### 0.5.10
+
+* Handle multiple keys in multipart content.
+
 ### 0.5.9
 
 * `allow_null=True` sets default to `None` unless otherwise specified.
