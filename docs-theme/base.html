@@ -13,7 +13,7 @@
       {%- endblock %}
 
       {%- block htmltitle %}
-        <title>{% if page and page.title and not page.is_homepage %}{{ page.title }} - {% endif %}{{ config.site_name }}</title>
+        <title>{% if page and page.title and not page.is_homepage %}{{ page.title }} - {% endif %}{{ config.site_name }}{% if page.is_homepage %} - Docs{% endif %}</title>
       {%- endblock %}
 
       {%- block styles %}
@@ -73,7 +73,7 @@
             {%- if config.copyright %}
                 <p>{{ config.copyright }}</p>
             {%- endif %}
-            
+
             <p align="center">
               <i>API Star is
                 <a href="https://github.com/tomchristie/apistar/blob/master/LICENSE.md">BSD licensed</a> code.
