@@ -297,7 +297,7 @@ class JSONSchemaCodec(BaseCodec):
                 value['minItems'] = item.min_items
             if item.max_items is not None:
                 value['maxItems'] = item.max_items
-            if item.unique_items is not None:
+            if item.unique_items:
                 value['uniqueItems'] = item.unique_items
             return value
 

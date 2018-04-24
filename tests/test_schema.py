@@ -1,3 +1,5 @@
+import typing
+
 from apistar import App, Route, TestClient, types, validators
 from apistar.server.handlers import serve_schema
 
@@ -7,7 +9,7 @@ class User(types.Type):
     age = validators.Integer(allow_null=True, default=None)
 
 
-def get_endpoint(name: str, age: int=None) -> User:
+def get_endpoint(name: str, age: int=None) -> typing.List[User]:
     """endpoint description"""
     raise NotImplementedError()
 
@@ -66,7 +68,10 @@ expected_schema = """{
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/User"
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/User"
+                                    }
                                 }
                             }
                         }
@@ -138,6 +143,13 @@ expected_schema = """{
 
 
 def test_get_schema():
+    routes = [
+        Route(url='/get-endpoint/', method='GET', handler=get_endpoint),
+        Route(url='/get-endpoint-with-type/', method='GET', handler=get_endpoint_with_type),
+        Route(url='/post-endpoint/', method='POST', handler=post_endpoint),
+        Route(url='/schema/', method='GET', handler=serve_schema, documented=False),
+    ]
+    app = App(routes=routes)
     response = test_client.get('/schema/')
     assert response.status_code == 200
     assert response.text == expected_schema

@@ -1,5 +1,6 @@
 import inspect
 import re
+import typing
 
 from apistar import http, types, validators
 from apistar.document import Document, Field, Link, Response, Section
@@ -82,11 +83,21 @@ class Route():
 
     def generate_response(self, handler):
         annotation = inspect.signature(handler).return_annotation
+        annotation = self.coerce_generics(annotation)
 
-        if not issubclass(annotation, types.Type):
+        if not (issubclass(annotation, types.Type) or isinstance(annotation, validators.Validator)):
             return None
 
         return Response(encoding='application/json', status_code=200, schema=annotation)
+
+    def coerce_generics(self, annotation):
+        if (
+            issubclass(annotation, typing.List) and
+            annotation.__args__ and
+            issubclass(annotation.__args__[0], types.Type)
+        ):
+            return validators.Array(items=annotation.__args__[0])
+        return annotation
 
 
 class Include():
