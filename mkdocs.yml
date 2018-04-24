@@ -1,4 +1,4 @@
-site_name: API Star
+site_name: API Star - Docs
 theme:
     name: null
     custom_dir: 'docs-theme'
