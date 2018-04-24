@@ -264,7 +264,7 @@ class Organisation(types.Type):
 <li><code>pattern</code> - A string value, giving a regular expression that the data must match.</li>
 <li><code>enum</code> - A list of valid strings that the input must match against.</li>
 <li><code>format</code> - An identifier indicating a complex datatype with a string representation. For example <code>"date"</code>, to represent an ISO 8601 formatted date string.</li>
-<li><code>allow_null</code> - Indicates if <code>None</code> should be considered a valid value. Defaults to <code>False</code>.</li>
+<li><code>allow_null</code> - Indicates if <code>None</code> should be considered a valid value. Defaults to <code>False</code>. If set to <code>True</code> and no default value is specified then default=<code>None</code> will be used.</li>
 </ul>
 <h3 id="number">Number</h3>
 <p>Validates numeric data.</p>
@@ -278,7 +278,7 @@ class Organisation(types.Type):
 <li><code>exclusive_minimum</code> - <code>True</code> for an exclusive minimum limit. Defaults to <code>False</code>.</li>
 <li><code>multiple_of</code> - A float that the data must be strictly divisible by, in order to be valid.</li>
 <li><code>enum</code> - A list of valid numbers that the input must match against.</li>
-<li><code>allow_null</code> - Indicates if <code>None</code> should be considered a valid value. Defaults to <code>False</code>.</li>
+<li><code>allow_null</code> - Indicates if <code>None</code> should be considered a valid value. Defaults to <code>False</code>. If set to <code>True</code> and no default value is specified then default=<code>None</code> will be used.</li>
 </ul>
 <h3 id="integer">Integer</h3>
 <p>Validates integer data.</p>
@@ -292,7 +292,7 @@ class Organisation(types.Type):
 <li><code>exclusive_minimum</code> - <code>True</code> for an exclusive minimum limit. Defaults to <code>False</code>.</li>
 <li><code>multiple_of</code> - An integer that the data must be strictly divisible by, in order to be valid.</li>
 <li><code>enum</code> - A list of valid numbers that the input must match against.</li>
-<li><code>allow_null</code> - Indicates if <code>None</code> should be considered a valid value. Defaults to <code>False</code>.</li>
+<li><code>allow_null</code> - Indicates if <code>None</code> should be considered a valid value. Defaults to <code>False</code>. If set to <code>True</code> and no default value is specified then default=<code>None</code> will be used.</li>
 </ul>
 <h3 id="boolean">Boolean</h3>
 <p>Validates boolean input.</p>
@@ -300,7 +300,7 @@ class Organisation(types.Type):
 <li><code>default</code> - A default to be used if a field using this typesystem is missing from a parent <code>Type</code>.</li>
 <li><code>title</code> - A title to use in API schemas and documentation.</li>
 <li><code>description</code> - A description to use in API schemas and documentation.</li>
-<li><code>allow_null</code> - Indicates if <code>None</code> should be considered a valid value. Defaults to <code>False</code>.</li>
+<li><code>allow_null</code> - Indicates if <code>None</code> should be considered a valid value. Defaults to <code>False</code>. If set to <code>True</code> and no default value is specified then default=<code>None</code> will be used.</li>
 </ul>
 <h3 id="object">Object</h3>
 <p>Validates dictionary input.</p>
@@ -314,7 +314,7 @@ class Organisation(types.Type):
 <li><code>min_properties</code> - An integer indicating the minimum number of properties that may be present. Defaults to <code>None</code>.</li>
 <li><code>max_properties</code> - An integer indicating the maximum number of properties that may be present. Defaults to <code>None</code>.</li>
 <li><code>required</code> - A list of strings, indicating which properties are required.</li>
-<li><code>allow_null</code> - Indicates if <code>None</code> should be considered a valid value. Defaults to <code>False</code>.</li>
+<li><code>allow_null</code> - Indicates if <code>None</code> should be considered a valid value. Defaults to <code>False</code>. If set to <code>True</code> and no default value is specified then default=<code>None</code> will be used.</li>
 </ul>
 <p>You'll typically want to use the simpler declarative <code>Type</code> style for
 describing dictionary inputs, but the <code>Object</code> validator may be useful if you
@@ -330,8 +330,7 @@ need more general purpose validation.</p>
 <li><code>min_items</code> - The minimum number of items the array must contain.</li>
 <li><code>max_items</code> - The maximum number of items the array must contain.</li>
 <li><code>unique_items</code> - Whether repeated items are permitted in the array.</li>
-<li><code>description</code> - A description for online documentation</li>
-<li><code>allow_null</code> - Indicates if <code>None</code> should be considered a valid value. Defaults to <code>False</code>.</li>
+<li><code>allow_null</code> - Indicates if <code>None</code> should be considered a valid value. Defaults to <code>False</code>. If set to <code>True</code> and no default value is specified then default=<code>None</code> will be used.</li>
 </ul>
 <h2 id="formats">Formats</h2>
 <p>The following validators return a native python representation, but can be serialized to strings.</p>
