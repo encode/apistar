@@ -25,4 +25,4 @@ class MultiPartCodec(BaseCodec):
         body_file = BytesIO(bytestring)
         parser = FormDataParser()
         stream, form, files = parser.parse(body_file, mime_type, content_length, mime_options)
-        return ImmutableMultiDict(chain(form.items(), files.items()))
+        return ImmutableMultiDict(chain(form.items(multi=True), files.items(multi=True)))
