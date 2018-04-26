@@ -111,7 +111,7 @@ class Include():
         if section is None:
             self.section = self.generate_section(routes, name)
         else:
-            self.section = None
+            self.section = section
 
     def generate_section(self, routes, name):
         content = self.generate_content(routes)
