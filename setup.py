@@ -41,6 +41,17 @@ def get_package_data(package):
     return {package: filepaths}
 
 
+def get_long_description(long_description_file):
+    """
+    Read long description from file.
+    """
+    with open(long_description_file, encoding='utf-8') as f:
+        long_description = f.read()
+
+    return long_description
+
+
+
 version = get_version('apistar')
 
 
@@ -50,6 +61,8 @@ setup(
     url='http://www.encode.io/apistar/',
     license='BSD',
     description='Blazingly fast & beautifully expressive Web APIs',
+    long_description=get_long_description('README.md'),
+    long_description_content_type='text/markdown',
     author='Tom Christie',
     author_email='tom@tomchristie.com',
     packages=get_packages('apistar'),
