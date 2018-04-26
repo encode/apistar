@@ -451,11 +451,11 @@ class Array(Validator):
         msg = 'items should be an instance of Validator or list of instances of Validator'
         assert items is None or (
             isinstance(items, list) and
-            all(self.__item_checker(i) for i in items)
-        ) or self.__item_checker(items), msg
+            all(isinstance(i, Validator) for i in items)
+        ) or isinstance(items, Validator), msg
 
         msg = 'additional_items should be an instance of Validator or bool'
-        assert additional_items in (None, True, False) or self.__item_checker(additional_items), msg
+        assert additional_items in (None, True, False) or isinstance(additional_items, Validator), msg
         assert min_items is None or isinstance(min_items, int)
         assert max_items is None or isinstance(max_items, int)
         assert isinstance(unique_items, bool)
@@ -465,9 +465,6 @@ class Array(Validator):
         self.min_items = min_items
         self.max_items = max_items
         self.unique_items = unique_items
-
-    def __item_checker(self, item):
-        return isinstance(item, Validator)
 
     def validate(self, value, definitions=None, allow_coerce=False):
         if value is None and self.allow_null:
