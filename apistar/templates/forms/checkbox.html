@@ -1,0 +1,15 @@
+<div class="form-group">
+    <div class="checkbox">
+        <label class="control-label">
+            <input type="checkbox" name="{{ name }}" value="true" {{ attrs }}>
+            {{ field.title or name }}
+            {% if required %}
+                <span class="text-danger">*</span>
+            {% endif %}
+            <div class="invalid-feedback"></div>
+        </label>
+    </div>
+    {% if field.description %}
+        <span class="help-block">{{ field.description }}</span>
+    {% endif %}
+</div>

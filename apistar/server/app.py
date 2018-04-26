@@ -1,4 +1,5 @@
 import sys
+import typing
 
 import werkzeug
 
@@ -27,12 +28,19 @@ class App():
                  routes,
                  template_dir=None,
                  static_dir=None,
+                 packages=None,
                  schema_url='/schema/',
+                 docs_url='/docs/',
                  static_url='/static/',
                  components=None,
                  event_hooks=None):
 
-        if static_dir is None:
+        packages = tuple() if packages is None else tuple(packages)
+
+        if docs_url is not None:
+            packages += ('apistar',)
+
+        if static_dir is None and not packages:
             static_url = None
 
         # Guard against some easy misconfiguration.
@@ -43,11 +51,11 @@ class App():
             msg = 'event_hooks must be a list.'
             assert isinstance(event_hooks, (list, tuple)), msg
 
-        routes = routes + self.include_extra_routes(schema_url, static_url)
+        routes = routes + self.include_extra_routes(schema_url, docs_url, static_url)
         self.init_document(routes)
         self.init_router(routes)
-        self.init_templates(template_dir)
-        self.init_staticfiles(static_url, static_dir)
+        self.init_templates(template_dir, packages)
+        self.init_staticfiles(static_url, static_dir, packages)
         self.init_injector(components)
         self.debug = False
         self.event_hooks = event_hooks
@@ -55,19 +63,23 @@ class App():
         # Ensure event hooks can all be instantiated.
         self.get_event_hooks()
 
-    def include_extra_routes(self, schema_url=None, static_url=None):
+    def include_extra_routes(self, schema_url=None, docs_url=None, static_url=None):
         extra_routes = []
 
-        from apistar.server.handlers import serve_schema, serve_static_wsgi
+        from apistar.server.handlers import serve_documentation, serve_schema, serve_static_wsgi
 
         if schema_url:
             extra_routes += [
                 Route(schema_url, method='GET', handler=serve_schema, documented=False)
             ]
+        if docs_url:
+            extra_routes += [
+                Route(docs_url, method='GET', handler=serve_documentation, documented=False)
+            ]
         if static_url:
             static_url = static_url.rstrip('/') + '/{+filename}'
             extra_routes += [
-                Route(static_url, method='GET', handler=serve_static_wsgi, documented=False, standalone=True)
+                Route(static_url, method='GET', handler=serve_static_wsgi, name='static', documented=False, standalone=True)
             ]
         return extra_routes
 
@@ -77,18 +89,18 @@ class App():
     def init_router(self, routes):
         self.router = Router(routes)
 
-    def init_templates(self, template_dir: str=None):
-        if not template_dir:
+    def init_templates(self, template_dir: str=None, packages: typing.Sequence[str]=None):
+        if not template_dir and not packages:
             self.templates = None
         else:
             template_globals = {'reverse_url': self.reverse_url}
-            self.templates = Templates(template_dir, template_globals)
+            self.templates = Templates(template_dir, packages, template_globals)
 
-    def init_staticfiles(self, static_url: str, static_dir: str=None):
-        if not static_dir:
+    def init_staticfiles(self, static_url: str, static_dir: str=None, packages: typing.Sequence[str]=None):
+        if not static_dir and not packages:
             self.statics = None
         else:
-            self.statics = StaticFiles(static_url, static_dir)
+            self.statics = StaticFiles(static_url, static_dir, packages)
 
     def init_injector(self, components=None):
         components = components if components else []
