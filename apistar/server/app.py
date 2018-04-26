@@ -79,7 +79,10 @@ class App():
         if static_url:
             static_url = static_url.rstrip('/') + '/{+filename}'
             extra_routes += [
-                Route(static_url, method='GET', handler=serve_static_wsgi, name='static', documented=False, standalone=True)
+                Route(
+                    static_url, method='GET', handler=serve_static_wsgi,
+                    name='static', documented=False, standalone=True
+                )
             ]
         return extra_routes
 
@@ -237,14 +240,18 @@ class App():
 class ASyncApp(App):
     interface = 'asgi'
 
-    def include_extra_routes(self, schema_url=None, static_url=None):
+    def include_extra_routes(self, schema_url=None, docs_url=None, static_url=None):
         extra_routes = []
 
-        from apistar.server.handlers import serve_schema, serve_static_asgi
+        from apistar.server.handlers import serve_documentation, serve_schema, serve_static_asgi
 
         if schema_url:
             extra_routes += [
                 Route(schema_url, method='GET', handler=serve_schema, documented=False)
+            ]
+        if docs_url:
+            extra_routes += [
+                Route(docs_url, method='GET', handler=serve_documentation, documented=False)
             ]
         if static_url:
             static_url = static_url.rstrip('/') + '/{+filename}'
@@ -268,11 +275,11 @@ class ASyncApp(App):
         }
         self.injector = ASyncInjector(components, initial_components)
 
-    def init_staticfiles(self, static_url: str, static_dir: str=None):
+    def init_staticfiles(self, static_url: str, static_dir: str=None, packages: typing.Sequence[str]=None):
         if not static_dir:
             self.statics = None
         else:
-            self.statics = ASyncStaticFiles(static_url, static_dir)
+            self.statics = ASyncStaticFiles(static_url, static_dir, packages)
 
     def __call__(self, scope):
         async def asgi_callable(receive, send):
