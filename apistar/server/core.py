@@ -92,6 +92,7 @@ class Route():
 
     def coerce_generics(self, annotation):
         if (
+            isinstance(annotation, type) and
             issubclass(annotation, typing.List) and
             annotation.__args__ and
             issubclass(annotation.__args__[0], types.Type)
