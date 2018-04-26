@@ -450,9 +450,9 @@ class Array(Validator):
 
         assert items is None or (
             isinstance(items, list) and
-            all(self.item_checker(i) for i in items)
-        ) or self.item_checker(items)
-        assert additional_items in (None, True, False) or self.item_checker(additional_items)
+            all(self._item_checker(i) for i in items)
+        ) or self._item_checker(items)
+        assert additional_items in (None, True, False) or self._item_checker(additional_items)
         assert min_items is None or isinstance(min_items, int)
         assert max_items is None or isinstance(max_items, int)
         assert isinstance(unique_items, bool)
