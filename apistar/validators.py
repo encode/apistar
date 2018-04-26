@@ -448,11 +448,14 @@ class Array(Validator):
 
         items = list(items) if isinstance(items, (list, tuple)) else items
 
-        assert items is None or hasattr(items, 'validate') or (
+        msg = 'items should be an instance of Validator or list of instances of Validator'
+        assert items is None or (
             isinstance(items, list) and
-            all(hasattr(i, 'validate') for i in items)
-        )
-        assert additional_items in (None, True, False) or hasattr(additional_items, 'validate')
+            all(isinstance(i, Validator) for i in items)
+        ) or isinstance(items, Validator), msg
+
+        msg = 'additional_items should be an instance of Validator or bool'
+        assert additional_items in (None, True, False) or isinstance(additional_items, Validator), msg
         assert min_items is None or isinstance(min_items, int)
         assert max_items is None or isinstance(max_items, int)
         assert isinstance(unique_items, bool)

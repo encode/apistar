@@ -3,7 +3,6 @@
 
 import os
 import re
-import sys
 
 from setuptools import setup
 
@@ -49,7 +48,6 @@ def get_long_description(long_description_file):
         long_description = f.read()
 
     return long_description
-
 
 
 version = get_version('apistar')
