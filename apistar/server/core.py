@@ -7,17 +7,14 @@ from apistar.document import Document, Field, Link, Response, Section
 
 
 class Route():
-    def __init__(self, url, method, handler, name=None, documented=True, standalone=False, link=None):
+    def __init__(self, url, method, handler, name=None, documented=True, standalone=False):
         self.url = url
         self.method = method
         self.handler = handler
         self.name = name or handler.__name__
         self.documented = documented
         self.standalone = standalone
-        if link is None:
-            self.link = self.generate_link(url, method, handler, self.name)
-        else:
-            self.link = link
+        self.link = self.generate_link(url, method, handler, self.name)
 
     def generate_link(self, url, method, handler, name):
         fields = self.generate_fields(url, method, handler)
@@ -102,16 +99,12 @@ class Route():
 
 
 class Include():
-    def __init__(self, url, name, routes, documented=True, section=None):
+    def __init__(self, url, name, routes, documented=True):
         self.url = url
         self.name = name
         self.routes = routes
         self.documented = documented
-
-        if section is None:
-            self.section = self.generate_section(routes, name)
-        else:
-            self.section = section
+        self.section = self.generate_section(routes, name)
 
     def generate_section(self, routes, name):
         content = self.generate_content(routes)
