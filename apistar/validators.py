@@ -448,11 +448,11 @@ class Array(Validator):
 
         items = list(items) if isinstance(items, (list, tuple)) else items
 
-        assert items is None or hasattr(items, 'validate') or (
+        assert items is None or (
             isinstance(items, list) and
-            all(hasattr(i, 'validate') for i in items)
-        )
-        assert additional_items in (None, True, False) or hasattr(additional_items, 'validate')
+            all(self.item_checker(i) for i in items)
+        ) or self.item_checker(items)
+        assert additional_items in (None, True, False) or self.item_checker(additional_items)
         assert min_items is None or isinstance(min_items, int)
         assert max_items is None or isinstance(max_items, int)
         assert isinstance(unique_items, bool)
@@ -462,6 +462,9 @@ class Array(Validator):
         self.min_items = min_items
         self.max_items = max_items
         self.unique_items = unique_items
+
+    def _item_checker(self, item):
+        return not isinstance(item, type) and hasattr(item, 'validate')
 
     def validate(self, value, definitions=None, allow_coerce=False):
         if value is None and self.allow_null:
