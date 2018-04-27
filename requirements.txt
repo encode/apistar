@@ -8,7 +8,7 @@ jinja2
 whitenoise
 
 # Testing requirements
-black
+black; python_version == '3.6'
 codecov
 flake8
 isort
