@@ -8,6 +8,7 @@ jinja2
 whitenoise
 
 # Testing requirements
+black
 codecov
 flake8
 isort
