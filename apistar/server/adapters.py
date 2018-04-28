@@ -34,9 +34,10 @@ class ASGItoWSGIAdapter(object):
                 return_bytes.append(message.get('body', b''))
 
         async def recieve():
+            content_length = int(environ.get('CONTENT_LENGTH', 0))
             return {
                 'type': 'http.request',
-                'body': environ['wsgi.input'].read()
+                'body': environ['wsgi.input'].read(content_length)
             }
 
         try:
