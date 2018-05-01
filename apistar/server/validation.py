@@ -1,5 +1,6 @@
 import inspect
 import typing
+from collections import defaultdict
 
 from apistar import codecs, exceptions, http, types, validators
 from apistar.conneg import negotiate_content_type
@@ -68,6 +69,21 @@ class ValidateQueryParamsComponent(Component):
                 query_params: http.QueryParams) -> ValidatedQueryParams:
         query_fields = route.link.get_query_fields()
 
+        # Merge query_parameter values as list if field schema is Array
+        array_field_names = [
+            field.name for field in query_fields
+            if isinstance(field.schema, validators.Array)
+        ]
+        new_query_params = []
+        array_params = defaultdict(list)
+        for key, value in query_params:
+            if key in array_field_names:
+                array_params[key].append(value)
+            else:
+                new_query_params.append((key, value))
+        new_query_params.extend(array_params.items())
+        query_params = http.QueryParams(new_query_params)
+
         validator = validators.Object(
             properties=[
                 (field.name, field.schema if field.schema else validators.Any())
@@ -105,7 +121,10 @@ class ValidateRequestDataComponent(Component):
 
 class PrimitiveParamComponent(Component):
     def can_handle_parameter(self, parameter: inspect.Parameter):
-        return parameter.annotation in (str, int, float, bool, parameter.empty)
+        return parameter.annotation in (str, int, float, bool,
+                                        typing.List[str], typing.List[int],
+                                        typing.List[float], typing.List[bool],
+                                        parameter.empty)
 
     def resolve(self,
                 parameter: inspect.Parameter,
@@ -120,7 +139,11 @@ class PrimitiveParamComponent(Component):
             str: validators.String(allow_null=allow_null),
             int: validators.Integer(allow_null=allow_null),
             float: validators.Number(allow_null=allow_null),
-            bool: validators.Boolean(allow_null=allow_null)
+            bool: validators.Boolean(allow_null=allow_null),
+            typing.List[str]: validators.Array(validators.String(), allow_null=allow_null),
+            typing.List[int]: validators.Array(validators.Integer(), allow_null=allow_null),
+            typing.List[float]: validators.Array(validators.Number(), allow_null=allow_null),
+            typing.List[bool]: validators.Array(validators.Boolean(), allow_null=allow_null),
         }[parameter.annotation]
 
         validator = validators.Object(

@@ -49,7 +49,10 @@ class Route():
                 field = Field(name=name, location='path', schema=schema)
                 fields.append(field)
 
-            elif param.annotation in (param.empty, int, float, bool, str, http.QueryParam):
+            elif param.annotation in (param.empty, int, float, bool, str,
+                                      typing.List[int], typing.List[float],
+                                      typing.List[bool], typing.List[str],
+                                      http.QueryParam):
                 if param.default is param.empty:
                     kwargs = {}
                 elif param.default is None:
@@ -62,6 +65,10 @@ class Route():
                     float: validators.Number(**kwargs),
                     bool: validators.Boolean(**kwargs),
                     str: validators.String(**kwargs),
+                    typing.List[str]: validators.Array(validators.String(), **kwargs),
+                    typing.List[int]: validators.Array(validators.Integer(), **kwargs),
+                    typing.List[float]: validators.Array(validators.Number(), **kwargs),
+                    typing.List[bool]: validators.Array(validators.Boolean(), **kwargs),
                     http.QueryParam: validators.String(**kwargs),
                 }[param.annotation]
                 field = Field(name=name, location='query', schema=schema)
