@@ -1,14 +1,15 @@
-<pre class="highlight javascript hide" data-language="javascript"><code>var coreapi = window.coreapi  // Loaded by `coreapi-0.1.0.js`
-var schema = window.schema    // Loaded by `schema.js`
+<pre class="highlight javascript {% if not is_selected %}hide{% endif %}" data-language="javascript"><code>var url = new URL("{{ link.url }}");
+var options = {
+    method: "{{ link.method }}"
+};
+{% if link.get_query_fields() %}url.search = new URLSearchParams({
+{% for field in link.get_query_fields() %}    {{ field.name }}: ...{% if not loop.last %},{% endif %}
+{% endfor %}});{% endif %}
 
-// Initialize a client
-var client = new coreapi.Client()
-
-// Interact with the API endpoint
-var action = [{% if section_key %}"{{ section_key }}", {% endif %}"{{ link_key }}"]
-{% if link.fields %}var params = {
-{% for field in link.fields %}    {{ field.name }}: ...{% if not loop.last %},{% endif %}
-{% endfor %}}
-{% endif %}client.action(schema, action{% if link.fields %}, params{% endif %}).then(function(result) {
-    // Return value is in 'result'
-})</code></pre>
+fetch(url, options).then(function(response) {
+    if (!response.ok) {
+        throw new Error(response.statusText);
+    }
+    console.log(response.json());
+})
+</code></pre>

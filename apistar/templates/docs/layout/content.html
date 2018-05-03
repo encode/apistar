@@ -6,9 +6,11 @@
     {% endif %}
 </div>
 <div class="col-md-6 intro-code">
-    {% if 'shell' in langs %}{% include "apistar/docs/langs/intro/shell.html" %}{% endif %}
-    {% if 'python' in langs %}{% include "apistar/docs/langs/intro/python.html" %}{% endif %}
-    {% if 'javascript' in langs %}{% include "apistar/docs/langs/intro/javascript.html" %}{% endif %}
+    {% for language in langs %}
+        {% set template = "apistar/docs/langs/intro/" + language + ".html" %}
+        {% set is_selected = loop.first %}
+        {% include template %}
+    {% endfor %}
 </div>
 </div>
 

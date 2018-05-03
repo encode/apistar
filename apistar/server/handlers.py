@@ -13,7 +13,7 @@ def serve_schema(app: App):
 
 def serve_documentation(app: App):
     template_name = 'apistar/docs/index.html'
-    return app.render_template(template_name, document=app.document, langs=['python', 'shell'])
+    return app.render_template(template_name, document=app.document, langs=['javascript', 'python'])
 
 
 def serve_static_wsgi(app: App, environ: WSGIEnviron, start_response: WSGIStartResponse):

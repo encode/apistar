@@ -22,6 +22,7 @@
         </ul>
 
         <ul class="menu-list menu-list-bottom">
+            <!--
             <li data-toggle="collapse" data-target="#auth-control" class="collapsed">
                 <a><i class="fa fa-user fa-lg"></i> Authentication</a> <span id="selected-authentication">none</span>
             </li>
@@ -31,15 +32,18 @@
                 <li><a data-auth="basic" data-toggle="modal" data-target="#auth_basic_modal" href="#">basic</a></li>
                 <li><a data-auth="session" data-toggle="modal" data-target="#auth_session_modal" href="#">session</a></li>
             </ul>
+            -->
 
+            {% if langs|length > 1 %}
             <li data-toggle="collapse" data-target="#language-control" class="collapsed">
-                <a><i class="fa fa-code fa-lg"></i> Source Code</a> <span id="selected-language">shell</span>
+                <a><i class="fa fa-code fa-lg"></i> Source Code</a> <span id="selected-language">{{ langs[0] }}</span>
             </li>
             <ul class="sub-menu collapse out" id="language-control">
-                <li class="active"><a href="#" data-language="shell">shell</a></li>
-                <li><a href="#" data-language="javascript">javascript</a></li>
-                <li><a href="#" data-language="python">python</a></li>
+                {% for language in langs %}
+                <li {% if loop.first %}class="active"{% endif %}><a href="#" data-language="{{ language }}">{{ language }}</a></li>
+                {% endfor %}
             </ul>
+            {% endif %}
         </ul>
 
     </div>
