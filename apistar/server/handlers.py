@@ -1,4 +1,5 @@
 from apistar import App, http
+from apistar.compat import pygments_css
 from apistar.codecs import OpenAPICodec
 from apistar.server.asgi import ASGIReceive, ASGIScope, ASGISend
 from apistar.server.wsgi import WSGIEnviron, WSGIStartResponse
@@ -13,7 +14,9 @@ def serve_schema(app: App):
 
 def serve_documentation(app: App):
     template_name = 'apistar/docs/index.html'
-    return app.render_template(template_name, document=app.document, langs=['javascript', 'python'])
+    code_style = pygments_css('emacs')
+    return app.render_template(
+        template_name, document=app.document, langs=['javascript', 'python'], code_style=code_style)
 
 
 def serve_static_wsgi(app: App, environ: WSGIEnviron, start_response: WSGIStartResponse):

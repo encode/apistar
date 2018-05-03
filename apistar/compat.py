@@ -26,6 +26,30 @@ except ImportError:
 
 
 try:
+    import pygments
+    from pygments.lexers import get_lexer_by_name, TextLexer
+    from pygments.formatters import HtmlFormatter
+
+    def pygments_highlight(text, lang, style):
+        lexer = get_lexer_by_name(lang, stripall=False)
+        formatter = HtmlFormatter(nowrap=True, style=style)
+        return pygments.highlight(text, lexer, formatter)
+
+    def pygments_css(style):
+        formatter = HtmlFormatter(style=style)
+        return formatter.get_style_defs('.highlight')
+
+except ImportError:
+    pygments = None
+
+    def pygments_highlight(text, lang, style):
+        return text
+
+    def pygments_css(style):
+        return None
+
+
+try:
     # Ideally we subclass `_TemporaryFileWrapper` to present a clear __repr__
     # for downloaded files.
     from tempfile import _TemporaryFileWrapper

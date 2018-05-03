@@ -14,8 +14,9 @@
         <link href="{{ reverse_url('static', filename='apistar/css/jquery.json-view.min.css') }}" rel="stylesheet">
         <link href="{{ reverse_url('static', filename='apistar/img/favicon.ico') }}" rel="shortcut icon">
 
+        {% if code_style %}<style>{{ code_style }}</style>{% endif %}
         {#<!--{% if code_style %}<style>{{ code_style }}</style>{% endif %}-->#}
-        <script src="{{ reverse_url('static', filename='apistar/js/coreapi-0.1.0.js') }}"></script>
+        {#<!--<script src="{{ reverse_url('static', filename='apistar/js/coreapi-0.1.0.js') }}"></script>-->#}
         {#<!--<script src="{{ reverse_url('javascript_schema') }}"></script> -->#}
 
     </head>
