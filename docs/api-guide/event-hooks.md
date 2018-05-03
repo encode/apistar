@@ -78,7 +78,7 @@ app = App(routes=routes, event_hooks=[TimingHook])
 
 The `on_request` hooks are run in the order that their classes are included.
 
-The `on_response` and `on_exception` hooks are run in the reverse order that their classes are included.
+The `on_response` and `on_error` hooks are run in the reverse order that their classes are included.
 
 This behaviour ensures that event hooks run in a similar manner to stack-based middleware,
 with the each event hook wrapping everything that comes after it.
