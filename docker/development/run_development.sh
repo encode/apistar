@@ -34,7 +34,7 @@ read -r -d '' START_COMMAND << EOM
     apt-get update > /dev/null && apt-get install -y figlet > /dev/null && figlet "API Star *"
     echo '  ~~~~~~~~~~~~~~~~~~~~~~~~'
     echo '  A smart Web API framework, for Python 3.'
-    echo '  LICENCE BASD-3-Clause'
+    echo '  LICENCE BSD-3-Clause'
     echo '  Github: https://github.com/encode/apistar'
     echo '  ~~~~~~~~~~~~~~~~~~~~~~~~'
     echo ' '
