@@ -136,9 +136,10 @@ class Link:
 
         # Add in path fields for any "{param}" items that don't already have
         # a corresponding path field.
-        for path_name in url_path_names:
-            if path_name not in [field.name for field in path_fields]:
-                fields += [Field(name=path_name, location='path', required=True)]
+        field_names = [field.name for field in path_fields]
+        fields.extend([Field(name=path_name, location='path', required=True)
+                       for path_name in url_path_names
+                       if path_name not in field_names])
 
         self.url = url
         self.method = method
