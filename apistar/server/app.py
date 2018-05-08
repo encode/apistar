@@ -183,7 +183,7 @@ class App():
         start_response(
             RESPONSE_STATUS_TEXT[response.status_code],
             list(response.headers),
-            exc_info=response.exc_info
+            response.exc_info
         )
         return [response.content]
 
