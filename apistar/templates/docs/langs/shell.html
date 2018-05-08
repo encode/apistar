@@ -1,0 +1,5 @@
+<pre class="highlight shell" data-language="shell"><code># Load the schema document
+$ coreapi get {{ document.url }}{% if schema_format %} --format {{ schema_format }}{% endif %}
+
+# Interact with the API endpoint
+$ coreapi action {% if section_key %}{{ section_key }} {% endif %}{{ link_key }}{% for field in link.fields %} -p {{ field.name }}=...{% endfor %}</code></pre>
