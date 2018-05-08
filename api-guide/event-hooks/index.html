@@ -211,7 +211,7 @@ app = App(routes=routes, event_hooks=[TimingHook])
 
 <h2 id="ordering-of-event-hooks">Ordering of event hooks</h2>
 <p>The <code>on_request</code> hooks are run in the order that their classes are included.</p>
-<p>The <code>on_response</code> and <code>on_exception</code> hooks are run in the reverse order that their classes are included.</p>
+<p>The <code>on_response</code> and <code>on_error</code> hooks are run in the reverse order that their classes are included.</p>
 <p>This behaviour ensures that event hooks run in a similar manner to stack-based middleware,
 with the each event hook wrapping everything that comes after it.</p></div>
         </div>
