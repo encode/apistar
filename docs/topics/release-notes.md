@@ -2,6 +2,10 @@
 
 ## Version 0.5.x
 
+### 0.5.11
+
+* Add API documentation support.
+
 ### 0.5.10
 
 * Handle multiple keys in multipart content.

@@ -66,11 +66,13 @@ if __name__ == '__main__':
     app.serve('127.0.0.1', 5000, debug=True)
 ```
 
+Open `http://127.0.0.1:5000/docs/` in your browser:
+
+![API documentation](https://raw.githubusercontent.com/encode/apistar/master/docs/img/api-docs.png)
+
 ---
 
 <p align="center"><i>API Star is <a href="https://github.com/tomchristie/apistar/blob/master/LICENSE.md">BSD licensed</a> code.<br/>Designed & built in Brighton, England.</i>
 <p align="center">
     <img src="https://raw.githubusercontent.com/encode/apistar/master/docs/img/ident-44-square-light.png" alt="API Star" />
 </p>
-
-[techempower]: https://www.techempower.com/benchmarks/#section=data-r14&hw=ph&test=json

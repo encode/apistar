@@ -48,3 +48,7 @@ app = App(routes=routes)
 if __name__ == '__main__':
     app.serve('127.0.0.1', 5000, debug=True)
 ```
+
+Open `http://127.0.0.1:5000/docs/` in your browser:
+
+![API documentation](img/api-docs.png)
