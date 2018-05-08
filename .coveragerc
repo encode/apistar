@@ -1,3 +1,8 @@
+[run]
+branch = 1
+include=*apistar/*
+omit=*tests/*
+
 [report]
 exclude_lines =
     # Have to re-enable the standard pragma
