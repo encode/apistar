@@ -1,6 +1,6 @@
 from apistar import App, http
-from apistar.compat import pygments_css
 from apistar.codecs import OpenAPICodec
+from apistar.compat import pygments_css
 from apistar.server.asgi import ASGIReceive, ASGIScope, ASGISend
 from apistar.server.wsgi import WSGIEnviron, WSGIStartResponse
 
