@@ -15,11 +15,11 @@
 </div>
 
 {% for section in document.get_sections() %}
-{% if section.name %}
-    <h2 id="{{ section.name }}" class="coredocs-section-title">{{ section.name }} <a href="#{{ section.name }}"><i class="fa fa-link" aria-hidden="true"></i>
-</a></h2>
-{% endif %}
-
+    {% if section.name %}
+        <h2 id="{{ section.name }}" class="coredocs-section-title">
+            {{ section.name }} <a href="#{{ section.name }}"><i class="fa fa-link" aria-hidden="true"></i></a>
+        </h2>
+    {% endif %}
     {% for link in section.get_links() %}
         {% include "apistar/docs/layout/link.html" %}
     {% endfor %}

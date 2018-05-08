@@ -1,11 +1,24 @@
-<pre class="highlight javascript {% if not is_selected %}hide{% endif %}" data-language="javascript"><code>var url = new URL("{{ link.url }}");
-var options = {
+<pre class="highlight javascript {% if not is_selected %}hide{% endif %}" data-language="javascript"><code>{% if True %}var url = new URL("{{ link.url }}");
+{% endif %}
+{%- if link.get_body_field() and not link.get_expanded_body() %}var data = ...;
+{% endif %}
+{%- if link.get_body_field() and link.get_expanded_body() %}var data = {
+{% for key, schema in link.get_expanded_body().items() %}    {{ key }}: ...{% if not loop.last %},{% endif %}
+{% endfor %}};
+{% endif %}
+{%- if True %}var options = {
     method: "{{ link.method }}"
+{%- if link.get_body_field() %},
+    body: JSON.stringify(data),
+    headers: {
+        "content-type": "application/json"
+    }{% endif %}
 };
-{% if link.get_query_fields() %}url.search = new URLSearchParams({
+{% endif %}
+{%- if link.get_query_fields() %}url.search = new URLSearchParams({
 {% for field in link.get_query_fields() %}    {{ field.name }}: ...{% if not loop.last %},{% endif %}
-{% endfor %}});{% endif %}
-
+{% endfor %}});
+{% endif %}
 fetch(url, options).then(function(response) {
     if (!response.ok) {
         throw new Error(response.statusText);

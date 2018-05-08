@@ -1,11 +1,18 @@
 <pre class="highlight python {% if not is_selected %}hide{% endif %}" data-language="python"><code>import requests
 
-url = "{{ link.url }}"
-{% if link.get_query_fields() %}params = {
+url = "{{ link.url }}"{% raw %}
+{% endraw %}
+{%- if link.get_query_fields() %}params = {
 {% for field in link.get_query_fields() %}    "{{ field.name }}": ...{% if not loop.last %},{% endif %}
-{% endfor %}}{% endif %}
-
-response = requests.{{ link.method.lower() }}(url{% if link.get_query_fields() %}, params=params{% endif %})
+{% endfor %}}
+{% endif %}
+{%- if link.get_body_field() and not link.get_expanded_body() %}data = ...
+{% endif %}
+{%- if link.get_body_field() and link.get_expanded_body() %}data = {
+{% for key, schema in link.get_expanded_body().items() %}    "{{ key }}": ...{% if not loop.last %},{% endif %}
+{% endfor %}}
+{% endif %}
+response = requests.{{ link.method.lower() }}(url{% if link.get_query_fields() %}, params=params{% endif %}{% if link.get_body_field() %}, json=data{% endif %})
 response.raise_for_status()
 print(response.json())
 </code></pre>

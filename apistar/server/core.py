@@ -135,4 +135,6 @@ def generate_document(routes):
             content.append(item.link)
         elif isinstance(item, Include) and item.documented:
             content.append(item.section)
+            for link in item.section.get_links():
+                link.url = item.url + link.url
     return Document(content=content)

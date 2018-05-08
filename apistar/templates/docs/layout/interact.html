@@ -10,7 +10,7 @@
         </div>
       </div>
 
-      <h3 class="modal-title"><i class="fa fa-exchange"></i> {{ link.title|default(link_key) }}</h3>
+      <h3 class="modal-title"><i class="fa fa-exchange"></i> {{ link.title|default(link.name, True) }}</h3>
 
     </div>
 

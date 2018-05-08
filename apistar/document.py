@@ -162,6 +162,12 @@ class Link:
                 return field
         return None
 
+    def get_expanded_body(self):
+        field = self.get_body_field()
+        if field is None or not hasattr(field.schema, 'properties'):
+            return None
+        return field.schema.properties
+
 
 class Field:
     def __init__(self,
