@@ -291,8 +291,9 @@ body {
     display: block;
   }
   #main {
-    width:calc(100% - 225px);
+    width: calc(100% - 225px);
     float: right;
+    max-width: calc(100% - 225px);
   }
 }
 
