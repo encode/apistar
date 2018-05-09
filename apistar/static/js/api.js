@@ -71,14 +71,14 @@ $(function () {
     var $languageControlLinks = $languageControls.find('a')
     var language = $languageMenuItem.data('language')
 
-    $languageControlLinks.not('[data-language="' + language + '"]').parent().removeClass('active')
-    $languageControlLinks.filter('[data-language="' + language + '"]').parent().addClass('active')
+    $languageControlLinks.not('[data-language="' + language + '"]').removeClass('active')
+    $languageControlLinks.filter('[data-language="' + language + '"]').addClass('active')
 
     $('#selected-language').text(language)
 
     var $codeBlocks = $('pre.highlight')
-    $codeBlocks.not('[data-language="' + language + '"]').addClass('hide')
-    $codeBlocks.filter('[data-language="' + language + '"]').removeClass('hide')
+    $codeBlocks.not('[data-language="' + language + '"]').addClass('d-none')
+    $codeBlocks.filter('[data-language="' + language + '"]').removeClass('d-none')
   })
 
   // API Explorer
