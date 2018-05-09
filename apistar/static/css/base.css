@@ -32,7 +32,8 @@ pre.highlight code {
   overflow: auto;
   font-size: 12px;
   font-weight: 200;
-  background-color: rgba(0,0,0,.05);
+  background-color:#fafcfc;
+  border-right: 1px solid rgb(236, 244, 247);
   position: fixed;
   top: 0px;
   width: 225px;
@@ -41,9 +42,7 @@ pre.highlight code {
 }
 
 .sidebar .brand {
-    background-color: #f5f5f5;
     display: block;
-    text-align: center;
     padding: 0.5em 0;
     margin-top: 0;
     margin-bottom: 0;
@@ -64,99 +63,36 @@ pre.highlight code {
   display: none;
 }
 
-.sidebar .menu-list ul,
-.sidebar .menu-list li {
-  background-color: #f5f5f5;
+.menu-content,
+.menu-content ul {
   list-style: none;
-  padding: 0px;
-  margin: 0px;
-  line-height: 35px;
+  padding: 0;
+  margin: 0;
+}
+
+.menu-content li {
+  padding: 0;
+  margin: 0;
+}
+
+
+.menu-content a {
+  display: block;
+  margin: 0;
+  padding: 6px 20px;
+  color: #4c555a;
   cursor: pointer;
+  font-size: 14px;
+  list-style-type: none;
+  white-space: nowrap;
+  overflow: hidden;
+  -o-text-overflow: ellipsis;
+  text-overflow: ellipsis;
 }
 
-.sidebar .menu-list ul :not(collapsed) .arrow:before,
-.sidebar .menu-list li :not(collapsed) .arrow:before {
-  font-family: FontAwesome;
-  content: "\f078";
-  display: inline-block;
-  padding-left: 10px;
-  padding-right: 10px;
-  vertical-align: middle;
-}
-
-.sidebar .menu-list ul .active,
-.sidebar .menu-list li .active {
-  border-left: 3px solid #5CAABF;
-  background-color: #e9e9e9;
-}
-
-.sidebar .menu-list ul .sub-menu li.active,
-.sidebar .menu-list li .sub-menu li.active {
-  color: #5CAABF;
-}
-
-.sidebar .menu-list ul .sub-menu li.active a,
-.sidebar .menu-list li .sub-menu li.active a {
-  color: #5CAABF;
-}
-
-.sidebar .menu-list ul .sub-menu li,
-.sidebar .menu-list li .sub-menu li {
-  background-color: transparent;
-  border: none;
-  border-bottom: 1px solid #5CAABF;
-  margin-left: 0px;
-  text-indent: 10px;
-}
-
-.sidebar .menu-list ul .sub-menu li:hover,
-.sidebar .menu-list li .sub-menu li:hover {
-  background-color: #eee;
-}
-
-
-.sidebar .menu-list ul .sub-menu li a,
-.sidebar .menu-list li .sub-menu li a {
-  display: block;
-}
-
-.sidebar .menu-list ul .sub-menu li a:before,
-.sidebar .menu-list li .sub-menu li a:before {
-  font-family: FontAwesome;
-  content: "\f105";
-  display: inline-block;
-  padding-left: 10px;
-  padding-right: 10px;
-  vertical-align: middle;
-}
-
-.sidebar .menu-list li {
-  padding-left: 0px;
-  border-left: 3px solid #5CAABF;
-  border-bottom: 1px solid #5CAABF;
-}
-
-.sidebar .menu-list li a {
-  text-decoration: none;
-  color: #000;
-  display: block;
-}
-
-.sidebar .menu-list li a i {
-  padding-left: 10px;
-  width: 20px;
-  padding-right: 20px;
-}
-
-.sidebar .menu-list li:hover {
-  border-left: 3px solid #6BC3DC;
-  background-color: #5CAABF;
-  color: #fff;
-  -webkit-transition: all 0.5s ease;
-  -moz-transition: all 0.5s ease;
-  -o-transition: all 0.5s ease;
-  -ms-transition: all 0.5s ease;
-  transition: all 0.5s ease;
+.menu-content ul a {
+    padding-left: 36px;
+    font-size: 13px;
 }
 
 body {
@@ -189,27 +125,6 @@ body {
 .coredocs-section-title:last-child {
     margin-top: 0;
 }
-
-
-/* @group Language Switcher */
-
-.sidebar .menu-list.menu-list-bottom {
-    margin-bottom: 0;
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    border-top: 1px solid #23282e;
-}
-
-.sidebar .menu-list-bottom li span {
-  float: right;
-  margin-right: 20px;
-  color: #d19b3d;
-}
-
-/* @end Language Switcher */
-
 
 /* @group Docs Content */
 
@@ -266,10 +181,6 @@ body {
     padding: 3px;
     width: 40px;
     text-align: center;
-  }
-
-  .sidebar .menu-list.menu-list-bottom {
-    position: static;
   }
 
   .sidebar .brand {
@@ -352,6 +263,7 @@ body {
     background: #242729;
     color: #d0d4d7;
     padding: 1em;
+    padding-top: 2em;
 }
 
 .section-secondary {
@@ -381,6 +293,9 @@ pre {
   font-weight: bold;
 }
 
+.nav-pills .nav-link {
+  padding: .25rem .5rem;
+}
 .nav-pills .nav-link.active, .nav-pills .show>.nav-link {
     color: #fff;
     background-color: #5CAABF;
@@ -390,6 +305,7 @@ pre {
 .nav-pills a:hover,
 .nav-pills a:visited  {
   color: #fff;
+  font-size: small;
 }
 
 a {
@@ -397,4 +313,8 @@ a {
 }
 a:hover, a:visited {
     color: #3D717F;
+}
+
+.intro-title {
+  margin-top: 1.5em;
 }

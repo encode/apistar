@@ -4,14 +4,14 @@
         <!-- <a href="#">{{ document.title|default('API Star', True) }}</a> -->
     </h3>
 
-    <i class="fa fa-bars fa-2x toggle-btn" data-toggle="collapse" data-target="#menu-content"></i>
+    <i class="fa fa-bars fa-2x toggle-btn" data-target="#menu-content"></i>
     <div class="menu-list">
-        <ul id="menu-content" class="menu-content collapse out">
+        <ul class="menu-content">
             {% for section in document.get_sections() %}
-            <li data-toggle="collapse" data-target="#{{ section.name }}-dropdown" class="collapsed">
-                <a><i class="fa fa-dot-circle-o fa-lg"></i> {{ section.title|default(section.name, True) }} <span class="arrow"></span></a>
+            <li data-target="#{{ section.name }}-dropdown">
+                <a> {{ section.title|default(section.name, True) }} <span class="arrow"></span></a>
             </li>
-            <ul class="sub-menu collapse" id="{{ section.name }}-dropdown">
+            <ul id="{{ section.name }}-dropdown">
                 {% for link in section.get_links() %}
                     <li><a href="#{{ section.name }}-{{ link.name }}">{{ link.title|default(link.name, True) }}</a></li>
                 {% endfor %}

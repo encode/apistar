@@ -1,5 +1,10 @@
 <div class="row">
-    <div class="col-md-6 offset-md-6 source-code-chooser chooser">
+    <div class="col-md-6 intro-title">
+        {% if document.description %}
+            <p>{{ document.description }}</p>
+        {% endif %}
+    </div>
+    <div class="col-md-6 source-code-chooser">
             {% if langs|length > 1 %}
                 <ul class="nav nav-pills" id="language-control">
                     {% for language in langs %}
@@ -13,13 +18,7 @@
     </div>
 </div>
 <div class="row intro">
-<div class="col-md-6 intro-title">
-    <h1>{{ document.title|default('API Star', True) }}</h1>
-    {% if document.description %}
-    <p>{{ document.description }}</p>
-    {% endif %}
-</div>
-<div class="col-md-6 section-secondary">
+<div class="col-md-6 offset-md-6 section-secondary">
     {% for language in langs %}
         {% set template = "apistar/docs/langs/intro/" + language + ".html" %}
         {% set is_selected = loop.first %}
