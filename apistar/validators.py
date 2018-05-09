@@ -402,7 +402,7 @@ class Object(Validator):
         # Additional properties
         remaining = [
             key for key in value.keys()
-            if key not in set(validated.keys())
+            if key not in set(validated.keys()) | set(errors.keys())
         ]
 
         if self.additional_properties is True:
