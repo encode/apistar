@@ -19,7 +19,7 @@ class User(object):
 
 
 class UserComponent(Component):
-    def resolve(authorization: http.Header) -> User:
+    def resolve(self, authorization: http.Header) -> User:
         """
         Determine the user associated with a request, using HTTP Basic Authentication.
         """

@@ -160,6 +160,7 @@ OPEN_API = validators.Object(
                 ('required', validators.Boolean()),
                 ('deprecated', validators.Boolean()),
                 ('allowEmptyValue', validators.Boolean()),
+                ('style', validators.String()),
                 ('schema', JSON_SCHEMA | SCHEMA_REF),
                 ('example', validators.Any()),
                 # TODO: Other fields
