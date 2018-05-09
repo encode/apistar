@@ -54,7 +54,6 @@ class App():
         self.docs_url =docs_url
         self.static_url=static_url
         if routes:
-            self.init_document(routes)
             self.init_router(routes)
 
         self.init_templates(template_dir, packages)
@@ -87,14 +86,13 @@ class App():
         return extra_routes
 
     def init_document(self, routes):
-        _routes = routes + self.include_extra_routes(
-            self.schema_url, self.docs_url,self.static_url)
-        self.document = generate_document(_routes)
+        self.document = generate_document(routes)
 
     def init_router(self, routes):
         _routes = routes + self.include_extra_routes(
             self.schema_url, self.docs_url,self.static_url)
         self.router = Router(_routes)
+        self.init_document(_routes)
 
     def init_templates(self, template_dir: str=None, packages: typing.Sequence[str]=None):
         if not template_dir and not packages:
