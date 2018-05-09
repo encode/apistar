@@ -25,7 +25,7 @@ class App():
     interface = 'wsgi'
 
     def __init__(self,
-                 routes,
+                 routes=None,
                  template_dir=None,
                  static_dir=None,
                  packages=None,
@@ -50,10 +50,13 @@ class App():
         if event_hooks:
             msg = 'event_hooks must be a list.'
             assert isinstance(event_hooks, (list, tuple)), msg
+        self.schema_url =schema_url
+        self.docs_url =docs_url
+        self.static_url=static_url
+        if routes:
+            self.init_document(routes)
+            self.init_router(routes)
 
-        routes = routes + self.include_extra_routes(schema_url, docs_url, static_url)
-        self.init_document(routes)
-        self.init_router(routes)
         self.init_templates(template_dir, packages)
         self.init_staticfiles(static_url, static_dir, packages)
         self.init_injector(components)
@@ -84,10 +87,14 @@ class App():
         return extra_routes
 
     def init_document(self, routes):
-        self.document = generate_document(routes)
+        _routes = routes + self.include_extra_routes(
+            self.schema_url, self.docs_url,self.static_url)
+        self.document = generate_document(_routes)
 
     def init_router(self, routes):
-        self.router = Router(routes)
+        _routes = routes + self.include_extra_routes(
+            self.schema_url, self.docs_url,self.static_url)
+        self.router = Router(_routes)
 
     def init_templates(self, template_dir: str=None, packages: typing.Sequence[str]=None):
         if not template_dir and not packages:
