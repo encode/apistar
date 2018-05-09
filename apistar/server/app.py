@@ -50,9 +50,10 @@ class App():
         if event_hooks:
             msg = 'event_hooks must be a list.'
             assert isinstance(event_hooks, (list, tuple)), msg
-        self.schema_url =schema_url
-        self.docs_url =docs_url
-        self.static_url=static_url
+
+        self.schema_url = schema_url
+        self.docs_url = docs_url
+        self.static_url = static_url
         if routes:
             self.init_router(routes)
 
@@ -90,7 +91,7 @@ class App():
 
     def init_router(self, routes):
         _routes = routes + self.include_extra_routes(
-            self.schema_url, self.docs_url,self.static_url)
+            self.schema_url, self.docs_url, self.static_url)
         self.router = Router(_routes)
         self.init_document(_routes)
 
@@ -121,7 +122,7 @@ class App():
         }
         self.injector = Injector(components, initial_components)
 
-    def init_event_hooks(self,event_hooks):
+    def init_event_hooks(self, event_hooks):
         self.event_hooks = event_hooks
 
         # Ensure event hooks can all be instantiated.
