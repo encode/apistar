@@ -1,4 +1,4 @@
-<pre class="highlight javascript {% if not is_selected %}hide{% endif %}" data-language="javascript"><code>{% if True %}var url = new URL("{{ link.url }}");
+<pre class="highlight javascript {% if not is_selected %}d-none{% endif %}" data-language="javascript"><code>{% if True %}var url = new URL("{{ link.url }}");
 {% endif %}
 {%- if link.get_body_field() and not link.get_expanded_body() %}var data = ...;
 {% endif %}
