@@ -87,4 +87,9 @@ setup(
         'Programming Language :: Python :: Implementation :: PyPy',
         'Programming Language :: Python :: Implementation :: CPython'
     ],
+    entry_points={
+        'console_scripts': [
+            'apistar=apistar:main'
+        ],
+    },
 )
