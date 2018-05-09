@@ -57,11 +57,8 @@ class App():
         self.init_templates(template_dir, packages)
         self.init_staticfiles(static_url, static_dir, packages)
         self.init_injector(components)
+        self.init_event_hooks(event_hooks)
         self.debug = False
-        self.event_hooks = event_hooks
-
-        # Ensure event hooks can all be instantiated.
-        self.get_event_hooks()
 
     def include_extra_routes(self, schema_url=None, docs_url=None, static_url=None):
         extra_routes = []
@@ -118,6 +115,12 @@ class App():
             'response': Response
         }
         self.injector = Injector(components, initial_components)
+
+    def init_event_hooks(self,event_hooks):
+        self.event_hooks = event_hooks
+
+        # Ensure event hooks can all be instantiated.
+        self.get_event_hooks()
 
     def get_event_hooks(self):
         event_hooks = []
