@@ -106,7 +106,10 @@ class Type(Mapping, metaclass=TypeMetaclass):
         self._dict[key] = value
 
     def __getattr__(self, key):
-        return self._dict[key]
+        try:
+            return self._dict[key]
+        except (KeyError,):
+            raise AttributeError('Invalid attribute "%s"' % key)
 
     def __getitem__(self, key):
         value = self._dict[key]
