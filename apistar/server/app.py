@@ -326,10 +326,10 @@ class ASyncApp(App):
                 except Exception as inner_exc:
                     try:
                         state['exc'] = inner_exc
-                        await self.injector.run(on_error, state)
+                        await self.injector.run_async(on_error, state)
                     finally:
                         funcs = [self.error_handler, self.finalize_asgi]
-                        await self.injector.run(funcs, state)
+                        await self.injector.run_async(funcs, state)
         return asgi_callable
 
     async def finalize_asgi(self, response: Response, send: ASGISend, scope: ASGIScope):
