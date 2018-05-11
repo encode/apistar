@@ -276,7 +276,7 @@ class ASyncApp(App):
         self.injector = ASyncInjector(components, initial_components)
 
     def init_staticfiles(self, static_url: str, static_dir: str=None, packages: typing.Sequence[str]=None):
-        if not static_dir:
+        if not static_dir and not packages:
             self.statics = None
         else:
             self.statics = ASyncStaticFiles(static_url, static_dir, packages)
