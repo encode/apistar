@@ -15,6 +15,13 @@ FORMATS = {
 }
 
 
+class ErrorMessage(str):
+    def __new__(cls, message, code):
+        instance = str.__new__(cls, message)
+        instance.code = code
+        return instance
+
+
 class Validator:
     errors = {}
     _creation_counter = 0
@@ -58,12 +65,13 @@ class Validator:
     def has_default(self):
         return hasattr(self, 'default')
 
-    def error(self, code):
+    def error(self, code, value):
         message = self.error_message(code)
-        raise ValidationError(message)
+        raise ValidationError(message, value)
 
     def error_message(self, code):
-        return self.errors[code].format(**self.__dict__)
+        message = self.errors[code].format(**self.__dict__)
+        return ErrorMessage(message, code)
 
     def get_definitions(self, definitions=None):
         if self.definitions is None and self.def_name is None:
@@ -124,32 +132,32 @@ class String(Validator):
         if value is None and self.allow_null:
             return None
         elif value is None:
-            self.error('null')
+            self.error('null', value)
         elif self.format in FORMATS and FORMATS[self.format].is_native_type(value):
             return value
         elif not isinstance(value, str):
-            self.error('type')
+            self.error('type', value)
 
         if self.enum is not None:
             if value not in self.enum:
                 if len(self.enum) == 1:
-                    self.error('exact')
-                self.error('enum')
+                    self.error('exact', value)
+                self.error('enum', value)
 
         if self.min_length is not None:
             if len(value) < self.min_length:
                 if self.min_length == 1:
-                    self.error('blank')
+                    self.error('blank', value)
                 else:
-                    self.error('min_length')
+                    self.error('min_length', value)
 
         if self.max_length is not None:
             if len(value) > self.max_length:
-                self.error('max_length')
+                self.error('max_length', value)
 
         if self.pattern is not None:
             if not re.search(self.pattern, value):
-                self.error('pattern')
+                self.error('pattern', value)
 
         if self.format in FORMATS:
             return FORMATS[self.format].validate(value)
@@ -199,50 +207,50 @@ class NumericType(Validator):
         if value is None and self.allow_null:
             return None
         elif value is None:
-            self.error('null')
+            self.error('null', value)
         elif isinstance(value, bool):
-            self.error('type')
+            self.error('type', value)
         elif self.numeric_type is int and isinstance(value, float) and not value.is_integer():
-            self.error('integer')
+            self.error('integer', value)
         elif not isinstance(value, (int, float)) and not allow_coerce:
-            self.error('type')
+            self.error('type', value)
         elif isinstance(value, float) and not isfinite(value):
-            self.error('finite')
+            self.error('finite', value)
 
         try:
             value = self.numeric_type(value)
         except (TypeError, ValueError):
-            self.error('type')
+            self.error('type', value)
 
         if self.enum is not None:
             if value not in self.enum:
                 if len(self.enum) == 1:
-                    self.error('exact')
-                self.error('enum')
+                    self.error('exact', value)
+                self.error('enum', value)
 
         if self.minimum is not None:
             if self.exclusive_minimum:
                 if value <= self.minimum:
-                    self.error('exclusive_minimum')
+                    self.error('exclusive_minimum', value)
             else:
                 if value < self.minimum:
-                    self.error('minimum')
+                    self.error('minimum', value)
 
         if self.maximum is not None:
             if self.exclusive_maximum:
                 if value >= self.maximum:
-                    self.error('exclusive_maximum')
+                    self.error('exclusive_maximum', value)
             else:
                 if value > self.maximum:
-                    self.error('maximum')
+                    self.error('maximum', value)
 
         if self.multiple_of is not None:
             if isinstance(self.multiple_of, float):
                 if not (value * (1 / self.multiple_of)).is_integer():
-                    self.error('multiple_of')
+                    self.error('multiple_of', value)
             else:
                 if value % self.multiple_of:
-                    self.error('multiple_of')
+                    self.error('multiple_of', value)
 
         return value
 
@@ -280,7 +288,7 @@ class Boolean(Validator):
             return None
 
         elif value is None:
-            self.error('null')
+            self.error('null', value)
 
         elif not isinstance(value, bool):
             if allow_coerce and isinstance(value, str):
@@ -293,7 +301,7 @@ class Boolean(Validator):
                     return values[value.lower()]
                 except KeyError:
                     pass
-            self.error('type')
+            self.error('type', value)
 
         return value
 
@@ -341,9 +349,9 @@ class Object(Validator):
         if value is None and self.allow_null:
             return None
         elif value is None:
-            self.error('null')
+            self.error('null', value)
         elif not isinstance(value, (dict, typing.Mapping)):
-            self.error('type')
+            self.error('type', value)
 
         definitions = self.get_definitions(definitions)
         validated = dict_type()
@@ -351,18 +359,18 @@ class Object(Validator):
         # Ensure all property keys are strings.
         errors = {}
         if any(not isinstance(key, str) for key in value.keys()):
-            self.error('invalid_key')
+            self.error('invalid_key', value)
 
         # Min/Max properties
         if self.min_properties is not None:
             if len(value) < self.min_properties:
                 if self.min_properties == 1:
-                    self.error('empty')
+                    self.error('empty', value)
                 else:
-                    self.error('min_properties')
+                    self.error('min_properties', value)
         if self.max_properties is not None:
             if len(value) > self.max_properties:
-                self.error('max_properties')
+                self.error('max_properties', value)
 
         # Required properties
         for key in self.required:
@@ -425,7 +433,7 @@ class Object(Validator):
                     errors[key] = exc.detail
 
         if errors:
-            raise ValidationError(errors)
+            raise ValidationError(errors, value)
 
         return validated
 
@@ -467,23 +475,23 @@ class Array(Validator):
         if value is None and self.allow_null:
             return None
         elif value is None:
-            self.error('null')
+            self.error('null', value)
         elif not isinstance(value, list):
-            self.error('type')
+            self.error('type', value)
 
         definitions = self.get_definitions(definitions)
         validated = []
 
         if self.min_items is not None and self.min_items == self.max_items and len(value) != self.min_items:
-            self.error('exact_items')
+            self.error('exact_items', value)
         if self.min_items is not None and len(value) < self.min_items:
             if self.min_items == 1:
-                self.error('empty')
-            self.error('min_items')
+                self.error('empty', value)
+            self.error('min_items', value)
         elif self.max_items is not None and len(value) > self.max_items:
-            self.error('max_items')
+            self.error('max_items', value)
         elif isinstance(self.items, list) and (self.additional_items is False) and len(value) > len(self.items):
-            self.error('additional_items')
+            self.error('additional_items', value)
 
         # Ensure all items are of the right type.
         errors = {}
@@ -514,7 +522,7 @@ class Array(Validator):
 
                 if self.unique_items:
                     if item in seen_items:
-                        self.error('unique_items')
+                        self.error('unique_items', value)
                     else:
                         seen_items.add(item)
 
@@ -523,7 +531,7 @@ class Array(Validator):
                 errors[pos] = exc.detail
 
         if errors:
-            raise ValidationError(errors)
+            raise ValidationError(errors, value)
 
         return validated
 
@@ -564,7 +572,7 @@ class Union(Validator):
         if value is None and self.allow_null:
             return None
         elif value is None:
-            self.error('null')
+            self.error('null', value)
 
         for item in self.items:
             try:
@@ -575,7 +583,7 @@ class Union(Validator):
                 )
             except ValidationError:
                 pass
-        self.error('union')
+        self.error('union', value)
 
 
 class Ref(Validator):

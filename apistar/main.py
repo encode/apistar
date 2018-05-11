@@ -1,9 +1,13 @@
-from apistar import codecs
-import apistar
-import click
-import jinja2
 import os
 import shutil
+
+import click
+import jinja2
+
+import apistar
+from apistar import codecs
+from apistar.exceptions import ParseError, ValidationError
+from apistar.codecs.jsonerrors import JSONErrorEncoder
 
 
 def static_url(filename):
@@ -18,10 +22,36 @@ def main():
 @click.command()
 @click.argument('schema', type=click.File('rb'))
 def validate(schema):
+    # encoder = JSONErrorEncoder(errors={'123': 'Yikes', 'abc': {1: 'Nope'}}, indent=4)
+    # click.echo(encoder.encode({'123': '...', 'abc': ['...', '...', '...']}))
+    # return
+
     codec = codecs.OpenAPICodec()
     content = schema.read()
-    document = codec.decode(content)
-    click.echo(document)
+    try:
+        document = codec.decode(content)
+    except ParseError as exc:
+        click.echo(click.style('✘', fg='red') + ' Invalid JSON.')
+        click.echo()
+        if exc.pos is None:
+            click.echo(exc)
+        else:
+            valid_lines = content.splitlines()[:exc.lineno-1]
+            invalid_line = content.splitlines()[exc.lineno-1]
+            remaining_lines = content.splitlines()[exc.lineno:]
+
+            click.echo(b'\n'.join(valid_lines))
+            click.echo(invalid_line)
+            click.echo(' ' * (exc.colno - 1), nl=False)
+            click.echo(click.style('^ ' + exc.short_message, fg='red'))
+            click.echo(b'\n'.join(remaining_lines))
+    except ValidationError as exc:
+        click.echo(click.style('✘', fg='red') + ' Invalid OpenAPI 3 document.')
+        click.echo()
+        encoder = JSONErrorEncoder(errors=exc.detail, indent=4)
+        click.echo(encoder.encode(exc.value))
+    else:
+        click.echo(click.style('✓', fg='green') + ' Valid OpenAPI 3 document.')
 
 
 @click.command()
@@ -57,7 +87,6 @@ def docs(schema):
     shutil.copytree(static_dir, os.path.join(directory, 'apistar'))
 
     click.echo('Documentation built at %s' % output_path)
-
 
 
 main.add_command(docs)

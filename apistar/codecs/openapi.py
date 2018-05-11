@@ -284,6 +284,20 @@ class OpenAPICodec(BaseCodec):
     def decode(self, bytestring, **options):
         try:
             data = json.loads(bytestring.decode('utf-8'))
+        except json.decoder.JSONDecodeError as exc:
+            if exc.msg.endswith(' starting at'):
+                short_msg = exc.msg[:-len(' starting at')] + '.'
+            elif exc.msg.endswith(' at'):
+                short_msg = exc.msg[:-len(' at')] + '.'
+            else:
+                short_msg = exc.msg + '.'
+            raise ParseError(
+                message=str(exc),
+                short_message=short_msg,
+                pos=exc.pos,
+                lineno=exc.lineno,
+                colno=exc.colno
+            )
         except ValueError as exc:
             raise ParseError('Malformed JSON. %s' % exc) from None
 
