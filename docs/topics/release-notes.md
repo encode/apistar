@@ -2,6 +2,10 @@
 
 ## Version 0.5.x
 
+### 0.5.14
+
+* Added 'headers' to OpenAPI spec.
+
 ### 0.5.13
 
 * Added `apistar docs <schema>` and `apistar validate <schema>`.
