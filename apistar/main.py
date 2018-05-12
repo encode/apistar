@@ -7,7 +7,8 @@ import jinja2
 import apistar
 from apistar import codecs
 from apistar.exceptions import ParseError, ValidationError
-from apistar.codecs.jsonerrors import JSONErrorEncoder
+from apistar.formatters.json_errors import json_errors
+from apistar.formatters.yaml_errors import yaml_errors
 
 
 def static_url(filename):
@@ -28,10 +29,14 @@ def validate(schema):
 
     codec = codecs.OpenAPICodec()
     content = schema.read()
+    is_json = content.decode().strip() and content.decode().strip()[0] in '{['
     try:
-        document = codec.decode(content)
+        codec.decode(content)
     except ParseError as exc:
-        click.echo(click.style('✘', fg='red') + ' Invalid JSON.')
+        if is_json:
+            click.echo(click.style('✘', fg='red') + ' Invalid JSON.')
+        else:
+            click.echo(click.style('✘', fg='red') + ' Invalid YAML.')
         click.echo()
         if exc.pos is None:
             click.echo(exc)
@@ -48,8 +53,10 @@ def validate(schema):
     except ValidationError as exc:
         click.echo(click.style('✘', fg='red') + ' Invalid OpenAPI 3 document.')
         click.echo()
-        encoder = JSONErrorEncoder(errors=exc.detail, indent=4)
-        click.echo(encoder.encode(exc.value))
+        if is_json:
+            click.echo(json_errors(exc.value, exc.detail))
+        else:
+            click.echo(yaml_errors(exc.value, exc.detail))
     else:
         click.echo(click.style('✓', fg='green') + ' Valid OpenAPI 3 document.')
 
