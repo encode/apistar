@@ -189,7 +189,7 @@ OPEN_API = validators.Object(
                 ('default', validators.Ref('Response')),  # TODO: | ReferenceObject
             ],
             pattern_properties=[
-                ('^[1-5][0-9][0-9]$', validators.Ref('Response')),  # TODO: | ReferenceObject
+                ('^([1-5][0-9][0-9]|[1-5]XX)$', validators.Ref('Response')),  # TODO: | ReferenceObject
                 ('^x-', validators.Any()),
             ],
             additional_properties=False,
@@ -237,6 +237,9 @@ OPEN_API = validators.Object(
         'Components': validators.Object(
             properties=[
                 ('schemas', validators.Object(additional_properties=JSON_SCHEMA)),
+                ('responses', validators.Ref('Response')),
+                ('parameters', validators.Ref('Parameter')),
+                # TODO: Other fields
             ],
             pattern_properties={
                 '^x-': validators.Any(),
