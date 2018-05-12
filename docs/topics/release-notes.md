@@ -2,6 +2,10 @@
 
 ## Version 0.5.x
 
+### 0.5.13
+
+* Added `apistar docs <schema>` and `apistar validate <schema>`.
+
 ### 0.5.12
 
 * The WSGI `exc_info` argument is a positional argument, not a keyword argument.
