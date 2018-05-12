@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" prefix="og: http://ogp.me/ns#">
     <head>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -8,6 +8,20 @@
         
         
         <link rel="shortcut icon" href="../../img/favicon.ico">
+        
+        
+        <meta property="og:type" content="website" />
+        <!--  Essential META Tags -->
+        <meta property="og:title" content="Release Notes - API Star"
+        />
+        
+        
+        
+        <meta name="twitter:card" content="summary_large_image">
+        
+        <!--  Non-Essential, But Recommended -->
+        <meta property="og:site_name" content="API Star">
+        <meta name="twitter:image:alt" content="API Star">
         <title>Release Notes - API Star</title>
         <link href="../../css/bootstrap-custom.min.css" rel="stylesheet">
         <link href="../../css/font-awesome.min.css" rel="stylesheet">
@@ -149,6 +163,10 @@
 
 <h1 id="release-notes">Release Notes</h1>
 <h2 id="version-05x">Version 0.5.x</h2>
+<h3 id="0513">0.5.13</h3>
+<ul>
+<li>Added <code>apistar docs &lt;schema&gt;</code> and <code>apistar validate &lt;schema&gt;</code>.</li>
+</ul>
 <h3 id="0512">0.5.12</h3>
 <ul>
 <li>The WSGI <code>exc_info</code> argument is a positional argument, not a keyword argument.</li>

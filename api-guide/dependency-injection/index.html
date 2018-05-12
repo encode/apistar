@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" prefix="og: http://ogp.me/ns#">
     <head>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -8,6 +8,20 @@
         
         
         <link rel="shortcut icon" href="../../img/favicon.ico">
+        
+        
+        <meta property="og:type" content="website" />
+        <!--  Essential META Tags -->
+        <meta property="og:title" content="Dependency Injection - API Star"
+        />
+        
+        
+        
+        <meta name="twitter:card" content="summary_large_image">
+        
+        <!--  Non-Essential, But Recommended -->
+        <meta property="og:site_name" content="API Star">
+        <meta name="twitter:image:alt" content="API Star">
         <title>Dependency Injection - API Star</title>
         <link href="../../css/bootstrap-custom.min.css" rel="stylesheet">
         <link href="../../css/font-awesome.min.css" rel="stylesheet">
@@ -162,7 +176,7 @@ class User(object):
 
 
 class UserComponent(Component):
-    def resolve(authorization: http.Header) -&gt; User:
+    def resolve(self, authorization: http.Header) -&gt; User:
         &quot;&quot;&quot;
         Determine the user associated with a request, using HTTP Basic Authentication.
         &quot;&quot;&quot;
