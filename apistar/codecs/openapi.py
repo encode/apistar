@@ -237,8 +237,8 @@ OPEN_API = validators.Object(
         'Components': validators.Object(
             properties=[
                 ('schemas', validators.Object(additional_properties=JSON_SCHEMA)),
-                ('responses', validators.Ref('Response')),
-                ('parameters', validators.Ref('Parameter')),
+                ('responses', validators.Object(additional_properties=validators.Ref('Response'))),
+                ('parameters', validators.Object(additional_properties=validators.Ref('Parameter'))),
                 # TODO: Other fields
             ],
             pattern_properties={
