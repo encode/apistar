@@ -7,17 +7,17 @@
 
 	    <title>{{ document.title|default('API Star', True) }}</title>
 
-        <link href="{{ reverse_url('static', filename='apistar/css/bootstrap.min.css') }}" rel="stylesheet">
-        <link href="{{ reverse_url('static', filename='apistar/css/bootstrap-theme.min.css') }}" rel="stylesheet">
-        <link href="{{ reverse_url('static', filename='apistar/css/font-awesome-4.0.3.css') }}" rel="stylesheet">
-        <link href="{{ reverse_url('static', filename='apistar/css/base.css') }}" rel="stylesheet">
-        <link href="{{ reverse_url('static', filename='apistar/css/jquery.json-view.min.css') }}" rel="stylesheet">
-        <link href="{{ reverse_url('static', filename='apistar/img/favicon.ico') }}" rel="shortcut icon">
+        <link href="{{ static_url('apistar/css/bootstrap.min.css') }}" rel="stylesheet">
+        <link href="{{ static_url('apistar/css/bootstrap-theme.min.css') }}" rel="stylesheet">
+        <link href="{{ static_url('apistar/css/font-awesome-4.0.3.css') }}" rel="stylesheet">
+        <link href="{{ static_url('apistar/css/base.css') }}" rel="stylesheet">
+        <link href="{{ static_url('apistar/css/jquery.json-view.min.css') }}" rel="stylesheet">
+        <link href="{{ static_url('apistar/img/favicon.ico') }}" rel="shortcut icon">
 
         {% if code_style %}<style>{{ code_style }}</style>{% endif %}
         {#<!--{% if code_style %}<style>{{ code_style }}</style>{% endif %}-->#}
-        {#<!--<script src="{{ reverse_url('static', filename='apistar/js/coreapi-0.1.0.js') }}"></script>-->#}
-        {#<!--<script src="{{ reverse_url('javascript_schema') }}"></script> -->#}
+        {#<!--<script src="{{ static_url('apistar/js/coreapi-0.1.0.js') }}"></script>-->#}
+        {#<!--<script src="{{ static_url('javascript_schema') }}"></script> -->#}
 
     </head>
 
@@ -37,9 +37,9 @@
         {% include 'apistar/docs/auth/basic.html' %}
         {% include 'apistar/docs/auth/session.html' %}
 
-        <script src="{{ reverse_url('static', filename='apistar/js/jquery-1.10.2.min.js') }}"></script>
-        <script src="{{ reverse_url('static', filename='apistar/js/bootstrap.min.js') }}"></script>
-        <script src="{{ reverse_url('static', filename='apistar/js/jquery.json-view.min.js') }}"></script>
-        <script src="{{ reverse_url('static', filename='apistar/js/api.js') }}"></script>
+        <script src="{{ static_url('apistar/js/jquery-1.10.2.min.js') }}"></script>
+        <script src="{{ static_url('apistar/js/bootstrap.min.js') }}"></script>
+        <script src="{{ static_url('apistar/js/jquery.json-view.min.js') }}"></script>
+        <script src="{{ static_url('apistar/js/api.js') }}"></script>
     </body>
 </html>

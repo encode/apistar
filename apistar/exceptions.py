@@ -2,9 +2,10 @@ from typing import Union
 
 
 class ValidationError(Exception):
-    def __init__(self, detail):
+    def __init__(self, detail, value=None):
         assert isinstance(detail, (str, dict))
         self.detail = detail
+        self.value = value
         super(ValidationError, self).__init__(detail)
 
 
@@ -12,7 +13,13 @@ class ParseError(Exception):
     """
     Raised by a Codec when `decode` fails due to malformed syntax.
     """
-    pass
+    def __init__(self, message, short_message=None, pos=None, lineno=None, colno=None):
+        Exception.__init__(self, message)
+        self.message = message
+        self.short_message = short_message
+        self.pos = pos
+        self.lineno = lineno
+        self.colno = colno
 
 
 class NoReverseMatch(Exception):

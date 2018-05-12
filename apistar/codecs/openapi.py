@@ -2,6 +2,8 @@ import json
 import re
 from urllib.parse import urljoin, urlparse
 
+import yaml
+
 from apistar import validators
 from apistar.codecs import BaseCodec, JSONSchemaCodec
 from apistar.codecs.jsonschema import JSON_SCHEMA
@@ -282,11 +284,59 @@ class OpenAPICodec(BaseCodec):
     format = 'openapi'
 
     def decode(self, bytestring, **options):
+        content = bytestring.decode('utf-8')
+        content = content.strip()
+        if not content:
+            raise ParseError(
+                message='No content.',
+                short_message='No content.',
+                pos=0,
+                lineno=1,
+                colno=1
+            )
+        if content[0] in '{[':
+            return self.decode_json(bytestring, **options)
+        return self.decode_yaml(bytestring, **options)
+
+    def decode_json(self, bytestring, **options):
         try:
             data = json.loads(bytestring.decode('utf-8'))
+        except json.decoder.JSONDecodeError as exc:
+            if exc.msg.endswith(' starting at'):
+                short_msg = exc.msg[:-len(' starting at')] + '.'
+            elif exc.msg.endswith(' at'):
+                short_msg = exc.msg[:-len(' at')] + '.'
+            else:
+                short_msg = exc.msg + '.'
+            raise ParseError(
+                message=str(exc),
+                short_message=short_msg,
+                pos=exc.pos,
+                lineno=exc.lineno,
+                colno=exc.colno
+            ) from None
         except ValueError as exc:
             raise ParseError('Malformed JSON. %s' % exc) from None
 
+        return self.decode_data(data)
+
+    def decode_yaml(self, bytestring, **options):
+        try:
+            data = yaml.safe_load(bytestring.decode('utf-8'))
+        except yaml.scanner.ScannerError as exc:
+            raise ParseError(
+                message='% at line %d column %d' % (exc.problem, exc.problem_mark.line, exc.problem_mark.column),
+                short_message=exc.problem,
+                pos=exc.index,
+                lineno=exc.line,
+                colno=exc.column
+            ) from None
+        except ValueError as exc:
+            raise ParseError('Malformed YAML. %s' % exc) from None
+
+        return self.decode_data(data)
+
+    def decode_data(self, data, **options):
         openapi = OPEN_API.validate(data)
         title = lookup(openapi, ['info', 'title'])
         description = lookup(openapi, ['info', 'description'])
