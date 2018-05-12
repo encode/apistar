@@ -198,7 +198,8 @@ OPEN_API = validators.Object(
             properties=[
                 ('description', validators.String()),
                 ('content', validators.Object(additional_properties=validators.Ref('MediaType'))),
-                ('headers', validators.Object(additional_properties=validators.Ref('Header')))  # TODO: | ReferenceObject
+                ('headers', validators.Object(additional_properties=validators.Ref('Header'))),
+                # TODO: Header | ReferenceObject
                 # TODO: links
             ],
             pattern_properties={
