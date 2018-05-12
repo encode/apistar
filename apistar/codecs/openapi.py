@@ -198,7 +198,8 @@ OPEN_API = validators.Object(
             properties=[
                 ('description', validators.String()),
                 ('content', validators.Object(additional_properties=validators.Ref('MediaType'))),
-                # TODO: headers, links
+                ('headers', validators.Object(additional_properties=validators.Ref('Header')))  # TODO: | ReferenceObject
+                # TODO: links
             ],
             pattern_properties={
                 '^x-': validators.Any(),
@@ -215,6 +216,22 @@ OPEN_API = validators.Object(
                 '^x-': validators.Any(),
             },
             additional_properties=False,
+        ),
+        'Header': validators.Object(
+            properties=[
+                ('description', validators.String(format='textarea')),
+                ('required', validators.Boolean()),
+                ('deprecated', validators.Boolean()),
+                ('allowEmptyValue', validators.Boolean()),
+                ('style', validators.String()),
+                ('schema', JSON_SCHEMA | SCHEMA_REF),
+                ('example', validators.Any()),
+                # TODO: Other fields
+            ],
+            pattern_properties={
+                '^x-': validators.Any(),
+            },
+            additional_properties=False
         ),
         'Components': validators.Object(
             properties=[
