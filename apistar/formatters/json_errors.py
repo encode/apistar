@@ -181,8 +181,8 @@ def _make_iterencode(markers, _default, _encoder, _indent, _floatstr,
             elif _skipkeys:
                 continue
             else:
-                raise TypeError(f'keys must be str, int, float, bool or None, '
-                                f'not {key.__class__.__name__}')
+                raise TypeError('keys must be str, int, float, bool or None, '
+                                'not {key.__class__.__name__}')
             if first:
                 first = False
             else:
