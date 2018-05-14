@@ -2,6 +2,10 @@
 
 ## Version 0.5.x
 
+### 0.5.17
+
+* Add 'SecurityScheme' to OpenAPI and allow 'responses' to use reference objects.
+
 ### 0.5.16
 
 * Improved error formatting.
