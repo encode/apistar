@@ -34,7 +34,7 @@ class App():
                  static_url='/static/',
                  components=None,
                  event_hooks=None,
-                 title=None):
+                 title='API Star'):
 
         packages = tuple() if packages is None else tuple(packages)
 
