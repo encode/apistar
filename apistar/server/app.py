@@ -33,7 +33,10 @@ class App():
                  docs_url='/docs/',
                  static_url='/static/',
                  components=None,
-                 event_hooks=None):
+                 event_hooks=None,
+                 title='API Star',
+                 description='',
+                 version=''):
 
         packages = tuple() if packages is None else tuple(packages)
 
@@ -52,13 +55,14 @@ class App():
             assert isinstance(event_hooks, (list, tuple)), msg
 
         routes = routes + self.include_extra_routes(schema_url, docs_url, static_url)
-        self.init_document(routes)
+        self.init_document(routes, title, description, version)
         self.init_router(routes)
         self.init_templates(template_dir, packages)
         self.init_staticfiles(static_url, static_dir, packages)
         self.init_injector(components)
         self.debug = False
         self.event_hooks = event_hooks
+        self.title = title
 
         # Ensure event hooks can all be instantiated.
         self.get_event_hooks()
@@ -86,8 +90,8 @@ class App():
             ]
         return extra_routes
 
-    def init_document(self, routes):
-        self.document = generate_document(routes)
+    def init_document(self, routes, title, description, version):
+        self.document = generate_document(routes, title, description, version)
 
     def init_router(self, routes):
         self.router = Router(routes)

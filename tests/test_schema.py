@@ -35,7 +35,7 @@ test_client = TestClient(app)
 expected_schema = """{
     "openapi": "3.0.0",
     "info": {
-        "title": "",
+        "title": "API Star",
         "description": "",
         "version": ""
     },

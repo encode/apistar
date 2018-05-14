@@ -1,6 +1,11 @@
 <div class="row intro">
 <div class="col-md-6 intro-title">
-    <h1>{{ document.title|default('API Star', True) }}</h1>
+    {% if document.title %}
+    <h1>{{ document.title }}</h1>
+    {% endif %}
+    {% if document.version %}
+    <h3>{{ document.version }}</h3>
+    {% endif %}
     {% if document.description %}
     <p>{{ document.description }}</p>
     {% endif %}
