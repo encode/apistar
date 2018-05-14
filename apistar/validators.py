@@ -312,7 +312,7 @@ class Object(Validator):
         'null': 'May not be null.',
         'invalid_key': 'Object keys must be strings.',
         'required': 'This field is required.',
-        'no_additional_properties': 'Unknown properties are not allowed.',
+        'invalid_property': 'Invalid property name.',
         'empty': 'Must not be empty.',
         'max_properties': 'Must have no more than {max_properties} properties.',
         'min_properties': 'Must have at least {min_properties} properties.',
@@ -358,8 +358,9 @@ class Object(Validator):
 
         # Ensure all property keys are strings.
         errors = {}
-        if any(not isinstance(key, str) for key in value.keys()):
-            self.error('invalid_key', value)
+        for key in value.keys():
+            if not isinstance(key, str):
+                errors[key] = self.error_message('invalid_key')
 
         # Min/Max properties
         if self.min_properties is not None:
@@ -397,7 +398,7 @@ class Object(Validator):
         if self.pattern_properties:
             for key in list(value.keys()):
                 for pattern, child_schema in self.pattern_properties.items():
-                    if re.search(pattern, key):
+                    if isinstance(key, str) and re.search(pattern, key):
                         item = value[key]
                         try:
                             validated[key] = child_schema.validate(
@@ -418,7 +419,7 @@ class Object(Validator):
                 validated[key] = value[key]
         elif self.additional_properties is False:
             for key in remaining:
-                errors[key] = self.error_message('no_additional_properties')
+                errors[key] = self.error_message('invalid_property')
         elif self.additional_properties is not None:
             child_schema = self.additional_properties
             for key in remaining:
