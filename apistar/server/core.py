@@ -122,7 +122,7 @@ class Include():
         return content
 
 
-def generate_document(routes, title):
+def generate_document(routes, title, description):
     content = []
     for item in routes:
         if isinstance(item, Route) and item.documented:
@@ -131,4 +131,4 @@ def generate_document(routes, title):
             content.append(item.section)
             for link in item.section.get_links():
                 link.url = item.url + link.url
-    return Document(content=content, title=title)
+    return Document(content=content, title=title, description=description)
