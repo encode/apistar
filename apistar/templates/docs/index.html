@@ -13,6 +13,7 @@
         <link href="{{ static_url('apistar/css/base.css') }}" rel="stylesheet">
         <link href="{{ static_url('apistar/css/jquery.json-view.min.css') }}" rel="stylesheet">
         <link href="{{ static_url('apistar/img/favicon.ico') }}" rel="shortcut icon">
+        <link href="{{ static_url('apistar/css/highlight.css') }}" rel="stylesheet">
 
         {% if code_style %}<style>{{ code_style }}</style>{% endif %}
         {#<!--{% if code_style %}<style>{{ code_style }}</style>{% endif %}-->#}
@@ -41,5 +42,7 @@
         <script src="{{ static_url('apistar/js/bootstrap.min.js') }}"></script>
         <script src="{{ static_url('apistar/js/jquery.json-view.min.js') }}"></script>
         <script src="{{ static_url('apistar/js/api.js') }}"></script>
+        <script src="{{ static_url('apistar/js/highlight.pack.js') }}"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
     </body>
 </html>
