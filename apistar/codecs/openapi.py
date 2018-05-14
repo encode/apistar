@@ -462,9 +462,7 @@ class OpenAPICodec(BaseCodec):
                 schema = schema_definitions.get(ref)
             else:
                 schema = JSONSchemaCodec().decode_from_data_structure(body_schema)
-            if isinstance(schema, validators.Object):
-                for key, value in schema.properties.items():
-                    fields += [Field(name=key, location='form', schema=value)]
+            fields += [Field(name='body', location='body', schema=schema)]
 
         return Link(
             name=name,
