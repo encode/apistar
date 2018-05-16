@@ -242,4 +242,4 @@ class JSONResponse(Response):
         if isinstance(obj, types.Type):
             return dict(obj)
         error = "Object of type '%s' is not JSON serializable."
-        return TypeError(error % type(obj).__name_)
+        return TypeError(error % type(obj).__name__)
