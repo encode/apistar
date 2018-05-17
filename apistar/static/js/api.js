@@ -84,10 +84,10 @@ $(function () {
   // mobile menu
   $(".menu-context-mobile").change(function () {
     targetLocation = $(this).find("option:selected").val();
-    window.location = targetLocation;
+    window.location.hash = targetLocation;
     $('html, body').animate({
       scrollTop: $(targetLocation).offset().top - 60
-    }, 200);
+    }, 0);
   });
 
   // API Explorer
