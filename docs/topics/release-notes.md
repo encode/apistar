@@ -2,6 +2,10 @@
 
 ## Version 0.5.x
 
+### 0.5.19
+
+* API Documentation theme
+
 ### 0.5.18
 
 * Fix parsing of OpenAPI documents with request bodies.

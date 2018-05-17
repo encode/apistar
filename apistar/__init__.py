@@ -12,7 +12,7 @@ from apistar.main import main
 from apistar.server import App, ASyncApp, Component, Include, Route
 from apistar.test import TestClient
 
-__version__ = '0.5.18'
+__version__ = '0.5.19'
 __all__ = [
     'App', 'ASyncApp', 'Client', 'Component', 'Document', 'Section', 'Link', 'Field',
     'Route', 'Include', 'TestClient', 'http', 'main'
