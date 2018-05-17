@@ -83,9 +83,13 @@ $(function () {
 
   // mobile menu
   $(".menu-context-mobile").change(function () {
-    window.location = $(this).find("option:selected").val();
+    targetLocation = $(this).find("option:selected").val();
+    window.location = targetLocation;
+    $('html, body').animate({
+      scrollTop: $(targetLocation).offset().top - 60
+    }, 200);
   });
-  
+
   // API Explorer
   $('form.api-interaction').submit(function (event) {
     event.preventDefault()
