@@ -59,19 +59,23 @@ pre.highlight code {
   text-decoration: none;
 }
 
-.sidebar .toggle-btn {
-  display: none;
-}
-
 .menu-context-mobile {
   display: none;
   cursor: pointer;
   position: absolute;
   right: 30px;
-  top: 15px;
+  top: 10px;
   z-index: 10 !important;
   border: 1px solid #d3d3d3;
-  padding: 0.5em;
+  padding: 0.5em 1em 0.5em 0.5em;
+  font-size: 1.2em;       
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-image: url(../img/gripper.png);
+  background-repeat: no-repeat;
+  background-size: 24px;
+  background-position: right center;
 }
 
 @media (max-width: 767px) {
@@ -186,25 +190,19 @@ body {
   }
 
   .sidebar {
-    position: relative;
-    width: 100%;
-    margin-bottom: 10px;
-    overflow: visible;
+      position: fixed;
+      width: 100%;
+      overflow: visible;
+      height: 61px;
+      background-color: #fff;
+      z-index: 30;
   }
 
+  #main {
+    margin-top: 61px;
+      max-width: 100%;
+  }
   
-  .sidebar .toggle-btn {
-    display: block;
-    cursor: pointer;
-    position: absolute;
-    right: 10px;
-    top: 10px;
-    z-index: 10 !important;
-    padding: 3px;
-    width: 40px;
-    text-align: center;
-  }
-
   .sidebar .brand {
     margin-top: 0;
     margin-bottom: 0;
@@ -220,6 +218,7 @@ body {
   .sidebar .menu-list .menu-content {
     display: block;
   }
+
   #main {
     width: calc(100% - 225px);
     float: right;
@@ -285,7 +284,12 @@ body {
     background: #242729;
     color: #d0d4d7;
     padding: 1em;
-    padding-top: 2em;
+}
+
+@media (min-width: 768px) {
+    .source-code-chooser {
+      padding-top: 2em;
+    }
 }
 
 .section-secondary {
@@ -337,6 +341,9 @@ a:hover, a:visited {
     color: #3D717F;
 }
 
-.intro-title {
-  margin-top: 1.5em;
+
+@media (min-width: 767px) {
+  .intro-title {
+    margin-top: 1.5em;
+  }
 }
