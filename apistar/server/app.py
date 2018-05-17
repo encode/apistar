@@ -96,7 +96,10 @@ class App():
         if not template_dir and not packages:
             self.templates = None
         else:
-            template_globals = {'reverse_url': self.reverse_url}
+            template_globals = {
+                'reverse_url': self.reverse_url,
+                'static_url': self.static_url
+            }
             self.templates = Templates(template_dir, packages, template_globals)
 
     def init_staticfiles(self, static_url: str, static_dir: str=None, packages: typing.Sequence[str]=None):
@@ -145,6 +148,9 @@ class App():
         ]
 
         return on_request, on_response, on_error
+
+    def static_url(self, filename):
+        return self.router.reverse_url('static', filename=filename)
 
     def reverse_url(self, name: str, **params):
         return self.router.reverse_url(name, **params)

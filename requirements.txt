@@ -1,5 +1,7 @@
 # Core requirements
+click
 requests
+pyyaml
 werkzeug
 
 # Optional

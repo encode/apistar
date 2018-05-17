@@ -2,6 +2,8 @@ import json
 import re
 from urllib.parse import urljoin, urlparse
 
+import yaml
+
 from apistar import validators
 from apistar.codecs import BaseCodec, JSONSchemaCodec
 from apistar.codecs.jsonschema import JSON_SCHEMA
@@ -12,7 +14,9 @@ from apistar.exceptions import ParseError
 SCHEMA_REF = validators.Object(
     properties={'$ref': validators.String(pattern='^#/components/schemas/')}
 )
-
+RESPONSE_REF = validators.Object(
+    properties={'$ref': validators.String(pattern='^#/components/responses/')}
+)
 
 OPEN_API = validators.Object(
     def_name='OpenAPI',
@@ -96,7 +100,7 @@ OPEN_API = validators.Object(
         ),
         'Paths': validators.Object(
             pattern_properties=[
-                ('^/', validators.Ref('Path')),  # TODO: Path | ReferenceObject
+                ('^/', validators.Ref('Path')),
                 ('^x-', validators.Any()),
             ],
             additional_properties=False,
@@ -160,6 +164,7 @@ OPEN_API = validators.Object(
                 ('required', validators.Boolean()),
                 ('deprecated', validators.Boolean()),
                 ('allowEmptyValue', validators.Boolean()),
+                ('style', validators.String()),
                 ('schema', JSON_SCHEMA | SCHEMA_REF),
                 ('example', validators.Any()),
                 # TODO: Other fields
@@ -183,10 +188,10 @@ OPEN_API = validators.Object(
         ),
         'Responses': validators.Object(
             properties=[
-                ('default', validators.Ref('Response')),  # TODO: | ReferenceObject
+                ('default', validators.Ref('Response') | RESPONSE_REF),
             ],
             pattern_properties=[
-                ('^[1-5][0-9][0-9]$', validators.Ref('Response')),  # TODO: | ReferenceObject
+                ('^([1-5][0-9][0-9]|[1-5]XX)$', validators.Ref('Response') | RESPONSE_REF),
                 ('^x-', validators.Any()),
             ],
             additional_properties=False,
@@ -195,7 +200,9 @@ OPEN_API = validators.Object(
             properties=[
                 ('description', validators.String()),
                 ('content', validators.Object(additional_properties=validators.Ref('MediaType'))),
-                # TODO: headers, links
+                ('headers', validators.Object(additional_properties=validators.Ref('Header'))),
+                # TODO: Header | ReferenceObject
+                # TODO: links
             ],
             pattern_properties={
                 '^x-': validators.Any(),
@@ -213,9 +220,29 @@ OPEN_API = validators.Object(
             },
             additional_properties=False,
         ),
+        'Header': validators.Object(
+            properties=[
+                ('description', validators.String(format='textarea')),
+                ('required', validators.Boolean()),
+                ('deprecated', validators.Boolean()),
+                ('allowEmptyValue', validators.Boolean()),
+                ('style', validators.String()),
+                ('schema', JSON_SCHEMA | SCHEMA_REF),
+                ('example', validators.Any()),
+                # TODO: Other fields
+            ],
+            pattern_properties={
+                '^x-': validators.Any(),
+            },
+            additional_properties=False
+        ),
         'Components': validators.Object(
             properties=[
                 ('schemas', validators.Object(additional_properties=JSON_SCHEMA)),
+                ('responses', validators.Object(additional_properties=validators.Ref('Response'))),
+                ('parameters', validators.Object(additional_properties=validators.Ref('Parameter'))),
+                ('securitySchemes', validators.Object(additional_properties=validators.Ref('SecurityScheme'))),
+                # TODO: Other fields
             ],
             pattern_properties={
                 '^x-': validators.Any(),
@@ -236,7 +263,24 @@ OPEN_API = validators.Object(
         ),
         'SecurityRequirement': validators.Object(
             additional_properties=validators.Array(items=validators.String()),
-        )
+        ),
+        'SecurityScheme': validators.Object(
+            properties=[
+                ('type', validators.String(enum=['apiKey', 'http', 'oauth2', 'openIdConnect'])),
+                ('description', validators.String(format='textarea')),
+                ('name', validators.String()),
+                ('in', validators.String(enum=['query', 'header', 'cookie'])),
+                ('scheme', validators.String()),
+                ('bearerFormat', validators.String()),
+                ('flows', validators.Any()),  # TODO: OAuthFlows
+                ('openIdConnectUrl', validators.String()),
+            ],
+            pattern_properties={
+                '^x-': validators.Any(),
+            },
+            additional_properties=False,
+            required=['type']
+        ),
     }
 )
 
@@ -281,11 +325,59 @@ class OpenAPICodec(BaseCodec):
     format = 'openapi'
 
     def decode(self, bytestring, **options):
+        content = bytestring.decode('utf-8')
+        content = content.strip()
+        if not content:
+            raise ParseError(
+                message='No content.',
+                short_message='No content.',
+                pos=0,
+                lineno=1,
+                colno=1
+            )
+        if content[0] in '{[':
+            return self.decode_json(bytestring, **options)
+        return self.decode_yaml(bytestring, **options)
+
+    def decode_json(self, bytestring, **options):
         try:
             data = json.loads(bytestring.decode('utf-8'))
+        except json.decoder.JSONDecodeError as exc:
+            if exc.msg.endswith(' starting at'):
+                short_msg = exc.msg[:-len(' starting at')] + '.'
+            elif exc.msg.endswith(' at'):
+                short_msg = exc.msg[:-len(' at')] + '.'
+            else:
+                short_msg = exc.msg + '.'
+            raise ParseError(
+                message=str(exc),
+                short_message=short_msg,
+                pos=exc.pos,
+                lineno=exc.lineno,
+                colno=exc.colno
+            ) from None
         except ValueError as exc:
             raise ParseError('Malformed JSON. %s' % exc) from None
 
+        return self.decode_data(data)
+
+    def decode_yaml(self, bytestring, **options):
+        try:
+            data = yaml.safe_load(bytestring.decode('utf-8'))
+        except yaml.scanner.ScannerError as exc:
+            raise ParseError(
+                message='% at line %d column %d' % (exc.problem, exc.problem_mark.line, exc.problem_mark.column),
+                short_message=exc.problem,
+                pos=exc.index,
+                lineno=exc.line,
+                colno=exc.column
+            ) from None
+        except ValueError as exc:
+            raise ParseError('Malformed YAML. %s' % exc) from None
+
+        return self.decode_data(data)
+
+    def decode_data(self, data, **options):
         openapi = OPEN_API.validate(data)
         title = lookup(openapi, ['info', 'title'])
         description = lookup(openapi, ['info', 'description'])
@@ -370,9 +462,7 @@ class OpenAPICodec(BaseCodec):
                 schema = schema_definitions.get(ref)
             else:
                 schema = JSONSchemaCodec().decode_from_data_structure(body_schema)
-            if isinstance(schema, validators.Object):
-                for key, value in schema.properties.items():
-                    fields += [Field(name=key, location='form', schema=value)]
+            fields += [Field(name='body', location='body', schema=schema)]
 
         return Link(
             name=name,
