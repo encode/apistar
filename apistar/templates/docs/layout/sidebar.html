@@ -4,24 +4,45 @@
         <!-- <a href="#">{{ document.title|default('API Star', True) }}</a> -->
     </h3>
 
-    <i class="fa fa-bars fa-2x toggle-btn" data-target="#menu-content"></i>
+    <select class="menu-context-mobile">
+        <option value="" selected="selected">Go to...</option>
+        {% if document.get_sections() %} {% for section in document.get_sections() %}
+        <optgroup label="{{ section.title|default(section.name, True) }}">
+            {% if section.get_links() %} {% for link in section.get_links() %}
+            <option value="#{{ section.name }}-{{ link.name }}">
+                {{ link.title|default(link.name, True) }}
+            </option>
+            {% endfor %} {% endif %}
+        </optgroup>
+        {% endfor %} {% if document.get_links() %}
+        <optgroup label="Links">
+            {% for link in document.get_links() %}
+            <option value="#{{ link.name }}">{{ link.title|default(link.name, True) }}</option>
+            {% endfor %}
+        </optgroup>
+        {% endif %} {% endif %}
+    </select>
     <div class="menu-list">
         <ul class="menu-content">
+        {% if document.get_sections() %}
             {% for section in document.get_sections() %}
-            <li data-target="#{{ section.name }}-dropdown">
-                <a> {{ section.title|default(section.name, True) }} <span class="arrow"></span></a>
-            </li>
-            <ul id="{{ section.name }}-dropdown">
-                {% for link in section.get_links() %}
-                    <li><a href="#{{ section.name }}-{{ link.name }}">{{ link.title|default(link.name, True) }}</a></li>
-                {% endfor %}
-            </ul>
+                <li data-target="#{{ section.name }}-dropdown">
+                    <a> {{ section.title|default(section.name, True) }} <span class="arrow"></span></a>
+                </li>
+                <ul id="{{ section.name }}-dropdown">
+                     {% if section.get_links() %}
+                        {% for link in section.get_links() %}
+                            <li><a href="#{{ section.name }}-{{ link.name }}">{{ link.title|default(link.name, True) }}</a></li>
+                        {% endfor %}
+                    {% endif %}
+                </ul>
             {% endfor %}
             <ul class="sub-menu">
                 {% for link in document.get_links() %}
                     <li><a href="#{{ link.name }}">{{ link.title|default(link.name, True) }}</a></li>
                 {% endfor %}
             </ul>
+        {% endif %}
         </ul>
     </div>
 </div>

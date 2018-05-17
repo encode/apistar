@@ -81,6 +81,11 @@ $(function () {
     $codeBlocks.filter('[data-language="' + language + '"]').removeClass('d-none')
   })
 
+  // mobile menu
+  $(".menu-context-mobile").change(function () {
+    window.location = $(this).find("option:selected").val();
+  });
+  
   // API Explorer
   $('form.api-interaction').submit(function (event) {
     event.preventDefault()

@@ -33,7 +33,7 @@ pre.highlight code {
   font-size: 12px;
   font-weight: 200;
   background-color:#fafcfc;
-  border-right: 1px solid rgb(236, 244, 247);
+  border-right: 1px solid #d3d3d3;
   position: fixed;
   top: 0px;
   width: 225px;
@@ -63,11 +63,31 @@ pre.highlight code {
   display: none;
 }
 
+.menu-context-mobile {
+  display: none;
+  cursor: pointer;
+  position: absolute;
+  right: 30px;
+  top: 15px;
+  z-index: 10 !important;
+  border: 1px solid #d3d3d3;
+  padding: 0.5em;
+}
+
+@media (max-width: 767px) {
+  .menu-content        { display: none; }
+  .menu-context-mobile { display: inline-block; }
+}
+
 .menu-content,
 .menu-content ul {
   list-style: none;
   padding: 0;
   margin: 0;
+}
+
+.menu-content {
+  padding-top: 1rem;
 }
 
 .menu-content li {
@@ -83,6 +103,7 @@ pre.highlight code {
   color: #4c555a;
   cursor: pointer;
   font-size: 14px;
+  font-weight: 500;
   list-style-type: none;
   white-space: nowrap;
   overflow: hidden;
@@ -91,8 +112,9 @@ pre.highlight code {
 }
 
 .menu-content ul a {
-    padding-left: 36px;
     font-size: 13px;
+    color: rgba(0,0,0,.65);
+    padding-left: 25px;
 }
 
 body {
