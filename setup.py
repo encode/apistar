@@ -68,8 +68,10 @@ setup(
     packages=get_packages('apistar'),
     package_data=get_package_data('apistar'),
     install_requires=[
+        'click',
         'jinja2',
         'requests',
+        'pyyaml',
         'werkzeug',
         'whitenoise'
     ],
@@ -87,4 +89,9 @@ setup(
         'Programming Language :: Python :: Implementation :: PyPy',
         'Programming Language :: Python :: Implementation :: CPython'
     ],
+    entry_points={
+        'console_scripts': [
+            'apistar=apistar:main'
+        ],
+    },
 )

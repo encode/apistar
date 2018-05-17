@@ -28,7 +28,7 @@
         </thead>
         <tbody>
             {% for field in link.get_path_fields() %}
-            <tr><td class="parameter-name"><code>{{ field.name }}</code>{% if field.required %} <span class="label label-warning">required</span>{% endif %}</td><td>{% if field.schema.description %}{{ field.schema.description }}{% endif %}</td></tr>
+            <tr><td class="parameter-name"><code>{{ field.name }}</code>{% if field.required %} <span class="label label-warning">required</span>{% endif %}</td><td>{% if field.description or field.schema.description %}{{ field.description or field.schema.description }}{% endif %}</td></tr>
             {% endfor %}
         </tbody>
     </table>
@@ -42,7 +42,7 @@
         </thead>
         <tbody>
             {% for field in link.get_query_fields() %}
-            <tr><td class="parameter-name"><code>{{ field.name }}</code>{% if field.required %} <span class="label label-warning">required</span>{% endif %}</td><td>{% if field.schema.description %}{{ field.schema.description }}{% endif %}</td></tr>
+            <tr><td class="parameter-name"><code>{{ field.name }}</code>{% if field.required %} <span class="label label-warning">required</span>{% endif %}</td><td>{% if field.description or field.schema.description %}{{ field.description or field.schema.description }}{% endif %}</td></tr>
             {% endfor %}
         </tbody>
     </table>
@@ -62,7 +62,7 @@
                     <tr><td class="parameter-name"><code>{{ key }}</code>{% if key in expanded.required %} <span class="label label-warning">required</span>{% endif %}</td><td>{% if schema.description %}{{ schema.description }}{% endif %}</td></tr>
                 {% endfor %}
             {% else %}
-            <tr><td class="parameter-name"><code>{{ field.name }}</code>{% if field.required %} <span class="label label-warning">required</span>{% endif %}</td><td>{% if field.schema.description %}{{ field.schema.description }}{% endif %}</td></tr>
+            <tr><td class="parameter-name"><code>{{ field.name }}</code>{% if field.required %} <span class="label label-warning">required</span>{% endif %}</td><td>{% if field.description or field.schema.description %}{{ field.description or field.schema.description }}{% endif %}</td></tr>
             {% endif %}
         </tbody>
     </table>
