@@ -1,50 +1,57 @@
 <div class="sidebar">
-    <h3 class="brand"><a href="#">{{ document.title|default('API Star', True) }}</a></h3>
+    <h3 class="brand">
+        <a class="navbar-brand" href="#">API Star</a>
+        <!-- <a href="#">{{ document.title|default('API Star', True) }}</a> -->
+    </h3>
 
-    <i class="fa fa-bars fa-2x toggle-btn" data-toggle="collapse" data-target="#menu-content"></i>
-    <div class="menu-list">
-        <ul id="menu-content" class="menu-content collapse out">
+    <select class="menu-context-mobile">
+        <option value="" selected="selected">Go to...</option>
+        {% if document.get_sections() %}
             {% for section in document.get_sections() %}
-            <li data-toggle="collapse" data-target="#{{ section.name }}-dropdown" class="collapsed">
-                <a><i class="fa fa-dot-circle-o fa-lg"></i> {{ section.title|default(section.name, True) }} <span class="arrow"></span></a>
-            </li>
-            <ul class="sub-menu collapse" id="{{ section.name }}-dropdown">
-                {% for link in section.get_links() %}
-                    <li><a href="#{{ section.name }}-{{ link.name }}">{{ link.title|default(link.name, True) }}</a></li>
-                {% endfor %}
-            </ul>
+                <optgroup label="{{ section.title|default(section.name, True) }}">
+                    {% if section.get_links() %}
+                        {% for link in section.get_links() %}
+                            <option value="#{{ section.name }}-{{ link.name }}">
+                                {{ link.title|default(link.name, True) }}
+                            </option>
+                        {% endfor %}
+                    {% endif %}
+                </optgroup>
             {% endfor %}
-            <ul class="sub-menu">
+        {% endif %}
+        {% if document.get_links() %}
+            <optgroup label="Links">
                 {% for link in document.get_links() %}
-                    <li><a href="#{{ link.name }}">{{ link.title|default(link.name, True) }}</a></li>
+                    <option value="#{{ link.name }}">{{ link.title|default(link.name, True) }}</option>
+                {% endfor %}
+            </optgroup>
+        {% endif %}
+    </select>
+    <div class="menu-list">
+        {% if document.get_sections() %}
+            <ul class="menu-content">
+                {% for section in document.get_sections() %}
+                    <li>
+                        <a> {{ section.title|default(section.name, True) }} <span class="arrow"></span></a>
+                        <ul id="{{ section.name }}-dropdown">
+                            {% if section.get_links() %}
+                                {% for link in section.get_links() %}
+                                    <li><a href="#{{ section.name }}-{{ link.name }}">{{ link.title|default(link.name, True) }}</a></li>
+                                {% endfor %}
+                            {% endif %}
+                        </ul>
+                    </li>
                 {% endfor %}
             </ul>
-        </ul>
-
-        <ul class="menu-list menu-list-bottom">
-            <!--
-            <li data-toggle="collapse" data-target="#auth-control" class="collapsed">
-                <a><i class="fa fa-user fa-lg"></i> Authentication</a> <span id="selected-authentication">none</span>
-            </li>
-            <ul class="sub-menu collapse out" id="auth-control">
-                <li class="active"><a data-auth="none" href="#">none</a></li>
-                <li><a data-auth="token" data-toggle="modal" data-target="#auth_token_modal" href="#">token</a></li>
-                <li><a data-auth="basic" data-toggle="modal" data-target="#auth_basic_modal" href="#">basic</a></li>
-                <li><a data-auth="session" data-toggle="modal" data-target="#auth_session_modal" href="#">session</a></li>
-            </ul>
-            -->
-
-            {% if langs|length > 1 %}
-            <li data-toggle="collapse" data-target="#language-control" class="collapsed">
-                <a><i class="fa fa-code fa-lg"></i> Source Code</a> <span id="selected-language">{{ langs[0] }}</span>
-            </li>
-            <ul class="sub-menu collapse out" id="language-control">
-                {% for language in langs %}
-                <li {% if loop.first %}class="active"{% endif %}><a href="#" data-language="{{ language }}">{{ language }}</a></li>
+        {% endif %}
+         {% if document.get_links() %}
+            <ul class="menu-content">
+                {% for link in document.get_links() %}
+                <li>
+                    <a href="#{{ link.name }}">{{ link.title|default(link.name, True) }}</a>
+                </li>
                 {% endfor %}
             </ul>
-            {% endif %}
-        </ul>
-
+         {% endif %}
     </div>
 </div>
