@@ -2,6 +2,10 @@
 
 ## Version 0.5.x
 
+### 0.5.21
+
+* Fix API docs in ASyncApp when `static_dir` is not defined.
+
 ### 0.5.20
 
 * Fix static file links when rendering docs in ASyncApp
