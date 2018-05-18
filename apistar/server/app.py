@@ -262,7 +262,10 @@ class ASyncApp(App):
         if static_url:
             static_url = static_url.rstrip('/') + '/{+filename}'
             extra_routes += [
-                Route(static_url, method='GET', handler=serve_static_asgi, documented=False, standalone=True)
+                Route(
+                    static_url, method='GET', handler=serve_static_asgi,
+                    name='static', documented=False, standalone=True
+                )
             ]
         return extra_routes
 
