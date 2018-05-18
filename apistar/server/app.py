@@ -262,7 +262,8 @@ class ASyncApp(App):
         if static_url:
             static_url = static_url.rstrip('/') + '/{+filename}'
             extra_routes += [
-                Route(static_url, method='GET', handler=serve_static_asgi, documented=False, standalone=True)
+                Route(static_url, method='GET', handler=serve_static_asgi,
+                      name='static', documented=False, standalone=True)
             ]
         return extra_routes
 
@@ -282,7 +283,7 @@ class ASyncApp(App):
         self.injector = ASyncInjector(components, initial_components)
 
     def init_staticfiles(self, static_url: str, static_dir: str=None, packages: typing.Sequence[str]=None):
-        if not static_dir:
+        if not static_dir and not packages:
             self.statics = None
         else:
             self.statics = ASyncStaticFiles(static_url, static_dir, packages)
