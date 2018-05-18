@@ -2,6 +2,10 @@
 
 ## Version 0.5.x
 
+### 0.5.20
+
+* Fix static file links when rendering docs in ASyncApp
+
 ### 0.5.19
 
 * API Documentation theme
