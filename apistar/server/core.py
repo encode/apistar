@@ -91,7 +91,7 @@ class Route():
         if (
             isinstance(annotation, type) and
             issubclass(annotation, typing.List) and
-            annotation.__args__ and
+			getattr(annotation, '__args__', None) and
             issubclass(annotation.__args__[0], types.Type)
         ):
             return validators.Array(items=annotation.__args__[0])
