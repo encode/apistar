@@ -1,12 +1,5 @@
 #!/bin/sh -e
 
-export PREFIX=""
-if [ -d 'venv' ] ; then
-    export PREFIX="venv/bin/"
-fi
-
-set -x
-
-${PREFIX}flake8 apistar tests
-${PREFIX}isort apistar tests --recursive --check-only
-#${PREFIX}mypy apistar tests --ignore-missing-imports
+pipenv run flake8 apistar tests
+pipenv run isort apistar tests --recursive --check-only
+pipenv run mypy apistar tests --ignore-missing-imports

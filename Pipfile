@@ -1,0 +1,22 @@
+[[source]]
+url = "https://pypi.python.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+requests = "*"
+Werkzeug = "*"
+aiofiles = "*"
+"Jinja2" = "*"
+whitenoise = "*"
+codecov = "*"
+"flake8" = "*"
+isort = "*"
+pytest = "*"
+pytest-cov = "*"
+black = {version = "*", markers="python_version == '3.6'"}
+click = "*"
+PyYAML = "*"
+mypy = "*"
+
+[dev-packages]
