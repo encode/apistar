@@ -196,6 +196,8 @@ def test_misc():
     assert len(product._dict) == 3
     assert list(product.keys()) == ['name', 'rating', 'created']
     with pytest.raises(AttributeError):
+        getattr(product, 'other')
+    with pytest.raises(AttributeError):
         product.other = 456
     with pytest.raises(KeyError):
         product['other'] = 456
