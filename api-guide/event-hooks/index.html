@@ -167,7 +167,7 @@
 <p>API Star provides something very similar to middleware, that lets you register
 a group of functions to be run in response to particular events.</p>
 <p>Here's an example...</p>
-<pre><code class="python">class CustomHeadersHook():
+<pre><code class="python">class CustomHeadersHook:
     def on_response(self, response: http.Response):
         response.headers['x-custom'] = 'Ran on_response()'
 
