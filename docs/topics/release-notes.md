@@ -2,6 +2,13 @@
 
 ## Version 0.5.x
 
+### 0.5.22
+
+* Fix error when using `list` or `dict` as response annotations.
+* Fix for error handling in ASyncApp.
+* When attribute does not exist, raise AttributeError on `Type` instead of `KeyError`.
+* Fix "not JSON serializable" error condition.
+
 ### 0.5.21
 
 * Fix API docs in ASyncApp when `static_dir` is not defined.
