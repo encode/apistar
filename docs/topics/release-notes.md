@@ -2,6 +2,10 @@
 
 ## Version 0.5.x
 
+### 0.5.23
+
+* Catch and handle `yaml.parser.ParserError` when parsing OpenAPI.
+
 ### 0.5.22
 
 * Fix error when using `list` or `dict` as response annotations.

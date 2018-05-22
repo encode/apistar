@@ -14,7 +14,7 @@ def serve_schema(app: App):
 
 def serve_documentation(app: App):
     template_name = 'apistar/docs/index.html'
-    code_style = pygments_css('emacs')
+    code_style = None  # pygments_css('emacs')
     return app.render_template(
         template_name, document=app.document, langs=['javascript', 'python'], code_style=code_style)
 
