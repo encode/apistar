@@ -364,7 +364,7 @@ class OpenAPICodec(BaseCodec):
     def decode_yaml(self, bytestring, **options):
         try:
             data = yaml.safe_load(bytestring.decode('utf-8'))
-        except yaml.scanner.ScannerError as exc:
+        except (yaml.scanner.ScannerError, yaml.parser.ParserError) as exc:
             raise ParseError(
                 message='% at line %d column %d' % (exc.problem, exc.problem_mark.line, exc.problem_mark.column),
                 short_message=exc.problem,
