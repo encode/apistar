@@ -8,7 +8,7 @@ a group of functions to be run in response to particular events.
 Here's an example...
 
 ```python
-class CustomHeadersHook():
+class CustomHeadersHook:
     def on_response(self, response: http.Response):
         response.headers['x-custom'] = 'Ran on_response()'
 
