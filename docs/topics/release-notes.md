@@ -2,6 +2,15 @@
 
 ## Version 0.5.x
 
+
+### 0.5.25
+
+* More robust YAML errors.
+
+### 0.5.24
+
+* Fix issues with Docs API theme.
+
 ### 0.5.23
 
 * Catch and handle `yaml.parser.ParserError` when parsing OpenAPI.

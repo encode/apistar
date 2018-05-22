@@ -365,12 +365,20 @@ class OpenAPICodec(BaseCodec):
         try:
             data = yaml.safe_load(bytestring.decode('utf-8'))
         except (yaml.scanner.ScannerError, yaml.parser.ParserError) as exc:
+            if not hasattr(exc, 'index'):
+                index = 0
+                lineno = 1
+                colno = 1
+            else:
+                index = exc.index
+                lineno = exc.line
+                colno = exc.column
             raise ParseError(
                 message='% at line %d column %d' % (exc.problem, exc.problem_mark.line, exc.problem_mark.column),
                 short_message=exc.problem,
-                pos=exc.index,
-                lineno=exc.line,
-                colno=exc.column
+                pos=index,
+                lineno=lineno,
+                colno=colno
             ) from None
         except ValueError as exc:
             raise ParseError('Malformed YAML. %s' % exc) from None
