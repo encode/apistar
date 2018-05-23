@@ -52,7 +52,7 @@ except ImportError:
 try:
     # Ideally we subclass `_TemporaryFileWrapper` to present a clear __repr__
     # for downloaded files.
-    from tempfile import _TemporaryFileWrapper
+    from tempfile import _TemporaryFileWrapper    # type: ignore
 
     class DownloadedFile(_TemporaryFileWrapper):
         basename = None
@@ -71,4 +71,4 @@ except ImportError:
     # in this case.
     import tempfile
 
-    DownloadedFile = tempfile.NamedTemporaryFile
+    DownloadedFile = tempfile.NamedTemporaryFile    # type: ignore
