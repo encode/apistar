@@ -301,4 +301,7 @@ class JSONSchemaCodec(BaseCodec):
                 value['uniqueItems'] = item.unique_items
             return value
 
+        elif isinstance(item, validators.Any):
+            return value
+
         raise Exception('Cannot encode item %s' % item)
