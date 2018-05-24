@@ -1,5 +1,7 @@
 import re
-from json.decoder import JSONDecodeError, JSONDecoder, scanstring
+from json.decoder import (  # type: ignore
+    JSONDecodeError, JSONDecoder, scanstring
+)
 
 from apistar.formatters.nodes import DictNode, ListNode, LiteralNode
 

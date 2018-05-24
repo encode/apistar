@@ -3,7 +3,7 @@ from collections import namedtuple
 from http import cookiejar
 
 File = namedtuple('File', 'name content content_type')
-File.__new__.__defaults__ = (None,)
+File.__new__.__defaults__ = (None,)    # type: ignore
 
 
 def is_file(obj):

@@ -1,5 +1,8 @@
+from typing import Optional
+
+
 class BaseCodec:
-    media_type = None
+    media_type: Optional[str] = None
 
     def decode(self, bytestring, **options):
         raise NotImplementedError()
