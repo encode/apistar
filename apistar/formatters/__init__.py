@@ -45,7 +45,7 @@ def get_errors(content, exc, content_type=None):
 
     if isinstance(exc, ParseError):
         return [
-            Error(exc.short_message, exc.pos, exc.pos)
+            Error(exc.short_message, content, exc.pos, exc.pos)
         ]
 
     if content_type == 'json':
