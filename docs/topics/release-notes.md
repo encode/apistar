@@ -2,6 +2,9 @@
 
 ## Version 0.5.x
 
+### 0.5.26
+
+* Fix error reporting when YAML parse errors occur.
 
 ### 0.5.25
 
