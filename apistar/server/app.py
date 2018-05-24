@@ -4,7 +4,11 @@ import typing
 import werkzeug
 
 from apistar import exceptions
-from apistar.http import HTMLResponse, JSONResponse, PathParams, Response
+from apistar.codecs import BaseCodec
+from apistar.conneg import negotiate_content_type
+from apistar.http import (
+    Headers, HTMLResponse, JSONResponse, PathParams, Response
+)
 from apistar.server.adapters import ASGItoWSGIAdapter
 from apistar.server.asgi import (
     ASGI_COMPONENTS, ASGIReceive, ASGIScope, ASGISend
@@ -15,7 +19,9 @@ from apistar.server.injector import ASyncInjector, Injector
 from apistar.server.router import Router
 from apistar.server.staticfiles import ASyncStaticFiles, StaticFiles
 from apistar.server.templates import Templates
-from apistar.server.validation import VALIDATION_COMPONENTS
+from apistar.server.validation import (
+    VALIDATION_COMPONENTS, Codecs, CodecsComponent
+)
 from apistar.server.wsgi import (
     RESPONSE_STATUS_TEXT, WSGI_COMPONENTS, WSGIEnviron, WSGIStartResponse
 )
@@ -33,7 +39,8 @@ class App():
                  docs_url='/docs/',
                  static_url='/static/',
                  components=None,
-                 event_hooks=None):
+                 event_hooks=None,
+                 codecs=None):
 
         packages = tuple() if packages is None else tuple(packages)
 
@@ -50,8 +57,12 @@ class App():
         if event_hooks:
             msg = 'event_hooks must be a list.'
             assert isinstance(event_hooks, (list, tuple)), msg
+        if codecs:
+            msg = 'codecs must be a list of instances of BaseCodec.'
+            assert all([isinstance(codec, BaseCodec) for codec in codecs]), msg
 
         routes = routes + self.include_extra_routes(schema_url, docs_url, static_url)
+        components = self.include_component_codecs(components, codecs)
         self.init_document(routes)
         self.init_router(routes)
         self.init_templates(template_dir, packages)
@@ -85,6 +96,14 @@ class App():
                 )
             ]
         return extra_routes
+
+    def include_component_codecs(self, components, codecs=None):
+        # Override component with more codecs
+        codec_component = CodecsComponent(codecs)
+        if not components:
+            components = []
+        components.append(codec_component)
+        return components
 
     def init_document(self, routes):
         self.document = generate_document(routes)
@@ -166,12 +185,24 @@ class App():
             options['use_reloader'] = debug
         werkzeug.run_simple(host, port, self, **options)
 
-    def render_response(self, return_value: ReturnValue) -> Response:
+    def render_response(
+            self, headers: Headers, codecs: Codecs, return_value: ReturnValue
+    ) -> Response:
         if isinstance(return_value, Response):
             return return_value
-        elif isinstance(return_value, str):
-            return HTMLResponse(return_value)
-        return JSONResponse(return_value)
+        else:
+            try:
+                # This content-type might have a Response to render...
+                content_type = headers.get('content-type', '__invalid__')
+                codec = negotiate_content_type(codecs, content_type)
+                if codec.response_class is not None and issubclass(codec.response_class, Response):
+                    return codec.response_class(return_value)
+            except exceptions.NoCodecAvailable:
+                pass
+            # Legacy behaviour, html for str, JSON for the rest
+            if isinstance(return_value, str):
+                return HTMLResponse(return_value)
+            return JSONResponse(return_value)
 
     def exception_handler(self, exc: Exception) -> Response:
         if isinstance(exc, exceptions.HTTPException):
