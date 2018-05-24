@@ -17,6 +17,7 @@ class RequestDataComponent(Component):
         codecs.URLEncodedCodec(),
         codecs.MultiPartCodec(),
     ]
+
     def __init__(self, extra_codecs=None):
         self.codecs = (
             extra_codecs + self.base_codecs

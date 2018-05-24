@@ -16,7 +16,9 @@ from apistar.server.injector import ASyncInjector, Injector
 from apistar.server.router import Router
 from apistar.server.staticfiles import ASyncStaticFiles, StaticFiles
 from apistar.server.templates import Templates
-from apistar.server.validation import VALIDATION_COMPONENTS, RequestDataComponent
+from apistar.server.validation import (
+    VALIDATION_COMPONENTS, RequestDataComponent
+)
 from apistar.server.wsgi import (
     RESPONSE_STATUS_TEXT, WSGI_COMPONENTS, WSGIEnviron, WSGIStartResponse
 )

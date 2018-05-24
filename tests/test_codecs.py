@@ -2,13 +2,12 @@
 #
 # Test extra codecs
 #
-import json
-
 import collections
+import json
 
 import pytest
 
-from apistar import Route, http, ASyncApp, App, test
+from apistar import App, ASyncApp, Route, http, test
 from apistar.codecs import BaseCodec
 from apistar.exceptions import ParseError
 
@@ -47,7 +46,7 @@ def post_overriden_json(data: http.RequestData):
 
 
 def post_disorder(data: http.RequestData):
-    return data.decode('UTF-8')
+    return data.decode("UTF-8")
 
 
 routes = [
@@ -67,13 +66,11 @@ def client(request):
 
 def test_overriden_json_codec(client):
     response = client.post("/overriden", json={"Do": "Belong"})
-    assert {'Do': 'Belong', 'Not': 'Belonging'}  == response.json()
+    assert {"Do": "Belong", "Not": "Belonging"} == response.json()
 
 
 def test_dumb_codec(client):
     response = client.post(
-        '/disordered',
-        data="doidhf",
-        headers={"Content-Type": "text/plain"}
+        "/disordered", data="doidhf", headers={"Content-Type": "text/plain"}
     )
-    assert response.content == b'ddfhio'
+    assert response.content == b"ddfhio"
