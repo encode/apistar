@@ -12,12 +12,17 @@ ValidatedRequestData = typing.TypeVar('ValidatedRequestData')
 
 
 class RequestDataComponent(Component):
-    def __init__(self):
-        self.codecs = [
-            codecs.JSONCodec(),
-            codecs.URLEncodedCodec(),
-            codecs.MultiPartCodec(),
-        ]
+    base_codecs = [
+        codecs.JSONCodec(),
+        codecs.URLEncodedCodec(),
+        codecs.MultiPartCodec(),
+    ]
+    def __init__(self, extra_codecs=None):
+        self.codecs = (
+            extra_codecs + self.base_codecs
+            if extra_codecs is not None and len(extra_codecs)
+            else self.base_codecs
+        )
 
     def can_handle_parameter(self, parameter: inspect.Parameter):
         return parameter.annotation is http.RequestData
@@ -29,7 +34,6 @@ class RequestDataComponent(Component):
             return None
 
         content_type = headers.get('Content-Type')
-
         try:
             codec = negotiate_content_type(self.codecs, content_type)
         except exceptions.NoCodecAvailable:
@@ -149,7 +153,6 @@ class CompositeParamComponent(Component):
 
 
 VALIDATION_COMPONENTS = (
-    RequestDataComponent(),
     ValidatePathParamsComponent(),
     ValidateQueryParamsComponent(),
     ValidateRequestDataComponent(),
