@@ -16,9 +16,7 @@ from apistar.server.injector import ASyncInjector, Injector
 from apistar.server.router import Router
 from apistar.server.staticfiles import ASyncStaticFiles, StaticFiles
 from apistar.server.templates import Templates
-from apistar.server.validation import (
-    VALIDATION_COMPONENTS, RequestDataComponent
-)
+from apistar.server.validation import VALIDATION_COMPONENTS, CodecsComponent
 from apistar.server.wsgi import (
     RESPONSE_STATUS_TEXT, WSGI_COMPONENTS, WSGIEnviron, WSGIStartResponse
 )
@@ -59,7 +57,7 @@ class App():
             assert all([isinstance(codec, BaseCodec) for codec in codecs]), msg
 
         routes = routes + self.include_extra_routes(schema_url, docs_url, static_url)
-        self.include_extra_codecs(codecs)
+        components = self.include_component_codecs(components, codecs)
         self.init_document(routes)
         self.init_router(routes)
         self.init_templates(template_dir, packages)
@@ -94,10 +92,13 @@ class App():
             ]
         return extra_routes
 
-    def include_extra_codecs(self, codecs=None):
+    def include_component_codecs(self, components, codecs=None):
         # Override component with more codecs
-        global VALIDATION_COMPONENTS
-        VALIDATION_COMPONENTS = (RequestDataComponent(extra_codecs=codecs),) + VALIDATION_COMPONENTS
+        codec_component = CodecsComponent(codecs)
+        if not components:
+            components = []
+        components.append(codec_component)
+        return components
 
     def init_document(self, routes):
         self.document = generate_document(routes)

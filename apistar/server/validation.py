@@ -9,26 +9,35 @@ from apistar.server.core import Route
 ValidatedPathParams = typing.NewType('ValidatedPathParams', dict)
 ValidatedQueryParams = typing.NewType('ValidatedQueryParams', dict)
 ValidatedRequestData = typing.TypeVar('ValidatedRequestData')
+Codecs = typing.NewType('Codecs', list)
 
 
-class RequestDataComponent(Component):
-    base_codecs = [
+class CodecsComponent(Component):
+    default_codecs = [
         codecs.JSONCodec(),
         codecs.URLEncodedCodec(),
         codecs.MultiPartCodec(),
     ]
 
-    def __init__(self, extra_codecs=None):
-        self.codecs = (
-            extra_codecs + self.base_codecs
-            if extra_codecs is not None and len(extra_codecs)
-            else self.base_codecs
-        )
+    def can_handle_parameter(self, parameter: inspect.Parameter):
+        return parameter.annotation is Codecs
+
+    def __init__(self, codecs=None):
+        if codecs is None:
+            codecs = []
+        self.codecs = codecs + self.default_codecs
+
+    def resolve(self) -> Codecs:
+        return Codecs(self.codecs)
+
+
+class RequestDataComponent(Component):
 
     def can_handle_parameter(self, parameter: inspect.Parameter):
         return parameter.annotation is http.RequestData
 
     def resolve(self,
+                codecs: Codecs,
                 content: http.Body,
                 headers: http.Headers):
         if not content:
@@ -36,7 +45,7 @@ class RequestDataComponent(Component):
 
         content_type = headers.get('Content-Type')
         try:
-            codec = negotiate_content_type(self.codecs, content_type)
+            codec = negotiate_content_type(codecs, content_type)
         except exceptions.NoCodecAvailable:
             raise exceptions.UnsupportedMediaType()
 
@@ -154,6 +163,7 @@ class CompositeParamComponent(Component):
 
 
 VALIDATION_COMPONENTS = (
+    RequestDataComponent(),
     ValidatePathParamsComponent(),
     ValidateQueryParamsComponent(),
     ValidateRequestDataComponent(),
