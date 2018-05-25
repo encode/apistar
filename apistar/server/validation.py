@@ -13,19 +13,19 @@ Codecs = typing.NewType('Codecs', list)
 
 
 class CodecsComponent(Component):
-    default_codecs = [
+    default_codecs = (
         codecs.JSONCodec(),
         codecs.URLEncodedCodec(),
         codecs.MultiPartCodec(),
-    ]
+    )
 
     def can_handle_parameter(self, parameter: inspect.Parameter):
         return parameter.annotation is Codecs
 
     def __init__(self, codecs=None):
         if codecs is None:
-            codecs = []
-        self.codecs = codecs + self.default_codecs
+            codecs = ()
+        self.codecs = tuple(codecs) + self.default_codecs
 
     def resolve(self) -> Codecs:
         return Codecs(self.codecs)
