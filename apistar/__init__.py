@@ -6,13 +6,16 @@
    \/     /_/   \_\_|  |___| |____/ \__\__,_|_|        \/
 """
 
+from pathlib import Path
+
+import toml
+
 from apistar.client import Client
 from apistar.document import Document, Field, Link, Section
 from apistar.main import main
 from apistar.server import App, ASyncApp, Component, Include, Route
 from apistar.test import TestClient
-from pathlib import Path
-import toml
+
 
 def get_version():
     path = Path(__file__).resolve().parents[1] / 'pyproject.toml'

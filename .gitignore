@@ -7,8 +7,9 @@
 __pycache__
 /*.egg-info
 /htmlcov
-/venv
+/.venv
 /build
 /dist
 coverage.xml
 test.db
+pyproject.lock
