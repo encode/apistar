@@ -9,29 +9,43 @@ from apistar.server.core import Route
 ValidatedPathParams = typing.NewType('ValidatedPathParams', dict)
 ValidatedQueryParams = typing.NewType('ValidatedQueryParams', dict)
 ValidatedRequestData = typing.TypeVar('ValidatedRequestData')
+Codecs = typing.NewType('Codecs', list)
+
+
+class CodecsComponent(Component):
+    default_codecs = (
+        codecs.JSONCodec(),
+        codecs.URLEncodedCodec(),
+        codecs.MultiPartCodec(),
+    )
+
+    def can_handle_parameter(self, parameter: inspect.Parameter):
+        return parameter.annotation is Codecs
+
+    def __init__(self, codecs=None):
+        if codecs is None:
+            codecs = ()
+        self.codecs = tuple(codecs) + self.default_codecs
+
+    def resolve(self) -> Codecs:
+        return Codecs(self.codecs)
 
 
 class RequestDataComponent(Component):
-    def __init__(self):
-        self.codecs = [
-            codecs.JSONCodec(),
-            codecs.URLEncodedCodec(),
-            codecs.MultiPartCodec(),
-        ]
 
     def can_handle_parameter(self, parameter: inspect.Parameter):
         return parameter.annotation is http.RequestData
 
     def resolve(self,
+                codecs: Codecs,
                 content: http.Body,
                 headers: http.Headers):
         if not content:
             return None
 
         content_type = headers.get('Content-Type')
-
         try:
-            codec = negotiate_content_type(self.codecs, content_type)
+            codec = negotiate_content_type(codecs, content_type)
         except exceptions.NoCodecAvailable:
             raise exceptions.UnsupportedMediaType()
 

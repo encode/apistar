@@ -4,6 +4,7 @@ import typing
 import werkzeug
 
 from apistar import exceptions
+from apistar.codecs import BaseCodec
 from apistar.http import HTMLResponse, JSONResponse, PathParams, Response
 from apistar.server.adapters import ASGItoWSGIAdapter
 from apistar.server.asgi import (
@@ -15,7 +16,7 @@ from apistar.server.injector import ASyncInjector, Injector
 from apistar.server.router import Router
 from apistar.server.staticfiles import ASyncStaticFiles, StaticFiles
 from apistar.server.templates import Templates
-from apistar.server.validation import VALIDATION_COMPONENTS
+from apistar.server.validation import VALIDATION_COMPONENTS, CodecsComponent
 from apistar.server.wsgi import (
     RESPONSE_STATUS_TEXT, WSGI_COMPONENTS, WSGIEnviron, WSGIStartResponse
 )
@@ -33,7 +34,8 @@ class App():
                  docs_url='/docs/',
                  static_url='/static/',
                  components=None,
-                 event_hooks=None):
+                 event_hooks=None,
+                 codecs=None):
 
         packages = tuple() if packages is None else tuple(packages)
 
@@ -50,8 +52,12 @@ class App():
         if event_hooks:
             msg = 'event_hooks must be a list.'
             assert isinstance(event_hooks, (list, tuple)), msg
+        if codecs:
+            msg = 'codecs must be a list of instances of BaseCodec.'
+            assert all([isinstance(codec, BaseCodec) for codec in codecs]), msg
 
         routes = routes + self.include_extra_routes(schema_url, docs_url, static_url)
+        components = self.include_component_codecs(components, codecs)
         self.init_document(routes)
         self.init_router(routes)
         self.init_templates(template_dir, packages)
@@ -85,6 +91,14 @@ class App():
                 )
             ]
         return extra_routes
+
+    def include_component_codecs(self, components, codecs=None):
+        # Override component with more codecs
+        codec_component = CodecsComponent(codecs)
+        if not components:
+            components = []
+        components.append(codec_component)
+        return components
 
     def init_document(self, routes):
         self.document = generate_document(routes)
