@@ -11,8 +11,16 @@ from apistar.document import Document, Field, Link, Section
 from apistar.main import main
 from apistar.server import App, ASyncApp, Component, Include, Route
 from apistar.test import TestClient
+from pathlib import Path
+import toml
 
-__version__ = '0.5.26'
+def get_version():
+    path = Path(__file__).resolve().parents[1] / 'pyproject.toml'
+    pyproject = toml.loads(open(str(path)).read())
+    return pyproject['tool']['poetry']['version']
+
+
+__version__ = get_version()
 __all__ = [
     'App', 'ASyncApp', 'Client', 'Component', 'Document', 'Section', 'Link', 'Field',
     'Route', 'Include', 'TestClient', 'http', 'main'

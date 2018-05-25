@@ -1,0 +1,37 @@
+[tool.poetry]
+name = "apistar"
+version = "0.5.26"
+description = "Blazingly fast & beautifully expressive Web APIs"
+authors = ["Tom Christie <tom@tomchristie.com>"]
+#license = "BSD"
+readme = "README.md"
+homepage = "http://www.encode.io/apistar/"
+repository = "https://github.com/encode/apistar"
+keywords = ['apistar', 'api']
+
+
+[tool.poetry.dependencies]
+python = "^3.5"
+click = "^6.7"
+requests = "^2.18"
+pyyaml = "^3.12"
+werkzeug = "^0.14.1"
+toml = "^0.9.4"
+aiofiles = {version = "^0.3.2", optional = true}
+jinja2 = {version = "^2.10", optional = true}
+whitenoise = {version = "^3.3", optional = true}
+
+[tool.poetry.dev-dependencies]
+pytest = "^3.5"
+codecov = "^2.0"
+flake8 = "^3.5"
+isort = "^4.3"
+pytest-cov = "^2.5"
+
+[tool.poetry.extras]
+async = ["aiofiles"]
+jinja = ["jinja2"]
+static = ["whitenoise"]
+
+[tool.poetry.scripts]
+poetry = 'apistar:apistar.main'
