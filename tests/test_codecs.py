@@ -37,7 +37,7 @@ class DumbResponse(Response):
     media_type = "text/plain"
 
     def render(self, content: typing.Any):
-        return f"This has been reversed: {content}".encode()
+        return ("This has been reversed: {}".format(content)).encode()
 
 
 class DumbCodec(BaseCodec):
