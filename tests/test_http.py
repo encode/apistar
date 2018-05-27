@@ -102,6 +102,12 @@ def return_response(data: http.RequestData) -> http.Response:
     return http.JSONResponse({'example': 'content'})
 
 
+def return_unserializable_json() -> dict:
+    class Dummy:
+        pass
+    return {'dummy': Dummy()}
+
+
 routes = [
     Route('/request/', 'GET', get_request),
     Route('/method/', 'GET', get_method),
@@ -126,6 +132,7 @@ routes = [
     Route('/return_string/', 'GET', return_string),
     Route('/return_data/', 'GET', return_data),
     Route('/return_response/', 'GET', return_response),
+    Route('/return_unserializable_json/', 'GET', return_unserializable_json),
 ]
 
 
@@ -363,6 +370,12 @@ def test_return_data(client):
 def test_return_response(client):
     response = client.get('/return_response/')
     assert response.json() == {'example': 'content'}
+
+
+def test_return_unserializable_json(client):
+    with pytest.raises(TypeError) as excinfo:
+        client.get('/return_unserializable_json/')
+    assert str(excinfo).endswith("Object of type 'Dummy' is not JSON serializable.")
 
 
 def test_headers_type(client):
