@@ -30,7 +30,7 @@ class DictNode(dict):
         return repr(dict(self))
 
     def lookup(self, prefix):
-        if not prefix:
+        if not prefix or prefix[0] not in self:
             return self
         return self[prefix[0]].lookup(prefix[1:])
 
@@ -47,6 +47,6 @@ class ListNode(list):
         return repr(list(self))
 
     def lookup(self, prefix):
-        if not prefix:
+        if not prefix or prefix[0] not in self:
             return self
         return self[prefix[0]].lookup(prefix[1:])

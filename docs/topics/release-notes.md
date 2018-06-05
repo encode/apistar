@@ -2,6 +2,10 @@
 
 ## Version 0.5.x
 
+### 0.5.27
+
+* Handle error formatting for missing keys.
+
 ### 0.5.26
 
 * Fix error reporting when YAML parse errors occur.
