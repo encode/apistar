@@ -391,14 +391,14 @@ class SwaggerCodec(BaseCodec):
             definitions[key] = JSONSchemaCodec().decode_from_data_structure(value)
         return definitions
 
-    def get_content(self, openapi, base_url, schema_definitions):
+    def get_content(self, swagger, base_url, schema_definitions):
         """
         Return all the links in the document, layed out by tag and operationId.
         """
         links_by_tag = dict_type()
         links = []
 
-        for path, path_info in openapi.get('paths', {}).items():
+        for path, path_info in swagger.get('paths', {}).items():
             operations = {
                 key: path_info[key] for key in path_info
                 if key in METHODS
@@ -517,7 +517,7 @@ class SwaggerCodec(BaseCodec):
             'indent': 4,
             'separators': (',', ': ')
         }
-        return json.dumps(openapi, **kwargs).encode('utf-8')
+        return json.dumps(swagger, **kwargs).encode('utf-8')
 
     def get_paths(self, document, schema_defs=None):
         paths = dict_type()
