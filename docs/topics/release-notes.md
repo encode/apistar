@@ -2,6 +2,14 @@
 
 ## Version 0.5.x
 
+### 0.5.29
+
+* Initial support for validating `.apistar.yml` config file.
+
+### 0.5.28
+
+* First pass at Swagger 2 support (alongside existing OpenAPI 3 support).
+
 ### 0.5.27
 
 * Handle error formatting for missing keys.
