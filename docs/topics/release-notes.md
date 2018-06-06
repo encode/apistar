@@ -2,6 +2,10 @@
 
 ## Version 0.5.x
 
+### 0.5.30
+
+* Drop erronous `print`
+
 ### 0.5.29
 
 * Initial support for validating `.apistar.yml` config file.
