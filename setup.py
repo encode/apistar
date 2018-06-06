@@ -54,7 +54,6 @@ def get_long_description(long_description_file):
 
 version = get_version('apistar')
 
-
 setup(
     name='apistar',
     version=version,
@@ -75,6 +74,25 @@ setup(
         'werkzeug',
         'whitenoise'
     ],
+    extras_require={
+        'develop': [
+            # Optional
+            'aiofiles',
+            'jinja2',
+            'whitenoise',
+
+            # Testing requirements
+            'codecov',
+            'flake8',
+            'isort',
+            'pytest',
+            'pytest-cov',
+
+            # Linting
+            'flake8',
+            'flake8-print',
+        ]
+    },
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Environment :: Web Environment',
