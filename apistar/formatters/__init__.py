@@ -54,7 +54,6 @@ def get_errors(content, exc, content_type=None):
         nodes = parse_yaml(content)
     errors = []
     for prefix, message in get_errors_list(exc.detail):
-        print(prefix, message)
         node = nodes.lookup(prefix)
         if message.code in ('invalid_key', 'invalid_property'):
             error = Error(message, content, node.key_start, node.key_end)
