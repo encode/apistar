@@ -22,10 +22,6 @@ def main():
 @click.command()
 @click.argument('schema', type=click.File('rb'))
 def validate(schema):
-    # encoder = JSONErrorEncoder(errors={'123': 'Yikes', 'abc': {1: 'Nope'}}, indent=4)
-    # click.echo(encoder.encode({'123': '...', 'abc': ['...', '...', '...']}))
-    # return
-
     codec = codecs.OpenAPICodec()
     content = schema.read()
     if content.decode().strip() and content.decode().strip()[0] in '{[':
