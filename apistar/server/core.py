@@ -32,7 +32,7 @@ class Route():
             fields=fields,
             response=response,
             # Strip leading tabs or spaces from docstring so doc distplays properly in html template
-            description=re.sub(lstrip_doc_regex, '\n', str(handler.__doc__))
+            description=re.sub(lstrip_doc_regex, '\n', handler.__doc__)
         )
 
     def generate_fields(self, url, method, handler):
