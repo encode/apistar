@@ -15,7 +15,7 @@
             <span class="label label-primary">{{ link.method }}</span>
             <code>{{ link.url }}</code>
         </div>
-
+      
         {% if link.description %}<p class="description">{{ link.lstripped_description|safe }}</p>{% endif %}
 
 {% if link.get_path_fields() %}

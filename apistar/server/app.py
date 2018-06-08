@@ -176,7 +176,7 @@ class App():
     def exception_handler(self, exc: Exception) -> Response:
         if isinstance(exc, exceptions.HTTPException):
             return JSONResponse(exc.detail, exc.status_code, exc.get_headers())
-        raise exc
+        raise
 
     def error_handler(self) -> Response:
         return JSONResponse('Server error', 500, exc_info=sys.exc_info())

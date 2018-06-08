@@ -5,7 +5,6 @@ import typing
 from apistar import http, types, validators
 from apistar.document import Document, Field, Link, Response, Section
 
-path_names_regex = '{[^}]*}'
 
 class Route():
     def __init__(self, url, method, handler, name=None, documented=True, standalone=False):
@@ -30,13 +29,13 @@ class Route():
             encoding=encoding,
             fields=fields,
             response=response,
-            description=handler.__doc__,
+            description=handler.__doc__
         )
 
     def generate_fields(self, url, method, handler):
         fields = []
         path_names = [
-            item.strip('{}').lstrip('+') for item in re.findall(path_names_regex, url)
+            item.strip('{}').lstrip('+') for item in re.findall('{[^}]*}', url)
         ]
         parameters = inspect.signature(handler).parameters
         for name, param in parameters.items():
