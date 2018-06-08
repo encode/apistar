@@ -5,6 +5,7 @@ import typing
 from apistar import http, types, validators
 from apistar.document import Document, Field, Link, Response, Section
 
+lstrip_doc_regex = re.compile(r'\n    |\n\t')
 path_names_regex = '{[^}]*}'
 
 class Route():
@@ -30,7 +31,8 @@ class Route():
             encoding=encoding,
             fields=fields,
             response=response,
-            description=handler.__doc__,
+            # Strip leading tabs or spaces from docstring so doc distplays properly in html template
+            description=re.sub(lstrip_doc_regex, '\n', str(handler.__doc__))
         )
 
     def generate_fields(self, url, method, handler):
