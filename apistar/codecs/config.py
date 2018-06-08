@@ -9,11 +9,17 @@ CONFIG = validators.Object(
         ('schema', validators.Object(
             properties=[
                 ('path', validators.String()),
-                ('format', validators.String()),
+                ('format', validators.String(enum=['openapi', 'swagger'])),
             ],
             additional_properties=False,
             required=['path', 'format']
         )),
+        ('docs', validators.Object(
+            properties=[
+                ('theme', validators.String(enum=['apistar', 'redoc'])),
+            ],
+            additional_properties=False,
+        ))
     ],
     additional_properties=False,
     required=['schema'],
