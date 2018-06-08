@@ -9,7 +9,7 @@
             <div class="invalid-feedback"></div>
         </label>
     </div>
-    {% if field.description %}
-        <span class="help-block">{{ field.description }}</span>
+    {% if field.lstripped_description %}
+        <span class="help-block">{{ field.lstripped_description }}</span>
     {% endif %}
 </div>

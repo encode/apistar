@@ -5,6 +5,7 @@ import typing
 from apistar.validators import Validator
 
 LinkInfo = collections.namedtuple('LinkInfo', ['link', 'name', 'sections'])
+lstrip_doc_regex = re.compile(r'\n    |\n\t')
 
 
 class Document:
@@ -149,6 +150,8 @@ class Link:
         self.title = title
         self.description = description
         self.fields = fields
+        # Strip leading tabs or spaces from docstring so doc displays properly in html template
+        self.lstripped_description = re.sub(lstrip_doc_regex, '\n', str(handler.__doc__))
 
     def get_path_fields(self):
         return [field for field in self.fields if field.location == 'path']
