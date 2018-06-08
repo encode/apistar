@@ -2,6 +2,14 @@
 
 ## Version 0.5.x
 
+### 0.5.32
+
+* Add 'swaggerui' option to `docs/theme`, alongside existing 'redoc', 'apistar'.
+
+### 0.5.31
+
+* Add 'docs/theme' section to `.apistar.yml` config file validation.
+
 ### 0.5.30
 
 * Drop erronous `print`

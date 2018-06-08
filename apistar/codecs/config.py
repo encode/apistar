@@ -16,7 +16,7 @@ CONFIG = validators.Object(
         )),
         ('docs', validators.Object(
             properties=[
-                ('theme', validators.String(enum=['apistar', 'redoc'])),
+                ('theme', validators.String(enum=['apistar', 'redoc', 'swaggerui'])),
             ],
             additional_properties=False,
         ))
