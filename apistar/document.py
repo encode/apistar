@@ -5,6 +5,7 @@ import typing
 from apistar.validators import Validator
 
 LinkInfo = collections.namedtuple('LinkInfo', ['link', 'name', 'sections'])
+lstrip_doc_regex = re.compile('\n {4}|\n\r')
 
 
 class Document:
