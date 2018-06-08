@@ -151,7 +151,7 @@ class Link:
         self.description = description
         self.fields = fields
         # Strip leading tabs or spaces from docstring so doc displays properly in html template
-        self.lstripped_description = re.sub(lstrip_doc_regex, '\n', str(handler.__doc__))
+        self.lstripped_description = re.sub(lstrip_doc_regex, '\n', str(description))
 
     def get_path_fields(self):
         return [field for field in self.fields if field.location == 'path']
