@@ -2,6 +2,10 @@
 
 ## Version 0.5.x
 
+### 0.5.33
+
+* More robust handling for `None` in tags or titles in swagger/openapi codecs.
+
 ### 0.5.32
 
 * Add 'swaggerui' option to `docs/theme`, alongside existing 'redoc', 'apistar'.

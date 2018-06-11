@@ -314,6 +314,8 @@ def _relative_url(base_url, url):
 
 
 def _simple_slugify(text):
+    if text is None:
+        return None
     text = text.lower()
     text = re.sub(r'[^a-z0-9]+', '_', text)
     text = re.sub(r'[_]+', '_', text)
