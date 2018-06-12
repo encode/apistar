@@ -2,6 +2,11 @@
 
 ## Version 0.5.x
 
+### 0.5.34
+
+* OpenAPI: Add 'RequestBodies' to components.
+* OpenAPI: 'security' must be a list.
+
 ### 0.5.33
 
 * More robust handling for `None` in tags or titles in swagger/openapi codecs.

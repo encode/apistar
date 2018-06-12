@@ -14,6 +14,9 @@ from apistar.exceptions import ParseError
 SCHEMA_REF = validators.Object(
     properties={'$ref': validators.String(pattern='^#/components/schemas/')}
 )
+REQUESTBODY_REF = validators.Object(
+    properties={'$ref': validators.String(pattern='^#/components/requestBodies/')}
+)
 RESPONSE_REF = validators.Object(
     properties={'$ref': validators.String(pattern='^#/components/responses/')}
 )
@@ -133,7 +136,7 @@ OPEN_API = validators.Object(
                 ('externalDocs', validators.Ref('ExternalDocumentation')),
                 ('operationId', validators.String()),
                 ('parameters', validators.Array(items=validators.Ref('Parameter'))),  # TODO: | ReferenceObject
-                ('requestBody', validators.Ref('RequestBody')),  # TODO: RequestBody | ReferenceObject
+                ('requestBody', REQUESTBODY_REF | validators.Ref('RequestBody')),  # TODO: RequestBody | ReferenceObject
                 ('responses', validators.Ref('Responses')),
                 # TODO: 'callbacks'
                 ('deprecated', validators.Boolean()),
@@ -241,6 +244,7 @@ OPEN_API = validators.Object(
                 ('schemas', validators.Object(additional_properties=JSON_SCHEMA)),
                 ('responses', validators.Object(additional_properties=validators.Ref('Response'))),
                 ('parameters', validators.Object(additional_properties=validators.Ref('Parameter'))),
+                ('requestBodies', validators.Object(additional_properties=validators.Ref('RequestBody'))),
                 ('securitySchemes', validators.Object(additional_properties=validators.Ref('SecurityScheme'))),
                 # TODO: Other fields
             ],
