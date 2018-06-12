@@ -27,7 +27,7 @@ OPEN_API = validators.Object(
         ('servers', validators.Array(items=validators.Ref('Server'))),
         ('paths', validators.Ref('Paths')),
         ('components', validators.Ref('Components')),
-        ('security', validators.Ref('SecurityRequirement')),
+        ('security', validators.Array(items=validators.Ref('SecurityRequirement'))),
         ('tags', validators.Array(items=validators.Ref('Tag'))),
         ('externalDocs', validators.Ref('ExternalDocumentation')),
     ],
