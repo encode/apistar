@@ -59,6 +59,6 @@ def get_errors(content, exc, content_type=None, filename=None):
         if message.code in ('invalid_key', 'invalid_property'):
             error = Error(message, content, node.key_start, node.key_end, filename=filename)
         else:
-            error = Error(filename, message, content, node.start, node.end, filename=filename)
+            error = Error(message, content, node.start, node.end, filename=filename)
         errors.append(error)
     return sorted(errors, key=lambda e: e.start.index)

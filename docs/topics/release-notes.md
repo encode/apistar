@@ -2,6 +2,10 @@
 
 ## Version 0.5.x
 
+### 0.5.36
+
+* Resolve issue with `filename` argument on errors.
+
 ### 0.5.35
 
 * Support optional `filename` argument against errors.
