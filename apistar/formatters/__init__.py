@@ -12,10 +12,11 @@ class Mark:
 
 
 class Error:
-    def __init__(self, message, content, start_index, end_index):
+    def __init__(self, message, content, start_index, end_index, filename=None):
         self.message = message
         self.start = Mark(content, start_index)
         self.end = Mark(content, end_index)
+        self.filename = filename
 
     def __repr__(self):
         return '<Error %s at line %d, column %s.>' % (
@@ -39,13 +40,13 @@ def get_errors_list(error_detail, prefix=()):
     return errors
 
 
-def get_errors(content, exc, content_type=None):
+def get_errors(content, exc, content_type=None, filename=None):
     assert content_type in ('json', 'yaml')
     assert isinstance(exc, (ParseError, ValidationError))
 
     if isinstance(exc, ParseError):
         return [
-            Error(exc.short_message, content, exc.pos, exc.pos)
+            Error(exc.short_message, content, exc.pos, exc.pos, filename=filename)
         ]
 
     if content_type == 'json':
@@ -56,8 +57,8 @@ def get_errors(content, exc, content_type=None):
     for prefix, message in get_errors_list(exc.detail):
         node = nodes.lookup(prefix)
         if message.code in ('invalid_key', 'invalid_property'):
-            error = Error(message, content, node.key_start, node.key_end)
+            error = Error(message, content, node.key_start, node.key_end, filename=filename)
         else:
-            error = Error(message, content, node.start, node.end)
+            error = Error(filename, message, content, node.start, node.end, filename=filename)
         errors.append(error)
     return sorted(errors, key=lambda e: e.start.index)

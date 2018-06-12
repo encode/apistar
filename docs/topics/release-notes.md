@@ -2,6 +2,10 @@
 
 ## Version 0.5.x
 
+### 0.5.35
+
+* Support optional `filename` argument against errors.
+
 ### 0.5.34
 
 * OpenAPI: Add 'RequestBodies' to components.
