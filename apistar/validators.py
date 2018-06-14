@@ -109,7 +109,7 @@ class String(Validator):
         'pattern': 'Must match the pattern /{pattern}/.',
         'format': 'Must be a valid {format}.',
         'enum': 'Must be a valid choice.',
-        'exact': 'Must be {exact}.'
+        'exact': 'Must be {enum[0]}.'
     }
 
     def __init__(self, max_length=None, min_length=None, pattern=None,
