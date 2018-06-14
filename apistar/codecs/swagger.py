@@ -34,7 +34,7 @@ SWAGGER = validators.Object(
         ('parameters', validators.Object(additional_properties=validators.Ref('Parameters'))),
         ('responses', validators.Object(additional_properties=validators.Ref('Responses'))),
         ('securityDefinitions', validators.Object(additional_properties=validators.Ref('SecurityScheme'))),
-        ('security', validators.Ref('SecurityRequirement')),
+        ('security', validators.Array(items=validators.Ref('SecurityRequirement'))),
         ('tags', validators.Array(items=validators.Ref('Tag'))),
         ('externalDocs', validators.Ref('ExternalDocumentation')),
     ],
@@ -250,7 +250,7 @@ SWAGGER = validators.Object(
         ),
         'SecurityScheme': validators.Object(
             properties=[
-                ('type', validators.String(enum=['apiKey', 'http', 'oauth2', 'openIdConnect'])),
+                ('type', validators.String(enum=['basic', 'apiKey', 'oauth2'])),
                 ('description', validators.String(format='textarea')),
                 ('name', validators.String()),
                 ('in', validators.String(enum=['query', 'header', 'cookie'])),

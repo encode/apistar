@@ -2,6 +2,10 @@
 
 ## Version 0.5.x
 
+### 0.5.37
+
+* Swagger: Fixes to security and securityDefinitions.
+
 ### 0.5.36
 
 * Resolve issue with `filename` argument on errors.
