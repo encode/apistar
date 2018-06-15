@@ -1,7 +1,7 @@
 import re
 from json.decoder import JSONDecodeError, JSONDecoder, scanstring
 
-from apistar.formatters.nodes import DictNode, ListNode, LiteralNode
+from apistar.tokenize.tokens import DictToken, ListToken, ScalarToken
 
 FLAGS = re.VERBOSE | re.MULTILINE | re.DOTALL
 WHITESPACE = re.compile(r'[ \t\n\r]*', FLAGS)
@@ -11,14 +11,11 @@ NUMBER_RE = re.compile(
     (re.VERBOSE | re.MULTILINE | re.DOTALL))
 
 
-def JSONObject(s_and_end, strict, scan_once, object_hook, object_pairs_hook,
-               memo=None, _w=WHITESPACE.match, _ws=WHITESPACE_STR):
+def _TokenizingJSONObject(s_and_end, strict, scan_once,
+                          memo, _w=WHITESPACE.match, _ws=WHITESPACE_STR):
     s, end = s_and_end
     pairs = []
     pairs_append = pairs.append
-    # Backwards compatibility
-    if memo is None:
-        memo = {}
     memo_get = memo.setdefault
     # Use a slice to prevent IndexError from being raised, the following
     # check will raise a more specific ValueError if the string is empty
@@ -30,22 +27,16 @@ def JSONObject(s_and_end, strict, scan_once, object_hook, object_pairs_hook,
             nextchar = s[end:end + 1]
         # Trivial empty object
         if nextchar == '}':
-            if object_pairs_hook is not None:
-                result = object_pairs_hook(pairs)
-                return result, end + 1
-            pairs = {}
-            if object_hook is not None:
-                pairs = object_hook(pairs)
-            return pairs, end + 1
+            return {}, end + 1
         elif nextchar != '"':
             raise JSONDecodeError(
                 "Expecting property name enclosed in double quotes", s, end)
     end += 1
     while True:
-        key_start = end - 1
+        start = end - 1
         key, end = scanstring(s, end, strict)
-        key_end = end
         key = memo_get(key, key)
+        key = ScalarToken(memo_get(key, key), start, end - 1)
         # To skip some function call overhead we optimize the fast paths where
         # the JSON key separator is ": " or just ":".
         if s[end:end + 1] != ':':
@@ -66,8 +57,6 @@ def JSONObject(s_and_end, strict, scan_once, object_hook, object_pairs_hook,
             value, end = scan_once(s, end)
         except StopIteration as err:
             raise JSONDecodeError("Expecting value", s, err.value) from None
-        value.key_start = key_start
-        value.key_end = key_end
         pairs_append((key, value))
         try:
             nextchar = s[end]
@@ -88,26 +77,17 @@ def JSONObject(s_and_end, strict, scan_once, object_hook, object_pairs_hook,
         if nextchar != '"':
             raise JSONDecodeError(
                 "Expecting property name enclosed in double quotes", s, end - 1)
-    if object_pairs_hook is not None:
-        result = object_pairs_hook(pairs)
-        return result, end
-    pairs = dict(pairs)
-    if object_hook is not None:
-        pairs = object_hook(pairs)
-    return pairs, end
+    return dict(pairs), end
 
 
-def make_scanner(context):
-    parse_object = JSONObject
+def _make_scanner(context):
+    parse_object = _TokenizingJSONObject
     parse_array = context.parse_array
     parse_string = context.parse_string
     match_number = NUMBER_RE.match
     strict = context.strict
     parse_float = context.parse_float
     parse_int = context.parse_int
-    parse_constant = context.parse_constant
-    object_hook = context.object_hook
-    object_pairs_hook = context.object_pairs_hook
     memo = context.memo
 
     def _scan_once(string, idx):
@@ -118,25 +98,25 @@ def make_scanner(context):
 
         if nextchar == '"':
             value, end = parse_string(string, idx + 1, strict)
-            return LiteralNode(value, idx, end), end
+            return ScalarToken(value, idx, end - 1), end
         elif nextchar == '{':
             value, end = parse_object(
                 (string, idx + 1), strict,
-                _scan_once, object_hook, object_pairs_hook, memo
+                _scan_once, memo
             )
-            return DictNode(value, idx, end), end
+            return DictToken(value, idx, end - 1), end
         elif nextchar == '[':
             value, end = parse_array((string, idx + 1), _scan_once)
-            return ListNode(value, idx, end), end
+            return ListToken(value, idx, end - 1), end
         elif nextchar == 'n' and string[idx:idx + 4] == 'null':
             value, end = None, idx + 4
-            return LiteralNode(value, idx, end), end
+            return ScalarToken(value, idx, end - 1), end
         elif nextchar == 't' and string[idx:idx + 4] == 'true':
             value, end = True, idx + 4
-            return LiteralNode(value, idx, end), end
+            return ScalarToken(value, idx, end - 1), end
         elif nextchar == 'f' and string[idx:idx + 5] == 'false':
             value, end = False, idx + 5
-            return LiteralNode(value, idx, end), end
+            return ScalarToken(value, idx, end - 1), end
 
         m = match_number(string, idx)
         if m is not None:
@@ -146,16 +126,7 @@ def make_scanner(context):
             else:
                 res = parse_int(integer)
             value, end = res, m.end()
-            return LiteralNode(value, idx, end), end
-        elif nextchar == 'N' and string[idx:idx + 3] == 'NaN':
-            value, end = parse_constant('NaN'), idx + 3
-            return LiteralNode(value, idx, end), end
-        elif nextchar == 'I' and string[idx:idx + 8] == 'Infinity':
-            value, end = parse_constant('Infinity'), idx + 8
-            return LiteralNode(value, idx, end), end
-        elif nextchar == '-' and string[idx:idx + 9] == '-Infinity':
-            value, end = parse_constant('-Infinity'), idx + 9
-            return LiteralNode(value, idx, end), end
+            return ScalarToken(value, idx, end - 1), end
         else:
             raise StopIteration(idx)
 
@@ -165,15 +136,15 @@ def make_scanner(context):
         finally:
             memo.clear()
 
-    return _scan_once
+    return scan_once
 
 
-class JSONNodeDecoder(JSONDecoder):
+class _TokenizingDecoder(JSONDecoder):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.scan_once = make_scanner(self)
+        self.scan_once = _make_scanner(self)
 
 
-def parse_json(content):
-    decoder = JSONNodeDecoder()
+def tokenize_json(content):
+    decoder = _TokenizingDecoder()
     return decoder.decode(content)
