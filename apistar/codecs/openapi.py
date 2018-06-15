@@ -2,14 +2,12 @@ import json
 import re
 from urllib.parse import urljoin, urlparse
 
-import yaml
-
 from apistar import validators
 from apistar.codecs import BaseCodec, JSONSchemaCodec
 from apistar.codecs.jsonschema import JSON_SCHEMA
 from apistar.compat import dict_type
 from apistar.document import Document, Field, Link, Section
-from apistar.exceptions import ParseError
+from apistar.parse import infer_json_or_yaml, parse_json, parse_yaml
 
 SCHEMA_REF = validators.Object(
     properties={'$ref': validators.String(pattern='^#/components/schemas/')}
@@ -330,92 +328,37 @@ class OpenAPICodec(BaseCodec):
     media_type = 'application/vnd.oai.openapi'
     format = 'openapi'
 
-    def decode(self, bytestring, **options):
-        content = bytestring.decode('utf-8')
-        content = content.strip()
-        if not content:
-            raise ParseError(
-                message='No content.',
-                short_message='No content.',
-                pos=0,
-                lineno=1,
-                colno=1
-            )
-        if content[0] in '{[':
-            return self.decode_json(bytestring, **options)
-        return self.decode_yaml(bytestring, **options)
+    def decode(self, content, **options):
+        base_format = infer_json_or_yaml(content)
+        if base_format == 'json':
+            data = parse_json(content, validator=OPEN_API)
+        else:
+            data = parse_yaml(content, validator=OPEN_API)
 
-    def decode_json(self, bytestring, **options):
-        try:
-            data = json.loads(bytestring.decode('utf-8'))
-        except json.decoder.JSONDecodeError as exc:
-            if exc.msg.endswith(' starting at'):
-                short_msg = exc.msg[:-len(' starting at')] + '.'
-            elif exc.msg.endswith(' at'):
-                short_msg = exc.msg[:-len(' at')] + '.'
-            else:
-                short_msg = exc.msg + '.'
-            raise ParseError(
-                message=str(exc),
-                short_message=short_msg,
-                pos=exc.pos,
-                lineno=exc.lineno,
-                colno=exc.colno
-            ) from None
-        except ValueError as exc:
-            raise ParseError('Malformed JSON. %s' % exc) from None
+        title = lookup(data, ['info', 'title'])
+        description = lookup(data, ['info', 'description'])
+        version = lookup(data, ['info', 'version'])
+        base_url = lookup(data, ['servers', 0, 'url'])
+        schema_definitions = self.get_schema_definitions(data)
+        content = self.get_content(data, base_url, schema_definitions)
 
-        return self.decode_data(data)
-
-    def decode_yaml(self, bytestring, **options):
-        try:
-            data = yaml.safe_load(bytestring.decode('utf-8'))
-        except (yaml.scanner.ScannerError, yaml.parser.ParserError) as exc:
-            if not hasattr(exc, 'index'):
-                index = 0
-                lineno = 1
-                colno = 1
-            else:
-                index = exc.index
-                lineno = exc.line
-                colno = exc.column
-            raise ParseError(
-                message='% at line %d column %d' % (exc.problem, exc.problem_mark.line, exc.problem_mark.column),
-                short_message=exc.problem,
-                pos=index,
-                lineno=lineno,
-                colno=colno
-            ) from None
-        except ValueError as exc:
-            raise ParseError('Malformed YAML. %s' % exc) from None
-
-        return self.decode_data(data)
-
-    def decode_data(self, data, **options):
-        openapi = OPEN_API.validate(data)
-        title = lookup(openapi, ['info', 'title'])
-        description = lookup(openapi, ['info', 'description'])
-        version = lookup(openapi, ['info', 'version'])
-        base_url = lookup(openapi, ['servers', 0, 'url'])
-        schema_definitions = self.get_schema_definitions(openapi)
-        content = self.get_content(openapi, base_url, schema_definitions)
         return Document(title=title, description=description, version=version, url=base_url, content=content)
 
-    def get_schema_definitions(self, openapi):
+    def get_schema_definitions(self, data):
         definitions = {}
-        schemas = lookup(openapi, ['components', 'schemas'], {})
+        schemas = lookup(data, ['components', 'schemas'], {})
         for key, value in schemas.items():
             definitions[key] = JSONSchemaCodec().decode_from_data_structure(value)
         return definitions
 
-    def get_content(self, openapi, base_url, schema_definitions):
+    def get_content(self, data, base_url, schema_definitions):
         """
         Return all the links in the document, layed out by tag and operationId.
         """
         links_by_tag = dict_type()
         links = []
 
-        for path, path_info in openapi.get('paths', {}).items():
+        for path, path_info in data.get('paths', {}).items():
             operations = {
                 key: path_info[key] for key in path_info
                 if key in METHODS

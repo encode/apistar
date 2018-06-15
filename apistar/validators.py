@@ -67,7 +67,7 @@ class Validator:
 
     def error(self, code, value):
         message = self.error_message(code)
-        raise ValidationError(message, value)
+        raise ValidationError(message)
 
     def error_message(self, code):
         message = self.errors[code].format(**self.__dict__)
@@ -434,7 +434,7 @@ class Object(Validator):
                     errors[key] = exc.detail
 
         if errors:
-            raise ValidationError(errors, value)
+            raise ValidationError(errors)
 
         return validated
 
@@ -532,7 +532,7 @@ class Array(Validator):
                 errors[pos] = exc.detail
 
         if errors:
-            raise ValidationError(errors, value)
+            raise ValidationError(errors)
 
         return validated
 

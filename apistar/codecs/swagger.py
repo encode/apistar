@@ -2,14 +2,12 @@ import json
 import re
 from urllib.parse import urljoin, urlparse
 
-import yaml
-
 from apistar import validators
 from apistar.codecs import BaseCodec, JSONSchemaCodec
 from apistar.codecs.jsonschema import JSON_SCHEMA
 from apistar.compat import dict_type
 from apistar.document import Document, Field, Link, Section
-from apistar.exceptions import ParseError
+from apistar.parse import infer_json_or_yaml, parse_json, parse_yaml
 
 SCHEMA_REF = validators.Object(
     properties={'$ref': validators.String(pattern='^#/components/schemas/')}
@@ -310,97 +308,41 @@ class SwaggerCodec(BaseCodec):
     media_type = 'application/swagger'
     format = 'swagger'
 
-    def decode(self, bytestring, **options):
-        content = bytestring.decode('utf-8')
-        content = content.strip()
-        if not content:
-            raise ParseError(
-                message='No content.',
-                short_message='No content.',
-                pos=0,
-                lineno=1,
-                colno=1
-            )
-        if content[0] in '{[':
-            return self.decode_json(bytestring, **options)
-        return self.decode_yaml(bytestring, **options)
+    def decode(self, content, **options):
+        base_format = infer_json_or_yaml(content)
+        if base_format == 'json':
+            data = parse_json(content, validator=SWAGGER)
+        else:
+            data = parse_yaml(content, validator=SWAGGER)
 
-    def decode_json(self, bytestring, **options):
-        try:
-            data = json.loads(bytestring.decode('utf-8'))
-        except json.decoder.JSONDecodeError as exc:
-            if exc.msg.endswith(' starting at'):
-                short_msg = exc.msg[:-len(' starting at')] + '.'
-            elif exc.msg.endswith(' at'):
-                short_msg = exc.msg[:-len(' at')] + '.'
-            else:
-                short_msg = exc.msg + '.'
-            raise ParseError(
-                message=str(exc),
-                short_message=short_msg,
-                pos=exc.pos,
-                lineno=exc.lineno,
-                colno=exc.colno
-            ) from None
-        except ValueError as exc:
-            raise ParseError('Malformed JSON. %s' % exc) from None
-
-        return self.decode_data(data)
-
-    def decode_yaml(self, bytestring, **options):
-        try:
-            data = yaml.safe_load(bytestring.decode('utf-8'))
-        except (yaml.scanner.ScannerError, yaml.parser.ParserError) as exc:
-            if not hasattr(exc, 'index'):
-                index = 0
-                lineno = 1
-                colno = 1
-            else:
-                index = exc.index
-                lineno = exc.line
-                colno = exc.column
-            raise ParseError(
-                message='% at line %d column %d' % (exc.problem, exc.problem_mark.line, exc.problem_mark.column),
-                short_message=exc.problem,
-                pos=index,
-                lineno=lineno,
-                colno=colno
-            ) from None
-        except ValueError as exc:
-            raise ParseError('Malformed YAML. %s' % exc) from None
-
-        return self.decode_data(data)
-
-    def decode_data(self, data, **options):
-        swagger = SWAGGER.validate(data)
-        title = lookup(swagger, ['info', 'title'])
-        description = lookup(swagger, ['info', 'description'])
-        version = lookup(swagger, ['info', 'version'])
-        host = lookup(swagger, ['host'])
-        path = lookup(swagger, ['basePath'], '/')
-        scheme = lookup(swagger, ['schemes', 0], 'https')
+        title = lookup(data, ['info', 'title'])
+        description = lookup(data, ['info', 'description'])
+        version = lookup(data, ['info', 'version'])
+        host = lookup(data, ['host'])
+        path = lookup(data, ['basePath'], '/')
+        scheme = lookup(data, ['schemes', 0], 'https')
         base_url = None
         if host:
             base_url = '%s://%s%s' % (scheme, host, path)
-        schema_definitions = self.get_schema_definitions(swagger)
-        content = self.get_content(swagger, base_url, schema_definitions)
+        schema_definitions = self.get_schema_definitions(data)
+        content = self.get_content(data, base_url, schema_definitions)
         return Document(title=title, description=description, version=version, url=base_url, content=content)
 
-    def get_schema_definitions(self, swagger):
+    def get_schema_definitions(self, data):
         definitions = {}
-        schemas = lookup(swagger, ['components', 'schemas'], {})
+        schemas = lookup(data, ['components', 'schemas'], {})
         for key, value in schemas.items():
             definitions[key] = JSONSchemaCodec().decode_from_data_structure(value)
         return definitions
 
-    def get_content(self, swagger, base_url, schema_definitions):
+    def get_content(self, data, base_url, schema_definitions):
         """
         Return all the links in the document, layed out by tag and operationId.
         """
         links_by_tag = dict_type()
         links = []
 
-        for path, path_info in swagger.get('paths', {}).items():
+        for path, path_info in data.get('paths', {}).items():
             operations = {
                 key: path_info[key] for key in path_info
                 if key in METHODS

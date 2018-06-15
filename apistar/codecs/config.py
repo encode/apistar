@@ -1,10 +1,8 @@
-import yaml
-
 from apistar import validators
 from apistar.codecs import BaseCodec
-from apistar.exceptions import ParseError
+from apistar.parse import parse_yaml
 
-CONFIG = validators.Object(
+APISTAR_CONFIG = validators.Object(
     properties=[
         ('schema', validators.Object(
             properties=[
@@ -30,38 +28,5 @@ class ConfigCodec(BaseCodec):
     media_type = 'application/x-yaml'
     format = 'apistar'
 
-    def decode(self, bytestring, **options):
-        content = bytestring.decode('utf-8')
-        content = content.strip()
-        if not content:
-            raise ParseError(
-                message='No content.',
-                short_message='No content.',
-                pos=0,
-                lineno=1,
-                colno=1
-            )
-
-        try:
-            data = yaml.safe_load(content)
-        except (yaml.scanner.ScannerError, yaml.parser.ParserError) as exc:
-            if not hasattr(exc, 'index'):
-                index = 0
-                lineno = 1
-                colno = 1
-            else:
-                index = exc.index
-                lineno = exc.line
-                colno = exc.column
-            raise ParseError(
-                message='% at line %d column %d' % (exc.problem, exc.problem_mark.line, exc.problem_mark.column),
-                short_message=exc.problem,
-                pos=index,
-                lineno=lineno,
-                colno=colno
-            ) from None
-        except ValueError as exc:
-            raise ParseError('Malformed YAML. %s' % exc) from None
-
-        CONFIG.validate(data)
-        return data
+    def decode(self, content, **options):
+        return parse_yaml(content, validator=APISTAR_CONFIG)

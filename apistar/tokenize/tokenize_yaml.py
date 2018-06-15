@@ -1,10 +1,10 @@
 import yaml
 from yaml.loader import SafeLoader
 
-from apistar.formatters.nodes import DictNode, ListNode, LiteralNode
+from apistar.tokenize.tokens import DictToken, ListToken, ScalarToken
 
 
-def parse_yaml(content):
+def tokenize_yaml(content):
     class CustomLoader(SafeLoader):
         pass
 
@@ -12,48 +12,43 @@ def parse_yaml(content):
         start = node.start_mark.index
         end = node.end_mark.index
         mapping = loader.construct_mapping(node)
-        plain_mapping = {}
-        for key, value in mapping.items():
-            value.key_start = key.start
-            value.key_end = key.end
-            plain_mapping[key.value] = value
-        return DictNode(plain_mapping, start, end)
+        return DictToken(mapping, start, end - 1)
 
     def construct_sequence(loader, node):
         start = node.start_mark.index
         end = node.end_mark.index
         value = loader.construct_sequence(node)
-        return ListNode(value, start, end)
+        return ListToken(value, start, end - 1)
 
     def construct_scalar(loader, node):
         start = node.start_mark.index
         end = node.end_mark.index
         value = loader.construct_scalar(node)
-        return LiteralNode(value, start, end)
+        return ScalarToken(value, start, end - 1)
 
     def construct_int(loader, node):
         start = node.start_mark.index
         end = node.end_mark.index
         value = loader.construct_yaml_int(node)
-        return LiteralNode(value, start, end)
+        return ScalarToken(value, start, end - 1)
 
     def construct_float(loader, node):
         start = node.start_mark.index
         end = node.end_mark.index
         value = loader.construct_yaml_float(node)
-        return LiteralNode(value, start, end)
+        return ScalarToken(value, start, end - 1)
 
     def construct_bool(loader, node):
         start = node.start_mark.index
         end = node.end_mark.index
         value = loader.construct_yaml_bool(node)
-        return LiteralNode(value, start, end)
+        return ScalarToken(value, start, end - 1)
 
     def construct_null(loader, node):
         start = node.start_mark.index
         end = node.end_mark.index
         value = loader.construct_yaml_null(node)
-        return LiteralNode(value, start, end)
+        return ScalarToken(value, start, end - 1)
 
     CustomLoader.add_constructor(
         yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
