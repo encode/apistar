@@ -2,6 +2,10 @@
 
 ## Version 0.5.x
 
+### 0.5.39
+
+* Improve error messages on 'required' case.
+
 ### 0.5.38
 
 * Redesign API for retriving OpenAPI and Swagger validation errors.

@@ -79,7 +79,7 @@ def test_str_query_param():
     assert response.json() == {'param': '123'}
 
     response = client.get('/str_query_param/')
-    assert response.json() == {'param': 'This field is required.'}
+    assert response.json() == {'param': 'The "param" field is required.'}
 
 
 def test_str_query_param_with_default():
@@ -95,7 +95,7 @@ def test_int_query_param():
     assert response.json() == {'param': 123}
 
     response = client.get('/int_query_param/')
-    assert response.json() == {'param': 'This field is required.'}
+    assert response.json() == {'param': 'The "param" field is required.'}
 
 
 def test_int_query_param_with_default():
@@ -114,7 +114,7 @@ def test_bool_query_param():
     assert response.json() == {'param': False}
 
     response = client.get('/bool_query_param/')
-    assert response.json() == {'param': 'This field is required.'}
+    assert response.json() == {'param': 'The "param" field is required.'}
 
 
 def test_bool_query_param_with_default():
@@ -138,4 +138,4 @@ def test_type_body_param():
 
     response = client.post('/type_body_param/', json={})
     assert response.status_code == 400
-    assert response.json() == {'name': 'This field is required.'}
+    assert response.json() == {'name': 'The "name" field is required.'}
