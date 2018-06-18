@@ -141,7 +141,7 @@ class String(Validator):
         if self.enum is not None:
             if value not in self.enum:
                 if len(self.enum) == 1:
-                    self.error('exact')
+                    self.error('exact', exact=self.enum[0])
                 self.error('enum')
 
         if self.min_length is not None:
@@ -180,6 +180,8 @@ class NumericType(Validator):
         'maximum': 'Must be less than or equal to {maximum}.',
         'exclusive_maximum': 'Must be less than {maximum}.',
         'multiple_of': 'Must be a multiple of {multiple_of}.',
+        'enum': 'Must be one of {enum}.',
+        'exact': 'Must be {exact}.'
     }
 
     def __init__(self, minimum=None, maximum=None, exclusive_minimum=False,
@@ -225,7 +227,7 @@ class NumericType(Validator):
         if self.enum is not None:
             if value not in self.enum:
                 if len(self.enum) == 1:
-                    self.error('exact')
+                    self.error('exact', exact=self.enum[0])
                 self.error('enum')
 
         if self.minimum is not None:
