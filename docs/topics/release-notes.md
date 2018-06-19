@@ -2,6 +2,11 @@
 
 ## Version 0.5.x
 
+### 0.5.40
+
+* Raise TypeError on unserializable JSON.
+* Fix resource leak on `ASyncStaticFiles`
+
 ### 0.5.39
 
 * Improve error messages on 'required' case.
