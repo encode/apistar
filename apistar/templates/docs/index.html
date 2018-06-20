@@ -35,5 +35,26 @@
 
         <script src="{{ static_url('apistar/js/jquery-1.10.2.min.js') }}"></script>
         <script src="{{ static_url('apistar/js/bootstrap.min.js') }}"></script>
+        <script language="JavaScript">
+            // Language Control
+            $(document).ready(function () {
+                $('#language-control li').click(function (event) {
+                    event.preventDefault();
+                    var $languageMenuItem = $(this).find('a');
+                    var $languageControls = $(this).closest('ul').find('li');
+                    var $languageControlLinks = $languageControls.find('a');
+                    var language = $languageMenuItem.data('language');
+
+                    $languageControlLinks.not('[data-language="' + language + '"]').removeClass('active');
+                    $languageControlLinks.filter('[data-language="' + language + '"]').addClass('active');
+
+                    $('#selected-language').text(language);
+
+                    var $codeBlocks = $('pre.highlight');
+                    $codeBlocks.not('[data-language="' + language + '"]').addClass('d-none')
+                    $codeBlocks.filter('[data-language="' + language + '"]').removeClass('d-none')
+                });
+            });
+        </script>
     </body>
 </html>
