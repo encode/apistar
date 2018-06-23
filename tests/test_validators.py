@@ -1,6 +1,6 @@
 import pytest
-from apistar import validators
-from apistar import exceptions
+
+from apistar import exceptions, validators
 
 
 def test_number_validator_enum_positive():
