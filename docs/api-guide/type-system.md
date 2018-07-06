@@ -124,7 +124,6 @@ class Organisation(types.Type):
         if value.is_premium and value.expiry_date is not None:
             message = 'premium organisations should not have any expiry_date set.'
             raise exceptions.ValidationError(message)
-        return value
 ```
 
 ## API Reference
