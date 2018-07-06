@@ -120,8 +120,8 @@ class Organisation(types.Type):
     expiry_date = validators.Date(allow_null=True)
 
     def __init__(self, *args, **kwargs):
-        value = super().__init__(*args, **kwargs)
-        if value.is_premium and value.expiry_date is not None:
+        super().__init__(*args, **kwargs)
+        if self.is_premium and self.expiry_date is not None:
             message = 'premium organisations should not have any expiry_date set.'
             raise exceptions.ValidationError(message)
 ```
