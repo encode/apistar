@@ -50,6 +50,12 @@ class TypeMetaclass(ABCMeta):
         validators.Validator._creation_counter += 1
         return super(TypeMetaclass, cls).__new__(cls, name, bases, attrs)
 
+    def __subclasscheck__(cls, subclass):
+        try:
+            return ABCMeta.__subclasscheck__(cls, subclass)
+        except TypeError:
+            return False
+
 
 class Type(Mapping, metaclass=TypeMetaclass):
     def __init__(self, *args, **kwargs):
