@@ -295,7 +295,7 @@ class Boolean(Validator):
         elif not isinstance(value, bool):
             if allow_coerce and isinstance(value, str):
                 if self.allow_null:
-                    values = dict(self.value)
+                    values = self.values
                     values.update(self.null_values)
                 else:
                     values = self.values
