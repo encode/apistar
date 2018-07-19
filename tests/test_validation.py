@@ -43,6 +43,10 @@ def type_body_param(user: User):
     return {"user": user}
 
 
+def type_query_param(user: User):
+    return {"user": user}
+
+
 routes = [
     # Path parameters
     Route(url='/str_path_param/{param}/', method='GET', handler=str_path_param),
@@ -55,6 +59,7 @@ routes = [
     Route(url='/str_query_param_with_default/', method='GET', handler=str_query_param_with_default),
     Route(url='/int_query_param_with_default/', method='GET', handler=int_query_param_with_default),
     Route(url='/bool_query_param_with_default/', method='GET', handler=bool_query_param_with_default),
+    Route(url='/type_query_param/', method='GET', handler=type_query_param),
 
     # Body parameters
     Route(url='/type_body_param/', method='POST', handler=type_body_param),
@@ -137,5 +142,18 @@ def test_type_body_param():
     assert response.json() == {'name': 'Must have no more than 10 characters.'}
 
     response = client.post('/type_body_param/', json={})
+    assert response.status_code == 400
+    assert response.json() == {'name': 'The "name" field is required.'}
+
+
+def test_type_query_param():
+    response = client.get('/type_query_param/', params={'name': 'tom'})
+    assert response.json() == {'user': {'name': 'tom', 'age': None}}
+
+    response = client.get('/type_query_param/', params={'name': 'x' * 100})
+    assert response.status_code == 400
+    assert response.json() == {'name': 'Must have no more than 10 characters.'}
+
+    response = client.get('/type_query_param/', params={})
     assert response.status_code == 400
     assert response.json() == {'name': 'The "name" field is required.'}
