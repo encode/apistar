@@ -12,22 +12,26 @@ from apistar.parse import infer_json_or_yaml, parse_json, parse_yaml
 SCHEMA_REF = validators.Object(
     properties={'$ref': validators.String(pattern='^#/components/schemas/')}
 )
-REQUESTBODY_REF = validators.Object(
-    properties={'$ref': validators.String(pattern='^#/components/requestBodies/')}
-)
 RESPONSE_REF = validators.Object(
     properties={'$ref': validators.String(pattern='^#/components/responses/')}
 )
 
-OPEN_API = validators.Object(
-    def_name='OpenAPI',
-    title='OpenAPI',
+SWAGGER = validators.Object(
+    def_name='Swagger',
+    title='Swagger',
     properties=[
-        ('openapi', validators.String()),
+        ('swagger', validators.String()),
         ('info', validators.Ref('Info')),
-        ('servers', validators.Array(items=validators.Ref('Server'))),
         ('paths', validators.Ref('Paths')),
-        ('components', validators.Ref('Components')),
+        ('host', validators.String()),
+        ('basePath', validators.String()),
+        ('schemes', validators.Array(items=validators.String())),
+        ('consumes', validators.Array(items=validators.String())),
+        ('produces', validators.Array(items=validators.String())),
+        ('definitions', validators.Object(additional_properties=validators.Any())),
+        ('parameters', validators.Object(additional_properties=validators.Ref('Parameters'))),
+        ('responses', validators.Object(additional_properties=validators.Ref('Responses'))),
+        ('securityDefinitions', validators.Object(additional_properties=validators.Ref('SecurityScheme'))),
         ('security', validators.Array(items=validators.Ref('SecurityRequirement'))),
         ('tags', validators.Array(items=validators.Ref('Tag'))),
         ('externalDocs', validators.Ref('ExternalDocumentation')),
@@ -36,7 +40,7 @@ OPEN_API = validators.Object(
         '^x-': validators.Any(),
     },
     additional_properties=False,
-    required=['openapi', 'info', 'paths'],
+    required=['swagger', 'info', 'paths'],
     definitions={
         'Info': validators.Object(
             properties=[
@@ -75,30 +79,6 @@ OPEN_API = validators.Object(
             },
             additional_properties=False,
         ),
-        'Server': validators.Object(
-            properties=[
-                ('url', validators.String()),
-                ('description', validators.String(format='textarea')),
-                ('variables', validators.Object(additional_properties=validators.Ref('ServerVariable'))),
-            ],
-            pattern_properties={
-                '^x-': validators.Any(),
-            },
-            additional_properties=False,
-            required=['url']
-        ),
-        'ServerVariable': validators.Object(
-            properties=[
-                ('enum', validators.Array(items=validators.String())),
-                ('default', validators.String()),
-                ('description', validators.String(format='textarea')),
-            ],
-            pattern_properties={
-                '^x-': validators.Any(),
-            },
-            additional_properties=False,
-            required=['default']
-        ),
         'Paths': validators.Object(
             pattern_properties=[
                 ('^/', validators.Ref('Path')),
@@ -118,7 +98,6 @@ OPEN_API = validators.Object(
                 ('head', validators.Ref('Operation')),
                 ('patch', validators.Ref('Operation')),
                 ('trace', validators.Ref('Operation')),
-                ('servers', validators.Array(items=validators.Ref('Server'))),
                 ('parameters', validators.Array(items=validators.Ref('Parameter'))),  # TODO: | ReferenceObject
             ],
             pattern_properties={
@@ -133,13 +112,13 @@ OPEN_API = validators.Object(
                 ('description', validators.String(format='textarea')),
                 ('externalDocs', validators.Ref('ExternalDocumentation')),
                 ('operationId', validators.String()),
+                ('consumes', validators.Array(items=validators.String())),
+                ('produces', validators.Array(items=validators.String())),
                 ('parameters', validators.Array(items=validators.Ref('Parameter'))),  # TODO: | ReferenceObject
-                ('requestBody', REQUESTBODY_REF | validators.Ref('RequestBody')),  # TODO: RequestBody | ReferenceObject
                 ('responses', validators.Ref('Responses')),
-                # TODO: 'callbacks'
+                ('schemes', validators.Array(items=validators.String())),
                 ('deprecated', validators.Boolean()),
                 ('security', validators.Array(validators.Ref('SecurityRequirement'))),
-                ('servers', validators.Array(items=validators.Ref('Server'))),
             ],
             pattern_properties={
                 '^x-': validators.Any(),
@@ -160,14 +139,16 @@ OPEN_API = validators.Object(
         'Parameter': validators.Object(
             properties=[
                 ('name', validators.String()),
-                ('in', validators.String(enum=['query', 'header', 'path', 'cookie'])),
+                ('in', validators.String(enum=['body', 'query', 'header', 'path', 'cookie'])),
                 ('description', validators.String(format='textarea')),
                 ('required', validators.Boolean()),
                 ('deprecated', validators.Boolean()),
                 ('allowEmptyValue', validators.Boolean()),
                 ('style', validators.String()),
                 ('schema', JSON_SCHEMA | SCHEMA_REF),
-                ('example', validators.Any()),
+                ('type', validators.String()),
+                ('format', validators.String()),
+                ('allowEmptyValue', validators.Boolean()),
                 # TODO: Other fields
             ],
             pattern_properties={
@@ -242,7 +223,6 @@ OPEN_API = validators.Object(
                 ('schemas', validators.Object(additional_properties=JSON_SCHEMA)),
                 ('responses', validators.Object(additional_properties=validators.Ref('Response'))),
                 ('parameters', validators.Object(additional_properties=validators.Ref('Parameter'))),
-                ('requestBodies', validators.Object(additional_properties=validators.Ref('RequestBody'))),
                 ('securitySchemes', validators.Object(additional_properties=validators.Ref('SecurityScheme'))),
                 # TODO: Other fields
             ],
@@ -268,7 +248,7 @@ OPEN_API = validators.Object(
         ),
         'SecurityScheme': validators.Object(
             properties=[
-                ('type', validators.String(enum=['apiKey', 'http', 'oauth2', 'openIdConnect'])),
+                ('type', validators.String(enum=['basic', 'apiKey', 'oauth2'])),
                 ('description', validators.String(format='textarea')),
                 ('name', validators.String()),
                 ('in', validators.String(enum=['query', 'header', 'cookie'])),
@@ -324,24 +304,28 @@ def _simple_slugify(text):
     return text.strip('_')
 
 
-class OpenAPICodec(BaseCodec):
-    media_type = 'application/vnd.oai.openapi'
-    format = 'openapi'
+class SwaggerCodec(BaseCodec):
+    media_type = 'application/swagger'
+    format = 'swagger'
 
     def decode(self, content, **options):
         base_format = infer_json_or_yaml(content)
         if base_format == 'json':
-            data = parse_json(content, validator=OPEN_API)
+            data = parse_json(content, validator=SWAGGER)
         else:
-            data = parse_yaml(content, validator=OPEN_API)
+            data = parse_yaml(content, validator=SWAGGER)
 
         title = lookup(data, ['info', 'title'])
         description = lookup(data, ['info', 'description'])
         version = lookup(data, ['info', 'version'])
-        base_url = lookup(data, ['servers', 0, 'url'])
+        host = lookup(data, ['host'])
+        path = lookup(data, ['basePath'], '/')
+        scheme = lookup(data, ['schemes', 0], 'https')
+        base_url = None
+        if host:
+            base_url = '%s://%s%s' % (scheme, host, path)
         schema_definitions = self.get_schema_definitions(data)
         content = self.get_content(data, base_url, schema_definitions)
-
         return Document(title=title, description=description, version=version, url=base_url, content=content)
 
     def get_schema_definitions(self, data):
@@ -408,18 +392,10 @@ class OpenAPICodec(BaseCodec):
             for parameter in parameters
         ]
 
-        # TODO: Handle media type generically here...
-        body_schema = lookup(operation_info, ['requestBody', 'content', 'application/json', 'schema'])
-
-        encoding = None
-        if body_schema:
-            encoding = 'application/json'
-            if '$ref' in body_schema:
-                ref = body_schema['$ref'][len('#/components/schemas/'):]
-                schema = schema_definitions.get(ref)
-            else:
-                schema = JSONSchemaCodec().decode_from_data_structure(body_schema)
-            fields += [Field(name='body', location='body', schema=schema)]
+        default_encoding = None
+        if any([field.location == 'body' for field in fields]):
+            default_encoding = 'application/json'
+        encoding = lookup(operation_info, ['consumes', 0], default_encoding)
 
         return Link(
             name=name,
@@ -461,8 +437,8 @@ class OpenAPICodec(BaseCodec):
     def encode(self, document, **options):
         schema_defs = {}
         paths = self.get_paths(document, schema_defs=schema_defs)
-        openapi = OPEN_API.validate({
-            'openapi': '3.0.0',
+        swagger = SWAGGER.validate({
+            'swagger': '2.0',
             'info': {
                 'version': document.version,
                 'title': document.title,
@@ -475,17 +451,17 @@ class OpenAPICodec(BaseCodec):
         })
 
         if schema_defs:
-            openapi['components'] = {'schemas': schema_defs}
+            swagger['components'] = {'schemas': schema_defs}
 
         if not document.url:
-            openapi.pop('servers')
+            swagger.pop('servers')
 
         kwargs = {
             'ensure_ascii': False,
             'indent': 4,
             'separators': (',', ': ')
         }
-        return json.dumps(openapi, **kwargs).encode('utf-8')
+        return json.dumps(swagger, **kwargs).encode('utf-8')
 
     def get_paths(self, document, schema_defs=None):
         paths = dict_type()

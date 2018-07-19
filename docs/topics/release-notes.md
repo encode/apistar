@@ -2,6 +2,67 @@
 
 ## Version 0.5.x
 
+### 0.5.40
+
+* Raise TypeError on unserializable JSON.
+* Fix resource leak on `ASyncStaticFiles`
+
+### 0.5.39
+
+* Improve error messages on 'required' case.
+
+### 0.5.38
+
+* Redesign API for retriving OpenAPI and Swagger validation errors.
+
+### 0.5.37
+
+* Swagger: Fixes to security and securityDefinitions.
+
+### 0.5.36
+
+* Resolve issue with `filename` argument on errors.
+
+### 0.5.35
+
+* Support optional `filename` argument against errors.
+
+### 0.5.34
+
+* OpenAPI: Add 'RequestBodies' to components.
+* OpenAPI: 'security' must be a list.
+
+### 0.5.33
+
+* More robust handling for `None` in tags or titles in swagger/openapi codecs.
+
+### 0.5.32
+
+* Add 'swaggerui' option to `docs/theme`, alongside existing 'redoc', 'apistar'.
+
+### 0.5.31
+
+* Add 'docs/theme' section to `.apistar.yml` config file validation.
+
+### 0.5.30
+
+* Drop erronous `print`
+
+### 0.5.29
+
+* Initial support for validating `.apistar.yml` config file.
+
+### 0.5.28
+
+* First pass at Swagger 2 support (alongside existing OpenAPI 3 support).
+
+### 0.5.27
+
+* Handle error formatting for missing keys.
+
+### 0.5.26
+
+* Fix error reporting when YAML parse errors occur.
 
 ### 0.5.25
 

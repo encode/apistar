@@ -178,7 +178,7 @@ class Field:
                  required: bool=None,
                  schema: Validator=None,
                  example: typing.Any=None):
-        assert location in ('path', 'query', 'body')
+        assert location in ('path', 'query', 'body', 'cookie', 'header')
         if required is None:
             required = True if location in ('path', 'body') else False
         if location == 'path':

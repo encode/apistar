@@ -89,19 +89,23 @@ class ASGIFileSession():
                 'body': b''
             })
         else:
-            chunk = await file.read(8192)
-            more_body = True
+            try:
+                chunk = await file.read(8192)
+                more_body = True
 
-            while more_body:
-                next_chunk = await file.read(8192)
-                more_body = bool(next_chunk)
+                while more_body:
+                    next_chunk = await file.read(8192)
+                    more_body = bool(next_chunk)
 
-                await send({
-                    'type': 'http.response.body',
-                    'body': chunk,
-                    'more_body': more_body
-                })
-                chunk = next_chunk
+                    await send({
+                        'type': 'http.response.body',
+                        'body': chunk,
+                        'more_body': more_body
+                    })
+                    chunk = next_chunk
+            finally:
+                # Free resource
+                await file.close()
 
     async def get_response(self, method, request_headers):
         if method != 'GET' and method != 'HEAD':
