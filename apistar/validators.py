@@ -1,5 +1,6 @@
 import re
 import typing
+import decimal
 from math import isfinite
 
 from apistar import formats
@@ -11,7 +12,8 @@ NO_DEFAULT = object()
 FORMATS = {
     'date': formats.DateFormat(),
     'time': formats.TimeFormat(),
-    'datetime': formats.DateTimeFormat()
+    'datetime': formats.DateTimeFormat(),
+    'decimal': formats.Decimal(),
 }
 
 
@@ -214,14 +216,15 @@ class NumericType(Validator):
             self.error('type')
         elif self.numeric_type is int and isinstance(value, float) and not value.is_integer():
             self.error('integer')
-        elif not isinstance(value, (int, float)) and not allow_coerce:
+        elif not isinstance(value, (int, float, str, decimal.Decimal)) and not allow_coerce:
+            # Can convert str to int, float and Decimal.
             self.error('type')
         elif isinstance(value, float) and not isfinite(value):
             self.error('finite')
 
         try:
             value = self.numeric_type(value)
-        except (TypeError, ValueError):
+        except (TypeError, ValueError, decimal.InvalidOperation):
             self.error('type')
 
         if self.enum is not None:
@@ -263,6 +266,10 @@ class Number(NumericType):
 
 class Integer(NumericType):
     numeric_type = int
+
+
+class Decimal(NumericType):
+    numeric_type = decimal.Decimal
 
 
 class Boolean(Validator):
