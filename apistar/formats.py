@@ -1,4 +1,5 @@
 import datetime
+import decimal
 import re
 
 from apistar.exceptions import ValidationError
@@ -95,3 +96,24 @@ class DateTimeFormat(BaseFormat):
         if value.endswith('+00:00'):
             value = value[:-6] + 'Z'
         return value
+
+
+class Decimal(BaseFormat):
+    def is_native_type(self, value):
+        return isinstance(value, decimal.Decimal)
+
+    def validate(self, value):
+        if isinstance(value, (int, float)):
+            return decimal.Decimal(value)
+        if isinstance(value, decimal.Decimal):
+            return value
+        if isinstance(value, str):
+            try:
+                return decimal.Decimal(value)
+            except decimal.InvalidOperation:
+                # raise after.
+                pass
+        raise ValidationError('Must be a valid decimal.')
+
+    def to_string(self, value):
+        return str(value)

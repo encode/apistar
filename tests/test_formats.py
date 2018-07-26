@@ -1,4 +1,5 @@
 import datetime
+import decimal
 
 import pytest
 
@@ -120,3 +121,26 @@ def test_nullable_datetime():
     })
     assert example.when is None
     assert example['when'] is None
+
+def test_decimal():
+    class Example(types.Type):
+        money = validators.Decimal()
+
+    example = Example({
+        'money': '100.01'
+    })
+    assert example.money == decimal.Decimal('100.01')
+    assert example['money'] == '100.01'
+    example = Example({
+        'money': 100
+    })
+    assert example.money == decimal.Decimal(100)
+    assert example['money'] == '100'
+    example = Example({
+        'money': 100.1
+    })
+    assert example.money == decimal.Decimal('100.1')
+    assert example['money'] == '100.1'
+    with pytest.raises(exceptions.ValidationError) as exc:
+        Example({'when': None})
+    assert exc.value.detail == {'money': 'May not be null.'}
