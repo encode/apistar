@@ -1,3 +1,7 @@
+try:
+    import dataclasses
+except ImportError:
+    dataclasses = None
 import json
 import typing
 from urllib.parse import urlparse
@@ -239,6 +243,8 @@ class JSONResponse(Response):
         return json.dumps(content, **options).encode('utf-8')
 
     def default(self, obj: typing.Any) -> typing.Any:
+        if dataclasses and dataclasses.is_dataclass(obj):
+            return dataclasses.asdict(obj)
         if isinstance(obj, types.Type):
             return dict(obj)
         error = "Object of type '%s' is not JSON serializable."
