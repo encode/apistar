@@ -26,7 +26,7 @@ class Validator:
     errors = {}
     _creation_counter = 0
 
-    def __init__(self, title='', description='', default=NO_DEFAULT, allow_null=False, definitions=None, def_name=None):
+    def __init__(self, title='', description='', default=NO_DEFAULT, allow_null=False, definitions=None, def_name=None, formatter=None):
         definitions = {} if (definitions is None) else dict_type(definitions)
 
         assert isinstance(title, str)
@@ -46,6 +46,7 @@ class Validator:
         self.allow_null = allow_null
         self.definitions = definitions
         self.def_name = def_name
+        self.formatter = formatter
 
         # We need this global counter to determine what order fields have
         # been declared in when used with `Type`.
@@ -127,13 +128,15 @@ class String(Validator):
         self.pattern = pattern
         self.enum = enum
         self.format = format
+        if isinstance(self.format, str) and self.formatter is None and self.format in FORMATS:
+            self.formatter = FORMATS[self.format]
 
     def validate(self, value, definitions=None, allow_coerce=False):
         if value is None and self.allow_null:
             return None
         elif value is None:
             self.error('null')
-        elif self.format in FORMATS and FORMATS[self.format].is_native_type(value):
+        elif self.formatter is not None and self.formatter.is_native_type(value):
             return value
         elif not isinstance(value, str):
             self.error('type')
@@ -159,8 +162,8 @@ class String(Validator):
             if not re.search(self.pattern, value):
                 self.error('pattern')
 
-        if self.format in FORMATS:
-            return FORMATS[self.format].validate(value)
+        if self.formatter is not None:
+            return self.formatter.validate(value)
 
         return value
 

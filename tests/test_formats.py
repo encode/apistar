@@ -3,6 +3,7 @@ import datetime
 import pytest
 
 from apistar import exceptions, types, validators
+from apistar.formats import BaseFormat
 
 UTC = datetime.timezone.utc
 
@@ -120,3 +121,38 @@ def test_nullable_datetime():
     })
     assert example.when is None
     assert example['when'] is None
+
+
+def test_custom_formatter():
+    class Foo:
+        def __init__(self, bar):
+            self.bar = bar
+
+    class FooFormatter(BaseFormat):
+        def is_native_type(self, value):
+            return isinstance(value, Foo)
+
+        def to_string(self, value):
+            return value.bar
+
+        def validate(self, value):
+            if not isinstance(value, str) or not value.startswith('bar_'):
+                raise exceptions.ValidationError('Must start with bar_.')
+            return Foo(value)
+
+    class Example(types.Type):
+        foo = validators.String(formatter=FooFormatter())
+
+    with pytest.raises(exceptions.ValidationError) as exc:
+        example = Example({
+            'foo': 'foo'
+        })
+    assert exc.value.detail == {'foo': 'Must start with bar_.'}
+
+    example = Example({'foo': 'bar_foo'})
+    assert isinstance(example.foo, Foo)
+    assert example.foo.bar == 'bar_foo'
+    assert example['foo'] == 'bar_foo'
+
+
+
