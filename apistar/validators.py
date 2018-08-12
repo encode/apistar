@@ -26,7 +26,8 @@ class Validator:
     errors = {}
     _creation_counter = 0
 
-    def __init__(self, title='', description='', default=NO_DEFAULT, allow_null=False, definitions=None, def_name=None, formatter=None):
+    def __init__(self, title='', description='', default=NO_DEFAULT, allow_null=False,
+                 definitions=None, def_name=None, formatter=None):
         definitions = {} if (definitions is None) else dict_type(definitions)
 
         assert isinstance(title, str)

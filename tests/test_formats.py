@@ -153,6 +153,3 @@ def test_custom_formatter():
     assert isinstance(example.foo, Foo)
     assert example.foo.bar == 'bar_foo'
     assert example['foo'] == 'bar_foo'
-
-
-
