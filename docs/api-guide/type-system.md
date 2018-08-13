@@ -270,3 +270,39 @@ You can also access the serialized string representation if needed.
 * `title` - A title to use in API schemas and documentation.
 * `description` - A description to use in API schemas and documentation.
 * `allow_null` - Indicates if `None` should be considered a valid value. Defaults to `False`.
+
+## Custom Formats
+
+Custom formatters can be provided for validators to enable them to return any native type
+
+```python
+from apistar.formats import BaseFormat
+
+class Foo:
+    def __init__(self, bar):
+        self.bar = bar
+
+class FooFormatter(BaseFormat):
+    def is_native_type(self, value):
+        return isinstance(value, Foo)
+
+    def to_string(self, value):
+        return value.bar
+
+    def validate(self, value):
+        if not isinstance(value, str) or not value.startswith('bar_'):
+            raise exceptions.ValidationError('Must start with bar_.')
+        return Foo(value)
+
+class Example(types.Type):
+    foo = validators.String(formatter=FooFormatter())
+    
+>>> data = {'foo': 'bar_foo'}
+>>> obj = Example(data)
+
+>>> obj.foo
+<__main__.Foo object at 0x7f143ec8ec88>
+
+>>> obj['foo']
+"bar_foo"
+```
