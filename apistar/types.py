@@ -77,7 +77,7 @@ class Type(Mapping, metaclass=TypeMetaclass):
             # Instantiated with keyword arguments.
             value = kwargs
 
-        value = self.validator.validate(value)
+        value = self.validator.validate(value, allow_coerce=allow_coerce)
         object.__setattr__(self, '_dict', value)
 
     @classmethod
