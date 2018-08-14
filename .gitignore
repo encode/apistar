@@ -3,6 +3,8 @@
 .coverage
 .git
 .mypy_cache
+.pytest_cache
+.tox
 __pycache__
 /*.egg-info
 /htmlcov
