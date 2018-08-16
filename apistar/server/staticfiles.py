@@ -17,9 +17,9 @@ class StaticFiles(BaseStaticFiles):
     Static file handling for WSGI applications, using `whitenoise`.
     """
 
-    def __init__(self, prefix: str, static_dir: str=None, packages: typing.Sequence[str]=None):
+    def __init__(self, prefix: str, static_dir: str=None, packages: typing.Sequence[str]=None, **kwargs):
         self.check_requirements()
-        self.whitenoise = whitenoise.WhiteNoise(application=self.not_found)
+        self.whitenoise = whitenoise.WhiteNoise(application=self.not_found, **kwargs)
         if static_dir is not None:
             self.whitenoise.add_files(static_dir, prefix=prefix)
         for package in packages or []:

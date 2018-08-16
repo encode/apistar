@@ -33,7 +33,8 @@ class App():
                  docs_url='/docs/',
                  static_url='/static/',
                  components=None,
-                 event_hooks=None):
+                 event_hooks=None,
+                 whitenoise_opts=None):
 
         packages = tuple() if packages is None else tuple(packages)
 
@@ -55,7 +56,7 @@ class App():
         self.init_document(routes)
         self.init_router(routes)
         self.init_templates(template_dir, packages)
-        self.init_staticfiles(static_url, static_dir, packages)
+        self.init_staticfiles(static_url, static_dir, packages, whitenoise_opts)
         self.init_injector(components)
         self.debug = False
         self.event_hooks = event_hooks
@@ -102,11 +103,15 @@ class App():
             }
             self.templates = Templates(template_dir, packages, template_globals)
 
-    def init_staticfiles(self, static_url: str, static_dir: str=None, packages: typing.Sequence[str]=None):
+    def init_staticfiles(self, static_url: str, static_dir: str=None, packages: typing.Sequence[str]=None,
+                         whitenoise_opts: typing.Mapping[typing.AnyStr, typing.Any]=None):
         if not static_dir and not packages:
             self.statics = None
         else:
-            self.statics = StaticFiles(static_url, static_dir, packages)
+            if whitenoise_opts is None:
+                whitenoise_opts = {}
+
+            self.statics = StaticFiles(static_url, static_dir, packages, **whitenoise_opts)
 
     def init_injector(self, components=None):
         components = components if components else []
@@ -284,11 +289,15 @@ class ASyncApp(App):
         }
         self.injector = ASyncInjector(components, initial_components)
 
-    def init_staticfiles(self, static_url: str, static_dir: str=None, packages: typing.Sequence[str]=None):
+    def init_staticfiles(self, static_url: str, static_dir: str=None, packages: typing.Sequence[str]=None,
+                         whitenoise_opts: typing.Mapping[typing.AnyStr, typing.Any]=None):
         if not static_dir and not packages:
             self.statics = None
         else:
-            self.statics = ASyncStaticFiles(static_url, static_dir, packages)
+            if whitenoise_opts is None:
+                whitenoise_opts = {}
+
+            self.statics = ASyncStaticFiles(static_url, static_dir, packages, **whitenoise_opts)
 
     def __call__(self, scope):
         async def asgi_callable(receive, send):

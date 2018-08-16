@@ -6,6 +6,8 @@ If you're using `ASyncApp` you'll also need to install `aiofiles`.
 To include static files in your application, create a directory to contain the static files,
 and include it with the `static_dir` argument when instantiating the app.
 
+It's possible to configure `whitenoise` passing options through `whitenoise_opts` parameter.
+
 ```python
 import os
 
@@ -14,7 +16,7 @@ STATIC_DIR = os.path.join(BASE_DIR, 'static')
 
 ...
 
-app = App(routes=routes, static_dir=STATIC_DIR)
+app = App(routes=routes, static_dir=STATIC_DIR, whitenoise_opts={"autorefresh": True})
 ```
 
 The default behavior is to serve static files from the URL prefix `/static/`.
