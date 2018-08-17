@@ -58,6 +58,9 @@ class TypeMetaclass(ABCMeta):
 
 
 class Type(Mapping, metaclass=TypeMetaclass):
+
+    formatter = None
+
     def __init__(self, *args, **kwargs):
         definitions = None
         allow_coerce = False
@@ -122,8 +125,8 @@ class Type(Mapping, metaclass=TypeMetaclass):
         if value is None:
             return None
         validator = self.validator.properties[key]
-        if hasattr(validator, 'format') and validator.format in validators.FORMATS:
-            formatter = validators.FORMATS[validator.format]
+        if validator.formatter is not None:
+            formatter = validator.formatter
             return formatter.to_string(value)
         return value
 
