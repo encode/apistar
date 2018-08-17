@@ -88,9 +88,10 @@ class Route():
         return Response(encoding='application/json', status_code=200, schema=annotation)
 
     def coerce_generics(self, annotation):
+        origin = getattr(annotation, '__origin__', annotation)
         if (
-            isinstance(annotation, type) and
-            issubclass(annotation, typing.List) and
+            isinstance(origin, type) and
+            issubclass(origin, typing.List) and
             getattr(annotation, '__args__', None) and
             issubclass(annotation.__args__[0], types.Type)
         ):
