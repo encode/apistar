@@ -28,7 +28,7 @@ def validate(schema):
         codec.decode(content)
     except (ParseError, ValidationError) as exc:
         lines = content.splitlines()
-        for error in reversed(exc.get_errors()):
+        for error in reversed(exc.get_error_messages()):
             error_str = ' ' * (error.marker.column_number - 1)
             error_str += '^ '
             error_str += error.message

@@ -85,13 +85,6 @@ class ParseError(Exception):
         return [ErrorMessage(self.message, self.marker)]
 
 
-class NoReverseMatch(Exception):
-    """
-    Raised by a Router when `reverse_url` is passed an invalid handler name.
-    """
-    pass
-
-
 class ErrorResponse(Exception):
     """
     Raised when a client request results in an error response being returned.
