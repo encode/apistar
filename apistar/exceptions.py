@@ -47,10 +47,13 @@ class ValidationError(Exception):
         assert self.token is not None, 'set_error_context() not called.'
         error_messages = []
         for prefix, message in self._walk_error_details(self.detail):
-            lookup_property = message.code in ('invalid_key', 'invalid_property')
-            if message.code == 'required':
-                prefix = prefix[:-1]
-            position = self.token.lookup(prefix, lookup_property=lookup_property).start
+            if message.code in ('invalid_key', 'invalid_property'):
+                position = self.token.lookup_key(prefix).start_index
+            elif message.code == 'required':
+                position = self.token.lookup(prefix[:-1]).start_index
+            else:
+                position = self.token.lookup(prefix).start_index
+
             marker = Marker(position, self.content)
             error_message = ErrorMessage(message, marker)
             error_messages.append(error_message)

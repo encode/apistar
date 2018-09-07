@@ -12,43 +12,43 @@ def tokenize_yaml(content):
         start = node.start_mark.index
         end = node.end_mark.index
         mapping = loader.construct_mapping(node)
-        return DictToken(mapping, start, end - 1)
+        return DictToken(mapping, start, end - 1, content=content)
 
     def construct_sequence(loader, node):
         start = node.start_mark.index
         end = node.end_mark.index
         value = loader.construct_sequence(node)
-        return ListToken(value, start, end - 1)
+        return ListToken(value, start, end - 1, content=content)
 
     def construct_scalar(loader, node):
         start = node.start_mark.index
         end = node.end_mark.index
         value = loader.construct_scalar(node)
-        return ScalarToken(value, start, end - 1)
+        return ScalarToken(value, start, end - 1, content=content)
 
     def construct_int(loader, node):
         start = node.start_mark.index
         end = node.end_mark.index
         value = loader.construct_yaml_int(node)
-        return ScalarToken(value, start, end - 1)
+        return ScalarToken(value, start, end - 1, content=content)
 
     def construct_float(loader, node):
         start = node.start_mark.index
         end = node.end_mark.index
         value = loader.construct_yaml_float(node)
-        return ScalarToken(value, start, end - 1)
+        return ScalarToken(value, start, end - 1, content=content)
 
     def construct_bool(loader, node):
         start = node.start_mark.index
         end = node.end_mark.index
         value = loader.construct_yaml_bool(node)
-        return ScalarToken(value, start, end - 1)
+        return ScalarToken(value, start, end - 1, content=content)
 
     def construct_null(loader, node):
         start = node.start_mark.index
         end = node.end_mark.index
         value = loader.construct_yaml_null(node)
-        return ScalarToken(value, start, end - 1)
+        return ScalarToken(value, start, end - 1, content=content)
 
     CustomLoader.add_constructor(
         yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,

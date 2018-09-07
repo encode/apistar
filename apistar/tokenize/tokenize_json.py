@@ -80,7 +80,7 @@ def _TokenizingJSONObject(s_and_end, strict, scan_once,
     return dict(pairs), end
 
 
-def _make_scanner(context):
+def _make_scanner(context, content):
     parse_object = _TokenizingJSONObject
     parse_array = context.parse_array
     parse_string = context.parse_string
@@ -98,25 +98,25 @@ def _make_scanner(context):
 
         if nextchar == '"':
             value, end = parse_string(string, idx + 1, strict)
-            return ScalarToken(value, idx, end - 1), end
+            return ScalarToken(value, idx, end - 1, content), end
         elif nextchar == '{':
             value, end = parse_object(
                 (string, idx + 1), strict,
                 _scan_once, memo
             )
-            return DictToken(value, idx, end - 1), end
+            return DictToken(value, idx, end - 1, content), end
         elif nextchar == '[':
             value, end = parse_array((string, idx + 1), _scan_once)
-            return ListToken(value, idx, end - 1), end
+            return ListToken(value, idx, end - 1, content), end
         elif nextchar == 'n' and string[idx:idx + 4] == 'null':
             value, end = None, idx + 4
-            return ScalarToken(value, idx, end - 1), end
+            return ScalarToken(value, idx, end - 1, content), end
         elif nextchar == 't' and string[idx:idx + 4] == 'true':
             value, end = True, idx + 4
-            return ScalarToken(value, idx, end - 1), end
+            return ScalarToken(value, idx, end - 1, content), end
         elif nextchar == 'f' and string[idx:idx + 5] == 'false':
             value, end = False, idx + 5
-            return ScalarToken(value, idx, end - 1), end
+            return ScalarToken(value, idx, end - 1, content), end
 
         m = match_number(string, idx)
         if m is not None:
@@ -126,7 +126,7 @@ def _make_scanner(context):
             else:
                 res = parse_int(integer)
             value, end = res, m.end()
-            return ScalarToken(value, idx, end - 1), end
+            return ScalarToken(value, idx, end - 1, content), end
         else:
             raise StopIteration(idx)
 
@@ -141,10 +141,11 @@ def _make_scanner(context):
 
 class _TokenizingDecoder(JSONDecoder):
     def __init__(self, *args, **kwargs):
+        content = kwargs.pop('content')
         super().__init__(*args, **kwargs)
-        self.scan_once = _make_scanner(self)
+        self.scan_once = _make_scanner(self, content)
 
 
 def tokenize_json(content):
-    decoder = _TokenizingDecoder()
+    decoder = _TokenizingDecoder(content=content)
     return decoder.decode(content)
