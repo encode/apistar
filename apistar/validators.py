@@ -4,7 +4,7 @@ from math import isfinite
 
 from apistar import formats
 from apistar.compat import dict_type
-from apistar.exceptions import ValidationError
+from apistar.exceptions import ErrorMessage, ValidationError
 
 NO_DEFAULT = object()
 
@@ -13,13 +13,6 @@ FORMATS = {
     'time': formats.TimeFormat(),
     'datetime': formats.DateTimeFormat()
 }
-
-
-class ErrorMessage(str):
-    def __new__(cls, message, code):
-        instance = str.__new__(cls, message)
-        instance.code = code
-        return instance
 
 
 class Validator:
@@ -67,11 +60,11 @@ class Validator:
 
     def error(self, code, **context):
         message = self.error_message(code, **context)
-        raise ValidationError(message)
+        raise ValidationError(messages=[message])
 
     def error_message(self, code, **context):
-        message = self.errors[code].format(**self.__dict__, **context)
-        return ErrorMessage(message, code)
+        text = self.errors[code].format(**self.__dict__, **context)
+        return ErrorMessage(text=text, code=code)
 
     def get_definitions(self, definitions=None):
         if self.definitions is None and self.def_name is None:
@@ -362,7 +355,7 @@ class Object(Validator):
         errors = {}
         for key in value.keys():
             if not isinstance(key, str):
-                errors[key] = self.error_message('invalid_key')
+                errors[key] = [self.error_message('invalid_key')]
 
         # Min/Max properties
         if self.min_properties is not None:
@@ -378,7 +371,7 @@ class Object(Validator):
         # Required properties
         for key in self.required:
             if key not in value:
-                errors[key] = self.error_message('required', field_name=key)
+                errors[key] = [self.error_message('required', field_name=key)]
 
         # Properties
         for key, child_schema in self.properties.items():
@@ -394,7 +387,7 @@ class Object(Validator):
                     allow_coerce=allow_coerce
                 )
             except ValidationError as exc:
-                errors[key] = exc.detail
+                errors[key] = exc.messages
 
         # Pattern properties
         if self.pattern_properties:
@@ -408,7 +401,7 @@ class Object(Validator):
                                 allow_coerce=allow_coerce
                             )
                         except ValidationError as exc:
-                            errors[key] = exc.detail
+                            errors[key] = exc.messages
 
         # Additional properties
         remaining = [
@@ -421,7 +414,7 @@ class Object(Validator):
                 validated[key] = value[key]
         elif self.additional_properties is False:
             for key in remaining:
-                errors[key] = self.error_message('invalid_property')
+                errors[key] = [self.error_message('invalid_property')]
         elif self.additional_properties is not None:
             child_schema = self.additional_properties
             for key in remaining:
@@ -433,10 +426,16 @@ class Object(Validator):
                         allow_coerce=allow_coerce
                     )
                 except ValidationError as exc:
-                    errors[key] = exc.detail
+                    errors[key] = exc.messages
 
         if errors:
-            raise ValidationError(errors)
+            error_messages = []
+            for key, messages in errors.items():
+                for message in messages:
+                    index = [key] if message.index is None else [key] + message.index
+                    error_message = ErrorMessage(message.text, message.code, index)
+                    error_messages.append(error_message)
+            raise ValidationError(error_messages)
 
         return validated
 
@@ -531,10 +530,16 @@ class Array(Validator):
 
                 validated.append(item)
             except ValidationError as exc:
-                errors[pos] = exc.detail
+                errors[pos] = exc.messages
 
         if errors:
-            raise ValidationError(errors)
+            error_messages = []
+            for key, messages in errors.items():
+                for message in messages:
+                    index = [key] if message.index is None else [key] + message.index
+                    error_message = ErrorMessage(message.text, message.code, index)
+                    error_messages.append(error_message)
+            raise ValidationError(error_messages)
 
         return validated
 

@@ -1,7 +1,9 @@
+import json
 import re
 from json.decoder import JSONDecodeError, JSONDecoder, scanstring
 
-from apistar.tokenize.tokens import DictToken, ListToken, ScalarToken
+from apistar.exceptions import ErrorMessage, ParseError, Position
+from apistar.validate.tokens import DictToken, ListToken, ScalarToken
 
 FLAGS = re.VERBOSE | re.MULTILINE | re.DOTALL
 WHITESPACE = re.compile(r'[ \t\n\r]*', FLAGS)
@@ -12,7 +14,7 @@ NUMBER_RE = re.compile(
 
 
 def _TokenizingJSONObject(s_and_end, strict, scan_once,
-                          memo, _w=WHITESPACE.match, _ws=WHITESPACE_STR):
+                          memo, content, _w=WHITESPACE.match, _ws=WHITESPACE_STR):
     s, end = s_and_end
     pairs = []
     pairs_append = pairs.append
@@ -36,7 +38,7 @@ def _TokenizingJSONObject(s_and_end, strict, scan_once,
         start = end - 1
         key, end = scanstring(s, end, strict)
         key = memo_get(key, key)
-        key = ScalarToken(memo_get(key, key), start, end - 1)
+        key = ScalarToken(memo_get(key, key), start, end - 1, content)
         # To skip some function call overhead we optimize the fast paths where
         # the JSON key separator is ": " or just ":".
         if s[end:end + 1] != ':':
@@ -102,7 +104,7 @@ def _make_scanner(context, content):
         elif nextchar == '{':
             value, end = parse_object(
                 (string, idx + 1), strict,
-                _scan_once, memo
+                _scan_once, memo, content
             )
             return DictToken(value, idx, end - 1, content), end
         elif nextchar == '[':
@@ -146,6 +148,34 @@ class _TokenizingDecoder(JSONDecoder):
         self.scan_once = _make_scanner(self, content)
 
 
+def _strip_endings(text, endings):
+    for ending in endings:
+        if text.endswith(ending):
+            return text[:-len(ending)]
+    return text
+
+
 def tokenize_json(content):
-    decoder = _TokenizingDecoder(content=content)
-    return decoder.decode(content)
+    assert isinstance(content, (str, bytes))
+
+    if isinstance(content, bytes):
+        content = content.decode('utf-8', 'ignore')
+
+    if not content.strip():
+        message = ErrorMessage(
+            text='No content.',
+            code='parse_error',
+            position=Position(line_no=1, column_no=1, index=0)
+        )
+        raise ParseError(messages=[message], summary='Invalid JSON.')
+
+    try:
+        decoder = _TokenizingDecoder(content=content)
+        return decoder.decode(content)
+    except json.decoder.JSONDecodeError as exc:
+        message = ErrorMessage(
+            text=_strip_endings(exc.msg, [" starting at", " at"]) + ".",
+            code='parse_error',
+            position=Position(line_no=exc.lineno, column_no=exc.colno, index=exc.pos)
+        )
+        raise ParseError(messages=[message], summary='Invalid JSON.') from None

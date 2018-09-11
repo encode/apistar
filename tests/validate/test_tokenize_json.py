@@ -1,4 +1,5 @@
-from apistar.tokenize import DictToken, ListToken, ScalarToken, tokenize_json
+from apistar.validate.tokens import DictToken, ListToken, ScalarToken
+from apistar.validate.tokenize_json import tokenize_json
 
 
 def test_tokenize_object():

@@ -1,91 +1,57 @@
-from typing import Union
+from collections import namedtuple
 
 
-class Marker():
-    def __init__(self, position, content=None):
+Position = namedtuple('Position', ['line_no', 'column_no', 'index'])
+
+
+class ErrorMessage:
+    def __init__(self, text, code, index=None, position=None):
+        self.text = text
+        self.code = code
+        self.index = index
         self.position = position
-        self.content = content
-        if content is None:
-            self.line_number = None
-            self.column_number = None
-        else:
-            lines = content[:position + 1].splitlines()
-            self.line_number = len(lines)
-            self.column_number = len(lines[-1]) if lines else 1
 
     def __eq__(self, other):
-        return self.position == other.position
-
-
-class ErrorMessage():
-    def __init__(self, message, marker):
-        self.message = message
-        self.marker = marker
-
-    def __repr__(self):
-        return '%s(%s, position=%d)' % (
-            self.__class__.__name__,
-            repr(self.message),
-            self.marker.position
+        return (
+            self.text == other.text and
+            self.code == other.code and
+            self.index == other.index and
+            self.position == other.position
         )
 
-    def __eq__(self, other):
-        return self.message == other.message and self.marker == other.marker
+    def __repr__(self):
+        return "%s(%s, code=%s, index=%s, position=%s)" % (
+            self.__class__.__name__,
+            repr(self.text),
+            repr(self.code),
+            repr(self.index),
+            repr(self.position)
+        )
 
 
-class ValidationError(Exception):
-    def __init__(self, detail):
-        assert isinstance(detail, (str, dict))
-        self.detail = detail
-        super(ValidationError, self).__init__(detail)
-
-    def set_error_context(self, token, content):
-        self.token = token
-        self.content = content
-
-    def get_error_messages(self):
-        assert self.token is not None, 'set_error_context() not called.'
-        error_messages = []
-        for prefix, message in self._walk_error_details(self.detail):
-            if message.code in ('invalid_key', 'invalid_property'):
-                position = self.token.lookup_key(prefix).start_index
-            elif message.code == 'required':
-                position = self.token.lookup(prefix[:-1]).start_index
-            else:
-                position = self.token.lookup(prefix).start_index
-
-            marker = Marker(position, self.content)
-            error_message = ErrorMessage(message, marker)
-            error_messages.append(error_message)
-        return sorted(error_messages, key=lambda e: e.marker.position)
-
-    def _walk_error_details(self, error_detail, prefix=()):
-        """
-        Given an 'error_detail' from a ValidationError, returns a list of
-        two-tuples of (index, message).
-        """
-        pairs = []
-        if isinstance(error_detail, str):
-            pairs.append((prefix, error_detail))
-        elif isinstance(error_detail, dict):
-            for key, value in error_detail.items():
-                pairs.extend(self._walk_error_details(value, prefix + (key,)))
-        return pairs
+class DecodeError(Exception):
+    def __init__(self, messages, summary=None):
+        self.messages = messages
+        self.summary = summary
+        super().__init__(messages)
 
 
-class ParseError(Exception):
-    """
-    Raised by a Codec when `decode` fails due to malformed syntax.
-    """
-    def __init__(self, message, marker=None, base_format=None):
-        Exception.__init__(self, message)
-        self.message = message
-        self.marker = marker
-        self.base_format = base_format
+class ParseError(DecodeError):
+    pass
 
-    def get_error_messages(self):
-        assert self.marker is not None, 'No marker set.'
-        return [ErrorMessage(self.message, self.marker)]
+
+class ValidationError(DecodeError):
+    def as_dict(self):
+        ret = {}
+        for message in self.messages:
+            lookup = ret
+            if message.index:
+                for key in message.index[:-1]:
+                    lookup.setdefault(key, {})
+                    lookup = lookup[key]
+            key = message.index[-1] if message.index else None
+            lookup[key] = message.text
+        return ret
 
 
 class ErrorResponse(Exception):

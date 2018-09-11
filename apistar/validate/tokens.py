@@ -1,8 +1,4 @@
-from collections import namedtuple
-from typing import List, Union
-
-
-Position = namedtuple('Position', ['line_no', 'column_no', 'index'])
+from apistar.exceptions import Position
 
 
 class Token():
@@ -23,17 +19,17 @@ class Token():
     def end(self):
         return self._get_position(self.end_index)
 
-    def lookup(self, keys):
+    def lookup_position(self, keys=None):
         token = self
-        for key in keys:
+        for key in keys or []:
             token = token[key]
-        return token
+        return token.start
 
-    def lookup_key(self, keys):
+    def lookup_key_position(self, keys):
         token = self
         for key in keys[:-1]:
             token = token[key]
-        return token.get_key(keys[-1])
+        return token.get_key(keys[-1]).start
 
     def _get_position(self, index):
         content = self._content[:index + 1]

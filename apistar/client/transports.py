@@ -2,7 +2,7 @@ import mimetypes
 
 import requests
 
-from apistar import codecs, conneg, exceptions
+from apistar import codecs, exceptions
 from apistar.client.utils import (
     BlockAllCookies, File, ForceMultiPartDict, guess_filename, is_file
 )
@@ -115,6 +115,25 @@ class HTTPTransport(BaseTransport):
             'Content-Disposition': content_disposition or 'attachment'
         }
 
+    def get_decoder(self, content_type=None):
+        """
+        Given the value of a 'Content-Type' header, return the appropriate
+        codec for decoding the request content.
+        """
+        if content_type is None:
+            return self.decoders[0]
+
+        content_type = content_type.split(';')[0].strip().lower()
+        main_type = content_type.split('/')[0] + '/*'
+        wildcard_type = '*/*'
+
+        for codec in self.decoders:
+            if codec.media_type in (content_type, main_type, wildcard_type):
+                return codec
+
+        msg = "Unsupported media in Content-Type header '%s'" % content_type
+        raise exceptions.NoCodecAvailable(msg)
+
     def decode_response_content(self, response):
         """
         Given an HTTP response, return the decoded data.
@@ -123,7 +142,7 @@ class HTTPTransport(BaseTransport):
             return None
 
         content_type = response.headers.get('content-type')
-        codec = conneg.negotiate_content_type(self.decoders, content_type)
+        decoder = self.get_decoder(content_type)
 
         options = {
             'base_url': response.url
@@ -133,4 +152,4 @@ class HTTPTransport(BaseTransport):
         if 'content-disposition' in response.headers:
             options['content_disposition'] = response.headers['content-disposition']
 
-        return codec.decode(response.content, **options)
+        return decoder.decode(response.content, **options)

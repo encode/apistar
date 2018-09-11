@@ -7,6 +7,7 @@ import jinja2
 import apistar
 from apistar import codecs
 from apistar.exceptions import ParseError, ValidationError
+from apistar.validate import validate
 
 
 def static_url(filename):
@@ -18,35 +19,70 @@ def main():
     pass
 
 
+FORMAT_CHOICES = click.Choice(['json', 'yaml', 'config', 'jsonschema', 'openapi', 'swagger'])
+BASE_FORMAT_CHOICES = click.Choice(['json', 'yaml'])
+
+
 @click.command()
 @click.argument('schema', type=click.File('rb'))
-def validate(schema):
-    codec = codecs.OpenAPICodec()
+@click.option('--format', type=FORMAT_CHOICES, required=True)
+@click.option('--base-format', type=BASE_FORMAT_CHOICES, default=None)
+@click.option('--verbose', '-v', is_flag=True, default=False)
+def cli_validate(schema, format, base_format, verbose):
     content = schema.read()
+    base, extension = os.path.splitext(schema.name)
+    if base_format is None:
+        base_format = {
+            '.json': 'json',
+            '.yml': 'yaml',
+            '.yaml': 'yaml'
+        }.get(extension)
 
     try:
-        codec.decode(content)
+        validate(content, format, base_format)
     except (ParseError, ValidationError) as exc:
-        lines = content.splitlines()
-        for error in reversed(exc.get_error_messages()):
-            error_str = ' ' * (error.marker.column_number - 1)
-            error_str += '^ '
-            error_str += error.message
-            error_str = click.style(error_str, fg='red')
-            lines.insert(error.marker.line_number, error_str)
-        for line in lines:
-            click.echo(line)
+        if verbose:
+            # Verbose output style.
+            lines = content.splitlines()
+            for message in reversed(exc.messages):
+                error_str = ' ' * (message.position.column_no - 1)
+                error_str += '^ '
+                error_str += message.text
+                error_str = click.style(error_str, fg='red')
+                lines.insert(message.position.line_no, error_str)
+            for line in lines:
+                click.echo(line)
 
-        click.echo()
-        if isinstance(exc, ParseError) and exc.base_format == 'json':
-            click.echo(click.style('✘', fg='red') + ' Invalid JSON.')
-        elif isinstance(exc, ParseError) and exc.base_format == 'yaml':
-            click.echo(click.style('✘', fg='red') + ' Invalid YAML.')
+            click.echo()
         else:
-            click.echo(click.style('✘', fg='red') + ' Invalid OpenAPI 3 document.')
+            # Compact output style.
+            for message in exc.messages:
+                pos = message.position
+                if message.code == 'required':
+                    index = message.index[:-1]
+                else:
+                    index = message.index
+                if index:
+                    fmt = '* %s (At %s, line %d, column %d.)'
+                    output = fmt % (message.text, index, pos.line_no, pos.column_no)
+                    click.echo(output)
+                else:
+                    fmt = '* %s (At line %d, column %d.)'
+                    output = fmt % (message.text, pos.line_no, pos.column_no)
+                    click.echo(output)
+
+        click.echo(click.style('✘ ', fg='red') + exc.summary)
 
     else:
-        click.echo(click.style('✓', fg='green') + ' Valid OpenAPI 3 document.')
+        success_summary = {
+            'json': 'Valid JSON',
+            'yaml': 'Valid YAML',
+            'config': 'Valid APIStar config.',
+            'jsonschema': 'Valid JSONSchema document.',
+            'openapi': 'Valid OpenAPI schema.',
+            'swagger': 'Valid Swagger schema.',
+        }[format]
+        click.echo(click.style('✓ ', fg='green') + success_summary)
 
 
 @click.command()
@@ -85,4 +121,4 @@ def docs(schema):
 
 
 main.add_command(docs)
-main.add_command(validate)
+main.add_command(cli_validate, name='validate')

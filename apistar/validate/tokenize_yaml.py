@@ -1,7 +1,16 @@
 import yaml
 from yaml.loader import SafeLoader
 
-from apistar.tokenize.tokens import DictToken, ListToken, ScalarToken
+from apistar.exceptions import ErrorMessage, ParseError, Position
+from apistar.validate.tokens import DictToken, ListToken, ScalarToken
+
+
+def _get_position(content, index):
+    return Position(
+        line_no=content.count('\n', 0, pos) + 1,
+        column_no=pos - content.rfind('\n', 0, pos),
+        index=index
+    )
 
 
 def tokenize_yaml(content):
@@ -78,4 +87,26 @@ def tokenize_yaml(content):
         'tag:yaml.org,2002:null',
         construct_null)
 
-    return yaml.load(content, CustomLoader)
+    assert isinstance(content, (str, bytes))
+
+    if isinstance(content, bytes):
+        content = content.decode('utf-8', 'ignore')
+
+    if not content.strip():
+        message = ErrorMessage(
+            text='No content.',
+            code='parse_error',
+            position=Position(line_no=1, column_no=1, index=0)
+        )
+        raise ParseError(errors=[error], summary='Invalid YAML.')
+
+    try:
+        return yaml.load(content, CustomLoader)
+    except (yaml.scanner.ScannerError, yaml.parser.ParserError) as exc:
+        index = getattr(exc, 'index', 0)
+        message = ErrorMessage(
+            text=exc.problem + ".",
+            code='parse_error',
+            position=get_position(content, index=index)
+        )
+        raise ParseError(messages=[message], summary='Invalid YAML.') from None

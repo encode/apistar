@@ -1,9 +1,9 @@
 import json
 
 from apistar import types, validators
-from apistar.codecs.base import BaseCodec
 from apistar.compat import dict_type
-from apistar.exceptions import ParseError
+from apistar.exceptions import ErrorMessage, ParseError
+
 
 JSON_SCHEMA = validators.Object(
     def_name='JSONSchema',
@@ -179,10 +179,7 @@ def load_type(typename, struct, allow_null):
     assert False
 
 
-class JSONSchemaCodec(BaseCodec):
-    media_type = 'application/schema+json'
-    format = 'jsonschema'
-
+class JSONSchema:
     def decode(self, bytestring, **options):
         try:
             data = json.loads(
@@ -190,7 +187,8 @@ class JSONSchemaCodec(BaseCodec):
                 object_pairs_hook=dict_type
             )
         except ValueError as exc:
-            raise ParseError('Malformed JSON. %s' % exc) from None
+            message = ErrorMessage(text='Malformed JSON. %s' % exc, code='parse_failed')
+            raise ParseError(messages=[message]) from None
         jsonschema = JSON_SCHEMA.validate(data)
         return decode(jsonschema)
 
