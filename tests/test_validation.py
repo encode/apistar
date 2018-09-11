@@ -43,6 +43,15 @@ def type_body_param(user: User):
     return {"user": user}
 
 
+class ApiKey(types.Type):
+    api_key = validators.String(length=32)
+    api_secret = validators.String(min_length=16, max_length=16)
+
+
+def type_body_param2(api_key: ApiKey):
+    return {"api_key": api_key}
+
+
 routes = [
     # Path parameters
     Route(url='/str_path_param/{param}/', method='GET', handler=str_path_param),
@@ -58,6 +67,7 @@ routes = [
 
     # Body parameters
     Route(url='/type_body_param/', method='POST', handler=type_body_param),
+    Route(url='/type_body_param2/', method='POST', handler=type_body_param2),
 ]
 
 app = App(routes=routes)
@@ -139,3 +149,24 @@ def test_type_body_param():
     response = client.post('/type_body_param/', json={})
     assert response.status_code == 400
     assert response.json() == {'name': 'The "name" field is required.'}
+
+
+def test_type_body_param2():
+    response = client.post('/type_body_param2/', json={'api_key': 'x' * 32, 'api_secret': 'y' * 16})
+    assert response.json() == {'api_key': {'api_key': 'x' * 32, 'api_secret': 'y' * 16}}
+
+    response = client.post('/type_body_param2/', json={'api_key': 'x', 'api_secret': 'y' * 16})
+    assert response.status_code == 400
+    assert response.json() == {'api_key': 'Must have exactly 32 characters.'}
+
+    response = client.post('/type_body_param2/', json={'api_key': 'x' * 32, 'api_secret': 'y'})
+    assert response.status_code == 400
+    assert response.json() == {'api_secret': 'Must have exactly 16 characters.'}
+
+    response = client.post('/type_body_param2/', json={'api_key': 'x' * 100, 'api_secret': 'y' * 16})
+    assert response.status_code == 400
+    assert response.json() == {'api_key': 'Must have exactly 32 characters.'}
+
+    response = client.post('/type_body_param2/', json={'api_key': 'x' * 32, 'api_secret': 'y' * 100})
+    assert response.status_code == 400
+    assert response.json() == {'api_secret': 'Must have exactly 16 characters.'}

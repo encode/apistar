@@ -106,27 +106,33 @@ class String(Validator):
         'blank': 'Must not be blank.',
         'max_length': 'Must have no more than {max_length} characters.',
         'min_length': 'Must have at least {min_length} characters.',
+        'length': 'Must have exactly {length} characters.',
         'pattern': 'Must match the pattern /{pattern}/.',
         'format': 'Must be a valid {format}.',
         'enum': 'Must be one of {enum}.',
         'exact': 'Must be {exact}.'
     }
 
-    def __init__(self, max_length=None, min_length=None, pattern=None,
-                 enum=None, format=None, **kwargs):
+    def __init__(self, max_length=None, min_length=None, length=None,
+                 pattern=None, enum=None, format=None, **kwargs):
         super().__init__(**kwargs)
 
         assert max_length is None or isinstance(max_length, int)
         assert min_length is None or isinstance(min_length, int)
+        assert length is None or isinstance(length, int)
         assert pattern is None or isinstance(pattern, str)
         assert enum is None or isinstance(enum, list) and all([isinstance(i, str) for i in enum])
         assert format is None or isinstance(format, str)
 
         self.max_length = max_length
         self.min_length = min_length
+        self.length = length
         self.pattern = pattern
         self.enum = enum
         self.format = format
+
+        if self.max_length == self.min_length and self.length is None:
+            self.length = self.max_length
 
     def validate(self, value, definitions=None, allow_coerce=False):
         if value is None and self.allow_null:
@@ -143,6 +149,10 @@ class String(Validator):
                 if len(self.enum) == 1:
                     self.error('exact', exact=self.enum[0])
                 self.error('enum')
+
+        if self.length is not None:
+            if len(value) != self.length:
+                self.error('length')
 
         if self.min_length is not None:
             if len(value) < self.min_length:
