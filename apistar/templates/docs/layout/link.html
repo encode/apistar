@@ -1,13 +1,5 @@
 <div class="row coredocs-link">
     <div class="col-md-6 docs-content">
-        <!--<button
-            class="btn btn-sm btn-success"
-            style="float: right; margin-top: 20px"
-            data-toggle="modal"
-            data-target="#{{ section_key }}_{{ link_key }}_modal">
-            <i class="fa fa-exchange"></i> Interact
-        </button>-->
-
         <h3 id="{% if section %}{{ section.name }}-{% endif %}{{ link.name }}" class="coredocs-link-title">{{ link.title|default(link.name, True) }} <a href="#{% if section %}{{ section.name }}-{% endif %}{{ link.name }}"><i class="fa fa-link" aria-hidden="true"></i>
     </a></h3>
 
