@@ -62,6 +62,21 @@ def _echo_error(exc, verbose=False):
     click.echo(click.style('✘ ', fg='red') + exc.summary)
 
 
+def _copy_tree(src, dst, verbose=False):
+    if not os.path.exists(dst):
+        os.makedirs(dst)
+
+    for name in os.listdir(src):
+        srcname = os.path.join(src, name)
+        dstname = os.path.join(dst, name)
+        if os.path.isdir(srcname):
+            _copy_tree(srcname, dstname, verbose=verbose)
+        else:
+            if verbose:
+                click.echo(dstname)
+            shutil.copy2(srcname, dstname)
+
+
 FORMAT_SCHEMA_CHOICES = click.Choice(['openapi', 'swagger'])
 FORMAT_ALL_CHOICES = click.Choice(['json', 'yaml', 'config', 'jsonschema', 'openapi', 'swagger'])
 BASE_FORMAT_CHOICES = click.Choice(['json', 'yaml'])
@@ -98,8 +113,9 @@ def validate(schema, format, base_format, verbose):
 @click.argument('schema', type=click.File('rb'))
 @click.option('--format', type=FORMAT_SCHEMA_CHOICES, required=True)
 @click.option('--base-format', type=BASE_FORMAT_CHOICES, default=None)
+@click.option('--output-dir', type=click.Path(), default='build')
 @click.option('--verbose', '-v', is_flag=True, default=False)
-def docs(schema, format, base_format, verbose):
+def docs(schema, format, base_format, output_dir, verbose):
     content = schema.read()
     if base_format is None:
         base_format = _base_format_from_filename(schema.name)
@@ -130,18 +146,22 @@ def docs(schema, format, base_format, verbose):
         static_url=static_url
     )
 
-    directory = 'site'
-    output_path = os.path.join(directory, 'index.html')
-    if not os.path.exists(directory):
-        os.makedirs(directory)
+    output_path = os.path.join(output_dir, 'index.html')
+    if verbose:
+        click.echo(output_path)
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
     output_file = open(output_path, 'w')
     output_file.write(output_text)
     output_file.close()
 
-    static_dir = os.path.join(os.path.dirname(apistar.__file__), 'static')
-    shutil.copytree(static_dir, os.path.join(directory, 'apistar'))
+    static_input_dir = os.path.join(os.path.dirname(apistar.__file__), 'static')
+    static_output_dir = os.path.join(output_dir, 'apistar')
 
-    click.echo('Documentation built at %s' % output_path)
+    _copy_tree(static_input_dir, static_output_dir, verbose=verbose)
+
+    msg = 'Documentation built at "%s"'
+    click.echo(click.style('✓ ', fg='green') + (msg % output_path))
 
 
 main.add_command(docs)
