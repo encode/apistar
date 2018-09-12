@@ -10,7 +10,6 @@
         <link href="{{ static_url('apistar/css/bootstrap.min.css') }}" rel="stylesheet">
         <link href="{{ static_url('apistar/css/font-awesome-4.0.3.css') }}" rel="stylesheet">
         <link href="{{ static_url('apistar/css/base.css') }}" rel="stylesheet">
-        <link href="{{ static_url('apistar/css/jquery.json-view.min.css') }}" rel="stylesheet">
         <link href="{{ static_url('apistar/img/favicon.ico') }}" rel="shortcut icon">
 
         {% if code_style %}<style>{{ code_style }}</style>{% endif %}
@@ -29,11 +28,8 @@
             </div>
         </div>
 
-        {% include 'apistar/docs/auth/token.html' %}
-        {% include 'apistar/docs/auth/basic.html' %}
-        {% include 'apistar/docs/auth/session.html' %}
-
         <script src="{{ static_url('apistar/js/jquery-1.10.2.min.js') }}"></script>
         <script src="{{ static_url('apistar/js/bootstrap.min.js') }}"></script>
+        <script src="{{ static_url('apistar/js/api.js') }}"></script>
     </body>
 </html>
