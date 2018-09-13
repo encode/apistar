@@ -2,7 +2,9 @@ import os
 import shutil
 
 import click
+import http.server
 import jinja2
+import socketserver
 
 import apistar
 from apistar.exceptions import ParseError, ValidationError
@@ -19,13 +21,13 @@ def main():
     pass
 
 
-def _base_format_from_filename(filename):
+def _base_format_from_filename(filename, default=None):
     base, extension = os.path.splitext(filename)
     return {
         '.json': 'json',
         '.yml': 'yaml',
         '.yaml': 'yaml'
-    }.get(extension)
+    }.get(extension, default)
 
 
 def _echo_error(exc, verbose=False):
@@ -80,7 +82,7 @@ def _copy_tree(src, dst, verbose=False):
 FORMAT_SCHEMA_CHOICES = click.Choice(['openapi', 'swagger'])
 FORMAT_ALL_CHOICES = click.Choice(['json', 'yaml', 'config', 'jsonschema', 'openapi', 'swagger'])
 BASE_FORMAT_CHOICES = click.Choice(['json', 'yaml'])
-THEME_CHOICES = click.Choice(['apistar'])
+THEME_CHOICES = click.Choice(['apistar', 'redoc', 'swaggerui'])
 
 
 @click.command()
@@ -116,11 +118,12 @@ def validate(schema, format, base_format, verbose):
 @click.option('--base-format', type=BASE_FORMAT_CHOICES, default=None)
 @click.option('--output-dir', type=click.Path(), default='build')
 @click.option('--theme', type=THEME_CHOICES, default='apistar')
+@click.option('--serve', is_flag=True, default=False)
 @click.option('--verbose', '-v', is_flag=True, default=False)
-def docs(schema, format, base_format, output_dir, theme, verbose):
+def docs(schema, format, base_format, output_dir, theme, serve, verbose):
     content = schema.read()
     if base_format is None:
-        base_format = _base_format_from_filename(schema.name)
+        base_format = _base_format_from_filename(schema.name, default="yaml")
 
     try:
         value = apistar_validate(content, format=format, base_format=base_format)
@@ -134,36 +137,57 @@ def docs(schema, format, base_format, output_dir, theme, verbose):
     }[format]
     document = decoder().load(value)
 
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
+    # Write 'index.html' to the docs.
     loader = jinja2.PrefixLoader({
         theme: jinja2.PackageLoader('apistar', os.path.join('themes', theme, 'templates'))
     })
     env = jinja2.Environment(autoescape=True, loader=loader)
 
-    template = env.get_template('apistar/index.html')
+    template = env.get_template(os.path.join(theme, 'index.html'))
     code_style = None  # pygments_css('emacs')
+    schema_filename = 'schema.%s' % base_format
     output_text = template.render(
         document=document,
         langs=['javascript', 'python'],
         code_style=code_style,
-        static_url=static_url
+        static_url=static_url,
+        schema_url=schema_filename
     )
 
     output_path = os.path.join(output_dir, 'index.html')
     if verbose:
         click.echo(output_path)
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
     output_file = open(output_path, 'w')
     output_file.write(output_text)
     output_file.close()
 
+    # Write 'schema.{json|yaml}' to the docs.
+    schema_path = os.path.join(output_dir, schema_filename)
+    if verbose:
+        click.echo(schema_path)
+    shutil.copy2(schema.name, schema_path)
+
+    # Write static files to the docs.
     package_dir = os.path.dirname(apistar.__file__)
     static_dir = os.path.join(package_dir, 'themes', theme, 'static')
-
     _copy_tree(static_dir, output_dir, verbose=verbose)
 
-    msg = 'Documentation built at "%s"'
-    click.echo(click.style('✓ ', fg='green') + (msg % output_path))
+    # All done.
+    if serve:
+        os.chdir(output_dir)
+        addr = ("", 8000)
+        handler = http.server.SimpleHTTPRequestHandler
+        socketserver.TCPServer.allow_reuse_address = True
+        with socketserver.TCPServer(addr, handler) as httpd:
+            msg = 'Documentation available at "http://127.0.0.1:8000/" (Ctrl+C to quit)'
+            click.echo(click.style('✓ ', fg='green') + msg)
+            httpd.serve_forever()
+    else:
+        msg = 'Documentation built at "%s"'
+        click.echo(click.style('✓ ', fg='green') + (msg % output_path))
 
 
 main.add_command(docs)
