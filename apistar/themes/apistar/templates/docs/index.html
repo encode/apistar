@@ -7,10 +7,10 @@
 
 	    <title>{{ document.title|default('API Star', True) }}</title>
 
-        <link href="{{ static_url('apistar/css/bootstrap.min.css') }}" rel="stylesheet">
-        <link href="{{ static_url('apistar/css/font-awesome-4.0.3.css') }}" rel="stylesheet">
-        <link href="{{ static_url('apistar/css/base.css') }}" rel="stylesheet">
-        <link href="{{ static_url('apistar/img/favicon.ico') }}" rel="shortcut icon">
+        <link href="{{ static_url('css/bootstrap.min.css') }}" rel="stylesheet">
+        <link href="{{ static_url('css/font-awesome-4.0.3.css') }}" rel="stylesheet">
+        <link href="{{ static_url('css/base.css') }}" rel="stylesheet">
+        <link href="{{ static_url('img/favicon.ico') }}" rel="shortcut icon">
 
         {% if code_style %}<style>{{ code_style }}</style>{% endif %}
 
@@ -28,8 +28,8 @@
             </div>
         </div>
 
-        <script src="{{ static_url('apistar/js/jquery-1.10.2.min.js') }}"></script>
-        <script src="{{ static_url('apistar/js/bootstrap.min.js') }}"></script>
-        <script src="{{ static_url('apistar/js/api.js') }}"></script>
+        <script src="{{ static_url('js/jquery-1.10.2.min.js') }}"></script>
+        <script src="{{ static_url('js/bootstrap.min.js') }}"></script>
+        <script src="{{ static_url('js/api.js') }}"></script>
     </body>
 </html>

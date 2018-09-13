@@ -80,6 +80,7 @@ def _copy_tree(src, dst, verbose=False):
 FORMAT_SCHEMA_CHOICES = click.Choice(['openapi', 'swagger'])
 FORMAT_ALL_CHOICES = click.Choice(['json', 'yaml', 'config', 'jsonschema', 'openapi', 'swagger'])
 BASE_FORMAT_CHOICES = click.Choice(['json', 'yaml'])
+THEME_CHOICES = click.Choice(['apistar'])
 
 
 @click.command()
@@ -114,8 +115,9 @@ def validate(schema, format, base_format, verbose):
 @click.option('--format', type=FORMAT_SCHEMA_CHOICES, required=True)
 @click.option('--base-format', type=BASE_FORMAT_CHOICES, default=None)
 @click.option('--output-dir', type=click.Path(), default='build')
+@click.option('--theme', type=THEME_CHOICES, default='apistar')
 @click.option('--verbose', '-v', is_flag=True, default=False)
-def docs(schema, format, base_format, output_dir, verbose):
+def docs(schema, format, base_format, output_dir, theme, verbose):
     content = schema.read()
     if base_format is None:
         base_format = _base_format_from_filename(schema.name)
@@ -133,7 +135,7 @@ def docs(schema, format, base_format, output_dir, verbose):
     document = decoder().load(value)
 
     loader = jinja2.PrefixLoader({
-        'apistar': jinja2.PackageLoader('apistar', 'templates')
+        theme: jinja2.PackageLoader('apistar', os.path.join('themes', theme, 'templates'))
     })
     env = jinja2.Environment(autoescape=True, loader=loader)
 
@@ -155,10 +157,10 @@ def docs(schema, format, base_format, output_dir, verbose):
     output_file.write(output_text)
     output_file.close()
 
-    static_input_dir = os.path.join(os.path.dirname(apistar.__file__), 'static')
-    static_output_dir = os.path.join(output_dir, 'apistar')
+    package_dir = os.path.dirname(apistar.__file__)
+    static_dir = os.path.join(package_dir, 'themes', theme, 'static')
 
-    _copy_tree(static_input_dir, static_output_dir, verbose=verbose)
+    _copy_tree(static_dir, output_dir, verbose=verbose)
 
     msg = 'Documentation built at "%s"'
     click.echo(click.style('✓ ', fg='green') + (msg % output_path))
