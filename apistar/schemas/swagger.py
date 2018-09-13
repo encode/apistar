@@ -139,14 +139,27 @@ SWAGGER = validators.Object(
                 ('in', validators.String(enum=['body', 'query', 'header', 'path', 'cookie'])),
                 ('description', validators.String(format='textarea')),
                 ('required', validators.Boolean()),
-                ('deprecated', validators.Boolean()),
-                ('allowEmptyValue', validators.Boolean()),
-                ('style', validators.String()),
+                # in: "body"
                 ('schema', JSON_SCHEMA | SCHEMA_REF),
+                # in: "query"|"header"|"path"|"cookie"
                 ('type', validators.String()),
                 ('format', validators.String()),
                 ('allowEmptyValue', validators.Boolean()),
-                # TODO: Other fields
+                ('items', JSON_SCHEMA),  # TODO: Should actually be a restricted subset
+                ('collectionFormat', validators.String(enum=['csv', 'ssv', 'tsv', 'pipes', 'multi'])),
+                ('default', validators.Any()),
+                ('maximum', validators.Number()),
+                ('exclusiveMaximum', validators.Boolean()),
+                ('minimum', validators.Number()),
+                ('exclusiveMinimum', validators.Boolean()),
+                ('maxLength', validators.Integer()),
+                ('minLength', validators.Integer()),
+                ('pattern', validators.String()),
+                ('maxItems', validators.Integer()),
+                ('minItems', validators.Integer()),
+                ('uniqueItems', validators.Boolean()),
+                ('enum', validators.Array(items=validators.Any())),
+                ('multipleOf', validators.Integer()),
             ],
             pattern_properties={
                 '^x-': validators.Any(),
