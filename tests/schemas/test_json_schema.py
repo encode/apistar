@@ -43,7 +43,7 @@ def load_test_cases():
     loaded = []
 
     for filename in filenames:
-        path = os.path.join('tests', 'jsonschema', filename)
+        path = os.path.join('testcases', 'jsonschema', filename)
         content = open(path, 'rb').read()
         test_suite = json.loads(content.decode('utf-8'))
         for test_cases in test_suite:
