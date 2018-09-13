@@ -30,7 +30,7 @@ def _base_format_from_filename(filename, default=None):
     }.get(extension, default)
 
 
-def _echo_error(exc, verbose=False):
+def _echo_error(exc, content, verbose=False):
     if verbose:
         # Verbose output style.
         lines = content.splitlines()
@@ -98,7 +98,7 @@ def validate(schema, format, base_format, verbose):
     try:
         value = apistar_validate(content, format=format, base_format=base_format)
     except (ParseError, ValidationError) as exc:
-        _echo_error(exc, verbose=verbose)
+        _echo_error(exc, content, verbose=verbose)
         return
 
     success_summary = {
@@ -128,7 +128,7 @@ def docs(schema, format, base_format, output_dir, theme, serve, verbose):
     try:
         value = apistar_validate(content, format=format, base_format=base_format)
     except (ParseError, ValidationError) as exc:
-        _echo_error(exc, verbose=verbose)
+        _echo_error(exc, content, verbose=verbose)
         return
 
     decoder = {
