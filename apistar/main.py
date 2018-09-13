@@ -154,7 +154,7 @@ def docs(schema, format, base_format, output_dir, theme, serve, verbose):
         langs=['javascript', 'python'],
         code_style=code_style,
         static_url=static_url,
-        schema_url=schema_filename
+        schema_url='/' + schema_filename
     )
 
     output_path = os.path.join(output_dir, 'index.html')
