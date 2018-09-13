@@ -72,8 +72,6 @@ setup(
         'jinja2',
         'requests',
         'pyyaml',
-        'werkzeug',
-        'whitenoise'
     ],
     classifiers=[
         'Development Status :: 3 - Alpha',
