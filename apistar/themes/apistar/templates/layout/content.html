@@ -17,15 +17,6 @@
         </ul>
     </div>
 </div>
-<div class="row intro">
-<div class="col-md-6 offset-md-6 section-secondary">
-    {% for language in langs %}
-        {% set template = "apistar/docs/langs/intro/" + language + ".html" %}
-        {% set is_selected = loop.first %}
-        {% include template %}
-    {% endfor %}
-</div>
-</div>
 
 {% for section in document.get_sections() %}
     {% if section.name %}
@@ -39,10 +30,10 @@
         </div>
     {% endif %}
     {% for link in section.get_links() %}
-        {% include "apistar/docs/layout/link.html" %}
+        {% include "apistar/layout/link.html" %}
     {% endfor %}
 {% endfor %}
 
 {% for link in document.get_links() %}
-    {% include "apistar/docs/layout/link.html" %}
+    {% include "apistar/layout/link.html" %}
 {% endfor %}

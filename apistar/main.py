@@ -139,7 +139,7 @@ def docs(schema, format, base_format, output_dir, theme, verbose):
     })
     env = jinja2.Environment(autoescape=True, loader=loader)
 
-    template = env.get_template('apistar/docs/index.html')
+    template = env.get_template('apistar/index.html')
     code_style = None  # pygments_css('emacs')
     output_text = template.render(
         document=document,

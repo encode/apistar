@@ -63,7 +63,7 @@
 
     <div class="col-md-6 section-secondary">
         {% for language in langs %}
-            {% set template = "apistar/docs/langs/" + language + ".html" %}
+            {% set template = "apistar/langs/" + language + ".html" %}
             {% set is_selected = loop.first %}
             {% include template %}
         {% endfor %}
