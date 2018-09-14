@@ -58,9 +58,9 @@ version = get_version('apistar')
 setup(
     name='apistar',
     version=version,
-    url='http://www.encode.io/apistar/',
+    url='https://docs.apistar.com/',
     license='BSD',
-    description='Blazingly fast & beautifully expressive Web APIs',
+    description='API documentation, validation, mocking, and clients.',
     long_description=get_long_description('README.md'),
     long_description_content_type='text/markdown',
     author='Tom Christie',
