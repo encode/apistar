@@ -7,10 +7,10 @@ from apistar.schemas.jsonschema import JSON_SCHEMA, JSONSchema
 from apistar.document import Document, Field, Link, Section
 
 SCHEMA_REF = validators.Object(
-    properties={'$ref': validators.String(pattern='^#/components/schemas/')}
+    properties={'$ref': validators.String(pattern='^#/definitiions/')}
 )
 RESPONSE_REF = validators.Object(
-    properties={'$ref': validators.String(pattern='^#/components/responses/')}
+    properties={'$ref': validators.String(pattern='^#/responses/')}
 )
 
 SWAGGER = validators.Object(
@@ -136,12 +136,12 @@ SWAGGER = validators.Object(
         'Parameter': validators.Object(
             properties=[
                 ('name', validators.String()),
-                ('in', validators.String(enum=['body', 'query', 'header', 'path', 'cookie'])),
+                ('in', validators.String(enum=['query', 'header', 'path', 'formData', 'body'])),
                 ('description', validators.String(format='textarea')),
                 ('required', validators.Boolean()),
                 # in: "body"
                 ('schema', JSON_SCHEMA | SCHEMA_REF),
-                # in: "query"|"header"|"path"|"cookie"
+                # in: "query"|"header"|"path"|"formData"
                 ('type', validators.String()),
                 ('format', validators.String()),
                 ('allowEmptyValue', validators.Boolean()),
@@ -228,19 +228,6 @@ SWAGGER = validators.Object(
             },
             additional_properties=False
         ),
-        'Components': validators.Object(
-            properties=[
-                ('schemas', validators.Object(additional_properties=JSON_SCHEMA)),
-                ('responses', validators.Object(additional_properties=validators.Ref('Response'))),
-                ('parameters', validators.Object(additional_properties=validators.Ref('Parameter'))),
-                ('securitySchemes', validators.Object(additional_properties=validators.Ref('SecurityScheme'))),
-                # TODO: Other fields
-            ],
-            pattern_properties={
-                '^x-': validators.Any(),
-            },
-            additional_properties=False,
-        ),
         'Tag': validators.Object(
             properties=[
                 ('name', validators.String()),
@@ -261,11 +248,11 @@ SWAGGER = validators.Object(
                 ('type', validators.String(enum=['basic', 'apiKey', 'oauth2'])),
                 ('description', validators.String(format='textarea')),
                 ('name', validators.String()),
-                ('in', validators.String(enum=['query', 'header', 'cookie'])),
-                ('scheme', validators.String()),
-                ('bearerFormat', validators.String()),
-                ('flows', validators.Any()),  # TODO: OAuthFlows
-                ('openIdConnectUrl', validators.String()),
+                ('in', validators.String(enum=['query', 'header'])),
+                ('flow', validators.String(enum=['implicit', 'password', 'application', 'accessCode'])),
+                ('authorizationUrl', validators.String(format="url")),
+                ('tokenUrl', validators.String(format="url")),
+                ('scopes', validators.Ref('Scopes')),
             ],
             pattern_properties={
                 '^x-': validators.Any(),
@@ -273,6 +260,12 @@ SWAGGER = validators.Object(
             additional_properties=False,
             required=['type']
         ),
+        'Scopes': validators.Object(
+            pattern_properties={
+                '^x-': validators.Any(),
+            },
+            additional_properties=validators.String(),
+        )
     }
 )
 
@@ -378,6 +371,20 @@ class Swagger:
         default_encoding = None
         if any([field.location == 'body' for field in fields]):
             default_encoding = 'application/json'
+        elif any([field.location == 'formData' for field in fields]):
+            default_encoding = 'application/x-www-form-urlencoded'
+            form_fields = [field for field in fields if field.location == 'formData']
+            body_field = Field(
+                name='body',
+                location='body',
+                schema=validators.Object(
+                    properties={field.name: validators.Any() if field.schema is None else field.schema for field in form_fields},
+                    required=[field.name for field in form_fields if field.required]
+                )
+            )
+            fields = [field for field in fields if field.location != 'formData']
+            fields.append(body_field)
+
         encoding = lookup(operation_info, ['consumes', 0], default_encoding)
 
         return Link(
@@ -403,7 +410,7 @@ class Swagger:
 
         if schema is not None:
             if '$ref' in schema:
-                ref = schema['$ref'][len('#/components/schemas/'):]
+                ref = schema['$ref'][len('#/definitions/'):]
                 schema = schema_definitions.get(ref)
             else:
                 schema = JSONSchema().decode_from_data_structure(schema)

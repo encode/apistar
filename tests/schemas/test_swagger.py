@@ -11,6 +11,7 @@ filenames = [
     'testcases/swagger/petstore-with-external-docs.yaml',
     'testcases/swagger/petstore.yaml',
     'testcases/swagger/uber.yaml',
+    'testcases/swagger/swagger.json',
 ]
 
 
