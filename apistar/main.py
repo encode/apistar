@@ -1,5 +1,6 @@
 import os
 import shutil
+import sys
 
 import click
 import http.server
@@ -99,7 +100,7 @@ def validate(schema, format, base_format, verbose):
         value = apistar_validate(content, format=format, base_format=base_format)
     except (ParseError, ValidationError) as exc:
         _echo_error(exc, content, verbose=verbose)
-        return
+        sys.exit(1)
 
     success_summary = {
         'json': 'Valid JSON',
@@ -129,7 +130,7 @@ def docs(schema, format, base_format, output_dir, theme, serve, verbose):
         value = apistar_validate(content, format=format, base_format=base_format)
     except (ParseError, ValidationError) as exc:
         _echo_error(exc, content, verbose=verbose)
-        return
+        sys.exit(1)
 
     decoder = {
         'openapi': OpenAPI,
@@ -186,7 +187,7 @@ def docs(schema, format, base_format, output_dir, theme, serve, verbose):
             click.echo(click.style('✓ ', fg='green') + msg)
             httpd.serve_forever()
     else:
-        msg = 'Documentation built at "%s"'
+        msg = 'Documentation built at "%s".'
         click.echo(click.style('✓ ', fg='green') + (msg % output_path))
 
 
