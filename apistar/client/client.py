@@ -19,7 +19,7 @@ class Client():
 
     def lookup_link(self, name: str):
         for item in self.document.walk_links():
-            if item.name == name:
+            if item.link.name == name:
                 return item.link
         raise exceptions.RequestError('Link "%s" not found in document.' % name)
 

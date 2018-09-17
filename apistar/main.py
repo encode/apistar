@@ -1,3 +1,4 @@
+import json
 import os
 import shutil
 import sys
@@ -8,6 +9,8 @@ import jinja2
 import socketserver
 
 import apistar
+from apistar.client import Client
+from apistar.client.debug import DebugSession
 from apistar.exceptions import ParseError, ValidationError
 from apistar.schemas import OpenAPI, Swagger
 from apistar.validate import validate as apistar_validate
@@ -191,5 +194,44 @@ def docs(schema, format, base_format, output_dir, theme, serve, verbose):
         click.echo(click.style('✓ ', fg='green') + (msg % output_path))
 
 
+@click.command()
+@click.argument('operation', required=True)
+@click.argument('params', nargs=-1)
+@click.option('--schema', type=click.File('rb'), required=True)
+@click.option('--format', type=FORMAT_SCHEMA_CHOICES, required=True)
+@click.option('--base-format', type=BASE_FORMAT_CHOICES, default=None)
+@click.option('--verbose', '-v', is_flag=True, default=False)
+@click.pass_context
+def request(ctx, operation, params, schema, format, base_format, verbose):
+    params = [param.partition('=') for param in params]
+    params = dict([(key, value) for key, sep, value in params])
+
+    content = schema.read()
+    if base_format is None:
+        base_format = _base_format_from_filename(schema.name, default="yaml")
+
+    try:
+        value = apistar_validate(content, format=format, base_format=base_format)
+    except (ParseError, ValidationError) as exc:
+        _echo_error(exc, content, verbose=verbose)
+        sys.exit(1)
+
+    decoder = {
+        'openapi': OpenAPI,
+        'swagger': Swagger
+    }[format]
+    document = decoder().load(value)
+
+    session = ctx.obj
+
+    if verbose:
+        session = DebugSession(session)
+
+    client = Client(document, session=session)
+    result = client.request(operation, **params)
+    click.echo(json.dumps(result, indent=4))
+
+
 main.add_command(docs)
 main.add_command(validate)
+main.add_command(request)
