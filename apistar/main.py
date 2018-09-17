@@ -1,12 +1,12 @@
+import http.server
 import json
 import os
 import shutil
+import socketserver
 import sys
 
 import click
-import http.server
 import jinja2
-import socketserver
 
 import apistar
 from apistar.client import Client
@@ -100,7 +100,7 @@ def validate(schema, format, base_format, verbose):
         base_format = _base_format_from_filename(schema.name)
 
     try:
-        value = apistar_validate(content, format=format, base_format=base_format)
+        apistar_validate(content, format=format, base_format=base_format)
     except (ParseError, ValidationError) as exc:
         _echo_error(exc, content, verbose=verbose)
         sys.exit(1)

@@ -6,7 +6,6 @@ import pytest
 from apistar import types, validators
 from apistar.schemas.jsonschema import JSONSchema
 
-
 filenames = [
     'additionalItems.json',
     'additionalProperties.json',
@@ -70,7 +69,6 @@ def test_json_schema(schema, value, is_valid, description):
     validator = JSONSchema().decode_from_data_structure(schema)
     was_valid = validator.is_valid(value)
     assert was_valid == is_valid, description
-
 
 
 class Product(types.Type):

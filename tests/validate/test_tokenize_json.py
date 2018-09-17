@@ -1,5 +1,5 @@
-from apistar.validate.tokens import DictToken, ListToken, ScalarToken
 from apistar.validate.tokenize_json import tokenize_json
+from apistar.validate.tokens import DictToken, ListToken, ScalarToken
 
 
 def test_tokenize_object():
@@ -33,7 +33,7 @@ def test_tokenize_list():
     ], 0, 18)
     assert token == expected
     assert token.get_value() == [True, False, None]
-    assert token[0].get_value() == True
+    assert token[0].get_value()
     assert token[0].start_index == 1
     assert token[0].end_index == 4
 

@@ -1,4 +1,5 @@
 from apistar import validators
+
 # from apistar.validate import validate_yaml
 
 APISTAR_CONFIG = validators.Object(

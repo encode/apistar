@@ -3,8 +3,8 @@ from urllib.parse import urljoin
 
 from apistar import validators
 from apistar.compat import dict_type
-from apistar.schemas.jsonschema import JSON_SCHEMA, JSONSchema
 from apistar.document import Document, Field, Link, Section
+from apistar.schemas.jsonschema import JSON_SCHEMA, JSONSchema
 
 SCHEMA_REF = validators.Object(
     properties={'$ref': validators.String(pattern='^#/definitiions/')}
@@ -378,7 +378,10 @@ class Swagger:
                 name='body',
                 location='body',
                 schema=validators.Object(
-                    properties={field.name: validators.Any() if field.schema is None else field.schema for field in form_fields},
+                    properties={
+                        field.name: validators.Any() if field.schema is None else field.schema
+                        for field in form_fields
+                    },
                     required=[field.name for field in form_fields if field.required]
                 )
             )

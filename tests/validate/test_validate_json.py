@@ -1,7 +1,9 @@
 import pytest
 
 from apistar import validators
-from apistar.exceptions import ErrorMessage, ParseError, Position, ValidationError
+from apistar.exceptions import (
+    ErrorMessage, ParseError, Position, ValidationError
+)
 from apistar.validate import validate
 
 

@@ -4,7 +4,6 @@ from apistar import types, validators
 from apistar.compat import dict_type
 from apistar.exceptions import ErrorMessage, ParseError
 
-
 JSON_SCHEMA = validators.Object(
     def_name='JSONSchema',
     properties=[

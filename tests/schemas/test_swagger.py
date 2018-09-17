@@ -1,7 +1,7 @@
 import pytest
+
 from apistar.schemas import Swagger
 from apistar.validate import validate
-
 
 filenames = [
     'testcases/swagger/api-with-examples.yaml',

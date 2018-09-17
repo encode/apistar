@@ -1,6 +1,5 @@
 from collections import namedtuple
 
-
 Position = namedtuple('Position', ['line_no', 'column_no', 'index'])
 
 

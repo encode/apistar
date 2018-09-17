@@ -3,9 +3,8 @@ from urllib.parse import urljoin
 
 from apistar import validators
 from apistar.compat import dict_type
-from apistar.schemas.jsonschema import JSON_SCHEMA, JSONSchema
 from apistar.document import Document, Field, Link, Section
-
+from apistar.schemas.jsonschema import JSON_SCHEMA, JSONSchema
 
 SCHEMA_REF = validators.Object(
     properties={'$ref': validators.String(pattern='^#/components/schemas/')}

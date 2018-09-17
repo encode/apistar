@@ -7,8 +7,8 @@ from apistar.validate.tokens import DictToken, ListToken, ScalarToken
 
 def _get_position(content, index):
     return Position(
-        line_no=content.count('\n', 0, pos) + 1,
-        column_no=pos - content.rfind('\n', 0, pos),
+        line_no=content.count('\n', 0, index) + 1,
+        column_no=index - content.rfind('\n', 0, index),
         index=index
     )
 
@@ -98,7 +98,7 @@ def tokenize_yaml(content):
             code='parse_error',
             position=Position(line_no=1, column_no=1, index=0)
         )
-        raise ParseError(errors=[error], summary='Invalid YAML.')
+        raise ParseError(errors=[message], summary='Invalid YAML.')
 
     try:
         return yaml.load(content, CustomLoader)
@@ -107,6 +107,6 @@ def tokenize_yaml(content):
         message = ErrorMessage(
             text=exc.problem + ".",
             code='parse_error',
-            position=get_position(content, index=index)
+            position=_get_position(content, index=index)
         )
         raise ParseError(messages=[message], summary='Invalid YAML.') from None

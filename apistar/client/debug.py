@@ -1,7 +1,8 @@
+from urllib.parse import urlparse
+
+import click
 from requests.adapters import HTTPAdapter
 from requests.sessions import Session
-from urllib.parse import urlparse
-import click
 
 
 def expand_args(fmt, args):

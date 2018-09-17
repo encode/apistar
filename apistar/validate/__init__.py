@@ -1,13 +1,10 @@
-import json
-import yaml
-from apistar.exceptions import ErrorMessage, ParseError, Position, ValidationError
+from apistar.exceptions import ValidationError
 from apistar.schemas.config import APISTAR_CONFIG
 from apistar.schemas.jsonschema import JSON_SCHEMA
 from apistar.schemas.openapi import OPEN_API
 from apistar.schemas.swagger import SWAGGER
 from apistar.validate.tokenize_json import tokenize_json
 from apistar.validate.tokenize_yaml import tokenize_yaml
-
 
 __all__ = ['validate']
 

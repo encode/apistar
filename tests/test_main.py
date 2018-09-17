@@ -1,10 +1,12 @@
-from apistar.main import main
+import json
+import os
+
 from click.testing import CliRunner
 from starlette.applications import Starlette
 from starlette.responses import JSONResponse
 from starlette.testclient import TestClient
-import json
-import os
+
+from apistar.main import main
 
 
 def test_valid_document(tmpdir):
@@ -79,6 +81,7 @@ def test_docs(tmpdir):
 
 app = Starlette()
 
+
 @app.route('/')
 def homepage(request):
     return JSONResponse({'hello': 'world'})
@@ -102,7 +105,8 @@ def test_request(tmpdir):
 
     session = TestClient(app)
     runner = CliRunner()
-    result = runner.invoke(main, ['request', '--schema', schema, '--format', 'openapi', 'example'], obj=session)
+    cmd = ['request', '--schema', schema, '--format', 'openapi', 'example']
+    result = runner.invoke(main, cmd, obj=session)
     assert result.exit_code == 0
     assert result.output == '{\n    "hello": "world"\n}\n'
 
@@ -125,7 +129,8 @@ def test_request_verbose(tmpdir):
 
     session = TestClient(app)
     runner = CliRunner()
-    result = runner.invoke(main, ['request', '--schema', schema, '--format', 'openapi', '--verbose', 'example'], obj=session)
+    cmd = ['request', '--schema', schema, '--format', 'openapi', '--verbose', 'example']
+    result = runner.invoke(main, cmd, obj=session)
     assert result.exit_code == 0
     assert '> GET / HTTP/1.1' in result.output
     assert '< 200 OK' in result.output

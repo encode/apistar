@@ -1,8 +1,7 @@
 import pytest
+
 from apistar.schemas import OpenAPI
 from apistar.validate import validate
-import os
-
 
 filenames = [
     'testcases/openapi/api-with-examples.yaml',
@@ -12,6 +11,7 @@ filenames = [
     'testcases/openapi/petstore.yaml',
     'testcases/openapi/uspto.yaml',
 ]
+
 
 @pytest.mark.parametrize("filename", filenames)
 def test_openapi(filename):

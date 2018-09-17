@@ -1,6 +1,5 @@
-from apistar.validate.tokens import DictToken, ListToken, ScalarToken
 from apistar.validate.tokenize_yaml import tokenize_yaml
-
+from apistar.validate.tokens import DictToken, ListToken, ScalarToken
 
 YAML_OBJECT = '''
 a:

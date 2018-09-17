@@ -1,10 +1,11 @@
-from apistar.client import Client
-from apistar.document import Document, Field, Link
+import os
+
 from starlette.applications import Starlette
 from starlette.responses import JSONResponse, PlainTextResponse, Response
 from starlette.testclient import TestClient
-import os
 
+from apistar.client import Client
+from apistar.document import Document, Field, Link
 
 app = Starlette()
 
@@ -80,6 +81,7 @@ document = Document(
         ),
     ]
 )
+
 
 def test_path_param():
     client = Client(document, session=TestClient(app))
