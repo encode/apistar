@@ -131,7 +131,7 @@ THEME_CHOICES = click.Choice(['apistar', 'redoc', 'swaggerui'])
 @click.command()
 @click.option('--path', type=click.Path(exists=True, dir_okay=False))
 @click.option('--format', type=FORMAT_ALL_CHOICES)
-@click.option('--base-format', type=BASE_FORMAT_CHOICES, default=None)
+@click.option('--base-format', type=BASE_FORMAT_CHOICES)
 @click.option('--verbose', '-v', is_flag=True, default=False)
 def validate(path, format, base_format, verbose):
     options = {
@@ -170,9 +170,9 @@ def validate(path, format, base_format, verbose):
 @click.command()
 @click.option('--path', type=click.Path(exists=True, dir_okay=False))
 @click.option('--format', type=FORMAT_SCHEMA_CHOICES)
-@click.option('--base-format', type=BASE_FORMAT_CHOICES, default=None)
-@click.option('--output-dir', type=click.Path(), default=None)
-@click.option('--theme', type=THEME_CHOICES, default=None)
+@click.option('--base-format', type=BASE_FORMAT_CHOICES)
+@click.option('--output-dir', type=click.Path())
+@click.option('--theme', type=THEME_CHOICES)
 @click.option('--serve', is_flag=True, default=False)
 @click.option('--verbose', '-v', is_flag=True, default=False)
 def docs(path, format, base_format, output_dir, theme, serve, verbose):
@@ -273,7 +273,7 @@ def docs(path, format, base_format, output_dir, theme, serve, verbose):
 @click.argument('params', nargs=-1)
 @click.option('--path', type=click.Path(exists=True, dir_okay=False))
 @click.option('--format', type=FORMAT_SCHEMA_CHOICES)
-@click.option('--base-format', type=BASE_FORMAT_CHOICES, default=None)
+@click.option('--base-format', type=BASE_FORMAT_CHOICES)
 @click.option('--verbose', '-v', is_flag=True, default=False)
 @click.pass_context
 def request(ctx, operation, params, path, format, base_format, verbose):
