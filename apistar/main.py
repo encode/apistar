@@ -25,13 +25,13 @@ def main():
     pass
 
 
-def _base_format_from_filename(filename, default=None):
+def _base_format_from_filename(filename):
     base, extension = os.path.splitext(filename)
     return {
         '.json': 'json',
         '.yml': 'yaml',
         '.yaml': 'yaml'
-    }.get(extension, default)
+    }.get(extension)
 
 
 def _echo_error(exc, content, verbose=False):
@@ -83,6 +83,46 @@ def _copy_tree(src, dst, verbose=False):
             shutil.copy2(srcname, dstname)
 
 
+def _load_config(options, verbose=False):
+    if not os.path.exists('apistar.yml'):
+        # If the config file is not used, then these flags are required.
+        if options['schema']['path'] is None:
+            raise click.UsageError('Missing option "--path".')
+        if options['schema']['format'] is None:
+            raise click.UsageError('Missing option "--format".')
+        config = options
+
+    else:
+        with open('apistar.yml', 'rb') as config_file:
+            content = config_file.read()
+
+        try:
+            config = apistar_validate(content, format='config')
+        except (ParseError, ValidationError) as exc:
+            click.echo('Errors in configuration file "apistar.yml":')
+            _echo_error(exc, content, verbose=verbose)
+            sys.exit(1)
+
+        # Anything passed in 'options' should override the config file.
+        # Ensure all values are populated with 'None' if unset.
+        for section in options.keys():
+            config.setdefault(section, {})
+            for key, value in options[section].items():
+                config[section].setdefault(key, None)
+                if value is not None:
+                    config[section][key] = value
+
+    path = config['schema']['path']
+    if not os.path.exists(path):
+        raise click.UsageError('Schema file "%s" not found.' % path)
+
+    if config['schema']['base_format'] is None:
+        config['schema']['base_format'] = _base_format_from_filename(path)
+
+    return config
+
+
+
 FORMAT_SCHEMA_CHOICES = click.Choice(['openapi', 'swagger'])
 FORMAT_ALL_CHOICES = click.Choice(['json', 'yaml', 'config', 'jsonschema', 'openapi', 'swagger'])
 BASE_FORMAT_CHOICES = click.Choice(['json', 'yaml'])
@@ -90,14 +130,26 @@ THEME_CHOICES = click.Choice(['apistar', 'redoc', 'swaggerui'])
 
 
 @click.command()
-@click.argument('schema', type=click.File('rb'))
-@click.option('--format', type=FORMAT_ALL_CHOICES, required=True)
+@click.option('--path', type=click.Path(exists=True, dir_okay=False))
+@click.option('--format', type=FORMAT_ALL_CHOICES)
 @click.option('--base-format', type=BASE_FORMAT_CHOICES, default=None)
 @click.option('--verbose', '-v', is_flag=True, default=False)
-def validate(schema, format, base_format, verbose):
-    content = schema.read()
-    if base_format is None:
-        base_format = _base_format_from_filename(schema.name)
+def validate(path, format, base_format, verbose):
+    options = {
+        'schema': {
+            'path': path,
+            'format': format,
+            'base_format': base_format
+        }
+    }
+    config = _load_config(options, verbose=verbose)
+
+    path = config['schema']['path']
+    format = config['schema']['format']
+    base_format = config['schema']['base_format']
+
+    with open(path, 'rb') as schema_file:
+        content = schema_file.read()
 
     try:
         apistar_validate(content, format=format, base_format=base_format)
@@ -117,17 +169,40 @@ def validate(schema, format, base_format, verbose):
 
 
 @click.command()
-@click.argument('schema', type=click.File('rb'))
-@click.option('--format', type=FORMAT_SCHEMA_CHOICES, required=True)
+@click.option('--path', type=click.Path(exists=True, dir_okay=False))
+@click.option('--format', type=FORMAT_SCHEMA_CHOICES)
 @click.option('--base-format', type=BASE_FORMAT_CHOICES, default=None)
-@click.option('--output-dir', type=click.Path(), default='build')
-@click.option('--theme', type=THEME_CHOICES, default='apistar')
+@click.option('--output-dir', type=click.Path(), default=None)
+@click.option('--theme', type=THEME_CHOICES, default=None)
 @click.option('--serve', is_flag=True, default=False)
 @click.option('--verbose', '-v', is_flag=True, default=False)
-def docs(schema, format, base_format, output_dir, theme, serve, verbose):
-    content = schema.read()
-    if base_format is None:
-        base_format = _base_format_from_filename(schema.name, default="yaml")
+def docs(path, format, base_format, output_dir, theme, serve, verbose):
+    options = {
+        'schema': {
+            'path': path,
+            'format': format,
+            'base_format': base_format,
+        },
+        'docs': {
+            'output_dir': output_dir,
+            'theme': theme,
+        }
+    }
+    config = _load_config(options, verbose=verbose)
+
+    path = config['schema']['path']
+    format = config['schema']['format']
+    base_format = config['schema']['base_format']
+    output_dir = config['docs']['output_dir']
+    theme = config['docs']['theme']
+
+    if output_dir is None:
+        output_dir = 'build'
+    if theme is None:
+        theme = 'apistar'
+
+    with open(path, 'rb') as schema_file:
+        content = schema_file.read()
 
     try:
         value = apistar_validate(content, format=format, base_format=base_format)
@@ -152,7 +227,7 @@ def docs(schema, format, base_format, output_dir, theme, serve, verbose):
 
     template = env.get_template(os.path.join(theme, 'index.html'))
     code_style = None  # pygments_css('emacs')
-    schema_filename = 'schema.%s' % base_format
+    schema_filename = 'schema.%s' % (base_format or "yaml")
     output_text = template.render(
         document=document,
         langs=['javascript', 'python'],
@@ -172,7 +247,7 @@ def docs(schema, format, base_format, output_dir, theme, serve, verbose):
     schema_path = os.path.join(output_dir, schema_filename)
     if verbose:
         click.echo(schema_path)
-    shutil.copy2(schema.name, schema_path)
+    shutil.copy2(path, schema_path)
 
     # Write static files to the docs.
     package_dir = os.path.dirname(apistar.__file__)
@@ -195,20 +270,32 @@ def docs(schema, format, base_format, output_dir, theme, serve, verbose):
 
 
 @click.command()
-@click.argument('operation', required=True)
+@click.argument('operation')
 @click.argument('params', nargs=-1)
-@click.option('--schema', type=click.File('rb'), required=True)
-@click.option('--format', type=FORMAT_SCHEMA_CHOICES, required=True)
+@click.option('--path', type=click.Path(exists=True, dir_okay=False))
+@click.option('--format', type=FORMAT_SCHEMA_CHOICES)
 @click.option('--base-format', type=BASE_FORMAT_CHOICES, default=None)
 @click.option('--verbose', '-v', is_flag=True, default=False)
 @click.pass_context
-def request(ctx, operation, params, schema, format, base_format, verbose):
+def request(ctx, operation, params, path, format, base_format, verbose):
+    options = {
+        'schema': {
+            'path': path,
+            'format': format,
+            'base_format': base_format
+        }
+    }
+    config = _load_config(options, verbose=verbose)
+
+    path = config['schema']['path']
+    format = config['schema']['format']
+    base_format = config['schema']['base_format']
+
+    with open(path, 'rb') as schema_file:
+        content = schema_file.read()
+
     params = [param.partition('=') for param in params]
     params = dict([(key, value) for key, sep, value in params])
-
-    content = schema.read()
-    if base_format is None:
-        base_format = _base_format_from_filename(schema.name, default="yaml")
 
     try:
         value = apistar_validate(content, format=format, base_format=base_format)

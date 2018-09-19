@@ -51,7 +51,7 @@ def validate(content, format, base_format=None, schema=None):
             exc.summary = {
                 'json': 'Does not validate against schema.',
                 'yaml': 'Does not validate against schema.',
-                'config': 'Invalid APIStar config.',
+                'config': 'Invalid configuration file.',
                 'jsonschema': 'Invalid JSONSchema document.',
                 'openapi': 'Invalid OpenAPI schema.',
                 'swagger': 'Invalid Swagger schema.',
