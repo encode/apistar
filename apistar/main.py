@@ -122,7 +122,6 @@ def _load_config(options, verbose=False):
     return config
 
 
-
 FORMAT_SCHEMA_CHOICES = click.Choice(['openapi', 'swagger'])
 FORMAT_ALL_CHOICES = click.Choice(['json', 'yaml', 'config', 'jsonschema', 'openapi', 'swagger'])
 BASE_FORMAT_CHOICES = click.Choice(['json', 'yaml'])
