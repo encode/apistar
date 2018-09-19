@@ -4,17 +4,8 @@ theme:
     custom_dir: 'docs-theme'
 pages:
     - Home: index.md
-    - API Guide:
-        - Applications: api-guide/applications.md
-        - Requests and Responses: api-guide/requests-and-responses.md
-        - Routing: api-guide/routing.md
-        - Templates: api-guide/templates.md
-        - Static Files: api-guide/static-files.md
-        - The Type System: api-guide/type-system.md
-        - API Schemas: api-guide/api-schemas.md
-        - Event Hooks: api-guide/event-hooks.md
-        - Dependency Injection: api-guide/dependency-injection.md
-        - Testing: api-guide/testing.md
-        - Deployment: api-guide/deployment.md
     - Topics:
-        - Release Notes: topics/release-notes.md
+        - Validation: validation.md
+        - Documentation: documentation.md
+        - API Client: api-client.md
+        - Type System: type-system.md
