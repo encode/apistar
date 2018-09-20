@@ -13,16 +13,10 @@ from apistar.client import Client
 from apistar.client.debug import DebugSession
 from apistar.exceptions import ParseError, ValidationError
 from apistar.schemas import OpenAPI, Swagger
-from apistar.validate import validate as apistar_validate
 
 
 def static_url(filename):
     return filename
-
-
-@click.group()
-def main():
-    pass
 
 
 def _base_format_from_filename(filename):
@@ -97,7 +91,7 @@ def _load_config(options, verbose=False):
             content = config_file.read()
 
         try:
-            config = apistar_validate(content, format='config')
+            config = apistar.validate(content, format='config')
         except (ParseError, ValidationError) as exc:
             click.echo('Errors in configuration file "apistar.yml":')
             _echo_error(exc, content, verbose=verbose)
@@ -128,6 +122,11 @@ BASE_FORMAT_CHOICES = click.Choice(['json', 'yaml'])
 THEME_CHOICES = click.Choice(['apistar', 'redoc', 'swaggerui'])
 
 
+@click.group()
+def cli():
+    pass
+
+
 @click.command()
 @click.option('--path', type=click.Path(exists=True, dir_okay=False))
 @click.option('--format', type=FORMAT_ALL_CHOICES)
@@ -151,7 +150,7 @@ def validate(path, format, base_format, verbose):
         content = schema_file.read()
 
     try:
-        apistar_validate(content, format=format, base_format=base_format)
+        apistar.validate(content, format=format, base_format=base_format)
     except (ParseError, ValidationError) as exc:
         _echo_error(exc, content, verbose=verbose)
         sys.exit(1)
@@ -204,7 +203,7 @@ def docs(path, format, base_format, output_dir, theme, serve, verbose):
         content = schema_file.read()
 
     try:
-        value = apistar_validate(content, format=format, base_format=base_format)
+        value = apistar.validate(content, format=format, base_format=base_format)
     except (ParseError, ValidationError) as exc:
         _echo_error(exc, content, verbose=verbose)
         sys.exit(1)
@@ -297,7 +296,7 @@ def request(ctx, operation, params, path, format, base_format, verbose):
     params = dict([(key, value) for key, sep, value in params])
 
     try:
-        value = apistar_validate(content, format=format, base_format=base_format)
+        value = apistar.validate(content, format=format, base_format=base_format)
     except (ParseError, ValidationError) as exc:
         _echo_error(exc, content, verbose=verbose)
         sys.exit(1)
@@ -318,6 +317,6 @@ def request(ctx, operation, params, path, format, base_format, verbose):
     click.echo(json.dumps(result, indent=4))
 
 
-main.add_command(docs)
-main.add_command(validate)
-main.add_command(request)
+cli.add_command(docs)
+cli.add_command(validate)
+cli.add_command(request)

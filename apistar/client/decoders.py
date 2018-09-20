@@ -28,7 +28,6 @@ class JSONDecoder(BaseDecoder):
 
 class TextDecoder(BaseDecoder):
     media_type = 'text/*'
-    format = 'text'
 
     def decode(self, bytestring, **options):
         return bytestring.decode('utf-8')

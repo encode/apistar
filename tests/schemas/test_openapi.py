@@ -1,7 +1,7 @@
 import pytest
 
+import apistar
 from apistar.schemas import OpenAPI
-from apistar.validate import validate
 
 filenames = [
     'testcases/openapi/api-with-examples.yaml',
@@ -18,5 +18,5 @@ def test_openapi(filename):
     with open(filename, 'rb') as input_file:
         content = input_file.read()
 
-    value = validate(content, format='openapi')
+    value = apistar.validate(content, format='openapi')
     OpenAPI().load(value)

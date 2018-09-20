@@ -2,7 +2,7 @@ import yaml
 from yaml.loader import SafeLoader
 
 from apistar.exceptions import ErrorMessage, ParseError, Position
-from apistar.validate.tokens import DictToken, ListToken, ScalarToken
+from apistar.tokenize.tokens import DictToken, ListToken, ScalarToken
 
 
 def _get_position(content, index):

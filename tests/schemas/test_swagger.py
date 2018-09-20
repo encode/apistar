@@ -1,7 +1,7 @@
 import pytest
 
+import apistar
 from apistar.schemas import Swagger
-from apistar.validate import validate
 
 filenames = [
     'testcases/swagger/api-with-examples.yaml',
@@ -20,5 +20,5 @@ def test_openapi(filename):
     with open(filename, 'rb') as input_file:
         content = input_file.read()
 
-    value = validate(content, format='swagger')
+    value = apistar.validate(content, format='swagger')
     Swagger().load(value)

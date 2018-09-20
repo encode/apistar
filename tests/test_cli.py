@@ -6,7 +6,7 @@ from starlette.applications import Starlette
 from starlette.responses import JSONResponse
 from starlette.testclient import TestClient
 
-from apistar.main import main
+from apistar.cli import cli
 
 
 def test_valid_document(tmpdir):
@@ -19,7 +19,7 @@ def test_valid_document(tmpdir):
         }))
 
     runner = CliRunner()
-    result = runner.invoke(main, ['validate', '--path', schema, '--format', 'openapi'])
+    result = runner.invoke(cli, ['validate', '--path', schema, '--format', 'openapi'])
 
     print(result.output)
     assert result.exit_code == 0
@@ -35,7 +35,7 @@ def test_invalid_document(tmpdir):
         }))
 
     runner = CliRunner()
-    result = runner.invoke(main, ['validate', '--path', schema, '--format', 'openapi'])
+    result = runner.invoke(cli, ['validate', '--path', schema, '--format', 'openapi'])
     assert result.exit_code != 0
     assert result.output == (
         '* The "paths" field is required. (At line 1, column 1.)\n'
@@ -53,7 +53,7 @@ def test_invalid_document_verbose(tmpdir):
         }))
 
     runner = CliRunner()
-    result = runner.invoke(main, ['validate', '--path', schema, '--format', 'openapi', '--verbose'])
+    result = runner.invoke(cli, ['validate', '--path', schema, '--format', 'openapi', '--verbose'])
     assert result.exit_code != 0
     assert result.output == (
         '{"openapi": "3.0.0", "info": {"version": ""}}\n'
@@ -76,7 +76,7 @@ def test_docs(tmpdir):
         }))
 
     runner = CliRunner()
-    result = runner.invoke(main, ['docs', '--path', schema, '--format', 'openapi', '--output-dir', output_dir])
+    result = runner.invoke(cli, ['docs', '--path', schema, '--format', 'openapi', '--output-dir', output_dir])
     assert result.exit_code == 0
     assert result.output == '✓ Documentation built at "%s".\n' % output_index
 
@@ -108,7 +108,7 @@ def test_request(tmpdir):
     session = TestClient(app)
     runner = CliRunner()
     cmd = ['request', '--path', schema, '--format', 'openapi', 'example']
-    result = runner.invoke(main, cmd, obj=session)
+    result = runner.invoke(cli, cmd, obj=session)
     assert result.exit_code == 0
     assert result.output == '{\n    "hello": "world"\n}\n'
 
@@ -132,7 +132,7 @@ def test_request_verbose(tmpdir):
     session = TestClient(app)
     runner = CliRunner()
     cmd = ['request', '--path', schema, '--format', 'openapi', '--verbose', 'example']
-    result = runner.invoke(main, cmd, obj=session)
+    result = runner.invoke(cli, cmd, obj=session)
     assert result.exit_code == 0
     assert '> GET / HTTP/1.1' in result.output
     assert '< 200 OK' in result.output

@@ -3,7 +3,7 @@ import re
 from json.decoder import JSONDecodeError, JSONDecoder, scanstring
 
 from apistar.exceptions import ErrorMessage, ParseError, Position
-from apistar.validate.tokens import DictToken, ListToken, ScalarToken
+from apistar.tokenize.tokens import DictToken, ListToken, ScalarToken
 
 FLAGS = re.VERBOSE | re.MULTILINE | re.DOTALL
 WHITESPACE = re.compile(r'[ \t\n\r]*', FLAGS)
