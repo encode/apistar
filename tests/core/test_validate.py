@@ -1,10 +1,7 @@
 import pytest
 
-from apistar import validators
 from apistar.core import validate
-from apistar.exceptions import (
-    ErrorMessage, ParseError, Position, ValidationError
-)
+from apistar.exceptions import ValidationError
 
 
 def test_validate_openapi():
