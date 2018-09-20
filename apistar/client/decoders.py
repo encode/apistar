@@ -4,7 +4,7 @@ import os
 import posixpath
 import shutil
 import tempfile
-from urllib.parse import unquote, urlparse
+from urllib.parse import urlparse
 
 from apistar.compat import DownloadedFile
 
