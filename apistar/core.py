@@ -1,3 +1,7 @@
+import os
+
+import jinja2
+
 from apistar.exceptions import ValidationError
 from apistar.schemas.config import APISTAR_CONFIG
 from apistar.schemas.jsonschema import JSON_SCHEMA
@@ -5,8 +9,6 @@ from apistar.schemas.openapi import OPEN_API, OpenAPI
 from apistar.schemas.swagger import SWAGGER, Swagger
 from apistar.tokenize.tokenize_json import tokenize_json
 from apistar.tokenize.tokenize_yaml import tokenize_yaml
-import os
-import jinja2
 
 __all__ = ['validate']
 
@@ -85,7 +87,8 @@ def docs(content, format, base_format=None, theme='apistar', schema_url=None, st
     env = jinja2.Environment(autoescape=True, loader=loader)
 
     if isinstance(static_url, str):
-        static_url_func = lambda path: static_url + path
+        def static_url_func(path):
+            return static_url.rstrip('/') + '/' + path.lstrip('/')
     else:
         static_url_func = static_url
 
