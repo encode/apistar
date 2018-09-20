@@ -37,7 +37,7 @@ class HTTPTransport(BaseTransport):
         self.session = session
         self.decoders = list(decoders) if decoders else list(self.default_decoders)
         self.headers = {
-            'accept': '%s, */*' % self.decoders[0].media_type,
+            'accept': ', '.join([decoder.media_type for decoder in self.decoders]),
             'user-agent': 'apistar %s' % __version__
         }
         if headers:

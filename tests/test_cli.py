@@ -21,7 +21,6 @@ def test_valid_document(tmpdir):
     runner = CliRunner()
     result = runner.invoke(cli, ['validate', '--path', schema, '--format', 'openapi'])
 
-    print(result.output)
     assert result.exit_code == 0
     assert result.output == '✓ Valid OpenAPI schema.\n'
 

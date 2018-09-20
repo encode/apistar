@@ -7,6 +7,41 @@ from apistar.exceptions import (
 )
 
 
+def test_validate_openapi():
+    schema = """
+    {
+        "openapi": "3.0.0",
+        "info": {"title": "", "version": ""},
+        "paths": {}
+    }
+    """
+    validate(schema, format="openapi")
+
+
+def test_validate_with_bad_format():
+    schema = """
+    {
+        "openapi": "3.0.0",
+        "info": {"title": "", "version": ""},
+        "paths": {}
+    }
+    """
+    with pytest.raises(ValueError):
+        validate(schema, format="xxx")
+
+
+def test_validate_with_bad_base_format():
+    schema = """
+    {
+        "openapi": "3.0.0",
+        "info": {"title": "", "version": ""},
+        "paths": {}
+    }
+    """
+    with pytest.raises(ValueError):
+        validate(schema, format="openapi", base_format="xxx")
+
+
 def test_valid_json():
     validate('{"abc": "def"}', format='json')
 

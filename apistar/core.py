@@ -1,10 +1,12 @@
 from apistar.exceptions import ValidationError
 from apistar.schemas.config import APISTAR_CONFIG
 from apistar.schemas.jsonschema import JSON_SCHEMA
-from apistar.schemas.openapi import OPEN_API
-from apistar.schemas.swagger import SWAGGER
+from apistar.schemas.openapi import OPEN_API, OpenAPI
+from apistar.schemas.swagger import SWAGGER, Swagger
 from apistar.tokenize.tokenize_json import tokenize_json
 from apistar.tokenize.tokenize_yaml import tokenize_yaml
+import os
+import jinja2
 
 __all__ = ['validate']
 
@@ -66,3 +68,32 @@ def validate(content, format, base_format=None, schema=None):
             exc.messages = sorted(exc.messages, key=lambda x: x.position.index)
             raise exc
     return value
+
+
+def docs(content, format, base_format=None, theme='apistar', schema_url=None, static_url='/static/'):
+    value = validate(content, format, base_format=base_format)
+
+    decoder = {
+        'openapi': OpenAPI,
+        'swagger': Swagger
+    }[format]
+    document = decoder().load(value)
+
+    loader = jinja2.PrefixLoader({
+        theme: jinja2.PackageLoader('apistar', os.path.join('themes', theme, 'templates'))
+    })
+    env = jinja2.Environment(autoescape=True, loader=loader)
+
+    if isinstance(static_url, str):
+        static_url_func = lambda path: static_url + path
+    else:
+        static_url_func = static_url
+
+    template = env.get_template(os.path.join(theme, 'index.html'))
+    return template.render(
+        document=document,
+        langs=['javascript', 'python'],
+        code_style=None,
+        static_url=static_url_func,
+        schema_url=schema_url
+    )

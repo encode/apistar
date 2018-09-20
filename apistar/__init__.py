@@ -8,10 +8,10 @@
 
 from apistar.cli import cli
 from apistar.client import Client
-from apistar.core import validate
+from apistar.core import docs, validate
 from apistar.document import Document, Field, Link, Section
 
 __version__ = '0.5.41'
 __all__ = [
-    'Client', 'Document', 'Section', 'Link', 'Field', 'cli', 'validate'
+    'Client', 'Document', 'Section', 'Link', 'Field', 'cli', 'docs', 'validate'
 ]

@@ -51,36 +51,28 @@ server that is able to generate an OpenAPI or Swagger specification.
 import apistar
 
 
-schema = {
-    "openapi": "3.0.0",
-    "info": {
-        "title": "Widget API",
-        "version": "1.0",
-        "description": "An example API for widgets"
-    },
-    "paths": {
-        "/widgets": {
-            "get": {
-                "summary": "List all the widgets.",
-                "operationId": "listWidgets",
-                "parameters": [
-                    {
-                        "in": "query",
-                        "name": "search",
-                        "description": "Filter widgets by this search term.",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-            }
-        }
-    }
-}
+schema = """
+openapi: 3.0.0
+info:
+  title: Widget API
+  version: '1.0'
+  description: An example API for widgets
+paths:
+  /widgets:
+    get:
+      summary: List all the widgets.
+      operationId: listWidgets
+      parameters:
+      - in: query
+        name: search
+        description: Filter widgets by this search term.
+        schema:
+          type: string
+"""
 
-index_html = apistar.docs(schema)
+index_html = apistar.docs(schema, schema_url='/schema.yml', static_url='/static/')
 ```
 
 If you're serving the documentation dynamically, then you'll also need to make
-sure that your framework serves up the schema, and the static media for the
+sure that your framework serves up the API schema, and the static media for the
 documentation theme.

@@ -1,3 +1,9 @@
+"""
+This module provides a `DebugSession` requests session class, that echos
+requests and responses to the console.
+
+We use this for the `apistar request --verbose` console command.
+"""
 from urllib.parse import urlparse
 
 import click
@@ -66,14 +72,12 @@ def debug_response(response):
 
 class DebugAdapter(HTTPAdapter):
     def __init__(self, wrapped_session=None):
-        if wrapped_session is None:
-            wrapped_session = Session()
-        self.wrapped_session = wrapped_session
+        self.session = Session() if wrapped_session is None else wrapped_session
         super().__init__()
 
     def send(self, request, **kwargs):
         debug_request(request)
-        response = self.wrapped_session.send(request, **kwargs)
+        response = self.session.send(request, **kwargs)
         debug_response(response)
         return response
 
