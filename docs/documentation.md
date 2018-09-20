@@ -31,6 +31,16 @@ $ apistar docs
 
 The documentation is a static HTML build and can be hosted anywhere.
 
+## Previewing the API documentation
+
+To preview the API documentation use `apistar docs --serve`, which will
+build the documentation, and then start up a webserver.
+
+```shell
+$ apistar docs --serve
+✓ Documentation available at "http://127.0.0.1:8000/" (Ctrl+C to quit)
+```
+
 ## Programmatic interface
 
 You can also build API documentation using a programmatic interface.
@@ -52,6 +62,7 @@ schema = {
         "/widgets": {
             "get": {
                 "summary": "List all the widgets.",
+                "operationId": "listWidgets",
                 "parameters": [
                     {
                         "in": "query",

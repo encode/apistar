@@ -68,65 +68,6 @@ class Event(types.Type):
     name = validators.String(max_length=100)
 ```
 
-## Validation
-
-You can use API Star `Type` classes as annotations inside your handler functions.
-
-When you do so, validation will be handled automatically prior to running
-the handler function. The type information will also be made available
-in the application's API Schema.
-
-```python
-def create_product(product: Product):
-    # Save a new product record in the database.
-    ...
-
-routes = [
-    Route('/create_product/', method='POST', handler=create_product)
-]
-```
-
-## Serialization
-
-You may also want to using the type system for data serialization,
-and include the type as a return annotation on handler functions.
-
-Again, doing so will expose the type information to the application's
-API Schema, and will help ensure that the information your system
-returns matches its documented return types.
-
-```python
-import typing
-
-
-def list_products() -> typing.List[Product]:
-    queryset = ...  # Query returning products from a data store.
-    return [Product(record) for record in queryset]
-```
-
-## Including additional validation
-
-If you have validation rules that cannot be expressed with the default types,
-you can include these by subclass the `__init__` method on the class.
-
-This method should return the validated data, or raise a `ValidationError`.
-
-```python
-from apistar import exceptions, types, validators
-
-
-class Organisation(types.Type):
-    is_premium = validators.Boolean()
-    expiry_date = validators.Date(allow_null=True)
-
-    def __init__(self, *args, **kwargs):
-        value = super().__init__(*args, **kwargs)
-        if value.is_premium and value.expiry_date is not None:
-            message = 'premium organisations should not have any expiry_date set.'
-            raise exceptions.ValidationError(message)
-        return value
-```
-
 ## API Reference
 
 The following typesystem types are supported:

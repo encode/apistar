@@ -1,4 +1,4 @@
-# Validation
+# Schema validation
 
 You can use API Star to validate your API Schema. When errors occur it'll
 give you a full breakdown of exactly where the schema is incorrect.
@@ -43,6 +43,7 @@ paths:
   /widgets:
     get:
       summary: List all the widgets.
+      operationId: listWidgets
       parameters:
       - in: query
         name: search

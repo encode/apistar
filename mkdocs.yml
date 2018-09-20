@@ -4,8 +4,12 @@ theme:
     custom_dir: 'docs-theme'
 pages:
     - Home: index.md
-    - Topics:
-        - Validation: validation.md
+    - Tools:
+        - Schema Validation: schema-validation.md
         - Documentation: documentation.md
         - API Client: api-client.md
-        - Type System: type-system.md
+    - Type System:
+        - Types and Validators: type-system.md
+        - JSON Schema: type-system.md
+        - HTML Forms: type-system.md
+        - API Validation: type-system.md
