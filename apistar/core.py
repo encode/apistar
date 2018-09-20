@@ -2,7 +2,7 @@ import os
 
 import jinja2
 
-from apistar.exceptions import ValidationError
+from apistar.exceptions import ErrorMessage, ValidationError
 from apistar.schemas.config import APISTAR_CONFIG
 from apistar.schemas.jsonschema import JSON_SCHEMA
 from apistar.schemas.openapi import OPEN_API, OpenAPI
@@ -10,56 +10,27 @@ from apistar.schemas.swagger import SWAGGER, Swagger
 from apistar.tokenize.tokenize_json import tokenize_json
 from apistar.tokenize.tokenize_yaml import tokenize_yaml
 
-__all__ = ['validate']
+__all__ = ['docs', 'parse', 'validate']
 
 
-FORMAT_CHOICES = ['json', 'yaml', 'config', 'jsonschema', 'openapi', 'swagger']
+FORMAT_CHOICES = ['config', 'jsonschema', 'openapi', 'swagger', None]
 
 
-def validate(content, format, base_format=None, schema=None):
-    if format not in FORMAT_CHOICES:
-        raise ValueError('format must be one of %s' % FORMAT_CHOICES)
-    if base_format not in (None, "json", "yaml"):
-        raise ValueError('base_format must be either "json", "yaml", or None')
+def parse(content, base_format, validator=None):
+    if base_format not in ("json", "yaml"):
+        raise ValueError('base_format must be either "json" or "yaml"')
 
-    if base_format is None:
-        base_format = {
-            'json': 'json',
-            'yaml': 'yaml',
-            'config': 'yaml',
-            'jsonschema': 'json',
-            'openapi': 'yaml',
-            'swagger': 'yaml'
-        }[format]
-    if schema is None:
-        schema = {
-            'json': None,
-            'yaml': None,
-            'config': APISTAR_CONFIG,
-            'jsonschema': JSON_SCHEMA,
-            'openapi': OPEN_API,
-            'swagger': SWAGGER
-        }[format]
-
-    if format == "json" or base_format == "json":
+    if base_format == "json":
         token = tokenize_json(content)
     else:
         token = tokenize_yaml(content)
 
     value = token.get_value()
 
-    if schema is not None:
+    if validator is not None:
         try:
-            value = schema.validate(value)
+            value = validator.validate(value)
         except ValidationError as exc:
-            exc.summary = {
-                'json': 'Does not validate against schema.',
-                'yaml': 'Does not validate against schema.',
-                'config': 'Invalid configuration file.',
-                'jsonschema': 'Invalid JSONSchema document.',
-                'openapi': 'Invalid OpenAPI schema.',
-                'swagger': 'Invalid Swagger schema.',
-            }[format]
             for message in exc.messages:
                 if message.code == 'required':
                     message.position = token.lookup_position(message.index[:-1])
@@ -68,6 +39,68 @@ def validate(content, format, base_format=None, schema=None):
                 else:
                     message.position = token.lookup_position(message.index)
             exc.messages = sorted(exc.messages, key=lambda x: x.position.index)
+            raise exc
+
+    return (value, token)
+
+
+def validate(content, format=None, base_format=None):
+    if format not in FORMAT_CHOICES:
+        raise ValueError('format must be one of %s' % FORMAT_CHOICES)
+    if base_format not in (None, "json", "yaml"):
+        raise ValueError('base_format must be either "json", "yaml", or None')
+
+    if isinstance(content, (str, bytes)):
+        if base_format is None:
+            base_format = {
+                None: 'yaml',
+                'config': 'yaml',
+                'jsonschema': 'json',
+                'openapi': 'yaml',
+                'swagger': 'yaml'
+            }[format]
+        value, token = parse(content, base_format)
+    else:
+        value, token = content, None
+
+    if format is None:
+        if isinstance(value, dict) and "openapi" in value and "swagger" not in value:
+            format = "openapi"
+        elif isinstance(value, dict) and "swagger" in value and "openapi" not in value:
+            format = "swagger"
+        else:
+            message = ErrorMessage(
+                text="Unable to determine schema format. Use the 'format' argument.",
+                code='unknown_format'
+            )
+            raise ValidationError(messages=[message])
+
+    validator = {
+        'config': APISTAR_CONFIG,
+        'jsonschema': JSON_SCHEMA,
+        'openapi': OPEN_API,
+        'swagger': SWAGGER
+    }[format]
+
+    if validator is not None:
+        try:
+            value = validator.validate(value)
+        except ValidationError as exc:
+            exc.summary = {
+                'config': 'Invalid configuration file.',
+                'jsonschema': 'Invalid JSONSchema document.',
+                'openapi': 'Invalid OpenAPI schema.',
+                'swagger': 'Invalid Swagger schema.',
+            }[format]
+            if token is not None:
+                for message in exc.messages:
+                    if message.code == 'required':
+                        message.position = token.lookup_position(message.index[:-1])
+                    elif message.code in ['invalid_property', 'invalid_key']:
+                        message.position = token.lookup_key_position(message.index)
+                    else:
+                        message.position = token.lookup_position(message.index)
+                exc.messages = sorted(exc.messages, key=lambda x: x.position.index)
             raise exc
     return value
 

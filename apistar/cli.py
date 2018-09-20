@@ -117,7 +117,7 @@ def _load_config(options, verbose=False):
 
 
 FORMAT_SCHEMA_CHOICES = click.Choice(['openapi', 'swagger'])
-FORMAT_ALL_CHOICES = click.Choice(['json', 'yaml', 'config', 'jsonschema', 'openapi', 'swagger'])
+FORMAT_ALL_CHOICES = click.Choice(['config', 'jsonschema', 'openapi', 'swagger'])
 BASE_FORMAT_CHOICES = click.Choice(['json', 'yaml'])
 THEME_CHOICES = click.Choice(['apistar', 'redoc', 'swaggerui'])
 

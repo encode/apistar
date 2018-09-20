@@ -54,3 +54,11 @@ paths:
 
 apistar.validate(schema, format='openapi')
 ```
+
+Function signature: `validate(content, format=None, base_format=None)`
+
+* `content` - A string or bytestring, or a datastructure.
+* `format` - One of `openapi`, `swagger`, `jsonschema` or `config`.
+If unset, one of either `openapi` or `swagger` will be inferred from the content if possible.
+* `base_format` - One of `json` or `yaml`. If unset, then a default appropriate to
+the `format` will be used. For `openapi` or `swagger` this will be `yaml`.
