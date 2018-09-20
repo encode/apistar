@@ -1,10 +1,10 @@
 import pytest
 
 from apistar import validators
+from apistar.core import validate
 from apistar.exceptions import (
     ErrorMessage, ParseError, Position, ValidationError
 )
-from apistar.core import validate
 
 
 def test_valid_json():
