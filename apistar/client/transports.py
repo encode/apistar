@@ -2,7 +2,8 @@ import mimetypes
 
 import requests
 
-from apistar import codecs, exceptions
+from apistar import exceptions
+from apistar.client import decoders
 from apistar.client.utils import (
     BlockAllCookies, File, ForceMultiPartDict, guess_filename, is_file
 )
@@ -18,9 +19,9 @@ class BaseTransport():
 class HTTPTransport(BaseTransport):
     schemes = ['http', 'https']
     default_decoders = [
-        codecs.JSONCodec(),
-        codecs.TextCodec(),
-        codecs.DownloadCodec()
+        decoders.JSONDecoder(),
+        decoders.TextDecoder(),
+        decoders.DownloadDecoder()
     ]
 
     def __init__(self, auth=None, decoders=None, headers=None, session=None):

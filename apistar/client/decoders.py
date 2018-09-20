@@ -1,12 +1,90 @@
 import cgi
+import json
 import os
 import posixpath
 import shutil
 import tempfile
 from urllib.parse import unquote, urlparse
 
-from apistar.codecs.base import BaseCodec
 from apistar.compat import DownloadedFile
+
+
+class BaseDecoder:
+    media_type = None
+
+    def decode(self, bytestring, **options):
+        raise NotImplementedError()
+
+
+class JSONDecoder(BaseDecoder):
+    media_type = 'application/json'
+
+    def decode(self, bytestring, **options):
+        """
+        Return raw JSON data.
+        """
+        return json.loads(bytestring.decode('utf-8'))
+
+
+class TextDecoder(BaseDecoder):
+    media_type = 'text/*'
+    format = 'text'
+
+    def decode(self, bytestring, **options):
+        return bytestring.decode('utf-8')
+
+
+class DownloadDecoder(BaseDecoder):
+    """
+    A codec to handle raw file downloads, such as images and other media.
+    """
+    media_type = '*/*'
+
+    def __init__(self, download_dir=None):
+        """
+        `download_dir` - The path to use for file downloads.
+        """
+        self._delete_on_close = download_dir is None
+        self._download_dir = download_dir
+
+    @property
+    def download_dir(self):
+        return self._download_dir
+
+    def decode(self, bytestring, **options):
+        base_url = options.get('base_url')
+        content_type = options.get('content_type')
+        content_disposition = options.get('content_disposition')
+
+        # Write the download to a temporary .download file.
+        fd, temp_path = tempfile.mkstemp(suffix='.download')
+        file_handle = os.fdopen(fd, 'wb')
+        file_handle.write(bytestring)
+        file_handle.close()
+
+        # Determine the output filename.
+        output_filename = _get_filename(base_url, content_type, content_disposition)
+        if output_filename is None:
+            output_filename = os.path.basename(temp_path)
+
+        # Determine the output directory.
+        output_dir = self._download_dir
+        if output_dir is None:
+            output_dir = os.path.dirname(temp_path)
+
+        # Determine the full output path.
+        output_path = os.path.join(output_dir, output_filename)
+
+        # Move the temporary download file to the final location.
+        if output_path != temp_path:
+            output_path = _unique_output_path(output_path)
+            shutil.move(temp_path, output_path)
+
+        # Open the file and return the file object.
+        output_file = open(output_path, 'rb')
+        downloaded = DownloadedFile(output_file, output_path, delete=self._delete_on_close)
+        downloaded.basename = output_filename
+        return downloaded
 
 
 def _guess_extension(content_type):
@@ -183,57 +261,3 @@ def _get_filename(base_url=None, content_type=None, content_disposition=None):
     if not filename:
         return None  # Ensure empty filenames return as `None` for consistency.
     return filename
-
-
-class DownloadCodec(BaseCodec):
-    """
-    A codec to handle raw file downloads, such as images and other media.
-    """
-    media_type = '*/*'
-    format = 'download'
-
-    def __init__(self, download_dir=None):
-        """
-        `download_dir` - The path to use for file downloads.
-        """
-        self._delete_on_close = download_dir is None
-        self._download_dir = download_dir
-
-    @property
-    def download_dir(self):
-        return self._download_dir
-
-    def decode(self, bytestring, **options):
-        base_url = options.get('base_url')
-        content_type = options.get('content_type')
-        content_disposition = options.get('content_disposition')
-
-        # Write the download to a temporary .download file.
-        fd, temp_path = tempfile.mkstemp(suffix='.download')
-        file_handle = os.fdopen(fd, 'wb')
-        file_handle.write(bytestring)
-        file_handle.close()
-
-        # Determine the output filename.
-        output_filename = _get_filename(base_url, content_type, content_disposition)
-        if output_filename is None:
-            output_filename = os.path.basename(temp_path)
-
-        # Determine the output directory.
-        output_dir = self._download_dir
-        if output_dir is None:
-            output_dir = os.path.dirname(temp_path)
-
-        # Determine the full output path.
-        output_path = os.path.join(output_dir, output_filename)
-
-        # Move the temporary download file to the final location.
-        if output_path != temp_path:
-            output_path = _unique_output_path(output_path)
-            shutil.move(temp_path, output_path)
-
-        # Open the file and return the file object.
-        output_file = open(output_path, 'rb')
-        downloaded = DownloadedFile(output_file, output_path, delete=self._delete_on_close)
-        downloaded.basename = output_filename
-        return downloaded
