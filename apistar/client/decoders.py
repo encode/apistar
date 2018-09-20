@@ -42,13 +42,11 @@ class DownloadDecoder(BaseDecoder):
     def __init__(self, download_dir=None):
         """
         `download_dir` - The path to use for file downloads.
+                         If `None` then downloaded files will be temporary
+                         files that are deleted on close.
         """
         self._delete_on_close = download_dir is None
-        self._download_dir = download_dir
-
-    @property
-    def download_dir(self):
-        return self._download_dir
+        self.download_dir = download_dir
 
     def decode(self, bytestring, **options):
         base_url = options.get('base_url')
@@ -63,11 +61,9 @@ class DownloadDecoder(BaseDecoder):
 
         # Determine the output filename.
         output_filename = _get_filename(base_url, content_type, content_disposition)
-        if output_filename is None:
-            output_filename = os.path.basename(temp_path)
 
         # Determine the output directory.
-        output_dir = self._download_dir
+        output_dir = self.download_dir
         if output_dir is None:
             output_dir = os.path.dirname(temp_path)
 
@@ -213,15 +209,6 @@ def _get_filename_from_content_disposition(content_disposition):
     """
     params = value, params = cgi.parse_header(content_disposition)
 
-    if 'filename*' in params:
-        try:
-            charset, lang, filename = params['filename*'].split('\'', 2)
-            filename = unquote(filename)
-            filename = filename.encode('iso-8859-1').decode(charset)
-            return _safe_filename(filename)
-        except (ValueError, LookupError):
-            pass
-
     if 'filename' in params:
         filename = params['filename']
         return _safe_filename(filename)
@@ -242,21 +229,18 @@ def _get_filename_from_url(url, content_type=None):
         if '.' not in filename:
             return filename + suffix
         return filename
-    elif suffix:
-        return 'download' + suffix
 
-    return None
+    return 'download' + suffix
 
 
-def _get_filename(base_url=None, content_type=None, content_disposition=None):
+def _get_filename(base_url, content_type=None, content_disposition=None):
     """
     Determine an output filename to use for the download.
     """
     filename = None
     if content_disposition:
         filename = _get_filename_from_content_disposition(content_disposition)
-    if base_url and not filename:
-        filename = _get_filename_from_url(base_url, content_type)
-    if not filename:
-        return None  # Ensure empty filenames return as `None` for consistency.
-    return filename
+        if filename is not None:
+            return filename
+
+    return _get_filename_from_url(base_url, content_type)

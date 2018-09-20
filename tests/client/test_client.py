@@ -1,7 +1,5 @@
-import os
-
 from starlette.applications import Starlette
-from starlette.responses import JSONResponse, PlainTextResponse, Response
+from starlette.responses import JSONResponse
 from starlette.testclient import TestClient
 
 from apistar.client import Client
@@ -24,20 +22,6 @@ def query_params(request):
 async def body_param(request):
     data = await request.json()
     return JSONResponse({'body': dict(data)})
-
-
-@app.route('/text-response/')
-def text_response(request):
-    return PlainTextResponse('hello, world')
-
-
-@app.route('/file-response/')
-def file_response(request):
-    headers = {
-        'Content-Type': 'image/png',
-        'Content-Disposition': 'attachment; filename="filename.png"'
-    }
-    return Response(b'<somedata>', headers=headers)
 
 
 document = Document(
@@ -68,17 +52,7 @@ document = Document(
             fields=[
                 Field(name='value', location='body')
             ]
-        ),
-        Link(
-            url='/text-response/',
-            method='GET',
-            name='text-response',
-        ),
-        Link(
-            url='/file-response/',
-            method='GET',
-            name='file-response',
-        ),
+        )
     ]
 )
 
@@ -99,16 +73,3 @@ def test_body_param():
     client = Client(document, session=TestClient(app))
     data = client.request('body-param', value={'example': 123})
     assert data == {'body': {'example': 123}}
-
-
-def test_text_response():
-    client = Client(document, session=TestClient(app))
-    data = client.request('text-response')
-    assert data == 'hello, world'
-
-
-def test_file_response():
-    client = Client(document, session=TestClient(app))
-    data = client.request('file-response')
-    assert os.path.basename(data.name) == 'filename.png'
-    assert data.read() == b'<somedata>'
