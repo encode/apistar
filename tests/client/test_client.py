@@ -3,7 +3,6 @@ from starlette.responses import JSONResponse
 from starlette.testclient import TestClient
 
 from apistar.client import Client
-from apistar.document import Document, Field, Link
 
 app = Starlette()
 
@@ -75,7 +74,6 @@ schema = {
         },
     }
 }
-
 
 
 def test_path_param():

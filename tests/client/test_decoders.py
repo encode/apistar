@@ -5,7 +5,6 @@ from starlette.responses import PlainTextResponse, Response
 from starlette.testclient import TestClient
 
 from apistar.client import Client, decoders
-from apistar.document import Document, Link
 
 app = Starlette()
 

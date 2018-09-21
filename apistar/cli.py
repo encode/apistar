@@ -6,13 +6,11 @@ import socketserver
 import sys
 
 import click
-import jinja2
 
 import apistar
 from apistar.client import Client
 from apistar.client.debug import DebugSession
 from apistar.exceptions import ParseError, ValidationError
-from apistar.schemas import OpenAPI, Swagger
 
 
 def _encoding_from_filename(filename):
@@ -280,7 +278,7 @@ def request(ctx, operation, params, path, format, encoding, verbose):
     try:
         client = Client(schema, format=format, encoding=encoding, session=session)
     except (ParseError, ValidationError) as exc:
-        _echo_error(exc, content, verbose=verbose)
+        _echo_error(exc, schema, verbose=verbose)
         sys.exit(1)
 
     result = client.request(operation, **params)
