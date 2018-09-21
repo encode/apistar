@@ -10,18 +10,115 @@ takes the API schema as an argument when the client is instantiated,
 and then allows you to interact with the API.
 
 ```python
-schema = {
-    ...
-}
+import apistar
 
-client = apistar.Client(schema)
+
+schema = """
+openapi: 3.0.0
+info:
+  title: Widget API
+  version: '1.0'
+  description: An example API for widgets
+paths:
+  /widgets:
+    get:
+      summary: List all the widgets.
+      operationId: listWidgets
+      parameters:
+      - in: query
+        name: search
+        description: Filter widgets by this search term.
+        schema:
+          type: string
+"""
+
+client = apistar.Client(schema, encoding="yaml")
 result = client.request('listWidgets', search='cogwheel')
 ```
 
 ## Instantiating a client
 
+You can instantiate an API client like so:
+
+```python
+import apistar
+
+client = apistar.Client(schema=...)
+```
+
+Signature: `Client(schema, format=None, encoding=None, auth=None, decoders=None, headers=None, session=None )`
+
+* `schema` - An OpenAPI or Swagger schema. This can be passed either as a dict instance,
+or as a JSON or YAML encoded string/bytestring.
+* `format` - Either "openapi" or "swagger". You can leave this as None to have the
+schema format be automatically inferred.
+* `encoding` - If passing the schema as a string/bytestring, this argument should
+be set to  either `"json"` or `"yaml"`.
+* `auth` - Any authentication class to set on the request session.
+* `decoders` - Any decoders to enable for decoding the response content.
+* `headers` - A dictionary of custom headers to use on every request.
+* `session` - A requests `Session` instance to use for making the outgoing HTTP requests.
+
 ## Making requests
+
+Requests to the API are made using the `request` method, including the operation id
+and any parameters.
+
+```python
+result = client.request('listWidgets', search='cogwheel')
+```
 
 ## Authentication
 
+You can use any standard `requests` authentication class with the API client.
+
+```python
+import apistar
+from requests.auth import HTTPDigestAuth
+
+schema = {...}
+
+auth = HTTPDigestAuth('user', 'pass')
+client = apistar.Client(schema=schema, auth=auth)
+```
+
 ## Decoding responses
+
+The return result is determined from the response by selecting a decoder based
+on the response content-type header, and allowing it to decode the response content.
+
+By default the client has the following decoders enabled:
+
+* `apistar.client.decoders.JSONDecoder` - Handles `application/json` responses. The return result will be the decoded data structure.
+* `apistar.client.decoders.TextDecoder` - Matches `text/*`, and handles any text responses. The return result will be a string.
+* `apistar.client.decoders.DownloadDecoder` - Matches `*/*`, and handles any other responses. The return result will be a temporary file, which will be deleted once closed or no longer referenced.
+
+You can customize which decoders are installed on a client like so:
+
+```python
+client = apistar.Client(schema, decoders=[JSONDecoder()])
+```
+
+In the example above the client would send `application/json` in the `Accept` header,
+and would raise an error on any other content being returned.
+
+### Writing a custom decoder
+
+To write a custom decoder you should subclass `apistar.client.decoders.BaseDecoder`,
+and override the `media_type` attribute, and the `decode(self, response)` method.
+
+For example:
+
+```python
+from apistar.client.decoders import BaseDecoder
+import csv
+
+
+class CSVDecoder(BaseDecoder):
+    media_type = 'text/csv'
+
+    def decode(self, response):
+        lines = response.text.splitlines()
+        reader = csv.reader(lines, delimiter=',')
+        return [row for row in reader]
+```

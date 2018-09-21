@@ -19,18 +19,19 @@ class BaseDecoder:
 class JSONDecoder(BaseDecoder):
     media_type = 'application/json'
 
-    def decode(self, bytestring, **options):
+    def decode(self, response):
         """
         Return raw JSON data.
         """
-        return json.loads(bytestring.decode('utf-8'))
+        content = response.content.decode('utf-8')
+        return json.loads(content)
 
 
 class TextDecoder(BaseDecoder):
     media_type = 'text/*'
 
-    def decode(self, bytestring, **options):
-        return bytestring.decode('utf-8')
+    def decode(self, response):
+        return response.text
 
 
 class DownloadDecoder(BaseDecoder):
@@ -41,23 +42,23 @@ class DownloadDecoder(BaseDecoder):
 
     def __init__(self, download_dir=None):
         """
-        `download_dir` - The path to use for file downloads.
-                         If `None` then downloaded files will be temporary
-                         files that are deleted on close.
+        `download_dir` - If `None` then downloaded files will be temporary files
+        that are deleted on close. If set to a value, then downloaded files
+        will be saved to this directory, and will not be automatically deleted.
         """
         self._delete_on_close = download_dir is None
         self.download_dir = download_dir
 
-    def decode(self, bytestring, **options):
-        base_url = options.get('base_url')
-        content_type = options.get('content_type')
-        content_disposition = options.get('content_disposition')
+    def decode(self, response):
+        base_url = response.url
+        content_type = response.headers.get('content-type')
+        content_disposition = response.headers.get('content-disposition')
 
         # Write the download to a temporary .download file.
         fd, temp_path = tempfile.mkstemp(suffix='.download')
-        file_handle = os.fdopen(fd, 'wb')
-        file_handle.write(bytestring)
-        file_handle.close()
+        with os.fdopen(fd, 'wb') as file_handle:
+            for chunk in response.iter_content(chunk_size=4096):
+                file_handle.write(chunk)
 
         # Determine the output filename.
         output_filename = _get_filename(base_url, content_type, content_disposition)

@@ -144,13 +144,4 @@ class HTTPTransport(BaseTransport):
 
         content_type = response.headers.get('content-type')
         decoder = self.get_decoder(content_type)
-
-        options = {
-            'base_url': response.url
-        }
-        if 'content-type' in response.headers:
-            options['content_type'] = response.headers['content-type']
-        if 'content-disposition' in response.headers:
-            options['content_disposition'] = response.headers['content-disposition']
-
-        return decoder.decode(response.content, **options)
+        return decoder.decode(response)
