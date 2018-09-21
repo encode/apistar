@@ -1,4 +1,4 @@
-# API Client
+# Making API requests
 
 The APIStar client library allows you to make requests to an API, given an API Schema.
 

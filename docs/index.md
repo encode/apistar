@@ -6,17 +6,23 @@
 
 # API Star
 
-A smart Web API framework, designed for Python 3.
-
-<!-- [![Build Status](https://travis-ci.org/encode/apistar.svg?branch=master)](https://travis-ci.org/encode/apistar)
-[![codecov](https://codecov.io/gh/encode/apistar/branch/master/graph/badge.svg)](https://codecov.io/gh/encode/apistar)
-[![Package version](https://badge.fury.io/py/apistar.svg)](https://pypi.python.org/pypi/apistar) -->
+*The Web API toolkit.* 🛠
 
 **Community:** [https://discuss.apistar.org/](https://discuss.apistar.org/) 🤔 💭 🤓 💬 😎
 
 **Repository**: [https://github.com/encode/apistar](https://github.com/encode/apistar) 💻
 
 ---
+
+API Star is a toolkit for working with OpenAPI or Swagger schemas. It allows you to:
+
+* Build API documentation, with a selection of available themes.
+* Validate API schema documents, and provide contextual errors.
+* Validate requests and responses, using the API Star type system.
+* Make API requests using the dynamic client library.
+
+You can use it to build static documentation, integrate it within a Web framework,
+or use it as the client library for interacting with other APIs.
 
 ## Quickstart
 
@@ -26,29 +32,57 @@ Install API Star:
 $ pip3 install apistar
 ```
 
-Create a new project in `app.py`:
+Let's take a look at some of the functionality the toolkit provides...
 
-```python
-from apistar import App, Route
+We'll start by creating an OpenAPI schema, `schema.yml`:
 
-
-def welcome(name=None):
-    if name is None:
-        return {'message': 'Welcome to API Star!'}
-    return {'message': 'Welcome to API Star, %s!' % name}
-
-
-routes = [
-    Route('/', method='GET', handler=welcome),
-]
-
-app = App(routes=routes)
-
-
-if __name__ == '__main__':
-    app.serve('127.0.0.1', 5000, debug=True)
+```yaml
+openapi: 3.0.0
+info:
+  title: Widget API
+  version: '1.0'
+  description: An example API for widgets
+servers:
+  - url: https://www.example.org/
+paths:
+  /widgets:
+    get:
+      summary: List all the widgets.
+      operationId: listWidgets
+      parameters:
+      - in: query
+        name: search
+        description: Filter widgets by this search term.
+        schema:
+          type: string
 ```
 
-Open `http://127.0.0.1:5000/docs/` in your browser:
+Let's also create a configuration file `apistar.yml`:
 
-![API documentation](img/api-docs.png)
+```yaml
+schema:
+  path: schema.yaml
+  format: openapi
+```
+
+We're now ready to start using the `apistar` command line tool.
+
+We can validate our OpenAPI schema:
+
+```
+$ apistar validate
+✓ Valid OpenAPI schema.
+```
+
+Or build developer documentation for our API:
+
+```
+$ apistar docs --serve
+✓ Documentation available at "http://127.0.0.1:8000/" (Ctrl+C to quit)
+```
+
+We can also make API requests to the server referenced in the schema:
+
+```
+$ apistar request listWidgets search=cogwheel
+```

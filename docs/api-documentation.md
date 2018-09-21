@@ -1,4 +1,4 @@
-# Documentation
+# API Documentation
 
 API Star can build API documentation from an OpenAPI or Swagger schema.
 It supports a number of different themes, and the command line tool allows you
