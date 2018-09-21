@@ -8,13 +8,5 @@ pages:
         - Schema Validation: schema-validation.md
         - API Documentation: api-documentation.md
         - Making API Requests: making-api-requests.md
-    - Client Library:
-        - Getting Started: type-system.md
-        - Authentication: type-system.md
-        - Decoding Responses: type-system.md
-        - Advanced Usage: type-system.md
-    - Type System:
-        - Types and Validators: type-system.md
-        - JSON Schema: type-system.md
-        - HTML Forms: type-system.md
-        - API Validation: type-system.md
+    - Client Library: client-library.md
+    - Type System: type-system.md

@@ -1,7 +1,7 @@
+import os
 import pytest
 
 import apistar
-from apistar.schemas import Swagger
 
 filenames = [
     'testcases/swagger/api-with-examples.yaml',
@@ -20,5 +20,6 @@ def test_openapi(filename):
     with open(filename, 'rb') as input_file:
         content = input_file.read()
 
-    value = apistar.validate(content, format='swagger')
-    Swagger().load(value)
+    path, extension = os.path.splitext(filename)
+    encoding = {".json": "json", ".yaml": "yaml"}[extension]
+    apistar.validate(content, format='swagger', encoding=encoding)

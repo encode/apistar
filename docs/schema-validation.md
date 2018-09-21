@@ -52,13 +52,13 @@ paths:
           type: string
 """
 
-apistar.validate(schema, format='openapi')
+apistar.validate(schema, format='openapi', encoding="yaml")
 ```
 
-Function signature: `validate(content, format=None, base_format=None)`
+Function signature: `validate(schema, format=None, encoding=None)`
 
-* `content` - A string or bytestring, or a datastructure.
+* `schema` - Either a dict representing the schema, or a string/bytestring.
 * `format` - One of `openapi`, `swagger`, `jsonschema` or `config`.
 If unset, one of either `openapi` or `swagger` will be inferred from the content if possible.
-* `base_format` - One of `json` or `yaml`. If unset, then a default appropriate to
-the `format` will be used. For `openapi` or `swagger` this will be `yaml`.
+* `encoding` - If schema is passed as a string/bytestring then the encoding must be
+specified as either "json" or "yaml".

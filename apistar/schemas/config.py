@@ -1,6 +1,5 @@
 from apistar import validators
 
-# from apistar.validate import validate_yaml
 
 APISTAR_CONFIG = validators.Object(
     properties=[
@@ -24,8 +23,3 @@ APISTAR_CONFIG = validators.Object(
     additional_properties=False,
     required=['schema'],
 )
-#
-#
-# class ConfigSchema:
-#     def decode(self, content, **options):
-#         return validate_yaml(content, validator=APISTAR_CONFIG)

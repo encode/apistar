@@ -1,7 +1,7 @@
+import os
 import pytest
 
 import apistar
-from apistar.schemas import OpenAPI
 
 filenames = [
     'testcases/openapi/api-with-examples.yaml',
@@ -18,5 +18,6 @@ def test_openapi(filename):
     with open(filename, 'rb') as input_file:
         content = input_file.read()
 
-    value = apistar.validate(content, format='openapi')
-    OpenAPI().load(value)
+    path, extension = os.path.splitext(filename)
+    encoding = {".json": "json", ".yaml": "yaml"}[extension]
+    apistar.validate(content, format='openapi', encoding=encoding)

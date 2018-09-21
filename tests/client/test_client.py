@@ -24,52 +24,73 @@ async def body_param(request):
     return JSONResponse({'body': dict(data)})
 
 
-document = Document(
-    url='http://testserver',
-    content=[
-        Link(
-            url='/path-param/{value}',
-            method='GET',
-            name='path-param',
-            fields=[
-                Field(name='value', location='path')
-            ]
-        ),
-        Link(
-            url='/query-params/',
-            method='GET',
-            name='query-params',
-            fields=[
-                Field(name='a', location='query'),
-                Field(name='b', location='query'),
-            ]
-        ),
-        Link(
-            url='/body-param/',
-            method='POST',
-            name='body-param',
-            encoding='application/json',
-            fields=[
-                Field(name='value', location='body')
-            ]
-        )
-    ]
-)
+schema = {
+    'openapi': '3.0.0',
+    'info': {
+        'title': 'Test API',
+        'version': '1.0'
+    },
+    'servers': [{
+        'url': 'http://testserver',
+    }],
+    'paths': {
+        '/path-param/{value}': {
+            'get': {
+                'operationId': 'path-param',
+                'parameters': [{
+                    'name': 'value',
+                    'in': 'path',
+                    'required': True
+                }]
+            }
+        },
+        '/query-params/': {
+            'get': {
+                'operationId': 'query-params',
+                'parameters': [{
+                    'name': 'a',
+                    'in': 'query'
+                }, {
+                    'name': 'b',
+                    'in': 'query'
+                }]
+            }
+        },
+        '/body-param/': {
+            'post': {
+                'operationId': 'body-param',
+                'requestBody': {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "example": {"type": "integer"}
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+    }
+}
+
 
 
 def test_path_param():
-    client = Client(document, session=TestClient(app))
+    client = Client(schema, session=TestClient(app))
     data = client.request('path-param', value=123)
     assert data == {'value': '123'}
 
 
 def test_query_params():
-    client = Client(document, session=TestClient(app))
+    client = Client(schema, session=TestClient(app))
     data = client.request('query-params', a=123, b=456)
     assert data == {'query': {'a': '123', 'b': '456'}}
 
 
 def test_body_param():
-    client = Client(document, session=TestClient(app))
-    data = client.request('body-param', value={'example': 123})
+    client = Client(schema, session=TestClient(app))
+    data = client.request('body-param', body={'example': 123})
     assert data == {'body': {'example': 123}}

@@ -16,11 +16,11 @@ __all__ = ['docs', 'parse', 'validate']
 FORMAT_CHOICES = ['config', 'jsonschema', 'openapi', 'swagger', None]
 
 
-def parse(content, base_format, validator=None):
-    if base_format not in ("json", "yaml"):
-        raise ValueError('base_format must be either "json" or "yaml"')
+def parse(content, encoding, validator=None):
+    if encoding not in ("json", "yaml"):
+        raise ValueError('encoding must be either "json" or "yaml"')
 
-    if base_format == "json":
+    if encoding == "json":
         token = tokenize_json(content)
     else:
         token = tokenize_yaml(content)
@@ -44,24 +44,20 @@ def parse(content, base_format, validator=None):
     return (value, token)
 
 
-def validate(content, format=None, base_format=None):
+def validate(schema, format=None, encoding=None):
     if format not in FORMAT_CHOICES:
         raise ValueError('format must be one of %s' % FORMAT_CHOICES)
-    if base_format not in (None, "json", "yaml"):
-        raise ValueError('base_format must be either "json", "yaml", or None')
 
-    if isinstance(content, (str, bytes)):
-        if base_format is None:
-            base_format = {
-                None: 'yaml',
-                'config': 'yaml',
-                'jsonschema': 'json',
-                'openapi': 'yaml',
-                'swagger': 'yaml'
-            }[format]
-        value, token = parse(content, base_format)
+    if isinstance(schema, (str, bytes)):
+        if encoding is None:
+            raise ValueError('encoding=["json"|"yaml"] is required when passing schema as a string/bytestring.')
+        value, token = parse(schema, encoding)
+    elif isinstance(schema, dict):
+        if encoding is not None:
+            raise ValueError('encoding must be `None`.')
+        value, token = schema, None
     else:
-        value, token = content, None
+        raise ValueError('schema must either be a dict, or a string/bytestring.')
 
     if format is None:
         if isinstance(value, dict) and "openapi" in value and "swagger" not in value:
@@ -102,24 +98,32 @@ def validate(content, format=None, base_format=None):
                         message.position = token.lookup_position(message.index)
                 exc.messages = sorted(exc.messages, key=lambda x: x.position.index)
             raise exc
+
+    if format in ['openapi', 'swagger']:
+        decoder = {
+            'openapi': OpenAPI,
+            'swagger': Swagger
+        }[format]
+        value = decoder().load(value)
+
     return value
 
 
-def docs(content, format, base_format=None, theme='apistar', schema_url=None, static_url='/static/'):
-    value = validate(content, format, base_format=base_format)
+def docs(schema, format=None, encoding=None, theme='apistar', schema_url=None, static_url=None):
+    if format not in [None, 'openapi', 'swagger']:
+        raise ValueError('format must be either "openapi" or "swagger"')
 
-    decoder = {
-        'openapi': OpenAPI,
-        'swagger': Swagger
-    }[format]
-    document = decoder().load(value)
+    document = validate(schema, format=format, encoding=encoding)
 
     loader = jinja2.PrefixLoader({
         theme: jinja2.PackageLoader('apistar', os.path.join('themes', theme, 'templates'))
     })
     env = jinja2.Environment(autoescape=True, loader=loader)
 
-    if isinstance(static_url, str):
+    if static_url is None:
+        def static_url_func(path):
+            return '/' + path.lstrip('/')
+    elif isinstance(static_url, str):
         def static_url_func(path):
             return static_url.rstrip('/') + '/' + path.lstrip('/')
     else:

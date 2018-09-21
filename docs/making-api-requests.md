@@ -5,7 +5,7 @@ The APIStar client library allows you to make requests to an API, given an API S
 Here's an example of how an API request might look:
 
 ```shell
-$ apistar request listWidgets search=cogwheel --path schema.json
+$ apistar request listWidgets search=cogwheel --path schema.yml
 [
     {
         "name": "Small cogwheel.",
@@ -29,7 +29,7 @@ This will save you from having to include the schema path on every request.
 
 ```yaml
 schema:
-    path: schema.json
+    path: schema.yml
     format: openapi
 ```
 

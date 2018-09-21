@@ -15,11 +15,7 @@ from apistar.exceptions import ParseError, ValidationError
 from apistar.schemas import OpenAPI, Swagger
 
 
-def static_url(filename):
-    return filename
-
-
-def _base_format_from_filename(filename):
+def _encoding_from_filename(filename):
     base, extension = os.path.splitext(filename)
     return {
         '.json': 'json',
@@ -79,11 +75,9 @@ def _copy_tree(src, dst, verbose=False):
 
 def _load_config(options, verbose=False):
     if not os.path.exists('apistar.yml'):
-        # If the config file is not used, then these flags are required.
+        # If the config file is not used, then --path is required.
         if options['schema']['path'] is None:
             raise click.UsageError('Missing option "--path".')
-        if options['schema']['format'] is None:
-            raise click.UsageError('Missing option "--format".')
         config = options
 
     else:
@@ -91,7 +85,7 @@ def _load_config(options, verbose=False):
             content = config_file.read()
 
         try:
-            config = apistar.validate(content, format='config')
+            config = apistar.validate(content, format='config', encoding="yaml")
         except (ParseError, ValidationError) as exc:
             click.echo('Errors in configuration file "apistar.yml":')
             _echo_error(exc, content, verbose=verbose)
@@ -110,15 +104,18 @@ def _load_config(options, verbose=False):
     if not os.path.exists(path):
         raise click.UsageError('Schema file "%s" not found.' % path)
 
-    if config['schema']['base_format'] is None:
-        config['schema']['base_format'] = _base_format_from_filename(path)
+    if config['schema']['encoding'] is None:
+        config['schema']['encoding'] = _encoding_from_filename(path)
+        if config['schema']['encoding'] is None:
+            msg = 'File extension was not one of [json|yaml|yml]. You must specify "encoding" explicitly.'
+            raise click.UsageError(msg)
 
     return config
 
 
 FORMAT_SCHEMA_CHOICES = click.Choice(['openapi', 'swagger'])
 FORMAT_ALL_CHOICES = click.Choice(['config', 'jsonschema', 'openapi', 'swagger'])
-BASE_FORMAT_CHOICES = click.Choice(['json', 'yaml'])
+ENCODING_CHOICES = click.Choice(['json', 'yaml'])
 THEME_CHOICES = click.Choice(['apistar', 'redoc', 'swaggerui'])
 
 
@@ -130,27 +127,27 @@ def cli():
 @click.command()
 @click.option('--path', type=click.Path(exists=True, dir_okay=False))
 @click.option('--format', type=FORMAT_ALL_CHOICES)
-@click.option('--base-format', type=BASE_FORMAT_CHOICES)
+@click.option('--encoding', type=ENCODING_CHOICES)
 @click.option('--verbose', '-v', is_flag=True, default=False)
-def validate(path, format, base_format, verbose):
+def validate(path, format, encoding, verbose):
     options = {
         'schema': {
             'path': path,
             'format': format,
-            'base_format': base_format
+            'encoding': encoding
         }
     }
     config = _load_config(options, verbose=verbose)
 
     path = config['schema']['path']
     format = config['schema']['format']
-    base_format = config['schema']['base_format']
+    encoding = config['schema']['encoding']
 
     with open(path, 'rb') as schema_file:
         content = schema_file.read()
 
     try:
-        apistar.validate(content, format=format, base_format=base_format)
+        apistar.validate(content, format=format, encoding=encoding)
     except (ParseError, ValidationError) as exc:
         _echo_error(exc, content, verbose=verbose)
         sys.exit(1)
@@ -169,17 +166,17 @@ def validate(path, format, base_format, verbose):
 @click.command()
 @click.option('--path', type=click.Path(exists=True, dir_okay=False))
 @click.option('--format', type=FORMAT_SCHEMA_CHOICES)
-@click.option('--base-format', type=BASE_FORMAT_CHOICES)
+@click.option('--encoding', type=ENCODING_CHOICES)
 @click.option('--output-dir', type=click.Path())
 @click.option('--theme', type=THEME_CHOICES)
 @click.option('--serve', is_flag=True, default=False)
 @click.option('--verbose', '-v', is_flag=True, default=False)
-def docs(path, format, base_format, output_dir, theme, serve, verbose):
+def docs(path, format, encoding, output_dir, theme, serve, verbose):
     options = {
         'schema': {
             'path': path,
             'format': format,
-            'base_format': base_format,
+            'encoding': encoding,
         },
         'docs': {
             'output_dir': output_dir,
@@ -190,7 +187,7 @@ def docs(path, format, base_format, output_dir, theme, serve, verbose):
 
     path = config['schema']['path']
     format = config['schema']['format']
-    base_format = config['schema']['base_format']
+    encoding = config['schema']['encoding']
     output_dir = config['docs']['output_dir']
     theme = config['docs']['theme']
 
@@ -199,49 +196,29 @@ def docs(path, format, base_format, output_dir, theme, serve, verbose):
     if theme is None:
         theme = 'apistar'
 
+    schema_filename = os.path.basename(path)
+    schema_url = '/' + schema_filename
     with open(path, 'rb') as schema_file:
         content = schema_file.read()
 
     try:
-        value = apistar.validate(content, format=format, base_format=base_format)
+        index_html = apistar.docs(content, format=format, encoding=encoding, schema_url=schema_url)
     except (ParseError, ValidationError) as exc:
         _echo_error(exc, content, verbose=verbose)
         sys.exit(1)
-
-    decoder = {
-        'openapi': OpenAPI,
-        'swagger': Swagger
-    }[format]
-    document = decoder().load(value)
 
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
     # Write 'index.html' to the docs.
-    loader = jinja2.PrefixLoader({
-        theme: jinja2.PackageLoader('apistar', os.path.join('themes', theme, 'templates'))
-    })
-    env = jinja2.Environment(autoescape=True, loader=loader)
-
-    template = env.get_template(os.path.join(theme, 'index.html'))
-    code_style = None  # pygments_css('emacs')
-    schema_filename = 'schema.%s' % (base_format or "yaml")
-    output_text = template.render(
-        document=document,
-        langs=['javascript', 'python'],
-        code_style=code_style,
-        static_url=static_url,
-        schema_url='/' + schema_filename
-    )
-
     output_path = os.path.join(output_dir, 'index.html')
     if verbose:
         click.echo(output_path)
     output_file = open(output_path, 'w')
-    output_file.write(output_text)
+    output_file.write(index_html)
     output_file.close()
 
-    # Write 'schema.{json|yaml}' to the docs.
+    # Write schema file to the docs.
     schema_path = os.path.join(output_dir, schema_filename)
     if verbose:
         click.echo(schema_path)
@@ -272,47 +249,40 @@ def docs(path, format, base_format, output_dir, theme, serve, verbose):
 @click.argument('params', nargs=-1)
 @click.option('--path', type=click.Path(exists=True, dir_okay=False))
 @click.option('--format', type=FORMAT_SCHEMA_CHOICES)
-@click.option('--base-format', type=BASE_FORMAT_CHOICES)
+@click.option('--encoding', type=ENCODING_CHOICES)
 @click.option('--verbose', '-v', is_flag=True, default=False)
 @click.pass_context
-def request(ctx, operation, params, path, format, base_format, verbose):
+def request(ctx, operation, params, path, format, encoding, verbose):
     options = {
         'schema': {
             'path': path,
             'format': format,
-            'base_format': base_format
+            'encoding': encoding
         }
     }
     config = _load_config(options, verbose=verbose)
 
     path = config['schema']['path']
     format = config['schema']['format']
-    base_format = config['schema']['base_format']
+    encoding = config['schema']['encoding']
 
     with open(path, 'rb') as schema_file:
-        content = schema_file.read()
+        schema = schema_file.read()
 
     params = [param.partition('=') for param in params]
     params = dict([(key, value) for key, sep, value in params])
-
-    try:
-        value = apistar.validate(content, format=format, base_format=base_format)
-    except (ParseError, ValidationError) as exc:
-        _echo_error(exc, content, verbose=verbose)
-        sys.exit(1)
-
-    decoder = {
-        'openapi': OpenAPI,
-        'swagger': Swagger
-    }[format]
-    document = decoder().load(value)
 
     session = ctx.obj
 
     if verbose:
         session = DebugSession(session)
 
-    client = Client(document, session=session)
+    try:
+        client = Client(schema, format=format, encoding=encoding, session=session)
+    except (ParseError, ValidationError) as exc:
+        _echo_error(exc, content, verbose=verbose)
+        sys.exit(1)
+
     result = client.request(operation, **params)
     click.echo(json.dumps(result, indent=4))
 

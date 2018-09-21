@@ -12,7 +12,7 @@ def test_validate_openapi():
         "paths": {}
     }
     """
-    validate(schema, format="openapi")
+    validate(schema, format="openapi", encoding="json")
 
 
 def test_validate_openapi_datastructure():
@@ -32,7 +32,7 @@ def test_validate_autodetermine_openapi():
         "paths": {}
     }
     """
-    validate(schema)
+    validate(schema, encoding="json")
 
 
 def test_validate_autodetermine_swagger():
@@ -43,7 +43,7 @@ def test_validate_autodetermine_swagger():
         "paths": {}
     }
     """
-    validate(schema)
+    validate(schema, encoding="json")
 
 
 def test_validate_autodetermine_failed():
@@ -54,7 +54,7 @@ def test_validate_autodetermine_failed():
     }
     """
     with pytest.raises(ValidationError):
-        validate(schema)
+        validate(schema, encoding="json")
 
 
 def test_validate_with_bad_format():
@@ -69,7 +69,7 @@ def test_validate_with_bad_format():
         validate(schema, format="xxx")
 
 
-def test_validate_with_bad_base_format():
+def test_validate_with_bad_encoding():
     schema = """
     {
         "openapi": "3.0.0",
@@ -78,4 +78,32 @@ def test_validate_with_bad_base_format():
     }
     """
     with pytest.raises(ValueError):
-        validate(schema, format="openapi", base_format="xxx")
+        validate(schema, format="openapi", encoding="xxx")
+
+
+def test_validate_missing_encoding():
+    """
+    Omitting 'encoding=' is invalid if 'schema' is a string/bytestring.
+    """
+    schema = """
+    {
+        "openapi": "3.0.0",
+        "info": {"title": "", "version": ""},
+        "paths": {}
+    }
+    """
+    with pytest.raises(ValueError):
+        validate(schema, format="openapi")
+
+
+def test_validate_unneccessary_encoding():
+    """
+    Passing 'encoding=' is invalid if 'schema' is a dict already.
+    """
+    schema = {
+        "openapi": "3.0.0",
+        "info": {"title": "", "version": ""},
+        "paths": {}
+    }
+    with pytest.raises(ValueError):
+        validate(schema, format="openapi", encoding="json")

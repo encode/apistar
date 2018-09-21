@@ -8,17 +8,17 @@ from apistar.exceptions import (
 
 
 def test_valid_json():
-    apistar.parse('{"abc": "def"}', base_format='json')
+    apistar.parse('{"abc": "def"}', encoding='json')
 
 
 def test_invalid_base_format():
     with pytest.raises(ValueError):
-        apistar.parse('{"abc": "def"}', base_format='xyz')
+        apistar.parse('{"abc": "def"}', encoding='xyz')
 
 
 def test_empty_string():
     with pytest.raises(ParseError) as exc:
-        apistar.parse(b'', base_format='json')
+        apistar.parse(b'', encoding='json')
 
     assert exc.value.messages == [
         ErrorMessage(
@@ -31,7 +31,7 @@ def test_empty_string():
 
 def test_object_missing_property_name():
     with pytest.raises(ParseError) as exc:
-        apistar.parse('{', base_format='json')
+        apistar.parse('{', encoding='json')
 
     assert exc.value.messages == [
         ErrorMessage(
@@ -44,7 +44,7 @@ def test_object_missing_property_name():
 
 def test_object_missing_colon_delimiter():
     with pytest.raises(ParseError) as exc:
-        apistar.parse('{"abc"', base_format='json')
+        apistar.parse('{"abc"', encoding='json')
 
     assert exc.value.messages == [
         ErrorMessage(
@@ -57,7 +57,7 @@ def test_object_missing_colon_delimiter():
 
 def test_object_missing_comma_delimiter():
     with pytest.raises(ParseError) as exc:
-        apistar.parse('{"abc": "def" 1', base_format='json')
+        apistar.parse('{"abc": "def" 1', encoding='json')
 
     assert exc.value.messages == [
         ErrorMessage(
@@ -70,7 +70,7 @@ def test_object_missing_comma_delimiter():
 
 def test_object_invalid_property_name():
     with pytest.raises(ParseError) as exc:
-        apistar.parse('{"abc": "def", 1', base_format='json')
+        apistar.parse('{"abc": "def", 1', encoding='json')
 
     assert exc.value.messages == [
         ErrorMessage(
@@ -83,7 +83,7 @@ def test_object_invalid_property_name():
 
 def test_object_unterminated_after_key():
     with pytest.raises(ParseError) as exc:
-        apistar.parse('{"abc": ', base_format='json')
+        apistar.parse('{"abc": ', encoding='json')
 
     assert exc.value.messages == [
         ErrorMessage(
@@ -96,7 +96,7 @@ def test_object_unterminated_after_key():
 
 def test_object_unterminated_after_value():
     with pytest.raises(ParseError) as exc:
-        apistar.parse('{"abc": "def"', base_format='json')
+        apistar.parse('{"abc": "def"', encoding='json')
 
     assert exc.value.messages == [
         ErrorMessage(
@@ -109,7 +109,7 @@ def test_object_unterminated_after_value():
 
 def test_invalid_token():
     with pytest.raises(ParseError) as exc:
-        apistar.parse('-', base_format='json')
+        apistar.parse('-', encoding='json')
 
     assert exc.value.messages == [
         ErrorMessage(
@@ -122,7 +122,7 @@ def test_invalid_token():
 
 def test_unterminated_string():
     with pytest.raises(ParseError) as exc:
-        apistar.parse('"ab', base_format='json')
+        apistar.parse('"ab', encoding='json')
 
     assert exc.value.messages == [
         ErrorMessage(
@@ -144,7 +144,7 @@ VALIDATOR = validators.Object(
 
 def test_invalid_top_level_item():
     with pytest.raises(ValidationError) as exc:
-        apistar.parse('123', base_format="json", validator=VALIDATOR)
+        apistar.parse('123', encoding="json", validator=VALIDATOR)
 
     assert exc.value.messages == [
         ErrorMessage(
@@ -158,7 +158,7 @@ def test_invalid_top_level_item():
 
 def test_missing_required_property():
     with pytest.raises(ValidationError) as exc:
-        apistar.parse('{}', base_format="json", validator=VALIDATOR)
+        apistar.parse('{}', encoding="json", validator=VALIDATOR)
 
     assert exc.value.messages == [
         ErrorMessage(
@@ -171,7 +171,7 @@ def test_missing_required_property():
 
 def test_invalid_property():
     with pytest.raises(ValidationError) as exc:
-        apistar.parse('{"a": "abc"}', base_format="json", validator=VALIDATOR)
+        apistar.parse('{"a": "abc"}', encoding="json", validator=VALIDATOR)
 
     assert exc.value.messages == [
         ErrorMessage(
@@ -184,7 +184,7 @@ def test_invalid_property():
 
 def test_invalid_properties():
     with pytest.raises(ValidationError) as exc:
-        apistar.parse('{"a": "abc", "b": 123}', base_format="json", validator=VALIDATOR)
+        apistar.parse('{"a": "abc", "b": 123}', encoding="json", validator=VALIDATOR)
 
     assert exc.value.messages == [
         ErrorMessage(

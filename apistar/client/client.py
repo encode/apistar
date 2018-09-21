@@ -1,12 +1,13 @@
 from urllib.parse import quote, urljoin, urlparse
 
+import apistar
 from apistar import exceptions, validators
 from apistar.client import transports
 
 
 class Client():
-    def __init__(self, document, auth=None, decoders=None, headers=None, session=None):
-        self.document = document
+    def __init__(self, schema, format=None, encoding=None, auth=None, decoders=None, headers=None, session=None):
+        self.document = apistar.validate(schema, format=format, encoding=encoding)
         self.transport = self.init_transport(auth, decoders, headers, session)
 
     def init_transport(self, auth=None, decoders=None, headers=None, session=None):
