@@ -1,6 +1,5 @@
 from apistar import validators
 
-
 APISTAR_CONFIG = validators.Object(
     properties=[
         ('schema', validators.Object(
