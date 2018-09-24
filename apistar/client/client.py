@@ -23,11 +23,11 @@ class Client():
             allow_cookies=allow_cookies
         )
 
-    def lookup_link(self, name: str):
+    def lookup_operation(self, operation_id: str):
         for item in self.document.walk_links():
-            if item.link.name == name:
+            if item.link.name == operation_id:
                 return item.link
-        raise exceptions.ClientError('Link "%s" not found in document.' % name)
+        raise exceptions.ClientError('Operation ID "%s" not found in schema.' % name)
 
     def get_url(self, link, params):
         url = urljoin(self.document.url, link.url)
@@ -62,8 +62,8 @@ class Client():
             return (params[body_field.name], link.encoding)
         return (None, None)
 
-    def request(self, name: str, **params):
-        link = self.lookup_link(name)
+    def request(self, operation_id: str, **params):
+        link = self.lookup_operation(operation_id)
 
         validator = validators.Object(
             properties={field.name: validators.Any() for field in link.fields},
