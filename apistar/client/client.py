@@ -8,15 +8,16 @@ from apistar.client import transports
 class Client():
     def __init__(
         self, schema, format=None, encoding=None, auth=None, decoders=None,
-        headers=None, session=None, allow_cookies=True
+        encoders=None, headers=None, session=None, allow_cookies=True
     ):
         self.document = apistar.validate(schema, format=format, encoding=encoding)
-        self.transport = self.init_transport(auth, decoders, headers, session, allow_cookies)
+        self.transport = self.init_transport(auth, decoders, encoders, headers, session, allow_cookies)
 
-    def init_transport(self, auth=None, decoders=None, headers=None, session=None, allow_cookies=True):
+    def init_transport(self, auth=None, decoders=None, encoders=None, headers=None, session=None, allow_cookies=True):
         return transports.HTTPTransport(
             auth=auth,
             decoders=decoders,
+            encoders=encoders,
             headers=headers,
             session=session,
             allow_cookies=allow_cookies
