@@ -27,7 +27,7 @@ class Client():
         for item in self.document.walk_links():
             if item.link.name == operation_id:
                 return item.link
-        raise exceptions.ClientError('Operation ID "%s" not found in schema.' % name)
+        raise exceptions.ClientError('Operation ID "%s" not found in schema.' % operation_id)
 
     def get_url(self, link, params):
         url = urljoin(self.document.url, link.url)
