@@ -2,21 +2,23 @@ from abc import ABCMeta
 from collections.abc import Mapping
 
 from apistar import validators
-from apistar.exceptions import ConfigurationError, ValidationError
+from apistar.exceptions import ValidationError
+
+
+RESERVED_KEYS = ['keys', 'items', 'values', 'get', 'validator']
+RESERVED_KEY_MESSAGE = (
+    'Cannot use reserved name "%s" on Type "%s", '
+    'as it clashes with the class interface.'
+)
 
 
 class TypeMetaclass(ABCMeta):
     def __new__(cls, name, bases, attrs):
         properties = []
         for key, value in list(attrs.items()):
-            if key in ['keys', 'items', 'values', 'get', 'validator']:
-                msg = (
-                    'Cannot use reserved name "%s" on Type "%s", as it '
-                    'clashes with the class interface.'
-                )
-                raise ConfigurationError(msg % (key, name))
+            assert key not in RESERVED_KEYS, RESERVED_KEY_MESSAGE
 
-            elif hasattr(value, 'validate'):
+            if hasattr(value, 'validate'):
                 attrs.pop(key)
                 properties.append((key, value))
 

@@ -6,23 +6,27 @@ from apistar.client import transports
 
 
 class Client():
-    def __init__(self, schema, format=None, encoding=None, auth=None, decoders=None, headers=None, session=None):
+    def __init__(
+        self, schema, format=None, encoding=None, auth=None, decoders=None,
+        headers=None, session=None, allow_cookies=True
+    ):
         self.document = apistar.validate(schema, format=format, encoding=encoding)
-        self.transport = self.init_transport(auth, decoders, headers, session)
+        self.transport = self.init_transport(auth, decoders, headers, session, allow_cookies)
 
-    def init_transport(self, auth=None, decoders=None, headers=None, session=None):
+    def init_transport(self, auth=None, decoders=None, headers=None, session=None, allow_cookies=True):
         return transports.HTTPTransport(
             auth=auth,
             decoders=decoders,
             headers=headers,
-            session=session
+            session=session,
+            allow_cookies=allow_cookies
         )
 
     def lookup_link(self, name: str):
         for item in self.document.walk_links():
             if item.link.name == name:
                 return item.link
-        raise exceptions.RequestError('Link "%s" not found in document.' % name)
+        raise exceptions.ClientError('Link "%s" not found in document.' % name)
 
     def get_url(self, link, params):
         url = urljoin(self.document.url, link.url)
@@ -30,10 +34,10 @@ class Client():
         scheme = urlparse(url).scheme.lower()
 
         if not scheme:
-            raise exceptions.RequestError("URL missing scheme '%s'." % url)
+            raise exceptions.ClientError("URL missing scheme '%s'." % url)
 
         if scheme not in self.transport.schemes:
-            raise exceptions.RequestError("Unsupported URL scheme '%s'." % scheme)
+            raise exceptions.ClientError("Unsupported URL scheme '%s'." % scheme)
 
         for field in link.get_path_fields():
             value = str(params[field.name])

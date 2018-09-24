@@ -46,7 +46,7 @@ import apistar
 client = apistar.Client(schema=...)
 ```
 
-Signature: `Client(schema, format=None, encoding=None, auth=None, decoders=None, headers=None, session=None )`
+Signature: `Client(schema, format=None, encoding=None, auth=None, decoders=None, headers=None, session=None, allow_cookies=True)`
 
 * `schema` - An OpenAPI or Swagger schema. This can be passed either as a dict instance,
 or as a JSON or YAML encoded string/bytestring.
@@ -58,6 +58,7 @@ be set to  either `"json"` or `"yaml"`.
 * `decoders` - Any decoders to enable for decoding the response content.
 * `headers` - A dictionary of custom headers to use on every request.
 * `session` - A requests `Session` instance to use for making the outgoing HTTP requests.
+* `allow_cookies` - May be set to `False` to disable `requests` standard cookie handling.
 
 ## Making requests
 
@@ -81,6 +82,16 @@ schema = {...}
 auth = HTTPDigestAuth('user', 'pass')
 client = apistar.Client(schema=schema, auth=auth)
 ```
+
+API Star also includes some authentication classes that you can use for making
+API requests.
+
+* `apistar.client.auth.TokenAuthentication(token, scheme="Bearer")` - Allows token
+authenticated HTTP requests, including an `Authorization: Bearer <token>` header in
+all outgoing requests.
+* `apistar.client.auth.SessionAuthentication(csrf_cookie_name, csrf_header_name)` - Allows
+session authenticated requests that are CSRF protected. The API will need to expose a login
+operation.
 
 ## Decoding responses
 

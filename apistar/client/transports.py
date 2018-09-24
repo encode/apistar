@@ -1,12 +1,19 @@
-import mimetypes
+import http
 
 import requests
 
 from apistar import exceptions
-from apistar.client import decoders
-from apistar.client.utils import (
-    BlockAllCookies, File, ForceMultiPartDict, guess_filename, is_file
-)
+from apistar.client import decoders, encoders
+
+
+class BlockAllCookies(http.cookiejar.CookiePolicy):
+    """
+    A cookie policy that rejects all cookies.
+    Used to override the default `requests` behavior.
+    """
+    return_ok = set_ok = domain_return_ok = path_return_ok = lambda self, *args, **kwargs: False
+    netscape = True
+    rfc2965 = hide_cookie2 = False
 
 
 class BaseTransport():
@@ -23,19 +30,25 @@ class HTTPTransport(BaseTransport):
         decoders.TextDecoder(),
         decoders.DownloadDecoder()
     ]
+    default_encoders = [
+        encoders.JSONEncoder(),
+        encoders.MultipartEncoder(),
+        encoders.URLEncodedEncoder(),
+    ]
 
-    def __init__(self, auth=None, decoders=None, headers=None, session=None):
+    def __init__(self, auth=None, decoders=None, encoders=None, headers=None, session=None, allow_cookies=True):
         from apistar import __version__
 
         if session is None:
             session = requests.Session()
         if auth is not None:
             session.auth = auth
-        if not getattr(session.auth, 'allow_cookies', False):
+        if not allow_cookies:
             session.cookies.set_policy(BlockAllCookies())
 
         self.session = session
         self.decoders = list(decoders) if decoders else list(self.default_decoders)
+        self.encoders = list(encoders) if encoders else list(self.default_encoders)
         self.headers = {
             'accept': ', '.join([decoder.media_type for decoder in self.decoders]),
             'user-agent': 'apistar %s' % __version__
@@ -57,69 +70,29 @@ class HTTPTransport(BaseTransport):
 
         return result
 
-    def get_request_options(self, query_params, content, encoding):
+    def get_encoder(self, encoding=None):
         """
-        Returns a dictionary of keyword parameters to include when making
-        the outgoing request.
+        Given the value of the encoding, return the appropriate encoder for
+        handling the request content.
         """
-        options = {
-            'headers': dict(self.headers)
-        }
+        if encoding is None:
+            return self.encoders[0]
 
-        if query_params:
-            options['params'] = query_params
+        content_type = encoding.split(';')[0].strip().lower()
+        main_type = content_type.split('/')[0] + '/*'
+        wildcard_type = '*/*'
 
-        if content is not None:
-            if encoding == 'application/json':
-                options['json'] = content
-            elif encoding == 'multipart/form-data':
-                data = {}
-                files = ForceMultiPartDict()
-                for key, value in content.items():
-                    if is_file(value):
-                        files[key] = value
-                    else:
-                        data[key] = value
-            elif encoding == 'application/x-www-form-urlencoded':
-                options['data'] = content
-            elif encoding == 'application/octet-stream':
-                if isinstance(content, File):
-                    options['data'] = content.content
-                else:
-                    options['data'] = content
-                upload_headers = self.get_upload_headers(content)
-                options['headers'].update(upload_headers)
+        for codec in self.encoders:
+            if codec.media_type in (content_type, main_type, wildcard_type):
+                return codec
 
-        return options
-
-    def get_upload_headers(self, file_obj):
-        """
-        When a raw file upload is made, determine the Content-Type and
-        Content-Disposition headers to use with the request.
-        """
-        name = guess_filename(file_obj)
-        content_type = None
-        content_disposition = None
-
-        # Determine the content type of the upload.
-        if getattr(file_obj, 'content_type', None):
-            content_type = file_obj.content_type
-        elif name:
-            content_type, encoding = mimetypes.guess_type(name)
-
-        # Determine the content disposition of the upload.
-        if name:
-            content_disposition = 'attachment; filename="%s"' % name
-
-        return {
-            'Content-Type': content_type or 'application/octet-stream',
-            'Content-Disposition': content_disposition or 'attachment'
-        }
+        msg = "Unsupported encoding '%s' for request." % encoding
+        raise exceptions.ClientError(msg)
 
     def get_decoder(self, content_type=None):
         """
         Given the value of a 'Content-Type' header, return the appropriate
-        codec for decoding the request content.
+        decoder for handling the response content.
         """
         if content_type is None:
             return self.decoders[0]
@@ -132,8 +105,24 @@ class HTTPTransport(BaseTransport):
             if codec.media_type in (content_type, main_type, wildcard_type):
                 return codec
 
-        msg = "Unsupported media in Content-Type header '%s'" % content_type
-        raise exceptions.NoCodecAvailable(msg)
+        msg = "Unsupported encoding '%s' in response Content-Type header." % content_type
+        raise exceptions.ClientError(msg)
+
+    def get_request_options(self, query_params=None, content=None, encoding=None):
+        """
+        Return the 'options' for sending the outgoing request.
+        """
+        options = {
+            'headers': dict(self.headers),
+            'params': query_params
+        }
+
+        if content is None:
+            return options
+
+        encoder = self.get_encoder(encoding)
+        encoder.encode(options, content)
+        return options
 
     def decode_response_content(self, response):
         """

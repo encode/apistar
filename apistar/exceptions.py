@@ -62,16 +62,8 @@ class ErrorResponse(Exception):
         self.content = content
 
 
-class RequestError(Exception):
+class ClientError(Exception):
     """
-    Raised when some invalid parameter is used in a client request.
+    Raised when a client is unable to fulfil an API request.
     """
-    pass
-
-
-class NoCodecAvailable(Exception):
-    pass
-
-
-class ConfigurationError(Exception):
     pass

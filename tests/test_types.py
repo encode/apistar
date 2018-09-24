@@ -207,7 +207,7 @@ def test_misc():
 
 
 def test_reserved_keys():
-    with pytest.raises(exceptions.ConfigurationError):
+    with pytest.raises(AssertionError):
         class Something(types.Type):
             keys = validators.String()
 
