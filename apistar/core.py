@@ -1,4 +1,5 @@
 import os
+import re
 
 import jinja2
 
@@ -15,10 +16,29 @@ __all__ = ['docs', 'parse', 'validate']
 
 FORMAT_CHOICES = ['config', 'jsonschema', 'openapi', 'swagger', None]
 
+# The regexs give us a best-guess for the encoding if none is specified.
+# They check to see if the document looks like it is probably a YAML object or
+# probably a JSON object. It'll typically be best to specify the encoding
+# explicitly, but this should do for convenience.
+INFER_YAML = re.compile(r'^([ \t]*#.*\n|---[ \t]*\n)*\s*[A-Za-z0-9_-]+[ \t]*:')
+INFER_JSON = re.compile(r'^\s*{\s*"[A-Za-z0-9_-]+"\s*:')
 
-def parse(content, encoding, validator=None):
-    if encoding not in ("json", "yaml"):
+
+def parse(content, encoding=None, validator=None):
+    if encoding not in (None, "json", "yaml"):
         raise ValueError('encoding must be either "json" or "yaml"')
+
+    if encoding is None:
+        if INFER_YAML.match(content):
+            encoding = "yaml"
+        elif INFER_JSON.match(content):
+            encoding = "json"
+        else:
+            message = ErrorMessage(
+                text="Unable to guess if encoding is JSON or YAML. Use the 'encoding' argument.",
+                code="unknown_encoding"
+            )
+            raise ValidationError(messages=[message])
 
     if encoding == "json":
         token = tokenize_json(content)
@@ -49,8 +69,6 @@ def validate(schema, format=None, encoding=None):
         raise ValueError('format must be one of %s' % FORMAT_CHOICES)
 
     if isinstance(schema, (str, bytes)):
-        if encoding is None:
-            raise ValueError('encoding=["json"|"yaml"] is required when passing schema as a string/bytestring.')
         value, token = parse(schema, encoding)
     elif isinstance(schema, dict):
         if encoding is not None:

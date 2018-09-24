@@ -4,7 +4,6 @@ from collections.abc import Mapping
 from apistar import validators
 from apistar.exceptions import ValidationError
 
-
 RESERVED_KEYS = ['keys', 'items', 'values', 'get', 'validator']
 RESERVED_KEY_MESSAGE = (
     'Cannot use reserved name "%s" on Type "%s", '

@@ -81,9 +81,9 @@ def test_validate_with_bad_encoding():
         validate(schema, format="openapi", encoding="xxx")
 
 
-def test_validate_missing_encoding():
+def test_infer_json():
     """
-    Omitting 'encoding=' is invalid if 'schema' is a string/bytestring.
+    If 'encoding=' is omitted, then it should inferred from the content.
     """
     schema = """
     {
@@ -92,8 +92,21 @@ def test_validate_missing_encoding():
         "paths": {}
     }
     """
-    with pytest.raises(ValueError):
-        validate(schema, format="openapi")
+    validate(schema, format="openapi")
+
+
+def test_infer_yaml():
+    """
+    If 'encoding=' is omitted, then it should inferred from the content.
+    """
+    schema = """
+        openapi: "3.0.0"
+        info:
+            title: ""
+            version: ""
+        paths: {}
+    """
+    validate(schema, format="openapi")
 
 
 def test_validate_unneccessary_encoding():

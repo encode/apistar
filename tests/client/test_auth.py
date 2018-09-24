@@ -2,8 +2,8 @@ from starlette.applications import Starlette
 from starlette.responses import JSONResponse
 from starlette.testclient import TestClient
 
-from apistar.client.auth import TokenAuthentication
 from apistar.client import Client
+from apistar.client.auth import TokenAuthentication
 
 app = Starlette()
 

@@ -104,9 +104,6 @@ def _load_config(options, verbose=False):
 
     if config['schema']['encoding'] is None:
         config['schema']['encoding'] = _encoding_from_filename(path)
-        if config['schema']['encoding'] is None:
-            msg = 'File extension was not one of [json|yaml|yml]. You must specify "encoding" explicitly.'
-            raise click.UsageError(msg)
 
     return config
 

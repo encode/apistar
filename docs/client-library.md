@@ -32,7 +32,7 @@ paths:
           type: string
 """
 
-client = apistar.Client(schema, encoding="yaml")
+client = apistar.Client(schema)
 result = client.request('listWidgets', search='cogwheel')
 ```
 
@@ -46,16 +46,18 @@ import apistar
 client = apistar.Client(schema=...)
 ```
 
-Signature: `Client(schema, format=None, encoding=None, auth=None, decoders=None, headers=None, session=None, allow_cookies=True)`
+Signature: `Client(schema, format=None, encoding=None, auth=None, decoders=None, encoders=None, headers=None, session=None, allow_cookies=True)`
 
 * `schema` - An OpenAPI or Swagger schema. This can be passed either as a dict instance,
 or as a JSON or YAML encoded string/bytestring.
 * `format` - Either "openapi" or "swagger". You can leave this as None to have the
 schema format be automatically inferred.
-* `encoding` - If passing the schema as a string/bytestring, this argument should
-be set to  either `"json"` or `"yaml"`.
+* `encoding` - If passing the schema as a string/bytestring, this argument may
+be used to specify either `"json"` or `"yaml"`.  If not included, the encoding will
+be inferred from the content if possible.
 * `auth` - Any authentication class to set on the request session.
 * `decoders` - Any decoders to enable for decoding the response content.
+* `encoders` - Any encoders to enable for encoding the request content.
 * `headers` - A dictionary of custom headers to use on every request.
 * `session` - A requests `Session` instance to use for making the outgoing HTTP requests.
 * `allow_cookies` - May be set to `False` to disable `requests` standard cookie handling.

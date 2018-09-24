@@ -70,7 +70,7 @@ paths:
           type: string
 """
 
-index_html = apistar.docs(schema, encoding="yaml", schema_url='/schema.yaml', static_url='/static/')
+index_html = apistar.docs(schema, schema_url='/schema.yaml', static_url='/static/')
 ```
 
 If you're serving the documentation dynamically, then you'll also need to make
@@ -82,8 +82,8 @@ Function signature: `docs(schema, format=None, encoding=None, theme="apistar", s
 * `schema` - Either a dict representing the schema, or a string/bytestring.
 * `format` - One of `"openapi"` or `"swagger"`. If unset, this will be inferred from the schema.
 If unset, one of either `openapi` or `swagger` will be inferred from the content if possible.
-* `encoding` - If schema is passed as a string/bytestring then the encoding must be
-specified as either "json" or "yaml".
+* `encoding` - If schema is passed as a string/bytestring then the encoding may be
+specified as either "json" or "yaml". If not included, the encoding will be inferred from the content if possible.
 * `theme` - One of `"apistar"`, `"swaggerui"`, or `"redoc"`.
 * `schema_url` - The URL for the schema file, as a string. Required for `swaggerui` and `redoc`.
 * `static_url` - The prefix for the static files, as a string. For more complex cases, this can also
