@@ -141,7 +141,13 @@ class CompositeParamComponent(Component):
 
     def resolve(self,
                 parameter: inspect.Parameter,
-                data: ValidatedRequestData):
+                method: http.Method,
+                query_params: ValidatedQueryParams,
+                request_data: ValidatedRequestData):
+        if method in ('GET', "HEAD"):
+            data = query_params
+        else:
+            data = request_data
         try:
             return parameter.annotation(data)
         except validators.ValidationError as exc:
