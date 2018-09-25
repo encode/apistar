@@ -82,9 +82,9 @@ class Injector(BaseInjector):
         steps.append(step)
         return steps
 
-    def resolve_functions(self, funcs):
+    def resolve_functions(self, funcs, state):
         steps = []
-        seen_state = set(self.initial)
+        seen_state = set(self.initial) | set(state)
         for func in funcs:
             func_steps = self.resolve_function(func, seen_state=seen_state, set_return=True)
             steps.extend(func_steps)
@@ -97,7 +97,7 @@ class Injector(BaseInjector):
         except KeyError:
             if not funcs:
                 return
-            steps = self.resolve_functions(funcs)
+            steps = self.resolve_functions(funcs, state)
             self.resolver_cache[funcs] = steps
 
         for func, is_async, kwargs, consts, output_name, set_return in steps:
@@ -120,7 +120,7 @@ class ASyncInjector(Injector):
         except KeyError:
             if not funcs:
                 return
-            steps = self.resolve_functions(funcs)
+            steps = self.resolve_functions(funcs, state)
             self.resolver_cache[funcs] = steps
 
         for func, is_async, kwargs, consts, output_name, set_return in steps:
