@@ -114,7 +114,7 @@ class ASGIFileSession():
                 (('Allow', 'GET, HEAD'),),
                 None
             )
-        elif self.static_file.file_not_modified(request_headers):
+        elif self.static_file.is_not_modified(request_headers):
             return self.static_file.not_modified_response
         path, headers = self.static_file.get_path_and_headers(request_headers)
         if method != 'HEAD':
