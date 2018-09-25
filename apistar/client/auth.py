@@ -1,13 +1,7 @@
-from requests.auth import AuthBase, HTTPBasicAuth
-
-
-class BasicAuthentication(HTTPBasicAuth):
-    allow_cookies = False
+from requests.auth import AuthBase
 
 
 class TokenAuthentication(AuthBase):
-    allow_cookies = False
-
     def __init__(self, token, scheme='Bearer'):
         """
         * Use an unauthenticated client, and make a request to obtain a token.
@@ -28,7 +22,6 @@ class SessionAuthentication(AuthBase):
     * Make an initial request to obtain a CSRF token.
     * Make a login request.
     """
-    allow_cookies = True
     safe_methods = ('GET', 'HEAD', 'OPTIONS', 'TRACE')
 
     def __init__(self, csrf_cookie_name=None, csrf_header_name=None):

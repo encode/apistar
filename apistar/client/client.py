@@ -1,27 +1,35 @@
 from urllib.parse import quote, urljoin, urlparse
 
+import apistar
 from apistar import exceptions, validators
 from apistar.client import transports
 
 
 class Client():
-    def __init__(self, document, auth=None, decoders=None, headers=None, session=None):
-        self.document = document
-        self.transport = self.init_transport(auth, decoders, headers, session)
+    def __init__(
+        self, schema, format=None, encoding=None, auth=None, decoders=None,
+        encoders=None, headers=None, session=None, allow_cookies=True
+    ):
+        self.document = apistar.validate(schema, format=format, encoding=encoding)
+        self.transport = self.init_transport(auth, decoders, encoders, headers, session, allow_cookies)
 
-    def init_transport(self, auth=None, decoders=None, headers=None, session=None):
+    def init_transport(self, auth=None, decoders=None, encoders=None, headers=None, session=None, allow_cookies=True):
         return transports.HTTPTransport(
             auth=auth,
             decoders=decoders,
+            encoders=encoders,
             headers=headers,
-            session=session
+            session=session,
+            allow_cookies=allow_cookies
         )
 
-    def lookup_link(self, name: str):
+    def lookup_operation(self, operation_id: str):
         for item in self.document.walk_links():
-            if item.name == name:
+            if item.link.name == operation_id:
                 return item.link
-        raise exceptions.RequestError('Link "%s" not found in document.' % name)
+        text = 'Operation ID "%s" not found in schema.' % operation_id
+        message = exceptions.ErrorMessage(text=text, code='invalid-operation')
+        raise exceptions.ClientError(messages=[message])
 
     def get_url(self, link, params):
         url = urljoin(self.document.url, link.url)
@@ -29,10 +37,14 @@ class Client():
         scheme = urlparse(url).scheme.lower()
 
         if not scheme:
-            raise exceptions.RequestError("URL missing scheme '%s'." % url)
+            text = "URL missing scheme '%s'." % url
+            message = exceptions.ErrorMessage(text=text, code='invalid-url')
+            raise exceptions.ClientError(messages=[message])
 
         if scheme not in self.transport.schemes:
-            raise exceptions.RequestError("Unsupported URL scheme '%s'." % scheme)
+            text = "Unsupported URL scheme '%s'." % scheme
+            message = exceptions.ErrorMessage(text=text, code='invalid-url')
+            raise exceptions.ClientError(messages=[message])
 
         for field in link.get_path_fields():
             value = str(params[field.name])
@@ -56,15 +68,18 @@ class Client():
             return (params[body_field.name], link.encoding)
         return (None, None)
 
-    def request(self, name: str, **params):
-        link = self.lookup_link(name)
+    def request(self, operation_id: str, **params):
+        link = self.lookup_operation(operation_id)
 
         validator = validators.Object(
             properties={field.name: validators.Any() for field in link.fields},
             required=[field.name for field in link.fields if field.required],
             additional_properties=False
         )
-        validator.validate(params)
+        try:
+            validator.validate(params)
+        except exceptions.ValidationError as exc:
+            raise exceptions.ClientError(messages=exc.messages) from None
 
         method = link.method
         url = self.get_url(link, params)

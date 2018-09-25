@@ -1,13 +1,8 @@
 # Core requirements
 click
+jinja2
 requests
 pyyaml
-werkzeug
-
-# Optional
-aiofiles
-jinja2
-whitenoise
 
 # Testing requirements
 codecov
@@ -15,3 +10,4 @@ flake8
 isort
 pytest
 pytest-cov
+starlette

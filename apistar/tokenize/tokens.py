@@ -1,62 +1,91 @@
-from typing import List, Union
+from apistar.exceptions import Position
 
 
 class Token():
-    def __init__(self, value, start: int, end: int):
-        self.value = value
-        self.start = start
-        self.end = end
+    def __init__(self, value, start_index: int, end_index: int, content=None):
+        self._value = value
+        self.start_index = start_index
+        self.end_index = end_index
+        self._content = content
 
-    def lookup(self, keys: List[Union[str, int]], lookup_property: bool=False) -> 'Token':
-        raise NotImplementedError()
+    def get_value(self):
+        raise NotImplemented()  # pragma: nocover
+
+    @property
+    def start(self):
+        return self._get_position(self.start_index)
+
+    @property
+    def end(self):
+        return self._get_position(self.end_index)
+
+    def lookup_position(self, keys=None):
+        token = self
+        for key in keys or []:
+            token = token[key]
+        return token.start
+
+    def lookup_key_position(self, keys):
+        token = self
+        for key in keys[:-1]:
+            token = token[key]
+        return token.get_key(keys[-1]).start
+
+    def _get_position(self, index):
+        content = self._content[:index + 1]
+        lines = content.splitlines()
+        line_no = max(len(lines), 1)
+        column_no = 1 if not lines else max(len(lines[-1]), 1)
+        return Position(line_no, column_no, index)
 
     def __repr__(self):
         return '%s(%s, %d, %d)' % (
             self.__class__.__name__,
-            repr(self.value),
-            self.start,
-            self.end
+            repr(self._value),
+            self.start_index,
+            self.end_index
         )
 
     def __eq__(self, other):
         return (
-            self.value == other.value and
-            self.start == other.start and
-            self.end == other.end
+            self.get_value() == other.get_value() and
+            self.start_index == other.start_index and
+            self.end_index == other.end_index
         )
 
 
 class ScalarToken(Token):
-    def lookup(self, keys: List[Union[str, int]], lookup_property: bool=False) -> Token:
-        if not keys:
-            return self
-        raise KeyError(keys[0])
-
     def __hash__(self):
-        return hash(self.value)
+        return hash(self._value)
+
+    def get_value(self):
+        return self._value
 
 
 class DictToken(Token):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.keys = {k.value: k for k in self.value.keys()}
-        self.values = {k.value: v for k, v in self.value.items()}
+        self._keys = {k._value: k for k in self._value.keys()}
+        self._values = {k._value: v for k, v in self._value.items()}
 
-    def lookup(self, keys: List[Union[str, int]], lookup_property: bool=False) -> Token:
-        if not keys:
-            return self
-        elif len(keys) == 1:
-            if lookup_property:
-                return self.keys[keys[0]]
-            else:
-                return self.values[keys[0]]
-        return self.values[keys[0]].lookup(keys[1:], lookup_property)
+    def get_value(self):
+        return {
+            key_token.get_value(): value_token.get_value()
+            for key_token, value_token in self._value.items()
+        }
+
+    def get_key(self, key):
+        return self._keys[key]
+
+    def __getitem__(self, key):
+        return self._values[key]
 
 
 class ListToken(Token):
-    def lookup(self, keys: List[Union[str, int]], lookup_property: bool=False) -> Token:
-        if not keys:
-            return self
-        elif len(keys) == 1:
-            return self.value[keys[0]]
-        return self.value[keys[0]].lookup(keys[1:], lookup_property)
+    def get_value(self):
+        return [
+            token.get_value() for token in self._value
+        ]
+
+    def __getitem__(self, key):
+        return self._value[key]

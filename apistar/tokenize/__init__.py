@@ -1,5 +1,7 @@
-from apistar.tokenize.tokenize_json import tokenize_json
-from apistar.tokenize.tokenize_yaml import tokenize_yaml
-from apistar.tokenize.tokens import DictToken, ListToken, ScalarToken
+"""
+The tokenize package allows us to return nicely contextual error messages that
+indicate where in a document an error has occurred.
 
-__all__ = ['DictToken', 'ListToken', 'ScalarToken', 'tokenize_json', 'tokenize_yaml', ]
+It does this by parsing JSON or YAML and returning items that store both the
+value and the position of each element in the parsed datastructure.
+"""

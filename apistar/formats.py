@@ -1,7 +1,7 @@
 import datetime
 import re
 
-from apistar.exceptions import ValidationError
+from apistar.exceptions import ErrorMessage, ValidationError
 
 DATE_REGEX = re.compile(
     r'(?P<year>\d{4})-(?P<month>\d{1,2})-(?P<day>\d{1,2})$'
@@ -21,6 +21,14 @@ DATETIME_REGEX = re.compile(
 
 
 class BaseFormat:
+    def error(self, code, **context):
+        message = self.error_message(code, **context)
+        raise ValidationError(messages=[message])
+
+    def error_message(self, code, **context):
+        text = self.errors[code].format(**self.__dict__, **context)
+        return ErrorMessage(text=text, code=code)
+
     def is_native_type(self, value):
         raise NotImplementedError()
 
@@ -32,13 +40,17 @@ class BaseFormat:
 
 
 class DateFormat(BaseFormat):
+    errors = {
+        'format': 'Must be a valid date.'
+    }
+
     def is_native_type(self, value):
         return isinstance(value, datetime.date)
 
     def validate(self, value):
         match = DATE_REGEX.match(value)
         if not match:
-            raise ValidationError('Must be a valid date.')
+            self.error('format')
 
         kwargs = {k: int(v) for k, v in match.groupdict().items()}
         return datetime.date(**kwargs)
@@ -48,13 +60,17 @@ class DateFormat(BaseFormat):
 
 
 class TimeFormat(BaseFormat):
+    errors = {
+        'format': 'Must be a valid time.'
+    }
+
     def is_native_type(self, value):
         return isinstance(value, datetime.time)
 
     def validate(self, value):
         match = TIME_REGEX.match(value)
         if not match:
-            raise ValidationError('Must be a valid time.')
+            self.error('format')
 
         kwargs = match.groupdict()
         kwargs['microsecond'] = kwargs['microsecond'] and kwargs['microsecond'].ljust(6, '0')
@@ -66,13 +82,17 @@ class TimeFormat(BaseFormat):
 
 
 class DateTimeFormat(BaseFormat):
+    errors = {
+        'format': 'Must be a valid datetime.'
+    }
+
     def is_native_type(self, value):
         return isinstance(value, datetime.datetime)
 
     def validate(self, value):
         match = DATETIME_REGEX.match(value)
         if not match:
-            raise ValidationError('Must be a valid datetime.')
+            self.error('format')
 
         kwargs = match.groupdict()
         kwargs['microsecond'] = kwargs['microsecond'] and kwargs['microsecond'].ljust(6, '0')

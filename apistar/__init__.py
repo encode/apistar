@@ -6,14 +6,12 @@
    \/     /_/   \_\_|  |___| |____/ \__\__,_|_|        \/
 """
 
+from apistar.cli import cli
 from apistar.client import Client
+from apistar.core import docs, parse, validate
 from apistar.document import Document, Field, Link, Section
-from apistar.main import main
-from apistar.server import App, ASyncApp, Component, Include, Route
-from apistar.test import TestClient
 
-__version__ = '0.5.42'
+__version__ = '0.6.0'
 __all__ = [
-    'App', 'ASyncApp', 'Client', 'Component', 'Document', 'Section', 'Link', 'Field',
-    'Route', 'Include', 'TestClient', 'http', 'main'
+    'Client', 'Document', 'Section', 'Link', 'Field', 'cli', 'docs', 'parse', 'validate'
 ]

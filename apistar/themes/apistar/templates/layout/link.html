@@ -1,0 +1,71 @@
+<div class="row coredocs-link">
+    <div class="col-md-6 docs-content">
+        <h3 id="{% if section %}{{ section.name }}-{% endif %}{{ link.name }}" class="coredocs-link-title">{{ link.title|default(link.name, True) }} <a href="#{% if section %}{{ section.name }}-{% endif %}{{ link.name }}"><i class="fa fa-link" aria-hidden="true"></i>
+    </a></h3>
+
+        <div class="meta">
+            <span class="label label-primary">{{ link.method }}</span>
+            <code>{{ link.url }}</code>
+        </div>
+
+        {% if link.description %}<p class="description">{{ link.description }}</p>{% endif %}
+
+{% if link.get_path_fields() %}
+    <h4>Path Parameters</h4>
+    <p>The following parameters should be included in the URL path.</p>
+    <table class="parameters table table-bordered table-striped">
+        <thead>
+            <tr><th>Parameter</th><th>Description</th></tr>
+        </thead>
+        <tbody>
+            {% for field in link.get_path_fields() %}
+            <tr><td class="parameter-name"><code>{{ field.name }}</code>{% if field.required %} <span class="label label-warning">required</span>{% endif %}</td><td>{% if field.description or field.schema.description %}{{ field.description or field.schema.description }}{% endif %}</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endif %}
+{% if link.get_query_fields() %}
+    <h4>Query Parameters</h4>
+    <p>The following parameters should be included as part of a URL query string.</p>
+    <table class="parameters table table-bordered table-striped">
+        <thead>
+            <tr><th>Parameter</th><th>Description</th></tr>
+        </thead>
+        <tbody>
+            {% for field in link.get_query_fields() %}
+            <tr><td class="parameter-name"><code>{{ field.name }}</code>{% if field.required %} <span class="label label-warning">required</span>{% endif %}</td><td>{% if field.description or field.schema.description %}{{ field.description or field.schema.description }}{% endif %}</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endif %}
+{% if link.get_body_field() %}
+    {% set field=link.get_body_field() %}
+    {% set expanded=link.get_expanded_body() %}
+    <h4>Request Body</h4>
+    <p>The request body should be <code>"{{ link.encoding }}"</code> encoded, and should contain {% if expanded %}an object with the following attributes.{% else %}a single item.{% endif %}</p>
+    <table class="parameters table table-bordered table-striped">
+        <thead>
+            <tr><th>Parameter</th><th>Description</th></tr>
+        </thead>
+        <tbody>
+            {% if expanded %}
+                {% for key, schema in expanded.items() %}
+                    <tr><td class="parameter-name"><code>{{ key }}</code>{% if key in field.schema.required %} <span class="label label-warning">required</span>{% endif %}</td><td>{% if schema.description %}{{ schema.description }}{% endif %}</td></tr>
+                {% endfor %}
+            {% else %}
+            <tr><td class="parameter-name"><code>{{ field.name }}</code>{% if field.required %} <span class="label label-warning">required</span>{% endif %}</td><td>{% if field.description or field.schema.description %}{{ field.description or field.schema.description }}{% endif %}</td></tr>
+            {% endif %}
+        </tbody>
+    </table>
+{% endif %}
+
+    </div>
+
+    <div class="col-md-6 section-secondary">
+        {% for language in langs %}
+            {% set template = "apistar/langs/" + language + ".html" %}
+            {% set is_selected = loop.first %}
+            {% include template %}
+        {% endfor %}
+    </div>
+</div>

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+	    <title>{{ document.title|default('API Star', True) }}</title>
+
+        <link href="{{ static_url('css/bootstrap.min.css') }}" rel="stylesheet">
+        <link href="{{ static_url('css/font-awesome-4.0.3.css') }}" rel="stylesheet">
+        <link href="{{ static_url('css/base.css') }}" rel="stylesheet">
+        <link href="{{ static_url('img/favicon.ico') }}" rel="shortcut icon">
+
+        {% if code_style %}<style>{{ code_style }}</style>{% endif %}
+
+    </head>
+
+    <body data-spy="scroll" data-target="#sidebar-nav" data-offset="50">
+
+        {% include 'apistar/layout/sidebar.html' %}
+
+        <div class="container" id="main">
+            <div class="row">
+                <div class="col-md-12 main-container">
+                    {% include 'apistar/layout/content.html' %}
+                </div>
+            </div>
+        </div>
+
+        <script src="{{ static_url('js/jquery-1.10.2.min.js') }}"></script>
+        <script src="{{ static_url('js/bootstrap.min.js') }}"></script>
+        <script src="{{ static_url('js/api.js') }}"></script>
+    </body>
+</html>

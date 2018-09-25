@@ -1,0 +1,39 @@
+<div class="row">
+    <div class="col-md-6 intro-title">
+        {% if document.description %}
+            <p>{{ document.description }}</p>
+        {% endif %}
+    </div>
+    <div class="col-md-6 source-code-chooser">
+            {% if langs|length > 1 %}
+                <ul class="nav nav-pills" id="language-control">
+                    {% for language in langs %}
+                        <li class="nav-item">
+                            <a href="#" class="nav-link {% if loop.first %}active{% endif %}" data-language="{{ language }}">{{ language }}</a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </ul>
+    </div>
+</div>
+
+{% for section in document.get_sections() %}
+    {% if section.name %}
+        <div class="row">
+            <div class="col-md-6">
+                <h2 id="{{ section.name }}" class="coredocs-section-title">
+                    {{ section.name }} <a href="#{{ section.name }}"><i class="fa fa-link" aria-hidden="true"></i></a>
+                </h2>
+            </div>
+            <div class="col-md-6 section-secondary"></div>
+        </div>
+    {% endif %}
+    {% for link in section.get_links() %}
+        {% include "apistar/layout/link.html" %}
+    {% endfor %}
+{% endfor %}
+
+{% for link in document.get_links() %}
+    {% include "apistar/layout/link.html" %}
+{% endfor %}
