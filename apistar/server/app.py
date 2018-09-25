@@ -25,7 +25,7 @@ class App():
     interface = 'wsgi'
 
     def __init__(self,
-                 routes,
+                 routes=None,
                  template_dir=None,
                  static_dir=None,
                  packages=None,
@@ -51,17 +51,17 @@ class App():
             msg = 'event_hooks must be a list.'
             assert isinstance(event_hooks, (list, tuple)), msg
 
-        routes = routes + self.include_extra_routes(schema_url, docs_url, static_url)
-        self.init_document(routes)
-        self.init_router(routes)
+        self.schema_url = schema_url
+        self.docs_url = docs_url
+        self.static_url = static_url
+        if routes:
+            self.init_router(routes)
+
         self.init_templates(template_dir, packages)
         self.init_staticfiles(static_url, static_dir, packages)
         self.init_injector(components)
+        self.init_event_hooks(event_hooks)
         self.debug = False
-        self.event_hooks = event_hooks
-
-        # Ensure event hooks can all be instantiated.
-        self.get_event_hooks()
 
     def include_extra_routes(self, schema_url=None, docs_url=None, static_url=None):
         extra_routes = []
@@ -90,7 +90,10 @@ class App():
         self.document = generate_document(routes)
 
     def init_router(self, routes):
-        self.router = Router(routes)
+        _routes = routes + self.include_extra_routes(
+            self.schema_url, self.docs_url, self.static_url)
+        self.router = Router(_routes)
+        self.init_document(_routes)
 
     def init_templates(self, template_dir: str=None, packages: typing.Sequence[str]=None):
         if not template_dir and not packages:
@@ -121,6 +124,12 @@ class App():
             'response': Response
         }
         self.injector = Injector(components, initial_components)
+
+    def init_event_hooks(self, event_hooks):
+        self.event_hooks = event_hooks
+
+        # Ensure event hooks can all be instantiated.
+        self.get_event_hooks()
 
     def get_event_hooks(self):
         event_hooks = []
