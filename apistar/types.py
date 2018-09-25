@@ -68,7 +68,7 @@ class Type(Mapping, metaclass=TypeMetaclass):
             allow_coerce = kwargs.pop('allow_coerce', allow_coerce)
             assert not kwargs
 
-            if args[0] is None or isinstance(args[0], (bool, int, float, list)):
+            if args[0] is None or isinstance(args[0], (bool, int, float, str, list)):
                 raise ValidationError('Must be an object.')
             elif isinstance(args[0], dict):
                 # Instantiated with a dict.
