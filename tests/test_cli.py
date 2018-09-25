@@ -83,9 +83,14 @@ def test_docs(tmpdir):
 app = Starlette()
 
 
-@app.route('/')
+@app.route('/homepage')
 def homepage(request):
     return JSONResponse({'hello': 'world'})
+
+
+@app.route('/error')
+def error(request):
+    return JSONResponse({'error': 'something failed'}, status_code=400)
 
 
 def test_request(tmpdir):
@@ -98,7 +103,7 @@ def test_request(tmpdir):
                 {"url": "https://testserver"}
             ],
             "paths": {
-                "/": {
+                "/homepage": {
                     "get": {"operationId": "example"}
                 }
             }
@@ -106,7 +111,7 @@ def test_request(tmpdir):
 
     session = TestClient(app)
     runner = CliRunner()
-    cmd = ['request', '--path', schema, '--format', 'openapi', 'example']
+    cmd = ['request', '--path', schema, 'example']
     result = runner.invoke(cli, cmd, obj=session)
     assert result.exit_code == 0
     assert result.output == '{\n    "hello": "world"\n}\n'
@@ -122,7 +127,7 @@ def test_request_verbose(tmpdir):
                 {"url": "https://testserver"}
             ],
             "paths": {
-                "/": {
+                "/homepage": {
                     "get": {"operationId": "example"}
                 }
             }
@@ -130,9 +135,33 @@ def test_request_verbose(tmpdir):
 
     session = TestClient(app)
     runner = CliRunner()
-    cmd = ['request', '--path', schema, '--format', 'openapi', '--verbose', 'example']
+    cmd = ['request', '--path', schema, '--verbose', 'example']
     result = runner.invoke(cli, cmd, obj=session)
     assert result.exit_code == 0
-    assert '> GET / HTTP/1.1' in result.output
+    assert '> GET /homepage HTTP/1.1' in result.output
     assert '< 200 OK' in result.output
     assert '{\n    "hello": "world"\n}\n' in result.output
+
+
+def test_request_error(tmpdir):
+    schema = os.path.join(tmpdir, 'schema.json')
+    with open(schema, 'w') as schema_file:
+        schema_file.write(json.dumps({
+            "openapi": "3.0.0",
+            "info": {"title": "", "version": ""},
+            "servers": [
+                {"url": "https://testserver"}
+            ],
+            "paths": {
+                "/error": {
+                    "get": {"operationId": "example"}
+                }
+            }
+        }))
+
+    session = TestClient(app)
+    runner = CliRunner()
+    cmd = ['request', '--path', schema, 'example']
+    result = runner.invoke(cli, cmd, obj=session)
+    assert result.exit_code != 0
+    assert result.output == '{\n    "error": "something failed"\n}\n✘ 400 Bad Request\n'

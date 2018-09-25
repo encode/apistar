@@ -51,13 +51,35 @@ $ apistar request listWidgets search=cogwheel
 ]
 ```
 
-## Loading a new schema
+## Programmatic interface
 
-To start working against a new API you can use the `load` command to download
-the schema, and generate a config file for it:
+You can make requests against an API using [the API Star client library](client-library.md).
 
-```shell
-$ apistar load https://petstore.swagger.io/v2/swagger.json
-Downloaded "swagger.json", and created "apistar.yml".
-$ apistar request ...
+```python
+import apistar
+
+
+schema = """
+openapi: 3.0.0
+info:
+  title: Widget API
+  version: '1.0'
+  description: An example API for widgets
+paths:
+  /widgets:
+    get:
+      summary: List all the widgets.
+      operationId: listWidgets
+      parameters:
+      - in: query
+        name: search
+        description: Filter widgets by this search term.
+        schema:
+          type: string
+"""
+
+client = apistar.Client(schema, format='openapi', encoding="yaml")
+results = client.request('listWidgets', search="cogwheel")
 ```
+
+See [the client library documentation](client-library.md) for more details.

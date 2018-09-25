@@ -27,7 +27,9 @@ class Client():
         for item in self.document.walk_links():
             if item.link.name == operation_id:
                 return item.link
-        raise exceptions.ClientError('Operation ID "%s" not found in schema.' % operation_id)
+        text = 'Operation ID "%s" not found in schema.' % operation_id
+        message = exceptions.ErrorMessage(text=text, code='invalid-operation')
+        raise exceptions.ClientError(messages=[message])
 
     def get_url(self, link, params):
         url = urljoin(self.document.url, link.url)
@@ -35,10 +37,14 @@ class Client():
         scheme = urlparse(url).scheme.lower()
 
         if not scheme:
-            raise exceptions.ClientError("URL missing scheme '%s'." % url)
+            text = "URL missing scheme '%s'." % url
+            message = exceptions.ErrorMessage(text=text, code='invalid-url')
+            raise exceptions.ClientError(messages=[message])
 
         if scheme not in self.transport.schemes:
-            raise exceptions.ClientError("Unsupported URL scheme '%s'." % scheme)
+            text = "Unsupported URL scheme '%s'." % scheme
+            message = exceptions.ErrorMessage(text=text, code='invalid-url')
+            raise exceptions.ClientError(messages=[message])
 
         for field in link.get_path_fields():
             value = str(params[field.name])
@@ -70,7 +76,10 @@ class Client():
             required=[field.name for field in link.fields if field.required],
             additional_properties=False
         )
-        validator.validate(params)
+        try:
+            validator.validate(params)
+        except exceptions.ValidationError as exc:
+            raise exceptions.ClientError(messages=exc.messages) from None
 
         method = link.method
         url = self.get_url(link, params)

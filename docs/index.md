@@ -86,3 +86,17 @@ We can also make API requests to the server referenced in the schema:
 ```
 $ apistar request listWidgets search=cogwheel
 ```
+
+## What did the server go?
+
+With version 0.6 onwards the API Star project is being focused as a
+framework-agnositic suite of API tooling. The plan is to build out this
+functionality in a way that makes it appropriate for use either as a stand-alone
+tool, or together with a large range of frameworks.
+
+The 0.5 branch remains available on GitHub, and can be installed from PyPI
+with `pip install apistar==0.5.41`. Any further development of the API Star
+server would likely need to be against a fork of that, under a new maintainer.
+
+If you're looking for a high-performance Python-based async framework, then
+I would instead recommend [Starlette](https://www.starlette.io/).

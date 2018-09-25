@@ -313,6 +313,7 @@ class Swagger:
         schemas = lookup(data, ['components', 'schemas'], {})
         for key, value in schemas.items():
             definitions[key] = JSONSchema().decode_from_data_structure(value)
+            definitions[key].def_name = key
         return definitions
 
     def get_content(self, data, base_url, schema_definitions):

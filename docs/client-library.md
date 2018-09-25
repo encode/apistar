@@ -71,6 +71,22 @@ and any parameters.
 result = client.request('listWidgets', search='cogwheel')
 ```
 
+The `result` will be a data structure, decoded appropriately from the response
+content, as determined by the `Content-Type` header of the response.
+
+In the event of an error response (4xx or 5xx status codes) the client will
+raise `apistar.exceptions.ErrorResponse`.
+
+There are three attributes on here that you may wish to inspect:
+
+* `.title` - A string indicating the response status code/phrase. Eg. `"400 Bad Request"`
+* `.status_code` - An integer indicating the response status code. Eg. `400`
+* `.content - The decoded response content. Eg. `{"search": "Must be no more than 100 characters."}`
+
+If the request is made with an incorrect set of parameters, or if the client
+cannot fulfil the request for some reason then `apistar.exceptions.ClientError`
+will be raised.
+
 ## Authentication
 
 You can use any standard `requests` authentication class with the API client.
@@ -134,4 +150,52 @@ class CSVDecoder(BaseDecoder):
         lines = response.text.splitlines()
         reader = csv.reader(lines, delimiter=',')
         return [row for row in reader]
+```
+
+## Encoding requests
+
+The request body is determined depending on the encoding used for the request.
+
+By default the client has the following encoders enabled:
+
+* `apistar.client.encoders.JSONEncoder` - Handles `application/json` requests.
+* `apistar.client.encoders.MultiPartEncoder` - Handles `multipart/form-data` requests.
+* `apistar.client.encoders.URLEncodedEncoder` - Handles `application/x-www-form-urlencoded` requests.
+
+You can customize which decoders are installed on a client like so:
+
+```python
+client = apistar.Client(schema, encoders=[JSONEncoder()])
+```
+
+In the example above the client would send `application/json` in outgoing requests,
+and would raise an error for requests which required any other encoding to be used.
+
+### Writing a custom encoder
+
+Typically the default set of encoders will be appropriate for handling the
+encoding of the request body, since JSON or either of the types of form data
+are by far the most commonly used encodings for HTTP requests. However you can
+customize this behaviour if needed, in order to support endpoints which expect
+some other type of encoding.
+
+To write a custom encoded you should subclass `apistar.client.encoders.BaseEncoder`,
+and override the `media_type` attribute, and the `encode(self, options, content)` method.
+
+The `encode` method is used to modify the options that are passed to `requests.send(...)`
+when making the outgoing request.
+
+For example:
+
+```python
+from apistar.client.encoders import BaseEncoder
+
+
+class TextEncoder(BaseDecoder):
+    media_type = 'text/plain'
+
+    def encode(self, options, content):
+        assert isinstance(content, str), 'The request body for this endpoint must be a string.'
+        options['headers']['content-type'] = 'text/plain'
+        options['data'] = content
 ```

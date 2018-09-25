@@ -57,8 +57,9 @@ class ErrorResponse(Exception):
     """
     Raised when a client request results in an error response being returned.
     """
-    def __init__(self, title, content):
+    def __init__(self, title, status_code, content):
         self.title = title
+        self.status_code = status_code
         self.content = content
 
 
@@ -66,4 +67,6 @@ class ClientError(Exception):
     """
     Raised when a client is unable to fulfil an API request.
     """
-    pass
+    def __init__(self, messages):
+        self.messages = messages
+        super().__init__(messages)

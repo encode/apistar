@@ -60,5 +60,5 @@ Function signature: `validate(schema, format=None, encoding=None)`
 * `schema` - Either a dict representing the schema, or a string/bytestring.
 * `format` - One of `openapi`, `swagger`, `jsonschema` or `config`.
 If unset, one of either `openapi` or `swagger` will be inferred from the content if possible.
-* `encoding` - If schema is passed as a string/bytestring then the encoding must be
-specified as either "json" or "yaml".
+* `encoding` - If schema is passed as a string/bytestring then the encoding may be
+specified as either "json" or "yaml".  If unset, it will be inferred from the content if possible.

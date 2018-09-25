@@ -1,7 +1,9 @@
+import pytest
 from starlette.applications import Starlette
 from starlette.responses import JSONResponse
 from starlette.testclient import TestClient
 
+from apistar import exceptions
 from apistar.client import Client
 
 app = Starlette()
@@ -61,14 +63,19 @@ schema = {
                 'requestBody': {
                     "content": {
                         "application/json": {
-                            "schema": {
-                                "type": "object",
-                                "properties": {
-                                    "example": {"type": "integer"}
-                                }
-                            }
+                            "schema": {"$ref": "#/components/schemas/Value"}
                         }
                     }
+                }
+            }
+        }
+    },
+    'components': {
+        'schemas': {
+            'Value': {
+                "type": "object",
+                "properties": {
+                    "example": {"type": "integer"}
                 }
             }
         }
@@ -90,5 +97,17 @@ def test_query_params():
 
 def test_body_param():
     client = Client(schema, session=TestClient(app))
-    data = client.request('body-param', body={'example': 123})
+    data = client.request('body-param', value={'example': 123})
     assert data == {'body': {'example': 123}}
+
+
+def test_missing_param():
+    client = Client(schema, session=TestClient(app))
+    with pytest.raises(exceptions.ClientError):
+        client.request('body-param')
+
+
+def test_extra_param():
+    client = Client(schema, session=TestClient(app))
+    with pytest.raises(exceptions.ClientError):
+        client.request('body-param', value={'example': 123}, extra=456)

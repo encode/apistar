@@ -32,7 +32,7 @@ class URLEncodedEncoder:
         options['data'] = content
 
 
-class MultipartEncoder:
+class MultiPartEncoder:
     media_type = "multipart/form-data"
 
     def encode(self, options, content):

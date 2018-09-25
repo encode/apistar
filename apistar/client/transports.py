@@ -32,7 +32,7 @@ class HTTPTransport(BaseTransport):
     ]
     default_encoders = [
         encoders.JSONEncoder(),
-        encoders.MultipartEncoder(),
+        encoders.MultiPartEncoder(),
         encoders.URLEncodedEncoder(),
     ]
 
@@ -66,18 +66,19 @@ class HTTPTransport(BaseTransport):
 
         if 400 <= response.status_code <= 599:
             title = '%d %s' % (response.status_code, response.reason)
-            raise exceptions.ErrorResponse(title, result)
+            raise exceptions.ErrorResponse(
+                title=title,
+                status_code=response.status_code,
+                content=result
+            )
 
         return result
 
-    def get_encoder(self, encoding=None):
+    def get_encoder(self, encoding):
         """
         Given the value of the encoding, return the appropriate encoder for
         handling the request content.
         """
-        if encoding is None:
-            return self.encoders[0]
-
         content_type = encoding.split(';')[0].strip().lower()
         main_type = content_type.split('/')[0] + '/*'
         wildcard_type = '*/*'
@@ -86,8 +87,9 @@ class HTTPTransport(BaseTransport):
             if codec.media_type in (content_type, main_type, wildcard_type):
                 return codec
 
-        msg = "Unsupported encoding '%s' for request." % encoding
-        raise exceptions.ClientError(msg)
+        text = "Unsupported encoding '%s' for request." % encoding
+        message = exceptions.ErrorMessage(text=text, code='cannot-encode-request')
+        raise exceptions.ClientError(messages=[message])
 
     def get_decoder(self, content_type=None):
         """
@@ -105,8 +107,9 @@ class HTTPTransport(BaseTransport):
             if codec.media_type in (content_type, main_type, wildcard_type):
                 return codec
 
-        msg = "Unsupported encoding '%s' in response Content-Type header." % content_type
-        raise exceptions.ClientError(msg)
+        text = "Unsupported encoding '%s' in response Content-Type header." % content_type
+        message = exceptions.ErrorMessage(text=text, code='cannot-decode-response')
+        raise exceptions.ClientError(messages=[message])
 
     def get_request_options(self, query_params=None, content=None, encoding=None):
         """

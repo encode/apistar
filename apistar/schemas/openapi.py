@@ -323,6 +323,7 @@ class OpenAPI:
         schemas = lookup(data, ['components', 'schemas'], {})
         for key, value in schemas.items():
             definitions[key] = JSONSchema().decode_from_data_structure(value)
+            definitions[key].def_name = key
         return definitions
 
     def get_content(self, data, base_url, schema_definitions):
@@ -391,9 +392,12 @@ class OpenAPI:
             if '$ref' in body_schema:
                 ref = body_schema['$ref'][len('#/components/schemas/'):]
                 schema = schema_definitions.get(ref)
+                field_name = ref.lower()
             else:
                 schema = JSONSchema().decode_from_data_structure(body_schema)
-            fields += [Field(name='body', location='body', schema=schema)]
+                field_name = 'body'
+            field_name = lookup(operation_info, ['requestBody', 'x-name'], default=field_name)
+            fields += [Field(name=field_name, location='body', schema=schema)]
 
         return Link(
             name=name,

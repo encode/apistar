@@ -10,7 +10,9 @@ import click
 import apistar
 from apistar.client import Client
 from apistar.client.debug import DebugSession
-from apistar.exceptions import ParseError, ValidationError
+from apistar.exceptions import (
+    ClientError, ErrorResponse, ParseError, ValidationError
+)
 
 
 def _encoding_from_filename(filename):
@@ -278,7 +280,23 @@ def request(ctx, operation, params, path, format, encoding, verbose):
         _echo_error(exc, schema, verbose=verbose)
         sys.exit(1)
 
-    result = client.request(operation, **params)
+    try:
+        result = client.request(operation, **params)
+    except ClientError as exc:
+        for message in exc.messages:
+            if message.code == 'invalid_property':
+                text = '* Invalid parameter "%s".' % exc.index[0]
+            elif message.code == 'required':
+                text = '* Missing required parameter "%s".' % exc.index[0]
+            else:
+                text = exc.text
+            click.echo(text)
+        click.echo(click.style('✘ ', fg='red') + 'Client error')
+        sys.exit(1)
+    except ErrorResponse as exc:
+        click.echo(json.dumps(exc.content, indent=4))
+        click.echo(click.style('✘ ', fg='red') + exc.title)
+        sys.exit(1)
     click.echo(json.dumps(result, indent=4))
 
 
