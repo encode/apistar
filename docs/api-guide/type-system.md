@@ -88,7 +88,7 @@ routes = [
 
 ## Serialization
 
-You may also want to using the type system for data serialization,
+You may also want to use the type system for data serialization,
 and include the type as a return annotation on handler functions.
 
 Again, doing so will expose the type information to the application's
