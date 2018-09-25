@@ -7,12 +7,12 @@
         
         
         
-        <link rel="shortcut icon" href="../../img/favicon.ico">
+        <link rel="shortcut icon" href="../img/favicon.ico">
 
 
         <meta property="og:type" content="website" />
         <!--  Essential META Tags -->
-        <meta property="og:title" content="Event Hooks - API Star"
+        <meta property="og:title" content="Making API Requests - API Star"
         />
         
 
@@ -22,11 +22,11 @@
         <!--  Non-Essential, But Recommended -->
         <meta property="og:site_name" content="API Star">
         <meta name="twitter:image:alt" content="API Star">
-        <title>Event Hooks - API Star</title>
-        <link href="../../css/bootstrap-custom.min.css" rel="stylesheet">
-        <link href="../../css/font-awesome.min.css" rel="stylesheet">
-        <link href="../../css/base.css" rel="stylesheet">
-        <link rel="stylesheet" href="../../css/highlight.css">
+        <title>Making API Requests - API Star</title>
+        <link href="../css/bootstrap-custom.min.css" rel="stylesheet">
+        <link href="../css/font-awesome.min.css" rel="stylesheet">
+        <link href="../css/base.css" rel="stylesheet">
+        <link rel="stylesheet" href="../css/highlight.css">
         <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700" rel="stylesheet">
         <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
         <!--[if lt IE 9]>
@@ -34,9 +34,9 @@
             <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
         <![endif]-->
 
-        <script src="../../js/jquery-1.10.2.min.js" defer></script>
-        <script src="../../js/bootstrap-3.0.3.min.js" defer></script>
-        <script src="../../js/highlight.pack.js" defer></script> 
+        <script src="../js/jquery-1.10.2.min.js" defer></script>
+        <script src="../js/bootstrap-3.0.3.min.js" defer></script>
+        <script src="../js/highlight.pack.js" defer></script> 
     </head>
 
     <body>
@@ -53,7 +53,7 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
             </button>
-            <a class="navbar-brand" href="../..">API Star</a>
+            <a class="navbar-brand" href="..">API Star</a>
         </div>
 
         <!-- Expanded navigation -->
@@ -61,65 +61,30 @@
                 <!-- Main navigation -->
                 <ul class="nav navbar-nav">
                     <li >
-                        <a href="../..">Home</a>
+                        <a href="..">Home</a>
                     </li>
                     <li class="dropdown active">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">API Guide <b class="caret"></b></a>
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Tools <b class="caret"></b></a>
                         <ul class="dropdown-menu">
                             
 <li >
-    <a href="../applications/">Applications</a>
+    <a href="../schema-validation/">Schema Validation</a>
 </li>
                             
 <li >
-    <a href="../requests-and-responses/">Requests and Responses</a>
-</li>
-                            
-<li >
-    <a href="../routing/">Routing</a>
-</li>
-                            
-<li >
-    <a href="../templates/">Templates</a>
-</li>
-                            
-<li >
-    <a href="../static-files/">Static Files</a>
-</li>
-                            
-<li >
-    <a href="../type-system/">The Type System</a>
-</li>
-                            
-<li >
-    <a href="../api-schemas/">API Schemas</a>
+    <a href="../api-documentation/">API Documentation</a>
 </li>
                             
 <li class="active">
-    <a href="./">Event Hooks</a>
-</li>
-                            
-<li >
-    <a href="../dependency-injection/">Dependency Injection</a>
-</li>
-                            
-<li >
-    <a href="../testing/">Testing</a>
-</li>
-                            
-<li >
-    <a href="../deployment/">Deployment</a>
+    <a href="./">Making API Requests</a>
 </li>
                         </ul>
                     </li>
-                    <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Topics <b class="caret"></b></a>
-                        <ul class="dropdown-menu">
-                            
-<li >
-    <a href="../../topics/release-notes/">Release Notes</a>
-</li>
-                        </ul>
+                    <li >
+                        <a href="../client-library/">Client Library</a>
+                    </li>
+                    <li >
+                        <a href="../type-system/">Type System</a>
                     </li>
                 </ul>
 
@@ -130,19 +95,19 @@
                     </a>
                 </li>
                     <li >
-                        <a rel="next" href="../api-schemas/">
+                        <a rel="next" href="../api-documentation/">
                             <i class="fa fa-arrow-left"></i> Previous
                         </a>
                     </li>
                     <li >
-                        <a rel="prev" href="../dependency-injection/">
+                        <a rel="prev" href="../client-library/">
                             Next <i class="fa fa-arrow-right"></i>
                         </a>
                     </li>
                 <li>
                     <a class="repo-link"
                      href="https://github.com/encode/apistar/tree/master">
-                    <img src="../../img/GitHub-Mark-Light-32px.png" alt="API Star on GitHub" class="repo-img">
+                    <img src="../img/GitHub-Mark-Light-32px.png" alt="API Star on GitHub" class="repo-img">
                      
                     </a>
                 </li>
@@ -154,80 +119,85 @@
         <div class="container">
                 <div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
     <ul class="nav bs-sidenav">
-        <li class="main active"><a href="#event-hooks">Event Hooks</a></li>
-            <li><a href="#error-handling">Error handling</a></li>
-            <li><a href="#using-event-hooks">Using event hooks</a></li>
-            <li><a href="#ordering-of-event-hooks">Ordering of event hooks</a></li>
+        <li class="main active"><a href="#making-api-requests">Making API requests</a></li>
+            <li><a href="#configuration">Configuration</a></li>
+            <li><a href="#programmatic-interface">Programmatic interface</a></li>
     </ul>
 </div></div>
                 <div class="col-md-9" role="main">
 
-<h1 id="event-hooks">Event Hooks</h1>
-<p>Sometimes you'll want to always run some code before or after a handler function.</p>
-<p>API Star provides something very similar to middleware, that lets you register
-a group of functions to be run in response to particular events.</p>
-<p>Here's an example...</p>
-<pre><code class="python">class CustomHeadersHook:
-    def on_response(self, response: http.Response):
-        response.headers['x-custom'] = 'Ran on_response()'
-
-event_hooks = [CustomHeadersHook]
-
-app = App(routes=routes, event_hooks=event_hooks)
+<h1 id="making-api-requests">Making API requests</h1>
+<p>The APIStar client library allows you to make requests to an API, given an API Schema.</p>
+<p>Here's an example of how an API request might look:</p>
+<pre><code class="shell">$ apistar request listWidgets search=cogwheel --path schema.yml
+[
+    {
+        &quot;name&quot;: &quot;Small cogwheel.&quot;,
+        &quot;productId&quot;: 24325,
+        &quot;inStock&quot;: true
+    },
+    {
+        &quot;name&quot;: &quot;Large cogwheel.&quot;,
+        &quot;productId&quot;: 24326,
+        &quot;inStock&quot;: true
+    }
+]
 </code></pre>
 
-<p>An event hook instance may include any or all of the following methods:</p>
-<ul>
-<li><code>on_request(self, ...)</code> - Runs before the handler function.</li>
-<li><code>on_response(self, ...)</code> - Runs after the handler function, or when a handled exception occurs.</li>
-<li><code>on_error(self, ...)</code> - Runs after any unhandled exception occurs.</li>
-</ul>
-<p>The signature of the method may include any annotations that would be available
-on a handler function, or the <code>http.Response</code> annotation.</p>
-<h2 id="error-handling">Error handling</h2>
-<p>Subclasses of <code>HTTPException</code> are dealt with by the applications exception handler,
-and return responses, that pass through any <code>on_response</code> hooks as usual.</p>
-<p>Unhandled exceptions result in server errors, and should be treated differently.
-For these cases, any installed <code>on_error</code> event hooks will be run. This event hook
-allows you to monitor or log exceptions.</p>
-<p>It's recommend that use of <code>on_error</code> event hooks should be kept to a minimum,
-dealing only with whatever error monitoring is required.</p>
-<h2 id="using-event-hooks">Using event hooks</h2>
-<p>Event hooks can pull in components such as the request, the returned response,
-or the exception that resulted in a response. For example:</p>
-<pre><code class="python">class ErrorHandlingHook:
-    def on_response(self, response: http.Response, exc: Exception):
-        if exc is None:
-            print(&quot;Handler returned a response&quot;)
-        else:
-            print(&quot;Exception handler returned a response&quot;)
-
-    def on_error(self, response: http.Response):
-        print(&quot;An unhandled error was raised&quot;)
-
-
-app = App(routes=routes, event_hooks=[ErrorHandlingHook])
+<h2 id="configuration">Configuration</h2>
+<p>To make an API request you'll normally want to make sure you have an
+<code>apistar.yml</code> configuration file which references the API schema.</p>
+<p>This will save you from having to include the schema path on every request.</p>
+<pre><code class="yaml">schema:
+    path: schema.yml
+    format: openapi
 </code></pre>
 
-<p>Event hooks are instantiated at the start of every request/response cycle, and can
-store state between the request and response events.</p>
-<pre><code class="python">class TimingHook:
-    def on_request(self):
-        self.started = time.time()
-
-    def on_response(self):
-        duration = time.time() - self.started
-        print(&quot;Response returned in %0.6f seconds.&quot; % duration)
-
-
-app = App(routes=routes, event_hooks=[TimingHook])
+<p>We can now make the request more simply, as:</p>
+<pre><code class="shell">$ apistar request listWidgets search=cogwheel
+[
+    {
+        &quot;name&quot;: &quot;Small cogwheel.&quot;,
+        &quot;productId&quot;: 24325,
+        &quot;inStock&quot;: true
+    },
+    {
+        &quot;name&quot;: &quot;Large cogwheel.&quot;,
+        &quot;productId&quot;: 24326,
+        &quot;inStock&quot;: true
+    }
+]
 </code></pre>
 
-<h2 id="ordering-of-event-hooks">Ordering of event hooks</h2>
-<p>The <code>on_request</code> hooks are run in the order that their classes are included.</p>
-<p>The <code>on_response</code> and <code>on_error</code> hooks are run in the reverse order that their classes are included.</p>
-<p>This behaviour ensures that event hooks run in a similar manner to stack-based middleware,
-with the each event hook wrapping everything that comes after it.</p></div>
+<h2 id="programmatic-interface">Programmatic interface</h2>
+<p>You can make requests against an API using <a href="../client-library/">the API Star client library</a>.</p>
+<pre><code class="python">import apistar
+
+
+schema = &quot;&quot;&quot;
+openapi: 3.0.0
+info:
+  title: Widget API
+  version: '1.0'
+  description: An example API for widgets
+paths:
+  /widgets:
+    get:
+      summary: List all the widgets.
+      operationId: listWidgets
+      parameters:
+      - in: query
+        name: search
+        description: Filter widgets by this search term.
+        schema:
+          type: string
+&quot;&quot;&quot;
+
+client = apistar.Client(schema, format='openapi', encoding=&quot;yaml&quot;)
+results = client.request('listWidgets', search=&quot;cogwheel&quot;)
+</code></pre>
+
+<p>See <a href="../client-library/">the client library documentation</a> for more details.</p></div>
         </div>
 
         <footer class="col-md-12">
@@ -238,13 +208,13 @@ with the each event hook wrapping everything that comes after it.</p></div>
                 <a href="https://github.com/tomchristie/apistar/blob/master/LICENSE.md">BSD licensed</a> code.
                 <br/>Designed & built in Brighton, England.</i>
               <p align="center">
-                <img src="../../img/logomarque.png" alt="API Star" class="footer-logo">
+                <img src="../img/logomarque.png" alt="API Star" class="footer-logo">
               </p>
         </footer>
-        <script>var base_url = '../..';</script>
-        <script src="../../js/base.js" defer></script>
-        <script src="../../search/require.js" defer></script>
-        <script src="../../search/search.js" defer></script>
+        <script>var base_url = '..';</script>
+        <script src="../js/base.js" defer></script>
+        <script src="../search/require.js" defer></script>
+        <script src="../search/search.js" defer></script>
 
         <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="Search Modal" aria-hidden="true">
     <div class="modal-dialog">

@@ -64,62 +64,27 @@
                         <a href=".">Home</a>
                     </li>
                     <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">API Guide <b class="caret"></b></a>
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Tools <b class="caret"></b></a>
                         <ul class="dropdown-menu">
                             
 <li >
-    <a href="api-guide/applications/">Applications</a>
+    <a href="schema-validation/">Schema Validation</a>
 </li>
                             
 <li >
-    <a href="api-guide/requests-and-responses/">Requests and Responses</a>
+    <a href="api-documentation/">API Documentation</a>
 </li>
                             
 <li >
-    <a href="api-guide/routing/">Routing</a>
-</li>
-                            
-<li >
-    <a href="api-guide/templates/">Templates</a>
-</li>
-                            
-<li >
-    <a href="api-guide/static-files/">Static Files</a>
-</li>
-                            
-<li >
-    <a href="api-guide/type-system/">The Type System</a>
-</li>
-                            
-<li >
-    <a href="api-guide/api-schemas/">API Schemas</a>
-</li>
-                            
-<li >
-    <a href="api-guide/event-hooks/">Event Hooks</a>
-</li>
-                            
-<li >
-    <a href="api-guide/dependency-injection/">Dependency Injection</a>
-</li>
-                            
-<li >
-    <a href="api-guide/testing/">Testing</a>
-</li>
-                            
-<li >
-    <a href="api-guide/deployment/">Deployment</a>
+    <a href="making-api-requests/">Making API Requests</a>
 </li>
                         </ul>
                     </li>
-                    <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Topics <b class="caret"></b></a>
-                        <ul class="dropdown-menu">
-                            
-<li >
-    <a href="topics/release-notes/">Release Notes</a>
-</li>
-                        </ul>
+                    <li >
+                        <a href="client-library/">Client Library</a>
+                    </li>
+                    <li >
+                        <a href="type-system/">Type System</a>
                     </li>
                 </ul>
 
@@ -135,7 +100,7 @@
                         </a>
                     </li>
                     <li >
-                        <a rel="prev" href="api-guide/applications/">
+                        <a rel="prev" href="schema-validation/">
                             Next <i class="fa fa-arrow-right"></i>
                         </a>
                     </li>
@@ -154,55 +119,103 @@
         <div class="container">
                 <div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
     <ul class="nav bs-sidenav">
-        <li class="main active"><a href="#api-star">API Star</a></li>
-            <li><a href="#quickstart">Quickstart</a></li>
+        <li class="main active"><a href="#quickstart">Quickstart</a></li>
+            <li><a href="#where-did-the-server-go">Where did the server go?</a></li>
     </ul>
 </div></div>
                 <div class="col-md-9" role="main">
 
-<div style="float: right">
-    <a href="https://travis-ci.org/encode/apistar"><img style="border: none; background-color: transparent; margin: 0" alt="Build Status" src="https://travis-ci.org/encode/apistar.svg?branch=master"></a>
-    <a href="https://codecov.io/gh/encode/apistar"><img style="border: none; background-color: transparent; margin: 0" alt="codecov" src="https://codecov.io/gh/encode/apistar/branch/master/graph/badge.svg"></a>
-    <a href="https://pypi.python.org/pypi/apistar"><img style="border: none; background-color: transparent; margin: 0" alt="Package version" src="https://badge.fury.io/py/apistar.svg"></a>
-</div>
+<p align="center">
+    <img src="https://raw.githubusercontent.com/encode/apistar/master/docs/img/logo-200-square-light.png" alt="API Star" />
+</p>
 
-<h1 id="api-star">API Star</h1>
-<p>A smart Web API framework, designed for Python 3.</p>
-<!-- [![Build Status](https://travis-ci.org/encode/apistar.svg?branch=master)](https://travis-ci.org/encode/apistar)
-[![codecov](https://codecov.io/gh/encode/apistar/branch/master/graph/badge.svg)](https://codecov.io/gh/encode/apistar)
-[![Package version](https://badge.fury.io/py/apistar.svg)](https://pypi.python.org/pypi/apistar) -->
+<p align="center">
+    🛠 <em>The Web API toolkit.</em> 🛠
+</p>
 
+<p align="center">
+<a href="https://travis-ci.org/encode/apistar">
+    <img src="https://travis-ci.org/encode/apistar.svg?branch=master" alt="Build Status">
+</a>
+<a href="https://codecov.io/gh/encode/apistar">
+    <img src="https://codecov.io/gh/encode/apistar/branch/master/graph/badge.svg" alt="codecov">
+</a>
+<a href="https://pypi.python.org/pypi/apistar">
+    <img src="https://badge.fury.io/py/apistar.svg" alt="Package version">
+</a>
+</p>
+
+<hr />
 <p><strong>Community:</strong> <a href="https://discuss.apistar.org/">https://discuss.apistar.org/</a> 🤔 💭 🤓 💬 😎</p>
 <p><strong>Repository</strong>: <a href="https://github.com/encode/apistar">https://github.com/encode/apistar</a> 💻</p>
 <hr />
+<p>API Star is a toolkit for working with OpenAPI or Swagger schemas. It allows you to:</p>
+<ul>
+<li>Build API documentation, with a selection of available themes.</li>
+<li>Validate API schema documents, and provide contextual errors.</li>
+<li>Validate requests and responses, using the API Star type system.</li>
+<li>Make API requests using the dynamic client library.</li>
+</ul>
+<p>You can use it to build static documentation, integrate it within a Web framework,
+or use it as the client library for interacting with other APIs.</p>
 <h2 id="quickstart">Quickstart</h2>
 <p>Install API Star:</p>
 <pre><code class="bash">$ pip3 install apistar
 </code></pre>
 
-<p>Create a new project in <code>app.py</code>:</p>
-<pre><code class="python">from apistar import App, Route
-
-
-def welcome(name=None):
-    if name is None:
-        return {'message': 'Welcome to API Star!'}
-    return {'message': 'Welcome to API Star, %s!' % name}
-
-
-routes = [
-    Route('/', method='GET', handler=welcome),
-]
-
-app = App(routes=routes)
-
-
-if __name__ == '__main__':
-    app.serve('127.0.0.1', 5000, debug=True)
+<p>Let's take a look at some of the functionality the toolkit provides...</p>
+<p>We'll start by creating an OpenAPI schema, <code>schema.yml</code>:</p>
+<pre><code class="yaml">openapi: 3.0.0
+info:
+  title: Widget API
+  version: '1.0'
+  description: An example API for widgets
+servers:
+  - url: https://www.example.org/
+paths:
+  /widgets:
+    get:
+      summary: List all the widgets.
+      operationId: listWidgets
+      parameters:
+      - in: query
+        name: search
+        description: Filter widgets by this search term.
+        schema:
+          type: string
 </code></pre>
 
-<p>Open <code>http://127.0.0.1:5000/docs/</code> in your browser:</p>
-<p><img alt="API documentation" src="./img/api-docs.png" /></p></div>
+<p>Let's also create a configuration file <code>apistar.yml</code>:</p>
+<pre><code class="yaml">schema:
+  path: schema.yaml
+  format: openapi
+</code></pre>
+
+<p>We're now ready to start using the <code>apistar</code> command line tool.</p>
+<p>We can validate our OpenAPI schema:</p>
+<pre><code>$ apistar validate
+✓ Valid OpenAPI schema.
+</code></pre>
+
+<p>Or build developer documentation for our API:</p>
+<pre><code>$ apistar docs --serve
+✓ Documentation available at &quot;http://127.0.0.1:8000/&quot; (Ctrl+C to quit)
+</code></pre>
+
+<p>We can also make API requests to the server referenced in the schema:</p>
+<pre><code>$ apistar request listWidgets search=cogwheel
+</code></pre>
+
+<h3 id="where-did-the-server-go">Where did the server go?</h3>
+<p>With version 0.6 onwards the API Star project is being focused as a
+framework-agnositic suite of API tooling. The plan is to build out this
+functionality in a way that makes it appropriate for use either as a stand-alone
+tool, or together with a large range of frameworks.</p>
+<p>The 0.5 branch remains available on GitHub, and can be installed from PyPI
+with <code>pip install apistar==0.5.41</code>. Any further development of the API Star
+server would likely need to be against a fork of that, under a new maintainer.</p>
+<p>If you're looking for a high-performance Python-based async framework, then
+I would instead recommend <a href="https://www.starlette.io/">Starlette</a>.</p></div>
         </div>
 
         <footer class="col-md-12">
@@ -291,5 +304,5 @@ if __name__ == '__main__':
 
 <!--
 MkDocs version : 0.17.3
-Build Date UTC : 2018-05-22 12:14:00
+Build Date UTC : 2018-09-25 15:48:38
 -->

@@ -7,12 +7,12 @@
         
         
         
-        <link rel="shortcut icon" href="../../img/favicon.ico">
+        <link rel="shortcut icon" href="../img/favicon.ico">
 
 
         <meta property="og:type" content="website" />
         <!--  Essential META Tags -->
-        <meta property="og:title" content="Templates - API Star"
+        <meta property="og:title" content="Schema Validation - API Star"
         />
         
 
@@ -22,11 +22,11 @@
         <!--  Non-Essential, But Recommended -->
         <meta property="og:site_name" content="API Star">
         <meta name="twitter:image:alt" content="API Star">
-        <title>Templates - API Star</title>
-        <link href="../../css/bootstrap-custom.min.css" rel="stylesheet">
-        <link href="../../css/font-awesome.min.css" rel="stylesheet">
-        <link href="../../css/base.css" rel="stylesheet">
-        <link rel="stylesheet" href="../../css/highlight.css">
+        <title>Schema Validation - API Star</title>
+        <link href="../css/bootstrap-custom.min.css" rel="stylesheet">
+        <link href="../css/font-awesome.min.css" rel="stylesheet">
+        <link href="../css/base.css" rel="stylesheet">
+        <link rel="stylesheet" href="../css/highlight.css">
         <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700" rel="stylesheet">
         <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
         <!--[if lt IE 9]>
@@ -34,9 +34,9 @@
             <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
         <![endif]-->
 
-        <script src="../../js/jquery-1.10.2.min.js" defer></script>
-        <script src="../../js/bootstrap-3.0.3.min.js" defer></script>
-        <script src="../../js/highlight.pack.js" defer></script> 
+        <script src="../js/jquery-1.10.2.min.js" defer></script>
+        <script src="../js/bootstrap-3.0.3.min.js" defer></script>
+        <script src="../js/highlight.pack.js" defer></script> 
     </head>
 
     <body>
@@ -53,7 +53,7 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
             </button>
-            <a class="navbar-brand" href="../..">API Star</a>
+            <a class="navbar-brand" href="..">API Star</a>
         </div>
 
         <!-- Expanded navigation -->
@@ -61,65 +61,30 @@
                 <!-- Main navigation -->
                 <ul class="nav navbar-nav">
                     <li >
-                        <a href="../..">Home</a>
+                        <a href="..">Home</a>
                     </li>
                     <li class="dropdown active">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">API Guide <b class="caret"></b></a>
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Tools <b class="caret"></b></a>
                         <ul class="dropdown-menu">
                             
-<li >
-    <a href="../applications/">Applications</a>
-</li>
-                            
-<li >
-    <a href="../requests-and-responses/">Requests and Responses</a>
-</li>
-                            
-<li >
-    <a href="../routing/">Routing</a>
-</li>
-                            
 <li class="active">
-    <a href="./">Templates</a>
+    <a href="./">Schema Validation</a>
 </li>
                             
 <li >
-    <a href="../static-files/">Static Files</a>
+    <a href="../api-documentation/">API Documentation</a>
 </li>
                             
 <li >
-    <a href="../type-system/">The Type System</a>
-</li>
-                            
-<li >
-    <a href="../api-schemas/">API Schemas</a>
-</li>
-                            
-<li >
-    <a href="../event-hooks/">Event Hooks</a>
-</li>
-                            
-<li >
-    <a href="../dependency-injection/">Dependency Injection</a>
-</li>
-                            
-<li >
-    <a href="../testing/">Testing</a>
-</li>
-                            
-<li >
-    <a href="../deployment/">Deployment</a>
+    <a href="../making-api-requests/">Making API Requests</a>
 </li>
                         </ul>
                     </li>
-                    <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Topics <b class="caret"></b></a>
-                        <ul class="dropdown-menu">
-                            
-<li >
-    <a href="../../topics/release-notes/">Release Notes</a>
-</li>
-                        </ul>
+                    <li >
+                        <a href="../client-library/">Client Library</a>
+                    </li>
+                    <li >
+                        <a href="../type-system/">Type System</a>
                     </li>
                 </ul>
 
@@ -130,19 +95,19 @@
                     </a>
                 </li>
                     <li >
-                        <a rel="next" href="../routing/">
+                        <a rel="next" href="..">
                             <i class="fa fa-arrow-left"></i> Previous
                         </a>
                     </li>
                     <li >
-                        <a rel="prev" href="../static-files/">
+                        <a rel="prev" href="../api-documentation/">
                             Next <i class="fa fa-arrow-right"></i>
                         </a>
                     </li>
                 <li>
                     <a class="repo-link"
                      href="https://github.com/encode/apistar/tree/master">
-                    <img src="../../img/GitHub-Mark-Light-32px.png" alt="API Star on GitHub" class="repo-img">
+                    <img src="../img/GitHub-Mark-Light-32px.png" alt="API Star on GitHub" class="repo-img">
                      
                     </a>
                 </li>
@@ -154,69 +119,67 @@
         <div class="container">
                 <div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
     <ul class="nav bs-sidenav">
-        <li class="main active"><a href="#templates">Templates</a></li>
+        <li class="main active"><a href="#schema-validation">Schema validation</a></li>
             <li><a href="#configuration">Configuration</a></li>
-            <li><a href="#rendering-templates">Rendering templates</a></li>
+            <li><a href="#programmatic-interface">Programmatic interface</a></li>
     </ul>
 </div></div>
                 <div class="col-md-9" role="main">
 
-<h1 id="templates">Templates</h1>
-<p>API Star is particularly designed around building APIs, but is equally
-capable of being used to build web applications.</p>
+<h1 id="schema-validation">Schema validation</h1>
+<p>You can use API Star to validate your API Schema. When errors occur it'll
+give you a full breakdown of exactly where the schema is incorrect.</p>
+<pre><code class="shell">$ apistar validate --path schema.json --format openapi
+✓ Valid OpenAPI schema.
+</code></pre>
+
 <h2 id="configuration">Configuration</h2>
-<p>You'll need to install <code>jinja2</code> to use the default template backend.</p>
-<p>To include templates in your application, create a directory to contain the templates,
-and include it with the <code>template_dir</code> argument when instantiating the app.</p>
-<pre><code class="python">import os
-
-BASE_DIR = os.path.dirname(__file__)
-TEMPLATE_DIR = os.path.join(BASE_DIR, 'templates')
-
-...
-
-app = App(routes=routes, template_dir=TEMPLATE_DIR)
+<p>Configure the defaults for <code>apistar validate</code> using an <code>apistar.yml</code> file.</p>
+<pre><code class="yaml">schema:
+    path: schema.json
+    format: openapi
 </code></pre>
 
-<h2 id="rendering-templates">Rendering templates</h2>
-<p>To render a template, use <code>app.render_template(template_name, **context)</code>.</p>
-<p><strong>templates/index.html</strong>:</p>
-<pre><code class="html">&lt;html&gt;
-    &lt;body&gt;
-        {% if name %}
-        &lt;h1&gt;Hello, {{ name }}!&lt;/h1&gt;
-        {% else %}
-        &lt;h1&gt;Hello!&lt;/h1&gt;
-        {% endif %}
-    &lt;/body&gt;
-&lt;/html&gt;
+<p>You can now run the validation like so:</p>
+<pre><code class="shell">$ apistar validate
+✓ Valid OpenAPI schema.
 </code></pre>
 
-<p><strong>app.py</strong>:</p>
-<pre><code class="python">import os
-from apistar import App, Route
+<h2 id="programmatic-interface">Programmatic interface</h2>
+<p>You can also run the schema validation programmatically:</p>
+<pre><code class="python">import apistar
 
 
-BASE_DIR = os.path.dirname(__file__)
-TEMPLATE_DIR = os.path.join(BASE_DIR, 'templates')
+schema = &quot;&quot;&quot;
+openapi: 3.0.0
+info:
+  title: Widget API
+  version: '1.0'
+  description: An example API for widgets
+paths:
+  /widgets:
+    get:
+      summary: List all the widgets.
+      operationId: listWidgets
+      parameters:
+      - in: query
+        name: search
+        description: Filter widgets by this search term.
+        schema:
+          type: string
+&quot;&quot;&quot;
 
-
-def welcome(app: App, name=None):
-    return app.render_template('index.html', name=name)
-
-routes = [
-    Route('/', method='GET', handler=welcome),
-]
-
-app = App(routes=routes, template_dir=TEMPLATE_DIR)
-
-
-if __name__ == '__main__':
-    app.serve('127.0.0.1', 8080, use_debugger=True)
+apistar.validate(schema, format='openapi', encoding=&quot;yaml&quot;)
 </code></pre>
 
-<p>You can configure where templates are served from by using the <code>template_dir</code>
-argument when instantiating an application.</p></div>
+<p>Function signature: <code>validate(schema, format=None, encoding=None)</code></p>
+<ul>
+<li><code>schema</code> - Either a dict representing the schema, or a string/bytestring.</li>
+<li><code>format</code> - One of <code>openapi</code>, <code>swagger</code>, <code>jsonschema</code> or <code>config</code>.
+If unset, one of either <code>openapi</code> or <code>swagger</code> will be inferred from the content if possible.</li>
+<li><code>encoding</code> - If schema is passed as a string/bytestring then the encoding may be
+specified as either "json" or "yaml".  If unset, it will be inferred from the content if possible.</li>
+</ul></div>
         </div>
 
         <footer class="col-md-12">
@@ -227,13 +190,13 @@ argument when instantiating an application.</p></div>
                 <a href="https://github.com/tomchristie/apistar/blob/master/LICENSE.md">BSD licensed</a> code.
                 <br/>Designed & built in Brighton, England.</i>
               <p align="center">
-                <img src="../../img/logomarque.png" alt="API Star" class="footer-logo">
+                <img src="../img/logomarque.png" alt="API Star" class="footer-logo">
               </p>
         </footer>
-        <script>var base_url = '../..';</script>
-        <script src="../../js/base.js" defer></script>
-        <script src="../../search/require.js" defer></script>
-        <script src="../../search/search.js" defer></script>
+        <script>var base_url = '..';</script>
+        <script src="../js/base.js" defer></script>
+        <script src="../search/require.js" defer></script>
+        <script src="../search/search.js" defer></script>
 
         <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="Search Modal" aria-hidden="true">
     <div class="modal-dialog">

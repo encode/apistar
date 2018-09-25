@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en" prefix="og: http://ogp.me/ns#">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../img/favicon.ico">
+
+
+        <meta property="og:type" content="website" />
+        <!--  Essential META Tags -->
+        <meta property="og:title" content="Client Library - API Star"
+        />
+        
+
+        
+        <meta name="twitter:card" content="summary_large_image">
+
+        <!--  Non-Essential, But Recommended -->
+        <meta property="og:site_name" content="API Star">
+        <meta name="twitter:image:alt" content="API Star">
+        <title>Client Library - API Star</title>
+        <link href="../css/bootstrap-custom.min.css" rel="stylesheet">
+        <link href="../css/font-awesome.min.css" rel="stylesheet">
+        <link href="../css/base.css" rel="stylesheet">
+        <link rel="stylesheet" href="../css/highlight.css">
+        <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700" rel="stylesheet">
+        <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!--[if lt IE 9]>
+            <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+            <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+        <![endif]-->
+
+        <script src="../js/jquery-1.10.2.min.js" defer></script>
+        <script src="../js/bootstrap-3.0.3.min.js" defer></script>
+        <script src="../js/highlight.pack.js" defer></script> 
+    </head>
+
+    <body>
+
+        <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <div class="container">
+
+        <!-- Collapsed navigation -->
+        <div class="navbar-header">
+            <!-- Expander button -->
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="..">API Star</a>
+        </div>
+
+        <!-- Expanded navigation -->
+        <div class="navbar-collapse collapse">
+                <!-- Main navigation -->
+                <ul class="nav navbar-nav">
+                    <li >
+                        <a href="..">Home</a>
+                    </li>
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Tools <b class="caret"></b></a>
+                        <ul class="dropdown-menu">
+                            
+<li >
+    <a href="../schema-validation/">Schema Validation</a>
+</li>
+                            
+<li >
+    <a href="../api-documentation/">API Documentation</a>
+</li>
+                            
+<li >
+    <a href="../making-api-requests/">Making API Requests</a>
+</li>
+                        </ul>
+                    </li>
+                    <li class="active">
+                        <a href="./">Client Library</a>
+                    </li>
+                    <li >
+                        <a href="../type-system/">Type System</a>
+                    </li>
+                </ul>
+
+            <ul class="nav navbar-nav navbar-right">
+                <li>
+                    <a href="#" data-toggle="modal" data-target="#mkdocs_search_modal">
+                        <i class="fa fa-search"></i> Search
+                    </a>
+                </li>
+                    <li >
+                        <a rel="next" href="../making-api-requests/">
+                            <i class="fa fa-arrow-left"></i> Previous
+                        </a>
+                    </li>
+                    <li >
+                        <a rel="prev" href="../type-system/">
+                            Next <i class="fa fa-arrow-right"></i>
+                        </a>
+                    </li>
+                <li>
+                    <a class="repo-link"
+                     href="https://github.com/encode/apistar/tree/master">
+                    <img src="../img/GitHub-Mark-Light-32px.png" alt="API Star on GitHub" class="repo-img">
+                     
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+        <div class="container">
+                <div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
+    <ul class="nav bs-sidenav">
+        <li class="main active"><a href="#client-library">Client Library</a></li>
+            <li><a href="#instantiating-a-client">Instantiating a client</a></li>
+            <li><a href="#making-requests">Making requests</a></li>
+            <li><a href="#authentication">Authentication</a></li>
+            <li><a href="#decoding-responses">Decoding responses</a></li>
+            <li><a href="#encoding-requests">Encoding requests</a></li>
+    </ul>
+</div></div>
+                <div class="col-md-9" role="main">
+
+<h1 id="client-library">Client Library</h1>
+<p>API Star includes a dynamic client library.</p>
+<p>Typically developers have had to build client libraries for each new
+API service, or auto-generate a new client on each new release.</p>
+<p>The API Star dynamic client library works differently, in that it simply
+takes the API schema as an argument when the client is instantiated,
+and then allows you to interact with the API.</p>
+<pre><code class="python">import apistar
+
+
+schema = &quot;&quot;&quot;
+openapi: 3.0.0
+info:
+  title: Widget API
+  version: '1.0'
+  description: An example API for widgets
+paths:
+  /widgets:
+    get:
+      summary: List all the widgets.
+      operationId: listWidgets
+      parameters:
+      - in: query
+        name: search
+        description: Filter widgets by this search term.
+        schema:
+          type: string
+&quot;&quot;&quot;
+
+client = apistar.Client(schema)
+result = client.request('listWidgets', search='cogwheel')
+</code></pre>
+
+<h2 id="instantiating-a-client">Instantiating a client</h2>
+<p>You can instantiate an API client like so:</p>
+<pre><code class="python">import apistar
+
+client = apistar.Client(schema=...)
+</code></pre>
+
+<p>Signature: <code>Client(schema, format=None, encoding=None, auth=None, decoders=None, encoders=None, headers=None, session=None, allow_cookies=True)</code></p>
+<ul>
+<li><code>schema</code> - An OpenAPI or Swagger schema. This can be passed either as a dict instance,
+or as a JSON or YAML encoded string/bytestring.</li>
+<li><code>format</code> - Either "openapi" or "swagger". You can leave this as None to have the
+schema format be automatically inferred.</li>
+<li><code>encoding</code> - If passing the schema as a string/bytestring, this argument may
+be used to specify either <code>"json"</code> or <code>"yaml"</code>.  If not included, the encoding will
+be inferred from the content if possible.</li>
+<li><code>auth</code> - Any authentication class to set on the request session.</li>
+<li><code>decoders</code> - Any decoders to enable for decoding the response content.</li>
+<li><code>encoders</code> - Any encoders to enable for encoding the request content.</li>
+<li><code>headers</code> - A dictionary of custom headers to use on every request.</li>
+<li><code>session</code> - A requests <code>Session</code> instance to use for making the outgoing HTTP requests.</li>
+<li><code>allow_cookies</code> - May be set to <code>False</code> to disable <code>requests</code> standard cookie handling.</li>
+</ul>
+<h2 id="making-requests">Making requests</h2>
+<p>Requests to the API are made using the <code>request</code> method, including the operation id
+and any parameters.</p>
+<pre><code class="python">result = client.request('listWidgets', search='cogwheel')
+</code></pre>
+
+<p>The <code>result</code> will be a data structure, decoded appropriately from the response
+content, as determined by the <code>Content-Type</code> header of the response.</p>
+<p>In the event of an error response (4xx or 5xx status codes) the client will
+raise <code>apistar.exceptions.ErrorResponse</code>.</p>
+<p>There are three attributes on here that you may wish to inspect:</p>
+<ul>
+<li><code>.title</code> - A string indicating the response status code/phrase. Eg. <code>"400 Bad Request"</code></li>
+<li><code>.status_code</code> - An integer indicating the response status code. Eg. <code>400</code></li>
+<li><code>.content - The decoded response content. Eg.</code>{"search": "Must be no more than 100 characters."}`</li>
+</ul>
+<p>If the request is made with an incorrect set of parameters, or if the client
+cannot fulfil the request for some reason then <code>apistar.exceptions.ClientError</code>
+will be raised.</p>
+<h2 id="authentication">Authentication</h2>
+<p>You can use any standard <code>requests</code> authentication class with the API client.</p>
+<pre><code class="python">import apistar
+from requests.auth import HTTPDigestAuth
+
+schema = {...}
+
+auth = HTTPDigestAuth('user', 'pass')
+client = apistar.Client(schema=schema, auth=auth)
+</code></pre>
+
+<p>API Star also includes some authentication classes that you can use for making
+API requests.</p>
+<ul>
+<li><code>apistar.client.auth.TokenAuthentication(token, scheme="Bearer")</code> - Allows token
+authenticated HTTP requests, including an <code>Authorization: Bearer &lt;token&gt;</code> header in
+all outgoing requests.</li>
+<li><code>apistar.client.auth.SessionAuthentication(csrf_cookie_name, csrf_header_name)</code> - Allows
+session authenticated requests that are CSRF protected. The API will need to expose a login
+operation.</li>
+</ul>
+<h2 id="decoding-responses">Decoding responses</h2>
+<p>The return result is determined from the response by selecting a decoder based
+on the response content-type header, and allowing it to decode the response content.</p>
+<p>By default the client has the following decoders enabled:</p>
+<ul>
+<li><code>apistar.client.decoders.JSONDecoder</code> - Handles <code>application/json</code> responses. The return result will be the decoded data structure.</li>
+<li><code>apistar.client.decoders.TextDecoder</code> - Matches <code>text/*</code>, and handles any text responses. The return result will be a string.</li>
+<li><code>apistar.client.decoders.DownloadDecoder</code> - Matches <code>*/*</code>, and handles any other responses. The return result will be a temporary file, which will be deleted once closed or no longer referenced.</li>
+</ul>
+<p>You can customize which decoders are installed on a client like so:</p>
+<pre><code class="python">client = apistar.Client(schema, decoders=[JSONDecoder()])
+</code></pre>
+
+<p>In the example above the client would send <code>application/json</code> in the <code>Accept</code> header,
+and would raise an error on any other content being returned.</p>
+<h3 id="writing-a-custom-decoder">Writing a custom decoder</h3>
+<p>To write a custom decoder you should subclass <code>apistar.client.decoders.BaseDecoder</code>,
+and override the <code>media_type</code> attribute, and the <code>decode(self, response)</code> method.</p>
+<p>For example:</p>
+<pre><code class="python">from apistar.client.decoders import BaseDecoder
+import csv
+
+
+class CSVDecoder(BaseDecoder):
+    media_type = 'text/csv'
+
+    def decode(self, response):
+        lines = response.text.splitlines()
+        reader = csv.reader(lines, delimiter=',')
+        return [row for row in reader]
+</code></pre>
+
+<h2 id="encoding-requests">Encoding requests</h2>
+<p>The request body is determined depending on the encoding used for the request.</p>
+<p>By default the client has the following encoders enabled:</p>
+<ul>
+<li><code>apistar.client.encoders.JSONEncoder</code> - Handles <code>application/json</code> requests.</li>
+<li><code>apistar.client.encoders.MultiPartEncoder</code> - Handles <code>multipart/form-data</code> requests.</li>
+<li><code>apistar.client.encoders.URLEncodedEncoder</code> - Handles <code>application/x-www-form-urlencoded</code> requests.</li>
+</ul>
+<p>You can customize which decoders are installed on a client like so:</p>
+<pre><code class="python">client = apistar.Client(schema, encoders=[JSONEncoder()])
+</code></pre>
+
+<p>In the example above the client would send <code>application/json</code> in outgoing requests,
+and would raise an error for requests which required any other encoding to be used.</p>
+<h3 id="writing-a-custom-encoder">Writing a custom encoder</h3>
+<p>Typically the default set of encoders will be appropriate for handling the
+encoding of the request body, since JSON or either of the types of form data
+are by far the most commonly used encodings for HTTP requests. However you can
+customize this behaviour if needed, in order to support endpoints which expect
+some other type of encoding.</p>
+<p>To write a custom encoded you should subclass <code>apistar.client.encoders.BaseEncoder</code>,
+and override the <code>media_type</code> attribute, and the <code>encode(self, options, content)</code> method.</p>
+<p>The <code>encode</code> method is used to modify the options that are passed to <code>requests.send(...)</code>
+when making the outgoing request.</p>
+<p>For example:</p>
+<pre><code class="python">from apistar.client.encoders import BaseEncoder
+
+
+class TextEncoder(BaseDecoder):
+    media_type = 'text/plain'
+
+    def encode(self, options, content):
+        assert isinstance(content, str), 'The request body for this endpoint must be a string.'
+        options['headers']['content-type'] = 'text/plain'
+        options['data'] = content
+</code></pre></div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+
+            <p align="center">
+              <i>API Star is
+                <a href="https://github.com/tomchristie/apistar/blob/master/LICENSE.md">BSD licensed</a> code.
+                <br/>Designed & built in Brighton, England.</i>
+              <p align="center">
+                <img src="../img/logomarque.png" alt="API Star" class="footer-logo">
+              </p>
+        </footer>
+        <script>var base_url = '..';</script>
+        <script src="../js/base.js" defer></script>
+        <script src="../search/require.js" defer></script>
+        <script src="../search/search.js" defer></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="Search Modal" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title" id="exampleModalLabel">Search</h4>
+            </div>
+            <div class="modal-body">
+                <p>
+                    From here you can search these documents. Enter
+                    your search terms below.
+                </p>
+                <form role="form">
+                    <div class="form-group">
+                        <input type="text" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="Keyboard Shortcuts Modal" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title" id="exampleModalLabel">Keyboard Shortcuts</h4>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td><kbd>&larr;</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td><kbd>&rarr;</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+
+    </body>
+</html>

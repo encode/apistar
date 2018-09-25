@@ -7,12 +7,12 @@
         
         
         
-        <link rel="shortcut icon" href="../../img/favicon.ico">
+        <link rel="shortcut icon" href="../img/favicon.ico">
 
 
         <meta property="og:type" content="website" />
         <!--  Essential META Tags -->
-        <meta property="og:title" content="The Type System - API Star"
+        <meta property="og:title" content="Type System - API Star"
         />
         
 
@@ -22,11 +22,11 @@
         <!--  Non-Essential, But Recommended -->
         <meta property="og:site_name" content="API Star">
         <meta name="twitter:image:alt" content="API Star">
-        <title>The Type System - API Star</title>
-        <link href="../../css/bootstrap-custom.min.css" rel="stylesheet">
-        <link href="../../css/font-awesome.min.css" rel="stylesheet">
-        <link href="../../css/base.css" rel="stylesheet">
-        <link rel="stylesheet" href="../../css/highlight.css">
+        <title>Type System - API Star</title>
+        <link href="../css/bootstrap-custom.min.css" rel="stylesheet">
+        <link href="../css/font-awesome.min.css" rel="stylesheet">
+        <link href="../css/base.css" rel="stylesheet">
+        <link rel="stylesheet" href="../css/highlight.css">
         <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700" rel="stylesheet">
         <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
         <!--[if lt IE 9]>
@@ -34,9 +34,9 @@
             <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
         <![endif]-->
 
-        <script src="../../js/jquery-1.10.2.min.js" defer></script>
-        <script src="../../js/bootstrap-3.0.3.min.js" defer></script>
-        <script src="../../js/highlight.pack.js" defer></script> 
+        <script src="../js/jquery-1.10.2.min.js" defer></script>
+        <script src="../js/bootstrap-3.0.3.min.js" defer></script>
+        <script src="../js/highlight.pack.js" defer></script> 
     </head>
 
     <body>
@@ -53,7 +53,7 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
             </button>
-            <a class="navbar-brand" href="../..">API Star</a>
+            <a class="navbar-brand" href="..">API Star</a>
         </div>
 
         <!-- Expanded navigation -->
@@ -61,65 +61,30 @@
                 <!-- Main navigation -->
                 <ul class="nav navbar-nav">
                     <li >
-                        <a href="../..">Home</a>
-                    </li>
-                    <li class="dropdown active">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">API Guide <b class="caret"></b></a>
-                        <ul class="dropdown-menu">
-                            
-<li >
-    <a href="../applications/">Applications</a>
-</li>
-                            
-<li >
-    <a href="../requests-and-responses/">Requests and Responses</a>
-</li>
-                            
-<li >
-    <a href="../routing/">Routing</a>
-</li>
-                            
-<li >
-    <a href="../templates/">Templates</a>
-</li>
-                            
-<li >
-    <a href="../static-files/">Static Files</a>
-</li>
-                            
-<li class="active">
-    <a href="./">The Type System</a>
-</li>
-                            
-<li >
-    <a href="../api-schemas/">API Schemas</a>
-</li>
-                            
-<li >
-    <a href="../event-hooks/">Event Hooks</a>
-</li>
-                            
-<li >
-    <a href="../dependency-injection/">Dependency Injection</a>
-</li>
-                            
-<li >
-    <a href="../testing/">Testing</a>
-</li>
-                            
-<li >
-    <a href="../deployment/">Deployment</a>
-</li>
-                        </ul>
+                        <a href="..">Home</a>
                     </li>
                     <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Topics <b class="caret"></b></a>
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Tools <b class="caret"></b></a>
                         <ul class="dropdown-menu">
                             
 <li >
-    <a href="../../topics/release-notes/">Release Notes</a>
+    <a href="../schema-validation/">Schema Validation</a>
+</li>
+                            
+<li >
+    <a href="../api-documentation/">API Documentation</a>
+</li>
+                            
+<li >
+    <a href="../making-api-requests/">Making API Requests</a>
 </li>
                         </ul>
+                    </li>
+                    <li >
+                        <a href="../client-library/">Client Library</a>
+                    </li>
+                    <li class="active">
+                        <a href="./">Type System</a>
                     </li>
                 </ul>
 
@@ -130,19 +95,19 @@
                     </a>
                 </li>
                     <li >
-                        <a rel="next" href="../static-files/">
+                        <a rel="next" href="../client-library/">
                             <i class="fa fa-arrow-left"></i> Previous
                         </a>
                     </li>
-                    <li >
-                        <a rel="prev" href="../api-schemas/">
+                    <li class="disabled">
+                        <a rel="prev" >
                             Next <i class="fa fa-arrow-right"></i>
                         </a>
                     </li>
                 <li>
                     <a class="repo-link"
                      href="https://github.com/encode/apistar/tree/master">
-                    <img src="../../img/GitHub-Mark-Light-32px.png" alt="API Star on GitHub" class="repo-img">
+                    <img src="../img/GitHub-Mark-Light-32px.png" alt="API Star on GitHub" class="repo-img">
                      
                     </a>
                 </li>
@@ -156,9 +121,6 @@
     <ul class="nav bs-sidenav">
         <li class="main active"><a href="#type-system">Type System</a></li>
             <li><a href="#the-type-class">The Type class</a></li>
-            <li><a href="#validation">Validation</a></li>
-            <li><a href="#serialization">Serialization</a></li>
-            <li><a href="#including-additional-validation">Including additional validation</a></li>
             <li><a href="#api-reference">API Reference</a></li>
             <li><a href="#formats">Formats</a></li>
     </ul>
@@ -216,53 +178,6 @@ apistar.exceptions.ValidationError: {'rating': 'This field is required.', 'size'
 class Event(types.Type):
     location = Location
     name = validators.String(max_length=100)
-</code></pre>
-
-<h2 id="validation">Validation</h2>
-<p>You can use API Star <code>Type</code> classes as annotations inside your handler functions.</p>
-<p>When you do so, validation will be handled automatically prior to running
-the handler function. The type information will also be made available
-in the application's API Schema.</p>
-<pre><code class="python">def create_product(product: Product):
-    # Save a new product record in the database.
-    ...
-
-routes = [
-    Route('/create_product/', method='POST', handler=create_product)
-]
-</code></pre>
-
-<h2 id="serialization">Serialization</h2>
-<p>You may also want to using the type system for data serialization,
-and include the type as a return annotation on handler functions.</p>
-<p>Again, doing so will expose the type information to the application's
-API Schema, and will help ensure that the information your system
-returns matches its documented return types.</p>
-<pre><code class="python">import typing
-
-
-def list_products() -&gt; typing.List[Product]:
-    queryset = ...  # Query returning products from a data store.
-    return [Product(record) for record in queryset]
-</code></pre>
-
-<h2 id="including-additional-validation">Including additional validation</h2>
-<p>If you have validation rules that cannot be expressed with the default types,
-you can include these by subclass the <code>__init__</code> method on the class.</p>
-<p>This method should return the validated data, or raise a <code>ValidationError</code>.</p>
-<pre><code class="python">from apistar import exceptions, types, validators
-
-
-class Organisation(types.Type):
-    is_premium = validators.Boolean()
-    expiry_date = validators.Date(allow_null=True)
-
-    def __init__(self, *args, **kwargs):
-        value = super().__init__(*args, **kwargs)
-        if value.is_premium and value.expiry_date is not None:
-            message = 'premium organisations should not have any expiry_date set.'
-            raise exceptions.ValidationError(message)
-        return value
 </code></pre>
 
 <h2 id="api-reference">API Reference</h2>
@@ -402,13 +317,13 @@ datetime.datetime(2021, 6, 15, 12, 31, 38, 269545)
                 <a href="https://github.com/tomchristie/apistar/blob/master/LICENSE.md">BSD licensed</a> code.
                 <br/>Designed & built in Brighton, England.</i>
               <p align="center">
-                <img src="../../img/logomarque.png" alt="API Star" class="footer-logo">
+                <img src="../img/logomarque.png" alt="API Star" class="footer-logo">
               </p>
         </footer>
-        <script>var base_url = '../..';</script>
-        <script src="../../js/base.js" defer></script>
-        <script src="../../search/require.js" defer></script>
-        <script src="../../search/search.js" defer></script>
+        <script>var base_url = '..';</script>
+        <script src="../js/base.js" defer></script>
+        <script src="../search/require.js" defer></script>
+        <script src="../search/search.js" defer></script>
 
         <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="Search Modal" aria-hidden="true">
     <div class="modal-dialog">
