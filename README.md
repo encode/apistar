@@ -2,7 +2,7 @@
     <img src="https://raw.githubusercontent.com/encode/apistar/master/docs/img/logo-200-square-light.png" alt="API Star" />
 </p>
 <p align="center">
-    <em>The Web API toolkit.</em>
+    🛠 <em>The Web API toolkit.</em> 🛠
 </p>
 <p align="center">
 <a href="https://travis-ci.org/encode/apistar">

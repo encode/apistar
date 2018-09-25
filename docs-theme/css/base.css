@@ -43,9 +43,7 @@ ul.nav .main {
     padding: 4px;
     line-height: 1.428571429;
     background-color: #fff;
-    border: 1px solid #ddd;
     border-radius: 4px;
-    margin: 20px auto 30px auto;
 }
 
 /*
@@ -460,7 +458,7 @@ pre code {
 .btn-primary.disabled,
 .btn-primary[disabled] {
     color: #ffffff;
-    
+
     background-color: #66959f;
     border-color: #ccc;
 }

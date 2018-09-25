@@ -1,12 +1,22 @@
-<div style="float: right">
-    <a href="https://travis-ci.org/encode/apistar"><img style="border: none; background-color: transparent; margin: 0" alt="Build Status" src="https://travis-ci.org/encode/apistar.svg?branch=master"></a>
-    <a href="https://codecov.io/gh/encode/apistar"><img style="border: none; background-color: transparent; margin: 0" alt="codecov" src="https://codecov.io/gh/encode/apistar/branch/master/graph/badge.svg"></a>
-    <a href="https://pypi.python.org/pypi/apistar"><img style="border: none; background-color: transparent; margin: 0" alt="Package version" src="https://badge.fury.io/py/apistar.svg"></a>
-</div>
+<p align="center">
+    <img src="https://raw.githubusercontent.com/encode/apistar/master/docs/img/logo-200-square-light.png" alt="API Star" />
+</p>
+<p align="center">
+    🛠 <em>The Web API toolkit.</em> 🛠
+</p>
+<p align="center">
+<a href="https://travis-ci.org/encode/apistar">
+    <img src="https://travis-ci.org/encode/apistar.svg?branch=master" alt="Build Status">
+</a>
+<a href="https://codecov.io/gh/encode/apistar">
+    <img src="https://codecov.io/gh/encode/apistar/branch/master/graph/badge.svg" alt="codecov">
+</a>
+<a href="https://pypi.python.org/pypi/apistar">
+    <img src="https://badge.fury.io/py/apistar.svg" alt="Package version">
+</a>
+</p>
 
-# API Star
-
-*The Web API toolkit.* 🛠
+---
 
 **Community:** [https://discuss.apistar.org/](https://discuss.apistar.org/) 🤔 💭 🤓 💬 😎
 
@@ -87,7 +97,7 @@ We can also make API requests to the server referenced in the schema:
 $ apistar request listWidgets search=cogwheel
 ```
 
-## What did the server go?
+### Where did the server go?
 
 With version 0.6 onwards the API Star project is being focused as a
 framework-agnositic suite of API tooling. The plan is to build out this
