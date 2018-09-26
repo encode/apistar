@@ -6,19 +6,17 @@ from apistar import http
 from apistar.server.components import Component
 
 ASGIScope = typing.NewType('ASGIScope', dict)
-ASGIReceive = typing.NewType('ASGIReceive', typing.Callable)
-ASGISend = typing.NewType('ASGISend', typing.Callable)
+ASGIReceive = typing.NewType('ASGIReceive', typing.Callable)    # type: ignore
+ASGISend = typing.NewType('ASGISend', typing.Callable)    # type: ignore
 
 
 class MethodComponent(Component):
-    def resolve(self,
-                scope: ASGIScope) -> http.Method:
+    def resolve(self, scope: ASGIScope) -> http.Method:
         return http.Method(scope['method'])
 
 
 class URLComponent(Component):
-    def resolve(self,
-                scope: ASGIScope) -> http.URL:
+    def resolve(self, scope: ASGIScope) -> http.URL:
         scheme = scope['scheme']
         host, port = scope['server']
         path = scope['path']
@@ -36,38 +34,32 @@ class URLComponent(Component):
 
 
 class SchemeComponent(Component):
-    def resolve(self,
-                scope: ASGIScope) -> http.Scheme:
+    def resolve(self, scope: ASGIScope) -> http.Scheme:
         return http.Scheme(scope['scheme'])
 
 
 class HostComponent(Component):
-    def resolve(self,
-                scope: ASGIScope) -> http.Host:
+    def resolve(self, scope: ASGIScope) -> http.Host:
         return http.Host(scope['server'][0])
 
 
 class PortComponent(Component):
-    def resolve(self,
-                scope: ASGIScope) -> http.Port:
+    def resolve(self, scope: ASGIScope) -> http.Port:
         return http.Port(scope['server'][1])
 
 
 class PathComponent(Component):
-    def resolve(self,
-                scope: ASGIScope) -> http.Path:
+    def resolve(self, scope: ASGIScope) -> http.Path:
         return http.Path(scope.get('root_path', '') + scope['path'])
 
 
 class QueryStringComponent(Component):
-    def resolve(self,
-                scope: ASGIScope) -> http.QueryString:
+    def resolve(self, scope: ASGIScope) -> http.QueryString:
         return http.QueryString(scope['query_string'].decode())
 
 
 class QueryParamsComponent(Component):
-    def resolve(self,
-                scope: ASGIScope) -> http.QueryParams:
+    def resolve(self, scope: ASGIScope) -> http.QueryParams:
         query_string = scope['query_string'].decode()
         return http.QueryParams(parse_qsl(query_string))
 
@@ -75,16 +67,17 @@ class QueryParamsComponent(Component):
 class QueryParamComponent(Component):
     def resolve(self,
                 parameter: Parameter,
-                query_params: http.QueryParams) -> http.QueryParam:
+                query_params: http.QueryParams) -> typing.Optional[http.QueryParam]:
+
         name = parameter.name
         if name not in query_params:
             return None
+
         return http.QueryParam(query_params[name])
 
 
 class HeadersComponent(Component):
-    def resolve(self,
-                scope: ASGIScope) -> http.Headers:
+    def resolve(self, scope: ASGIScope) -> http.Headers:
         return http.Headers([
             (key.decode(), value.decode())
             for key, value in scope['headers']
@@ -94,7 +87,7 @@ class HeadersComponent(Component):
 class HeaderComponent(Component):
     def resolve(self,
                 parameter: Parameter,
-                headers: http.Headers) -> http.Header:
+                headers: http.Headers) -> typing.Optional[http.Header]:
         name = parameter.name.replace('_', '-')
         if name not in headers:
             return None
@@ -102,8 +95,7 @@ class HeaderComponent(Component):
 
 
 class BodyComponent(Component):
-    async def resolve(self,
-                      receive: ASGIReceive) -> http.Body:
+    async def resolve(self, receive: ASGIReceive) -> http.Body:
         body = b''
         while True:
             message = await receive()
