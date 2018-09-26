@@ -3,8 +3,6 @@ language: python
 cache: pip
 
 python:
-    - "pypy3.5"
-    - "3.5"
     - "3.6"
 
 install: "make"
