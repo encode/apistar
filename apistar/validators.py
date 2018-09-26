@@ -194,7 +194,7 @@ class NumericType(Validator):
         assert isinstance(exclusive_minimum, bool)
         assert isinstance(exclusive_maximum, bool)
         assert multiple_of is None or isinstance(multiple_of, (int, float))
-        assert enum is None or isinstance(enum, list) and all([isinstance(i, str) for i in enum])
+        assert enum is None or isinstance(enum, list) and all([isinstance(i, self.numeric_type) for i in enum])
         assert format is None or isinstance(format, str)
 
         self.minimum = minimum
