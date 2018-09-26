@@ -13,12 +13,14 @@ class Document:
                  url: str='',
                  title: str='',
                  description: str='',
-                 version: str=''):
-        content = [] if (content is None) else list(content)
+                 version: str='') -> None:
+
+        if content:
+            content = list(content)
 
         # Ensure all names within a document are unique.
-        seen_fields = set()
-        seen_sections = set()
+        seen_fields: typing.Set = set()
+        seen_sections: typing.Set = set()
         for item in content:
             if isinstance(item, Link):
                 msg = 'Link "%s" in Document must have a unique name.'
@@ -57,12 +59,14 @@ class Section:
                  name: str,
                  content: typing.Sequence[typing.Union['Section', 'Link']]=None,
                  title: str='',
-                 description: str=''):
-        content = [] if (content is None) else list(content)
+                 description: str='') -> None:
+
+        if content:
+            content = list(content)
 
         # Ensure all names within a section are unique.
-        seen_fields = set()
-        seen_sections = set()
+        seen_fields: typing.Set = set()
+        seen_sections: typing.Set = set()
         for item in content:
             if isinstance(item, Link):
                 msg = 'Link "%s" in Section "%s" must have a unique name.'
@@ -110,7 +114,7 @@ class Link:
                  response: 'Response'=None,
                  title: str='',
                  description: str='',
-                 fields: typing.Sequence['Field']=None):
+                 fields: typing.Sequence['Field']=None) -> None:
         method = method.upper()
         fields = [] if (fields is None) else list(fields)
 
@@ -194,7 +198,7 @@ class Field:
 
 
 class Response:
-    def __init__(self, encoding: str, status_code: int=200, schema: Validator=None):
+    def __init__(self, encoding: str, status_code: int=200, schema: Validator=None) -> None:
         self.encoding = encoding
         self.status_code = status_code
         self.schema = schema

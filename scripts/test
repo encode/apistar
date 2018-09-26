@@ -1,10 +1,3 @@
 #!/bin/sh -e
 
-export PREFIX=""
-if [ -d 'venv' ] ; then
-    export PREFIX="venv/bin/"
-fi
-
-set -x
-
-PYTHONPATH=. ${PREFIX}pytest --ignore venv --ignore apistar/layouts --cov=apistar --cov=tests --cov-report=term-missing ${@}
+PYTHONPATH=. pipenv run pytest --ignore venv --ignore apistar/layouts --cov=apistar --cov=tests --cov-report=term-missing ${@}

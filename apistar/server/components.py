@@ -4,7 +4,7 @@ import typing
 from apistar import exceptions
 
 
-class Component():
+class Component:
     def identity(self, parameter: inspect.Parameter):
         """
         Each component needs a unique identifier string that we use for lookups
@@ -42,7 +42,7 @@ class Component():
             raise exceptions.ConfigurationError(msg % self.__class__.__name__)
         return parameter.annotation is return_annotation
 
-    def resolve(self):
+    def resolve(self, *args) -> typing.Any:
         raise NotImplementedError()
 
 
