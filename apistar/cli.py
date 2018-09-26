@@ -285,11 +285,11 @@ def request(ctx, operation, params, path, format, encoding, verbose):
     except ClientError as exc:
         for message in exc.messages:
             if message.code == 'invalid_property':
-                text = '* Invalid parameter "%s".' % exc.index[0]
+                text = '* Invalid parameter "%s".' % message.index[0]
             elif message.code == 'required':
-                text = '* Missing required parameter "%s".' % exc.index[0]
+                text = '* Missing required parameter "%s".' % message.index[0]
             else:
-                text = exc.text
+                text = '* %s' % message.text
             click.echo(text)
         click.echo(click.style('✘ ', fg='red') + 'Client error')
         sys.exit(1)
