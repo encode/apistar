@@ -71,7 +71,7 @@ Let's also create a configuration file `apistar.yml`:
 
 ```yaml
 schema:
-  path: schema.yaml
+  path: schema.yml
   format: openapi
 ```
 
