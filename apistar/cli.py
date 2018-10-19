@@ -199,7 +199,7 @@ def docs(path, format, encoding, output_dir, theme, serve, verbose):
         content = schema_file.read()
 
     try:
-        index_html = apistar.docs(content, format=format, encoding=encoding, schema_url=schema_url)
+        index_html = apistar.docs(content, format=format, encoding=encoding, theme=theme, schema_url=schema_url)
     except (ParseError, ValidationError) as exc:
         _echo_error(exc, content, verbose=verbose)
         sys.exit(1)
