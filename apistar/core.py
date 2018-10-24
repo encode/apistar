@@ -147,7 +147,7 @@ def docs(schema, format=None, encoding=None, theme='apistar', schema_url=None, s
     else:
         static_url_func = static_url
 
-    template = env.get_template(os.path.join(theme, 'index.html'))
+    template = env.get_template(theme + '/index.html')
     return template.render(
         document=document,
         langs=['javascript', 'python'],
