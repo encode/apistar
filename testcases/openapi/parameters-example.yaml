@@ -1,0 +1,52 @@
+openapi: 3.0.2
+info: 
+  title: Parameters Example
+  version: 1.0.0
+paths:
+  /parameters:
+    get:
+      operationId: getParameters
+      parameters:
+        - $ref: '#/components/parameters/Simple'
+        - $ref: '#/components/parameters/SimpleSchemaReference'
+        - name: inline
+          in: query
+          description: 'Query parameter defined inline'
+          required: false
+          schema:
+            type: string
+        - name: inline_schema_reference
+          in: query
+          description: 'Query parameter defined inline but with referenced schema'
+          required: false
+          schema:
+            $ref: '#/components/schemas/SchemaReference'
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+components:
+  parameters:
+    Simple:
+      name: simple
+      in: query
+      description: 'Simple query parameters defined as component'
+      required: false
+      schema:
+        type: string
+    SimpleSchemaReference:
+      name: simple_schema_reference
+      in: query
+      description: 'Simple query parameters defined as component with schema referenced'
+      required: false
+      schema:
+        $ref: '#/components/schemas/SchemaReference'
+  schemas: 
+    SchemaReference:
+      type: string
