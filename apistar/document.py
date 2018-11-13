@@ -9,11 +9,11 @@ LinkInfo = collections.namedtuple('LinkInfo', ['link', 'name', 'sections'])
 
 class Document:
     def __init__(self,
-                 content: typing.Sequence[typing.Union['Section', 'Link']]=None,
-                 url: str='',
-                 title: str='',
-                 description: str='',
-                 version: str=''):
+                 content: typing.Sequence[typing.Union['Section', 'Link']] = None,
+                 url: str = '',
+                 title: str = '',
+                 description: str = '',
+                 version: str = ''):
         content = [] if (content is None) else list(content)
 
         # Ensure all names within a document are unique.
@@ -55,9 +55,9 @@ class Document:
 class Section:
     def __init__(self,
                  name: str,
-                 content: typing.Sequence[typing.Union['Section', 'Link']]=None,
-                 title: str='',
-                 description: str=''):
+                 content: typing.Sequence[typing.Union['Section', 'Link']] = None,
+                 title: str = '',
+                 description: str = ''):
         content = [] if (content is None) else list(content)
 
         # Ensure all names within a section are unique.
@@ -104,13 +104,13 @@ class Link:
     def __init__(self,
                  url: str,
                  method: str,
-                 handler: typing.Callable=None,
-                 name: str='',
-                 encoding: str='',
-                 response: 'Response'=None,
-                 title: str='',
-                 description: str='',
-                 fields: typing.Sequence['Field']=None):
+                 handler: typing.Callable = None,
+                 name: str = '',
+                 encoding: str = '',
+                 response: 'Response' = None,
+                 title: str = '',
+                 description: str = '',
+                 fields: typing.Sequence['Field'] = None):
         method = method.upper()
         fields = [] if (fields is None) else list(fields)
 
@@ -173,11 +173,11 @@ class Field:
     def __init__(self,
                  name: str,
                  location: str,
-                 title: str='',
-                 description: str='',
-                 required: bool=None,
-                 schema: Validator=None,
-                 example: typing.Any=None):
+                 title: str = '',
+                 description: str = '',
+                 required: bool = None,
+                 schema: Validator = None,
+                 example: typing.Any = None):
         assert location in ('path', 'query', 'body', 'cookie', 'header', 'formData')
         if required is None:
             required = True if location in ('path', 'body') else False
@@ -194,7 +194,7 @@ class Field:
 
 
 class Response:
-    def __init__(self, encoding: str, status_code: int=200, schema: Validator=None):
+    def __init__(self, encoding: str, status_code: int = 200, schema: Validator = None):
         self.encoding = encoding
         self.status_code = status_code
         self.schema = schema

@@ -9,6 +9,7 @@ filenames = [
     # 'testcases/openapi/callback-example.yaml',
     # 'testcases/openapi/link-example.yaml',
     'testcases/openapi/petstore-expanded.yaml',
+    'testcases/openapi/parameters-example.yaml',
     'testcases/openapi/petstore.yaml',
     'testcases/openapi/uspto.yaml',
 ]

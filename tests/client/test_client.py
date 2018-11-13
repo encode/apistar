@@ -10,7 +10,8 @@ app = Starlette()
 
 
 @app.route('/path-param/{value}')
-def path_param(request, value):
+def path_param(request):
+    value = request.path_params['value']
     return JSONResponse({'value': value})
 
 

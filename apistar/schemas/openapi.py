@@ -5,6 +5,7 @@ from apistar import validators
 from apistar.compat import dict_type
 from apistar.document import Document, Field, Link, Section
 from apistar.schemas.jsonschema import JSON_SCHEMA, JSONSchema
+from apistar.validators import Validator
 
 SCHEMA_REF = validators.Object(
     properties={'$ref': validators.String(pattern='^#/components/schemas/')}
@@ -14,6 +15,9 @@ REQUESTBODY_REF = validators.Object(
 )
 RESPONSE_REF = validators.Object(
     properties={'$ref': validators.String(pattern='^#/components/responses/')}
+)
+PARAMETERS_REF = validators.Object(
+    properties={'$ref': validators.String(pattern='^#/components/parameters/')}
 )
 
 OPEN_API = validators.Object(
@@ -116,7 +120,7 @@ OPEN_API = validators.Object(
                 ('patch', validators.Ref('Operation')),
                 ('trace', validators.Ref('Operation')),
                 ('servers', validators.Array(items=validators.Ref('Server'))),
-                ('parameters', validators.Array(items=validators.Ref('Parameter'))),  # TODO: | ReferenceObject
+                ('parameters', validators.Array(items=validators.Ref('Parameter') | PARAMETERS_REF)),
             ],
             pattern_properties={
                 '^x-': validators.Any(),
@@ -130,7 +134,7 @@ OPEN_API = validators.Object(
                 ('description', validators.String(format='textarea')),
                 ('externalDocs', validators.Ref('ExternalDocumentation')),
                 ('operationId', validators.String()),
-                ('parameters', validators.Array(items=validators.Ref('Parameter'))),  # TODO: | ReferenceObject
+                ('parameters', validators.Array(items=validators.Ref('Parameter') | PARAMETERS_REF)),
                 ('requestBody', REQUESTBODY_REF | validators.Ref('RequestBody')),  # TODO: RequestBody | ReferenceObject
                 ('responses', validators.Ref('Responses')),
                 # TODO: 'callbacks'
@@ -314,7 +318,8 @@ class OpenAPI:
         version = lookup(data, ['info', 'version'])
         base_url = lookup(data, ['servers', 0, 'url'])
         schema_definitions = self.get_schema_definitions(data)
-        content = self.get_content(data, base_url, schema_definitions)
+        parameter_definitions = self.get_parameter_definitions(data, schema_definitions)
+        content = self.get_content(data, base_url, schema_definitions, parameter_definitions)
 
         return Document(title=title, description=description, version=version, url=base_url, content=content)
 
@@ -326,7 +331,26 @@ class OpenAPI:
             definitions[key].def_name = key
         return definitions
 
-    def get_content(self, data, base_url, schema_definitions):
+    def get_validator(self, schema, schema_definitions):
+        if schema is None or isinstance(schema, Validator):
+            return schema
+
+        if '$ref' in schema:
+            ref = schema['$ref'][len('#/components/schemas/'):]
+            return schema_definitions.get(ref)
+        else:
+            return JSONSchema().decode_from_data_structure(schema)
+
+    def get_parameter_definitions(self, data, schema_definitions):
+        definitions = {}
+        parameters = lookup(data, ['components', 'parameters'], {})
+        for key, value in parameters.items():
+            value["schema"] = self.get_validator(value.get("schema"), schema_definitions)
+            value["schema"].def_name = key
+            definitions[key] = value
+        return definitions
+
+    def get_content(self, data, base_url, schema_definitions, parameter_definitions):
         """
         Return all the links in the document, layed out by tag and operationId.
         """
@@ -340,7 +364,8 @@ class OpenAPI:
             }
             for operation, operation_info in operations.items():
                 tag = lookup(operation_info, ['tags', 0])
-                link = self.get_link(base_url, path, path_info, operation, operation_info, schema_definitions)
+                link = self.get_link(
+                    base_url, path, path_info, operation, operation_info, schema_definitions, parameter_definitions)
                 if link is None:
                     continue
 
@@ -357,7 +382,7 @@ class OpenAPI:
         ]
         return links + sections
 
-    def get_link(self, base_url, path, path_info, operation, operation_info, schema_definitions):
+    def get_link(self, base_url, path, path_info, operation, operation_info, schema_definitions, parameter_definitions):
         """
         Return a single link in the document.
         """
@@ -379,7 +404,7 @@ class OpenAPI:
         parameters += operation_info.get('parameters', [])
 
         fields = [
-            self.get_field(parameter, schema_definitions)
+            self.get_field(parameter, schema_definitions, parameter_definitions)
             for parameter in parameters
         ]
 
@@ -409,23 +434,20 @@ class OpenAPI:
             encoding=encoding
         )
 
-    def get_field(self, parameter, schema_definitions):
+    def get_field(self, parameter, schema_definitions, parameter_definitions):
         """
         Return a single field in a link.
         """
+        if '$ref' in parameter:
+            ref = parameter['$ref'][len('#/components/parameters/'):]
+            parameter = parameter_definitions.get(ref)
+
         name = parameter.get('name')
         location = parameter.get('in')
         description = parameter.get('description')
         required = parameter.get('required', False)
-        schema = parameter.get('schema')
+        schema = self.get_validator(parameter.get('schema'), schema_definitions)
         example = parameter.get('example')
-
-        if schema is not None:
-            if '$ref' in schema:
-                ref = schema['$ref'][len('#/components/schemas/'):]
-                schema = schema_definitions.get(ref)
-            else:
-                schema = JSONSchema().decode_from_data_structure(schema)
 
         return Field(
             name=name,
