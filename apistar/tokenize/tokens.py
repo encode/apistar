@@ -9,7 +9,7 @@ class Token():
         self._content = content
 
     def get_value(self):
-        raise NotImplemented()  # pragma: nocover
+        raise NotImplementedError()  # pragma: nocover
 
     @property
     def start(self):
