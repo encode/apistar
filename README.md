@@ -97,7 +97,7 @@ We can also make API requests to the server referenced in the schema:
 $ apistar request listWidgets search=cogwheel
 ```
 
-## What did the server go?
+## Where did the server go?
 
 With version 0.6 onwards the API Star project is being focused as a
 framework-agnositic suite of API tooling. The plan is to build out this
