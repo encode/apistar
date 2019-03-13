@@ -5,6 +5,7 @@ requests
 pyyaml
 
 # Testing requirements
+black
 codecov
 flake8
 isort
