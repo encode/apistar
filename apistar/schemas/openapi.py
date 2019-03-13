@@ -78,7 +78,7 @@ definitions["License"] = typesystem.Object(
 definitions["Server"] = typesystem.Object(
     properties={
         "url": typesystem.String(),
-        "description": typesystem.String(format="textarea"),
+        "description": typesystem.Text(),
         "variables": typesystem.Object(
             additional_properties=typesystem.Reference(
                 "ServerVariable", definitions=definitions
@@ -94,7 +94,7 @@ definitions["ServerVariable"] = typesystem.Object(
     properties={
         "enum": typesystem.Array(items=typesystem.String()),
         "default": typesystem.String(),
-        "description": typesystem.String(format="textarea"),
+        "description": typesystem.Text(),
     },
     pattern_properties={"^x-": typesystem.Any()},
     additional_properties=False,
@@ -112,7 +112,7 @@ definitions["Paths"] = typesystem.Object(
 definitions["Path"] = typesystem.Object(
     properties={
         "summary": typesystem.String(),
-        "description": typesystem.String(format="textarea"),
+        "description": typesystem.Text(),
         "get": typesystem.Reference("Operation", definitions=definitions),
         "put": typesystem.Reference("Operation", definitions=definitions),
         "post": typesystem.Reference("Operation", definitions=definitions),
@@ -137,7 +137,7 @@ definitions["Operation"] = typesystem.Object(
     properties={
         "tags": typesystem.Array(items=typesystem.String()),
         "summary": typesystem.String(),
-        "description": typesystem.String(format="textarea"),
+        "description": typesystem.Text(),
         "externalDocs": typesystem.Reference(
             "ExternalDocumentation", definitions=definitions
         ),
@@ -165,7 +165,7 @@ definitions["Operation"] = typesystem.Object(
 
 definitions["ExternalDocumentation"] = typesystem.Object(
     properties={
-        "description": typesystem.String(format="textarea"),
+        "description": typesystem.Text(),
         "url": typesystem.String(format="url"),
     },
     pattern_properties={"^x-": typesystem.Any()},
@@ -177,7 +177,7 @@ definitions["Parameter"] = typesystem.Object(
     properties={
         "name": typesystem.String(),
         "in": typesystem.Choice(choices=["query", "header", "path", "cookie"]),
-        "description": typesystem.String(format="textarea"),
+        "description": typesystem.Text(),
         "required": typesystem.Boolean(),
         "deprecated": typesystem.Boolean(),
         "allowEmptyValue": typesystem.Boolean(),
@@ -252,7 +252,7 @@ definitions["MediaType"] = typesystem.Object(
 
 definitions["Header"] = typesystem.Object(
     properties={
-        "description": typesystem.String(format="textarea"),
+        "description": typesystem.Text(),
         "required": typesystem.Boolean(),
         "deprecated": typesystem.Boolean(),
         "allowEmptyValue": typesystem.Boolean(),
@@ -297,7 +297,7 @@ definitions["Components"] = typesystem.Object(
 definitions["Tag"] = typesystem.Object(
     properties={
         "name": typesystem.String(),
-        "description": typesystem.String(format="textarea"),
+        "description": typesystem.Text(),
         "externalDocs": typesystem.Reference(
             "ExternalDocumentation", definitions=definitions
         ),
@@ -313,8 +313,10 @@ definitions["SecurityRequirement"] = typesystem.Object(
 
 definitions["SecurityScheme"] = typesystem.Object(
     properties={
-        "type": typesystem.Choice(choices=["apiKey", "http", "oauth2", "openIdConnect"]),
-        "description": typesystem.String(format="textarea"),
+        "type": typesystem.Choice(
+            choices=["apiKey", "http", "oauth2", "openIdConnect"]
+        ),
+        "description": typesystem.Text(),
         "name": typesystem.String(),
         "in": typesystem.Choice(choices=["query", "header", "cookie"]),
         "scheme": typesystem.String(),
