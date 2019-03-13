@@ -1,304 +1,330 @@
 import re
 from urllib.parse import urljoin
 
+import typesystem
 from apistar import validators
 from apistar.compat import dict_type
 from apistar.document import Document, Field, Link, Section
 from apistar.schemas.jsonschema import JSON_SCHEMA
-import typesystem
 
-SCHEMA_REF = validators.Object(
-    properties={"$ref": validators.String(pattern="^#/components/schemas/")}
+SCHEMA_REF = typesystem.Object(
+    properties={"$ref": typesystem.String(pattern="^#/components/schemas/")}
 )
-REQUESTBODY_REF = validators.Object(
-    properties={"$ref": validators.String(pattern="^#/components/requestBodies/")}
+REQUESTBODY_REF = typesystem.Object(
+    properties={"$ref": typesystem.String(pattern="^#/components/requestBodies/")}
 )
-RESPONSE_REF = validators.Object(
-    properties={"$ref": validators.String(pattern="^#/components/responses/")}
+RESPONSE_REF = typesystem.Object(
+    properties={"$ref": typesystem.String(pattern="^#/components/responses/")}
 )
 
-OPEN_API = validators.Object(
-    def_name="OpenAPI",
+definitions = typesystem.SchemaDefinitions()
+
+OPEN_API = typesystem.Object(
     title="OpenAPI",
-    properties=[
-        ("openapi", validators.String()),
-        ("info", validators.Ref("Info")),
-        ("servers", validators.Array(items=validators.Ref("Server"))),
-        ("paths", validators.Ref("Paths")),
-        ("components", validators.Ref("Components")),
-        ("security", validators.Array(items=validators.Ref("SecurityRequirement"))),
-        ("tags", validators.Array(items=validators.Ref("Tag"))),
-        ("externalDocs", validators.Ref("ExternalDocumentation")),
-    ],
-    pattern_properties={"^x-": validators.Any()},
-    additional_properties=False,
-    required=["openapi", "info", "paths"],
-    definitions={
-        "Info": validators.Object(
-            properties=[
-                ("title", validators.String()),
-                ("description", validators.String(format="textarea")),
-                ("termsOfService", validators.String(format="url")),
-                ("contact", validators.Ref("Contact")),
-                ("license", validators.Ref("License")),
-                ("version", validators.String()),
-            ],
-            pattern_properties={"^x-": validators.Any()},
-            additional_properties=False,
-            required=["title", "version"],
+    properties={
+        "openapi": typesystem.String(),
+        "info": typesystem.Reference("Info", definitions=definitions),
+        "servers": typesystem.Array(
+            items=typesystem.Reference("Server", definitions=definitions)
         ),
-        "Contact": validators.Object(
-            properties=[
-                ("name", validators.String()),
-                ("url", validators.String(format="url")),
-                ("email", validators.String(format="email")),
-            ],
-            pattern_properties={"^x-": validators.Any()},
-            additional_properties=False,
+        "paths": typesystem.Reference("Paths", definitions=definitions),
+        "components": typesystem.Reference("Components", definitions=definitions),
+        "security": typesystem.Array(
+            items=typesystem.Reference("SecurityRequirement", definitions=definitions)
         ),
-        "License": validators.Object(
-            properties=[
-                ("name", validators.String()),
-                ("url", validators.String(format="url")),
-            ],
-            required=["name"],
-            pattern_properties={"^x-": validators.Any()},
-            additional_properties=False,
+        "tags": typesystem.Array(
+            items=typesystem.Reference("Tag", definitions=definitions)
         ),
-        "Server": validators.Object(
-            properties=[
-                ("url", validators.String()),
-                ("description", validators.String(format="textarea")),
-                (
-                    "variables",
-                    validators.Object(
-                        additional_properties=validators.Ref("ServerVariable")
-                    ),
-                ),
-            ],
-            pattern_properties={"^x-": validators.Any()},
-            additional_properties=False,
-            required=["url"],
-        ),
-        "ServerVariable": validators.Object(
-            properties=[
-                ("enum", validators.Array(items=validators.String())),
-                ("default", validators.String()),
-                ("description", validators.String(format="textarea")),
-            ],
-            pattern_properties={"^x-": validators.Any()},
-            additional_properties=False,
-            required=["default"],
-        ),
-        "Paths": validators.Object(
-            pattern_properties=[
-                ("^/", validators.Ref("Path")),
-                ("^x-", validators.Any()),
-            ],
-            additional_properties=False,
-        ),
-        "Path": validators.Object(
-            properties=[
-                ("summary", validators.String()),
-                ("description", validators.String(format="textarea")),
-                ("get", validators.Ref("Operation")),
-                ("put", validators.Ref("Operation")),
-                ("post", validators.Ref("Operation")),
-                ("delete", validators.Ref("Operation")),
-                ("options", validators.Ref("Operation")),
-                ("head", validators.Ref("Operation")),
-                ("patch", validators.Ref("Operation")),
-                ("trace", validators.Ref("Operation")),
-                ("servers", validators.Array(items=validators.Ref("Server"))),
-                (
-                    "parameters",
-                    validators.Array(items=validators.Ref("Parameter")),
-                ),  # TODO: | ReferenceObject
-            ],
-            pattern_properties={"^x-": validators.Any()},
-            additional_properties=False,
-        ),
-        "Operation": validators.Object(
-            properties=[
-                ("tags", validators.Array(items=validators.String())),
-                ("summary", validators.String()),
-                ("description", validators.String(format="textarea")),
-                ("externalDocs", validators.Ref("ExternalDocumentation")),
-                ("operationId", validators.String()),
-                (
-                    "parameters",
-                    validators.Array(items=validators.Ref("Parameter")),
-                ),  # TODO: | ReferenceObject
-                (
-                    "requestBody",
-                    REQUESTBODY_REF | validators.Ref("RequestBody"),
-                ),  # TODO: RequestBody | ReferenceObject
-                ("responses", validators.Ref("Responses")),
-                # TODO: 'callbacks'
-                ("deprecated", validators.Boolean()),
-                ("security", validators.Array(validators.Ref("SecurityRequirement"))),
-                ("servers", validators.Array(items=validators.Ref("Server"))),
-            ],
-            pattern_properties={"^x-": validators.Any()},
-            additional_properties=False,
-        ),
-        "ExternalDocumentation": validators.Object(
-            properties=[
-                ("description", validators.String(format="textarea")),
-                ("url", validators.String(format="url")),
-            ],
-            pattern_properties={"^x-": validators.Any()},
-            additional_properties=False,
-            required=["url"],
-        ),
-        "Parameter": validators.Object(
-            properties=[
-                ("name", validators.String()),
-                ("in", validators.String(enum=["query", "header", "path", "cookie"])),
-                ("description", validators.String(format="textarea")),
-                ("required", validators.Boolean()),
-                ("deprecated", validators.Boolean()),
-                ("allowEmptyValue", validators.Boolean()),
-                ("style", validators.String()),
-                ("schema", JSON_SCHEMA | SCHEMA_REF),
-                ("example", validators.Any()),
-                # TODO: Other fields
-            ],
-            pattern_properties={"^x-": validators.Any()},
-            additional_properties=False,
-            required=["name", "in"],
-        ),
-        "RequestBody": validators.Object(
-            properties=[
-                ("description", validators.String()),
-                (
-                    "content",
-                    validators.Object(
-                        additional_properties=validators.Ref("MediaType")
-                    ),
-                ),
-                ("required", validators.Boolean()),
-            ],
-            pattern_properties={"^x-": validators.Any()},
-            additional_properties=False,
-        ),
-        "Responses": validators.Object(
-            properties=[("default", validators.Ref("Response") | RESPONSE_REF)],
-            pattern_properties=[
-                (
-                    "^([1-5][0-9][0-9]|[1-5]XX)$",
-                    validators.Ref("Response") | RESPONSE_REF,
-                ),
-                ("^x-", validators.Any()),
-            ],
-            additional_properties=False,
-        ),
-        "Response": validators.Object(
-            properties=[
-                ("description", validators.String()),
-                (
-                    "content",
-                    validators.Object(
-                        additional_properties=validators.Ref("MediaType")
-                    ),
-                ),
-                (
-                    "headers",
-                    validators.Object(additional_properties=validators.Ref("Header")),
-                ),
-                # TODO: Header | ReferenceObject
-                # TODO: links
-            ],
-            pattern_properties={"^x-": validators.Any()},
-            additional_properties=False,
-        ),
-        "MediaType": validators.Object(
-            properties=[
-                ("schema", JSON_SCHEMA | SCHEMA_REF),
-                ("example", validators.Any()),
-                # TODO 'examples', 'encoding'
-            ],
-            pattern_properties={"^x-": validators.Any()},
-            additional_properties=False,
-        ),
-        "Header": validators.Object(
-            properties=[
-                ("description", validators.String(format="textarea")),
-                ("required", validators.Boolean()),
-                ("deprecated", validators.Boolean()),
-                ("allowEmptyValue", validators.Boolean()),
-                ("style", validators.String()),
-                ("schema", JSON_SCHEMA | SCHEMA_REF),
-                ("example", validators.Any()),
-                # TODO: Other fields
-            ],
-            pattern_properties={"^x-": validators.Any()},
-            additional_properties=False,
-        ),
-        "Components": validators.Object(
-            properties=[
-                ("schemas", validators.Object(additional_properties=JSON_SCHEMA)),
-                (
-                    "responses",
-                    validators.Object(additional_properties=validators.Ref("Response")),
-                ),
-                (
-                    "parameters",
-                    validators.Object(
-                        additional_properties=validators.Ref("Parameter")
-                    ),
-                ),
-                (
-                    "requestBodies",
-                    validators.Object(
-                        additional_properties=validators.Ref("RequestBody")
-                    ),
-                ),
-                (
-                    "securitySchemes",
-                    validators.Object(
-                        additional_properties=validators.Ref("SecurityScheme")
-                    ),
-                ),
-                # TODO: Other fields
-            ],
-            pattern_properties={"^x-": validators.Any()},
-            additional_properties=False,
-        ),
-        "Tag": validators.Object(
-            properties=[
-                ("name", validators.String()),
-                ("description", validators.String(format="textarea")),
-                ("externalDocs", validators.Ref("ExternalDocumentation")),
-            ],
-            pattern_properties={"^x-": validators.Any()},
-            additional_properties=False,
-            required=["name"],
-        ),
-        "SecurityRequirement": validators.Object(
-            additional_properties=validators.Array(items=validators.String())
-        ),
-        "SecurityScheme": validators.Object(
-            properties=[
-                (
-                    "type",
-                    validators.String(
-                        enum=["apiKey", "http", "oauth2", "openIdConnect"]
-                    ),
-                ),
-                ("description", validators.String(format="textarea")),
-                ("name", validators.String()),
-                ("in", validators.String(enum=["query", "header", "cookie"])),
-                ("scheme", validators.String()),
-                ("bearerFormat", validators.String()),
-                ("flows", validators.Any()),  # TODO: OAuthFlows
-                ("openIdConnectUrl", validators.String()),
-            ],
-            pattern_properties={"^x-": validators.Any()},
-            additional_properties=False,
-            required=["type"],
+        "externalDocs": typesystem.Reference(
+            "ExternalDocumentation", definitions=definitions
         ),
     },
+    pattern_properties={"^x-": typesystem.Any()},
+    additional_properties=False,
+    required=["openapi", "info", "paths"],
+)
+
+definitions["Info"] = typesystem.Object(
+    properties={
+        "title": typesystem.String(allow_blank=True),
+        "description": typesystem.Text(allow_blank=True),
+        "termsOfService": typesystem.String(format="url"),
+        "contact": typesystem.Reference("Contact", definitions=definitions),
+        "license": typesystem.Reference("License", definitions=definitions),
+        "version": typesystem.String(allow_blank=True),
+    },
+    pattern_properties={"^x-": typesystem.Any()},
+    additional_properties=False,
+    required=["title", "version"],
+)
+
+definitions["Contact"] = typesystem.Object(
+    properties={
+        "name": typesystem.String(),
+        "url": typesystem.String(format="url"),
+        "email": typesystem.String(format="email"),
+    },
+    pattern_properties={"^x-": typesystem.Any()},
+    additional_properties=False,
+)
+
+definitions["License"] = typesystem.Object(
+    properties={"name": typesystem.String(), "url": typesystem.String(format="url")},
+    required=["name"],
+    pattern_properties={"^x-": typesystem.Any()},
+    additional_properties=False,
+)
+
+definitions["Server"] = typesystem.Object(
+    properties={
+        "url": typesystem.String(),
+        "description": typesystem.String(format="textarea"),
+        "variables": typesystem.Object(
+            additional_properties=typesystem.Reference(
+                "ServerVariable", definitions=definitions
+            )
+        ),
+    },
+    pattern_properties={"^x-": typesystem.Any()},
+    additional_properties=False,
+    required=["url"],
+)
+
+definitions["ServerVariable"] = typesystem.Object(
+    properties={
+        "enum": typesystem.Array(items=typesystem.String()),
+        "default": typesystem.String(),
+        "description": typesystem.String(format="textarea"),
+    },
+    pattern_properties={"^x-": typesystem.Any()},
+    additional_properties=False,
+    required=["default"],
+)
+
+definitions["Paths"] = typesystem.Object(
+    pattern_properties={
+        "^/": typesystem.Reference("Path", definitions=definitions),
+        "^x-": typesystem.Any(),
+    },
+    additional_properties=False,
+)
+
+definitions["Path"] = typesystem.Object(
+    properties={
+        "summary": typesystem.String(),
+        "description": typesystem.String(format="textarea"),
+        "get": typesystem.Reference("Operation", definitions=definitions),
+        "put": typesystem.Reference("Operation", definitions=definitions),
+        "post": typesystem.Reference("Operation", definitions=definitions),
+        "delete": typesystem.Reference("Operation", definitions=definitions),
+        "options": typesystem.Reference("Operation", definitions=definitions),
+        "head": typesystem.Reference("Operation", definitions=definitions),
+        "patch": typesystem.Reference("Operation", definitions=definitions),
+        "trace": typesystem.Reference("Operation", definitions=definitions),
+        "servers": typesystem.Array(
+            items=typesystem.Reference("Server", definitions=definitions)
+        ),
+        "parameters": typesystem.Array(
+            items=typesystem.Reference("Parameter", definitions=definitions)
+        ),
+        # TODO: | ReferenceObject
+    },
+    pattern_properties={"^x-": typesystem.Any()},
+    additional_properties=False,
+)
+
+definitions["Operation"] = typesystem.Object(
+    properties={
+        "tags": typesystem.Array(items=typesystem.String()),
+        "summary": typesystem.String(),
+        "description": typesystem.String(format="textarea"),
+        "externalDocs": typesystem.Reference(
+            "ExternalDocumentation", definitions=definitions
+        ),
+        "operationId": typesystem.String(),
+        "parameters": typesystem.Array(
+            items=typesystem.Reference("Parameter", definitions=definitions)
+        ),  # TODO: | ReferenceObject
+        "requestBody": REQUESTBODY_REF
+        | typesystem.Reference(
+            "RequestBody", definitions=definitions
+        ),  # TODO: RequestBody | ReferenceObject
+        "responses": typesystem.Reference("Responses", definitions=definitions),
+        # TODO: 'callbacks'
+        "deprecated": typesystem.Boolean(),
+        "security": typesystem.Array(
+            typesystem.Reference("SecurityRequirement", definitions=definitions)
+        ),
+        "servers": typesystem.Array(
+            items=typesystem.Reference("Server", definitions=definitions)
+        ),
+    },
+    pattern_properties={"^x-": typesystem.Any()},
+    additional_properties=False,
+)
+
+definitions["ExternalDocumentation"] = typesystem.Object(
+    properties={
+        "description": typesystem.String(format="textarea"),
+        "url": typesystem.String(format="url"),
+    },
+    pattern_properties={"^x-": typesystem.Any()},
+    additional_properties=False,
+    required=["url"],
+)
+
+definitions["Parameter"] = typesystem.Object(
+    properties={
+        "name": typesystem.String(),
+        "in": typesystem.Choice(choices=["query", "header", "path", "cookie"]),
+        "description": typesystem.String(format="textarea"),
+        "required": typesystem.Boolean(),
+        "deprecated": typesystem.Boolean(),
+        "allowEmptyValue": typesystem.Boolean(),
+        "style": typesystem.String(),
+        "schema": JSON_SCHEMA | SCHEMA_REF,
+        "example": typesystem.Any(),
+        # TODO: Other fields
+    },
+    pattern_properties={"^x-": typesystem.Any()},
+    additional_properties=False,
+    required=["name", "in"],
+)
+
+definitions["RequestBody"] = typesystem.Object(
+    properties={
+        "description": typesystem.String(),
+        "content": typesystem.Object(
+            additional_properties=typesystem.Reference(
+                "MediaType", definitions=definitions
+            )
+        ),
+        "required": typesystem.Boolean(),
+    },
+    pattern_properties={"^x-": typesystem.Any()},
+    additional_properties=False,
+)
+
+definitions["Responses"] = typesystem.Object(
+    properties={
+        "default": typesystem.Reference("Response", definitions=definitions)
+        | RESPONSE_REF
+    },
+    pattern_properties={
+        "^([1-5][0-9][0-9]|[1-5]XX)$": typesystem.Reference(
+            "Response", definitions=definitions
+        )
+        | RESPONSE_REF,
+        "^x-": typesystem.Any(),
+    },
+    additional_properties=False,
+)
+
+definitions["Response"] = typesystem.Object(
+    properties={
+        "description": typesystem.String(),
+        "content": typesystem.Object(
+            additional_properties=typesystem.Reference(
+                "MediaType", definitions=definitions
+            )
+        ),
+        "headers": typesystem.Object(
+            additional_properties=typesystem.Reference(
+                "Header", definitions=definitions
+            )
+        ),
+        # TODO: Header | ReferenceObject
+        # TODO: links
+    },
+    pattern_properties={"^x-": typesystem.Any()},
+    additional_properties=False,
+)
+
+definitions["MediaType"] = typesystem.Object(
+    properties={
+        "schema": JSON_SCHEMA | SCHEMA_REF,
+        "example": typesystem.Any(),
+        # TODO 'examples', 'encoding'
+    },
+    pattern_properties={"^x-": typesystem.Any()},
+    additional_properties=False,
+)
+
+definitions["Header"] = typesystem.Object(
+    properties={
+        "description": typesystem.String(format="textarea"),
+        "required": typesystem.Boolean(),
+        "deprecated": typesystem.Boolean(),
+        "allowEmptyValue": typesystem.Boolean(),
+        "style": typesystem.String(),
+        "schema": JSON_SCHEMA | SCHEMA_REF,
+        "example": typesystem.Any(),
+        # TODO: Other fields
+    },
+    pattern_properties={"^x-": typesystem.Any()},
+    additional_properties=False,
+)
+
+definitions["Components"] = typesystem.Object(
+    properties={
+        "schemas": typesystem.Object(additional_properties=JSON_SCHEMA),
+        "responses": typesystem.Object(
+            additional_properties=typesystem.Reference(
+                "Response", definitions=definitions
+            )
+        ),
+        "parameters": typesystem.Object(
+            additional_properties=typesystem.Reference(
+                "Parameter", definitions=definitions
+            )
+        ),
+        "requestBodies": typesystem.Object(
+            additional_properties=typesystem.Reference(
+                "RequestBody", definitions=definitions
+            )
+        ),
+        "securitySchemes": typesystem.Object(
+            additional_properties=typesystem.Reference(
+                "SecurityScheme", definitions=definitions
+            )
+        ),
+        # TODO: Other fields
+    },
+    pattern_properties={"^x-": typesystem.Any()},
+    additional_properties=False,
+)
+
+definitions["Tag"] = typesystem.Object(
+    properties={
+        "name": typesystem.String(),
+        "description": typesystem.String(format="textarea"),
+        "externalDocs": typesystem.Reference(
+            "ExternalDocumentation", definitions=definitions
+        ),
+    },
+    pattern_properties={"^x-": typesystem.Any()},
+    additional_properties=False,
+    required=["name"],
+)
+
+definitions["SecurityRequirement"] = typesystem.Object(
+    additional_properties=typesystem.Array(items=typesystem.String())
+)
+
+definitions["SecurityScheme"] = typesystem.Object(
+    properties={
+        "type": typesystem.Choice(choices=["apiKey", "http", "oauth2", "openIdConnect"]),
+        "description": typesystem.String(format="textarea"),
+        "name": typesystem.String(),
+        "in": typesystem.Choice(choices=["query", "header", "cookie"]),
+        "scheme": typesystem.String(),
+        "bearerFormat": typesystem.String(),
+        "flows": typesystem.Any(),  # TODO: OAuthFlows
+        "openIdConnectUrl": typesystem.String(),
+    },
+    pattern_properties={"^x-": typesystem.Any()},
+    additional_properties=False,
+    required=["type"],
 )
 
 
@@ -345,7 +371,9 @@ class OpenAPI:
         schemas = lookup(data, ["components", "schemas"], {})
         for key, value in schemas.items():
             ref = f"#/components/schemas/{key}"
-            definitions[ref] = typesystem.from_json_schema(value, definitions=definitions)
+            definitions[ref] = typesystem.from_json_schema(
+                value, definitions=definitions
+            )
         return definitions
 
     def get_content(self, data, base_url, schema_definitions):
@@ -423,7 +451,9 @@ class OpenAPI:
                 schema = schema_definitions.get(ref)
                 field_name = ref[len("#/components/schemas/") :].lower()
             else:
-                schema = typesystem.from_json_schema(body_schema, definitions=schema_definitions)
+                schema = typesystem.from_json_schema(
+                    body_schema, definitions=schema_definitions
+                )
                 field_name = "body"
             field_name = lookup(
                 operation_info, ["requestBody", "x-name"], default=field_name
@@ -456,7 +486,9 @@ class OpenAPI:
                 ref = schema["$ref"]
                 schema = schema_definitions.get(ref)
             else:
-                schema = typesystem.from_json_schema(schema, definitions=schema_definitions)
+                schema = typesystem.from_json_schema(
+                    schema, definitions=schema_definitions
+                )
 
         return Field(
             name=name,

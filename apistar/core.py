@@ -15,6 +15,7 @@ __all__ = ["docs", "parse", "validate"]
 
 
 FORMAT_CHOICES = ["config", "jsonschema", "openapi", "swagger", None]
+ENCODING_CHOICES = ["json", "yaml", None]
 
 # The regexs give us a best-guess for the encoding if none is specified.
 # They check to see if the document looks like it is probably a YAML object or
@@ -66,7 +67,7 @@ def parse(content, encoding=None, validator=None):
 
 def validate(schema, format=None, encoding=None):
     if format not in FORMAT_CHOICES:
-        raise ValueError("format must be one of %s" % FORMAT_CHOICES)
+        raise ValueError(f"format must be one of {FORMAT_CHOICES!r}")
 
     if isinstance(schema, (str, bytes)):
         value, token = parse(schema, encoding)
