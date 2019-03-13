@@ -11,12 +11,15 @@ class BlockAllCookies(http.cookiejar.CookiePolicy):
     A cookie policy that rejects all cookies.
     Used to override the default `requests` behavior.
     """
-    return_ok = set_ok = domain_return_ok = path_return_ok = lambda self, *args, **kwargs: False
+
+    return_ok = (
+        set_ok
+    ) = domain_return_ok = path_return_ok = lambda self, *args, **kwargs: False
     netscape = True
     rfc2965 = hide_cookie2 = False
 
 
-class BaseTransport():
+class BaseTransport:
     schemes = None
 
     def send(self, method, url, query_params=None, content=None, encoding=None):
@@ -24,11 +27,11 @@ class BaseTransport():
 
 
 class HTTPTransport(BaseTransport):
-    schemes = ['http', 'https']
+    schemes = ["http", "https"]
     default_decoders = [
         decoders.JSONDecoder(),
         decoders.TextDecoder(),
-        decoders.DownloadDecoder()
+        decoders.DownloadDecoder(),
     ]
     default_encoders = [
         encoders.JSONEncoder(),
@@ -36,7 +39,15 @@ class HTTPTransport(BaseTransport):
         encoders.URLEncodedEncoder(),
     ]
 
-    def __init__(self, auth=None, decoders=None, encoders=None, headers=None, session=None, allow_cookies=True):
+    def __init__(
+        self,
+        auth=None,
+        decoders=None,
+        encoders=None,
+        headers=None,
+        session=None,
+        allow_cookies=True,
+    ):
         from apistar import __version__
 
         if session is None:
@@ -50,14 +61,11 @@ class HTTPTransport(BaseTransport):
         self.decoders = list(decoders) if decoders else list(self.default_decoders)
         self.encoders = list(encoders) if encoders else list(self.default_encoders)
         self.headers = {
-            'accept': ', '.join([decoder.media_type for decoder in self.decoders]),
-            'user-agent': 'apistar %s' % __version__
+            "accept": ", ".join([decoder.media_type for decoder in self.decoders]),
+            "user-agent": "apistar %s" % __version__,
         }
         if headers:
-            self.headers.update({
-                key.lower(): value
-                for key, value in headers.items()
-            })
+            self.headers.update({key.lower(): value for key, value in headers.items()})
 
     def send(self, method, url, query_params=None, content=None, encoding=None):
         options = self.get_request_options(query_params, content, encoding)
@@ -65,11 +73,9 @@ class HTTPTransport(BaseTransport):
         result = self.decode_response_content(response)
 
         if 400 <= response.status_code <= 599:
-            title = '%d %s' % (response.status_code, response.reason)
+            title = "%d %s" % (response.status_code, response.reason)
             raise exceptions.ErrorResponse(
-                title=title,
-                status_code=response.status_code,
-                content=result
+                title=title, status_code=response.status_code, content=result
             )
 
         return result
@@ -79,16 +85,16 @@ class HTTPTransport(BaseTransport):
         Given the value of the encoding, return the appropriate encoder for
         handling the request content.
         """
-        content_type = encoding.split(';')[0].strip().lower()
-        main_type = content_type.split('/')[0] + '/*'
-        wildcard_type = '*/*'
+        content_type = encoding.split(";")[0].strip().lower()
+        main_type = content_type.split("/")[0] + "/*"
+        wildcard_type = "*/*"
 
         for codec in self.encoders:
             if codec.media_type in (content_type, main_type, wildcard_type):
                 return codec
 
         text = "Unsupported encoding '%s' for request." % encoding
-        message = exceptions.ErrorMessage(text=text, code='cannot-encode-request')
+        message = exceptions.ErrorMessage(text=text, code="cannot-encode-request")
         raise exceptions.ClientError(messages=[message])
 
     def get_decoder(self, content_type=None):
@@ -99,26 +105,25 @@ class HTTPTransport(BaseTransport):
         if content_type is None:
             return self.decoders[0]
 
-        content_type = content_type.split(';')[0].strip().lower()
-        main_type = content_type.split('/')[0] + '/*'
-        wildcard_type = '*/*'
+        content_type = content_type.split(";")[0].strip().lower()
+        main_type = content_type.split("/")[0] + "/*"
+        wildcard_type = "*/*"
 
         for codec in self.decoders:
             if codec.media_type in (content_type, main_type, wildcard_type):
                 return codec
 
-        text = "Unsupported encoding '%s' in response Content-Type header." % content_type
-        message = exceptions.ErrorMessage(text=text, code='cannot-decode-response')
+        text = (
+            "Unsupported encoding '%s' in response Content-Type header." % content_type
+        )
+        message = exceptions.ErrorMessage(text=text, code="cannot-decode-response")
         raise exceptions.ClientError(messages=[message])
 
     def get_request_options(self, query_params=None, content=None, encoding=None):
         """
         Return the 'options' for sending the outgoing request.
         """
-        options = {
-            'headers': dict(self.headers),
-            'params': query_params
-        }
+        options = {"headers": dict(self.headers), "params": query_params}
 
         if content is None:
             return options
@@ -134,6 +139,6 @@ class HTTPTransport(BaseTransport):
         if not response.content:
             return None
 
-        content_type = response.headers.get('content-type')
+        content_type = response.headers.get("content-type")
         decoder = self.get_decoder(content_type)
         return decoder.decode(response)

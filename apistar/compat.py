@@ -25,7 +25,8 @@ try:
 
     def pygments_css(style):
         formatter = HtmlFormatter(style=style)
-        return formatter.get_style_defs('.highlight')
+        return formatter.get_style_defs(".highlight")
+
 
 except ImportError:
     pygments = None
@@ -52,6 +53,7 @@ try:
 
         def __str__(self):
             return self.__repr__()
+
 
 except ImportError:
     # On some platforms (eg GAE) the private _TemporaryFileWrapper may not be

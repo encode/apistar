@@ -7,34 +7,34 @@ from apistar import types, validators
 from apistar.schemas.jsonschema import JSONSchema
 
 filenames = [
-    'additionalItems.json',
-    'additionalProperties.json',
+    "additionalItems.json",
+    "additionalProperties.json",
     # 'allOf.json',
     # 'anyOf.json',
-    'default.json',
+    "default.json",
     # 'definitions.json',
     # 'dependencies.json',
     # 'enum.json',
-    'items.json',
-    'maxItems.json',
-    'maxLength.json',
-    'maxProperties.json',
-    'maximum.json',
-    'minItems.json',
-    'minLength.json',
-    'minProperties.json',
-    'minimum.json',
-    'multipleOf.json',
+    "items.json",
+    "maxItems.json",
+    "maxLength.json",
+    "maxProperties.json",
+    "maximum.json",
+    "minItems.json",
+    "minLength.json",
+    "minProperties.json",
+    "minimum.json",
+    "multipleOf.json",
     # 'not.json',
     # 'oneOf.json',
-    'pattern.json',
-    'patternProperties.json',
-    'properties.json',
+    "pattern.json",
+    "patternProperties.json",
+    "properties.json",
     # 'ref.json',
     # 'refRemote.json',
-    'required.json',
-    'type.json',
-    'uniqueItems.json'
+    "required.json",
+    "type.json",
+    "uniqueItems.json",
 ]
 
 
@@ -42,18 +42,20 @@ def load_test_cases():
     loaded = []
 
     for filename in filenames:
-        path = os.path.join('testcases', 'jsonschema', filename)
-        content = open(path, 'rb').read()
-        test_suite = json.loads(content.decode('utf-8'))
+        path = os.path.join("testcases", "jsonschema", filename)
+        content = open(path, "rb").read()
+        test_suite = json.loads(content.decode("utf-8"))
         for test_cases in test_suite:
-            description = test_cases['description']
-            schema = test_cases['schema']
-            for test in test_cases['tests']:
-                test_description = test['description']
-                test_data = test['data']
-                test_valid = test['valid']
-                full_description = '%s : %s - %s' % (
-                    filename, description, test_description
+            description = test_cases["description"]
+            schema = test_cases["schema"]
+            for test in test_cases["tests"]:
+                test_description = test["description"]
+                test_data = test["data"]
+                test_valid = test["valid"]
+                full_description = "%s : %s - %s" % (
+                    filename,
+                    description,
+                    test_description,
                 )
                 case = (schema, test_data, test_valid, full_description)
                 loaded.append(case)
@@ -90,28 +92,19 @@ def test_as_jsonschema():
             "Product": {
                 "type": "object",
                 "properties": {
-                    "name": {
-                        "type": "string",
-                        "maxLength": 10
-                    },
+                    "name": {"type": "string", "maxLength": 10},
                     "rating": {
                         "type": "integer",
                         "minimum": 0,
                         "maximum": 100,
                         "default": None,
-                        "nullable": True
+                        "nullable": True,
                     },
-                    "created": {
-                        "type": "string",
-                        "format": "datetime"
-                    }
+                    "created": {"type": "string", "format": "datetime"},
                 },
-                "required": [
-                    "name",
-                    "created"
-                ]
+                "required": ["name", "created"],
             }
-        }
+        },
     }
 
 
@@ -124,31 +117,18 @@ def test_extended_as_jsonschema_flat():
             "ReviewedProduct": {
                 "type": "object",
                 "properties": {
-                    "name": {
-                        "type": "string",
-                        "maxLength": 10
-                    },
+                    "name": {"type": "string", "maxLength": 10},
                     "rating": {
                         "type": "integer",
                         "minimum": 0,
                         "maximum": 100,
                         "default": None,
-                        "nullable": True
+                        "nullable": True,
                     },
-                    "created": {
-                        "type": "string",
-                        "format": "datetime"
-                    },
-                    "reviewer": {
-                        "type": "string",
-                        "maxLength": 20
-                    }
+                    "created": {"type": "string", "format": "datetime"},
+                    "reviewer": {"type": "string", "maxLength": 20},
                 },
-                "required": [
-                    "name",
-                    "created",
-                    "reviewer"
-                ]
+                "required": ["name", "created", "reviewer"],
             }
-        }
+        },
     }

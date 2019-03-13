@@ -6,33 +6,36 @@ from apistar.exceptions import ErrorMessage, ParseError, Position
 from apistar.tokenize.tokens import DictToken, ListToken, ScalarToken
 
 FLAGS = re.VERBOSE | re.MULTILINE | re.DOTALL
-WHITESPACE = re.compile(r'[ \t\n\r]*', FLAGS)
-WHITESPACE_STR = ' \t\n\r'
+WHITESPACE = re.compile(r"[ \t\n\r]*", FLAGS)
+WHITESPACE_STR = " \t\n\r"
 NUMBER_RE = re.compile(
-    r'(-?(?:0|[1-9]\d*))(\.\d+)?([eE][-+]?\d+)?',
-    (re.VERBOSE | re.MULTILINE | re.DOTALL))
+    r"(-?(?:0|[1-9]\d*))(\.\d+)?([eE][-+]?\d+)?",
+    (re.VERBOSE | re.MULTILINE | re.DOTALL),
+)
 
 
-def _TokenizingJSONObject(s_and_end, strict, scan_once,
-                          memo, content, _w=WHITESPACE.match, _ws=WHITESPACE_STR):
+def _TokenizingJSONObject(
+    s_and_end, strict, scan_once, memo, content, _w=WHITESPACE.match, _ws=WHITESPACE_STR
+):
     s, end = s_and_end
     pairs = []
     pairs_append = pairs.append
     memo_get = memo.setdefault
     # Use a slice to prevent IndexError from being raised, the following
     # check will raise a more specific ValueError if the string is empty
-    nextchar = s[end:end + 1]
+    nextchar = s[end : end + 1]
     # Normally we expect nextchar == '"'
     if nextchar != '"':
         if nextchar in _ws:
             end = _w(s, end).end()
-            nextchar = s[end:end + 1]
+            nextchar = s[end : end + 1]
         # Trivial empty object
-        if nextchar == '}':
+        if nextchar == "}":
             return {}, end + 1
         elif nextchar != '"':
             raise JSONDecodeError(
-                "Expecting property name enclosed in double quotes", s, end)
+                "Expecting property name enclosed in double quotes", s, end
+            )
     end += 1
     while True:
         start = end - 1
@@ -41,9 +44,9 @@ def _TokenizingJSONObject(s_and_end, strict, scan_once,
         key = ScalarToken(memo_get(key, key), start, end - 1, content)
         # To skip some function call overhead we optimize the fast paths where
         # the JSON key separator is ": " or just ":".
-        if s[end:end + 1] != ':':
+        if s[end : end + 1] != ":":
             end = _w(s, end).end()
-            if s[end:end + 1] != ':':
+            if s[end : end + 1] != ":":
                 raise JSONDecodeError("Expecting ':' delimiter", s, end)
         end += 1
 
@@ -66,19 +69,20 @@ def _TokenizingJSONObject(s_and_end, strict, scan_once,
                 end = _w(s, end + 1).end()
                 nextchar = s[end]
         except IndexError:
-            nextchar = ''
+            nextchar = ""
         end += 1
 
-        if nextchar == '}':
+        if nextchar == "}":
             break
-        elif nextchar != ',':
+        elif nextchar != ",":
             raise JSONDecodeError("Expecting ',' delimiter", s, end - 1)
         end = _w(s, end).end()
-        nextchar = s[end:end + 1]
+        nextchar = s[end : end + 1]
         end += 1
         if nextchar != '"':
             raise JSONDecodeError(
-                "Expecting property name enclosed in double quotes", s, end - 1)
+                "Expecting property name enclosed in double quotes", s, end - 1
+            )
     return dict(pairs), end
 
 
@@ -101,22 +105,21 @@ def _make_scanner(context, content):
         if nextchar == '"':
             value, end = parse_string(string, idx + 1, strict)
             return ScalarToken(value, idx, end - 1, content), end
-        elif nextchar == '{':
+        elif nextchar == "{":
             value, end = parse_object(
-                (string, idx + 1), strict,
-                _scan_once, memo, content
+                (string, idx + 1), strict, _scan_once, memo, content
             )
             return DictToken(value, idx, end - 1, content), end
-        elif nextchar == '[':
+        elif nextchar == "[":
             value, end = parse_array((string, idx + 1), _scan_once)
             return ListToken(value, idx, end - 1, content), end
-        elif nextchar == 'n' and string[idx:idx + 4] == 'null':
+        elif nextchar == "n" and string[idx : idx + 4] == "null":
             value, end = None, idx + 4
             return ScalarToken(value, idx, end - 1, content), end
-        elif nextchar == 't' and string[idx:idx + 4] == 'true':
+        elif nextchar == "t" and string[idx : idx + 4] == "true":
             value, end = True, idx + 4
             return ScalarToken(value, idx, end - 1, content), end
-        elif nextchar == 'f' and string[idx:idx + 5] == 'false':
+        elif nextchar == "f" and string[idx : idx + 5] == "false":
             value, end = False, idx + 5
             return ScalarToken(value, idx, end - 1, content), end
 
@@ -124,7 +127,7 @@ def _make_scanner(context, content):
         if m is not None:
             integer, frac, exp = m.groups()
             if frac or exp:
-                res = parse_float(integer + (frac or '') + (exp or ''))
+                res = parse_float(integer + (frac or "") + (exp or ""))
             else:
                 res = parse_int(integer)
             value, end = res, m.end()
@@ -143,7 +146,7 @@ def _make_scanner(context, content):
 
 class _TokenizingDecoder(JSONDecoder):
     def __init__(self, *args, **kwargs):
-        content = kwargs.pop('content')
+        content = kwargs.pop("content")
         super().__init__(*args, **kwargs)
         self.scan_once = _make_scanner(self, content)
 
@@ -151,7 +154,7 @@ class _TokenizingDecoder(JSONDecoder):
 def _strip_endings(text, endings):
     for ending in endings:
         if text.endswith(ending):
-            return text[:-len(ending)]
+            return text[: -len(ending)]
     return text
 
 
@@ -159,15 +162,15 @@ def tokenize_json(content):
     assert isinstance(content, (str, bytes))
 
     if isinstance(content, bytes):
-        content = content.decode('utf-8', 'ignore')
+        content = content.decode("utf-8", "ignore")
 
     if not content.strip():
         message = ErrorMessage(
-            text='No content.',
-            code='parse_error',
-            position=Position(line_no=1, column_no=1, index=0)
+            text="No content.",
+            code="parse_error",
+            position=Position(line_no=1, column_no=1, index=0),
         )
-        raise ParseError(messages=[message], summary='Invalid JSON.')
+        raise ParseError(messages=[message], summary="Invalid JSON.")
 
     try:
         decoder = _TokenizingDecoder(content=content)
@@ -175,7 +178,7 @@ def tokenize_json(content):
     except json.decoder.JSONDecodeError as exc:
         message = ErrorMessage(
             text=_strip_endings(exc.msg, [" starting at", " at"]) + ".",
-            code='parse_error',
-            position=Position(line_no=exc.lineno, column_no=exc.colno, index=exc.pos)
+            code="parse_error",
+            position=Position(line_no=exc.lineno, column_no=exc.colno, index=exc.pos),
         )
-        raise ParseError(messages=[message], summary='Invalid JSON.') from None
+        raise ParseError(messages=[message], summary="Invalid JSON.") from None
