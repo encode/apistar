@@ -11,16 +11,16 @@ from apistar.schemas.swagger import SWAGGER, Swagger
 from apistar.tokenize.tokenize_json import tokenize_json
 from apistar.tokenize.tokenize_yaml import tokenize_yaml
 
-__all__ = ['docs', 'parse', 'validate']
+__all__ = ["docs", "parse", "validate"]
 
 
-FORMAT_CHOICES = ['config', 'jsonschema', 'openapi', 'swagger', None]
+FORMAT_CHOICES = ["config", "jsonschema", "openapi", "swagger", None]
 
 # The regexs give us a best-guess for the encoding if none is specified.
 # They check to see if the document looks like it is probably a YAML object or
 # probably a JSON object. It'll typically be best to specify the encoding
 # explicitly, but this should do for convenience.
-INFER_YAML = re.compile(r'^([ \t]*#.*\n|---[ \t]*\n)*\s*[A-Za-z0-9_-]+[ \t]*:')
+INFER_YAML = re.compile(r"^([ \t]*#.*\n|---[ \t]*\n)*\s*[A-Za-z0-9_-]+[ \t]*:")
 INFER_JSON = re.compile(r'^\s*{\s*"[A-Za-z0-9_-]+"\s*:')
 
 
@@ -36,7 +36,7 @@ def parse(content, encoding=None, validator=None):
         else:
             message = ErrorMessage(
                 text="Unable to guess if encoding is JSON or YAML. Use the 'encoding' argument.",
-                code="unknown_encoding"
+                code="unknown_encoding",
             )
             raise ValidationError(messages=[message])
 
@@ -52,9 +52,9 @@ def parse(content, encoding=None, validator=None):
             value = validator.validate(value)
         except ValidationError as exc:
             for message in exc.messages:
-                if message.code == 'required':
+                if message.code == "required":
                     message.position = token.lookup_position(message.index[:-1])
-                elif message.code in ['invalid_property', 'invalid_key']:
+                elif message.code in ["invalid_property", "invalid_key"]:
                     message.position = token.lookup_key_position(message.index)
                 else:
                     message.position = token.lookup_position(message.index)
@@ -66,16 +66,16 @@ def parse(content, encoding=None, validator=None):
 
 def validate(schema, format=None, encoding=None):
     if format not in FORMAT_CHOICES:
-        raise ValueError('format must be one of %s' % FORMAT_CHOICES)
+        raise ValueError("format must be one of %s" % FORMAT_CHOICES)
 
     if isinstance(schema, (str, bytes)):
         value, token = parse(schema, encoding)
     elif isinstance(schema, dict):
         if encoding is not None:
-            raise ValueError('encoding must be `None`.')
+            raise ValueError("encoding must be `None`.")
         value, token = schema, None
     else:
-        raise ValueError('schema must either be a dict, or a string/bytestring.')
+        raise ValueError("schema must either be a dict, or a string/bytestring.")
 
     if format is None:
         if isinstance(value, dict) and "openapi" in value and "swagger" not in value:
@@ -85,15 +85,15 @@ def validate(schema, format=None, encoding=None):
         else:
             message = ErrorMessage(
                 text="Unable to determine schema format. Use the 'format' argument.",
-                code='unknown_format'
+                code="unknown_format",
             )
             raise ValidationError(messages=[message])
 
     validator = {
-        'config': APISTAR_CONFIG,
-        'jsonschema': JSON_SCHEMA,
-        'openapi': OPEN_API,
-        'swagger': SWAGGER
+        "config": APISTAR_CONFIG,
+        "jsonschema": JSON_SCHEMA,
+        "openapi": OPEN_API,
+        "swagger": SWAGGER,
     }[format]
 
     if validator is not None:
@@ -101,57 +101,69 @@ def validate(schema, format=None, encoding=None):
             value = validator.validate(value)
         except ValidationError as exc:
             exc.summary = {
-                'config': 'Invalid configuration file.',
-                'jsonschema': 'Invalid JSONSchema document.',
-                'openapi': 'Invalid OpenAPI schema.',
-                'swagger': 'Invalid Swagger schema.',
+                "config": "Invalid configuration file.",
+                "jsonschema": "Invalid JSONSchema document.",
+                "openapi": "Invalid OpenAPI schema.",
+                "swagger": "Invalid Swagger schema.",
             }[format]
             if token is not None:
                 for message in exc.messages:
-                    if message.code == 'required':
+                    if message.code == "required":
                         message.position = token.lookup_position(message.index[:-1])
-                    elif message.code in ['invalid_property', 'invalid_key']:
+                    elif message.code in ["invalid_property", "invalid_key"]:
                         message.position = token.lookup_key_position(message.index)
                     else:
                         message.position = token.lookup_position(message.index)
                 exc.messages = sorted(exc.messages, key=lambda x: x.position.index)
             raise exc
 
-    if format in ['openapi', 'swagger']:
-        decoder = {
-            'openapi': OpenAPI,
-            'swagger': Swagger
-        }[format]
+    if format in ["openapi", "swagger"]:
+        decoder = {"openapi": OpenAPI, "swagger": Swagger}[format]
         value = decoder().load(value)
 
     return value
 
 
-def docs(schema, format=None, encoding=None, theme='apistar', schema_url=None, static_url=None):
-    if format not in [None, 'openapi', 'swagger']:
+def docs(
+    schema,
+    format=None,
+    encoding=None,
+    theme="apistar",
+    schema_url=None,
+    static_url=None,
+):
+    if format not in [None, "openapi", "swagger"]:
         raise ValueError('format must be either "openapi" or "swagger"')
 
     document = validate(schema, format=format, encoding=encoding)
 
-    loader = jinja2.PrefixLoader({
-        theme: jinja2.PackageLoader('apistar', os.path.join('themes', theme, 'templates'))
-    })
+    loader = jinja2.PrefixLoader(
+        {
+            theme: jinja2.PackageLoader(
+                "apistar", os.path.join("themes", theme, "templates")
+            )
+        }
+    )
     env = jinja2.Environment(autoescape=True, loader=loader)
 
     if static_url is None:
+
         def static_url_func(path):
-            return '/' + path.lstrip('/')
+            return "/" + path.lstrip("/")
+
     elif isinstance(static_url, str):
+
         def static_url_func(path):
-            return static_url.rstrip('/') + '/' + path.lstrip('/')
+            return static_url.rstrip("/") + "/" + path.lstrip("/")
+
     else:
         static_url_func = static_url
 
-    template = env.get_template(os.path.join(theme, 'index.html'))
+    template = env.get_template(os.path.join(theme, "index.html"))
     return template.render(
         document=document,
-        langs=['javascript', 'python'],
+        langs=["javascript", "python"],
         code_style=None,
         static_url=static_url_func,
-        schema_url=schema_url
+        schema_url=schema_url,
     )

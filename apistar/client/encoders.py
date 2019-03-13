@@ -4,6 +4,7 @@ class _ForceMultiPartDict(dict):
     Allows us to force requests to use multipart encoding, even when no
     file parameters are passed.
     """
+
     def __bool__(self):
         return True
 
@@ -22,14 +23,14 @@ class JSONEncoder:
     media_type = "application/json"
 
     def encode(self, options, content):
-        options['json'] = content
+        options["json"] = content
 
 
 class URLEncodedEncoder:
     media_type = "application/x-www-form-urlencoded"
 
     def encode(self, options, content):
-        options['data'] = content
+        options["data"] = content
 
 
 class MultiPartEncoder:
@@ -44,11 +45,11 @@ class MultiPartEncoder:
                 files[key] = value
             else:
                 data[key] = value
-        options['data'] = data
-        options['files'] = files
+        options["data"] = data
+        options["files"] = files
 
     def is_file(self, item):
-        if hasattr(item, '__iter__') and not isinstance(item, (str, list, tuple, dict)):
+        if hasattr(item, "__iter__") and not isinstance(item, (str, list, tuple, dict)):
             # A stream object.
             return True
         return False

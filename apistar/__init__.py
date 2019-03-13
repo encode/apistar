@@ -11,7 +11,15 @@ from apistar.client import Client
 from apistar.core import docs, parse, validate
 from apistar.document import Document, Field, Link, Section
 
-__version__ = '0.6.0'
+__version__ = "0.6.0"
 __all__ = [
-    'Client', 'Document', 'Section', 'Link', 'Field', 'cli', 'docs', 'parse', 'validate'
+    "Client",
+    "Document",
+    "Section",
+    "Link",
+    "Field",
+    "cli",
+    "docs",
+    "parse",
+    "validate",
 ]

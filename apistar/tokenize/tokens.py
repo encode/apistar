@@ -1,7 +1,7 @@
 from apistar.exceptions import Position
 
 
-class Token():
+class Token:
     def __init__(self, value, start_index: int, end_index: int, content=None):
         self._value = value
         self.start_index = start_index
@@ -32,25 +32,25 @@ class Token():
         return token.get_key(keys[-1]).start
 
     def _get_position(self, index):
-        content = self._content[:index + 1]
+        content = self._content[: index + 1]
         lines = content.splitlines()
         line_no = max(len(lines), 1)
         column_no = 1 if not lines else max(len(lines[-1]), 1)
         return Position(line_no, column_no, index)
 
     def __repr__(self):
-        return '%s(%s, %d, %d)' % (
+        return "%s(%s, %d, %d)" % (
             self.__class__.__name__,
             repr(self._value),
             self.start_index,
-            self.end_index
+            self.end_index,
         )
 
     def __eq__(self, other):
         return (
-            self.get_value() == other.get_value() and
-            self.start_index == other.start_index and
-            self.end_index == other.end_index
+            self.get_value() == other.get_value()
+            and self.start_index == other.start_index
+            and self.end_index == other.end_index
         )
 
 
@@ -83,9 +83,7 @@ class DictToken(Token):
 
 class ListToken(Token):
     def get_value(self):
-        return [
-            token.get_value() for token in self._value
-        ]
+        return [token.get_value() for token in self._value]
 
     def __getitem__(self, key):
         return self._value[key]

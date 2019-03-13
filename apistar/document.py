@@ -4,16 +4,18 @@ import typing
 
 from apistar.validators import Validator
 
-LinkInfo = collections.namedtuple('LinkInfo', ['link', 'name', 'sections'])
+LinkInfo = collections.namedtuple("LinkInfo", ["link", "name", "sections"])
 
 
 class Document:
-    def __init__(self,
-                 content: typing.Sequence[typing.Union['Section', 'Link']]=None,
-                 url: str='',
-                 title: str='',
-                 description: str='',
-                 version: str=''):
+    def __init__(
+        self,
+        content: typing.Sequence[typing.Union["Section", "Link"]] = None,
+        url: str = "",
+        title: str = "",
+        description: str = "",
+        version: str = "",
+    ):
         content = [] if (content is None) else list(content)
 
         # Ensure all names within a document are unique.
@@ -53,11 +55,13 @@ class Document:
 
 
 class Section:
-    def __init__(self,
-                 name: str,
-                 content: typing.Sequence[typing.Union['Section', 'Link']]=None,
-                 title: str='',
-                 description: str=''):
+    def __init__(
+        self,
+        name: str,
+        content: typing.Sequence[typing.Union["Section", "Link"]] = None,
+        title: str = "",
+        description: str = "",
+    ):
         content = [] if (content is None) else list(content)
 
         # Ensure all names within a section are unique.
@@ -89,7 +93,7 @@ class Section:
         sections = previous_sections + (self,)
         for item in self.content:
             if isinstance(item, Link):
-                name = ':'.join([section.name for section in sections] + [item.name])
+                name = ":".join([section.name for section in sections] + [item.name])
                 link_info = LinkInfo(link=item, name=name, sections=sections)
                 link_info_list.append(link_info)
             else:
@@ -101,32 +105,37 @@ class Link:
     """
     Links represent the actions that a client may perform.
     """
-    def __init__(self,
-                 url: str,
-                 method: str,
-                 handler: typing.Callable=None,
-                 name: str='',
-                 encoding: str='',
-                 response: 'Response'=None,
-                 title: str='',
-                 description: str='',
-                 fields: typing.Sequence['Field']=None):
+
+    def __init__(
+        self,
+        url: str,
+        method: str,
+        handler: typing.Callable = None,
+        name: str = "",
+        encoding: str = "",
+        response: "Response" = None,
+        title: str = "",
+        description: str = "",
+        fields: typing.Sequence["Field"] = None,
+    ):
         method = method.upper()
         fields = [] if (fields is None) else list(fields)
 
-        url_path_names = set([
-            item.strip('{}').lstrip('+') for item in re.findall('{[^}]*}', url)
-        ])
-        path_fields = [
-            field for field in fields if field.location == 'path'
-        ]
-        body_fields = [
-            field for field in fields if field.location == 'body'
-        ]
+        url_path_names = set(
+            [item.strip("{}").lstrip("+") for item in re.findall("{[^}]*}", url)]
+        )
+        path_fields = [field for field in fields if field.location == "path"]
+        body_fields = [field for field in fields if field.location == "body"]
 
         assert method in (
-            'GET', 'POST', 'PUT', 'PATCH',
-            'DELETE', 'OPTIONS', 'HEAD', 'TRACE'
+            "GET",
+            "POST",
+            "PUT",
+            "PATCH",
+            "DELETE",
+            "OPTIONS",
+            "HEAD",
+            "TRACE",
         )
         assert len(body_fields) < 2
         if body_fields:
@@ -138,7 +147,7 @@ class Link:
         # a corresponding path field.
         for path_name in url_path_names:
             if path_name not in [field.name for field in path_fields]:
-                fields += [Field(name=path_name, location='path', required=True)]
+                fields += [Field(name=path_name, location="path", required=True)]
 
         self.url = url
         self.method = method
@@ -151,37 +160,39 @@ class Link:
         self.fields = fields
 
     def get_path_fields(self):
-        return [field for field in self.fields if field.location == 'path']
+        return [field for field in self.fields if field.location == "path"]
 
     def get_query_fields(self):
-        return [field for field in self.fields if field.location == 'query']
+        return [field for field in self.fields if field.location == "query"]
 
     def get_body_field(self):
         for field in self.fields:
-            if field.location == 'body':
+            if field.location == "body":
                 return field
         return None
 
     def get_expanded_body(self):
         field = self.get_body_field()
-        if field is None or not hasattr(field.schema, 'properties'):
+        if field is None or not hasattr(field.schema, "properties"):
             return None
         return field.schema.properties
 
 
 class Field:
-    def __init__(self,
-                 name: str,
-                 location: str,
-                 title: str='',
-                 description: str='',
-                 required: bool=None,
-                 schema: Validator=None,
-                 example: typing.Any=None):
-        assert location in ('path', 'query', 'body', 'cookie', 'header', 'formData')
+    def __init__(
+        self,
+        name: str,
+        location: str,
+        title: str = "",
+        description: str = "",
+        required: bool = None,
+        schema: Validator = None,
+        example: typing.Any = None,
+    ):
+        assert location in ("path", "query", "body", "cookie", "header", "formData")
         if required is None:
-            required = True if location in ('path', 'body') else False
-        if location == 'path':
+            required = True if location in ("path", "body") else False
+        if location == "path":
             assert required, "May not set 'required=False' on path fields."
 
         self.name = name
@@ -194,7 +205,7 @@ class Field:
 
 
 class Response:
-    def __init__(self, encoding: str, status_code: int=200, schema: Validator=None):
+    def __init__(self, encoding: str, status_code: int = 200, schema: Validator = None):
         self.encoding = encoding
         self.status_code = status_code
         self.schema = schema
