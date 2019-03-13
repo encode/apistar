@@ -103,12 +103,3 @@ def test_infer_yaml():
         paths: {}
     """
     validate(schema, format="openapi")
-
-
-def test_validate_unneccessary_encoding():
-    """
-    Passing 'encoding=' is invalid if 'schema' is a dict already.
-    """
-    schema = {"openapi": "3.0.0", "info": {"title": "", "version": ""}, "paths": {}}
-    with pytest.raises(ValueError):
-        validate(schema, format="openapi", encoding="json")

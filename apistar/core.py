@@ -72,8 +72,6 @@ def validate(schema, format=None, encoding=None):
     if isinstance(schema, (str, bytes)):
         value, token = parse(schema, encoding)
     elif isinstance(schema, dict):
-        if encoding is not None:
-            raise ValueError("encoding must be `None`.")
         value, token = schema, None
     else:
         raise ValueError("schema must either be a dict, or a string/bytestring.")
