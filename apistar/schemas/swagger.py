@@ -4,7 +4,8 @@ from urllib.parse import urljoin
 from apistar import validators
 from apistar.compat import dict_type
 from apistar.document import Document, Field, Link, Section
-from apistar.schemas.jsonschema import JSON_SCHEMA, JSONSchema
+from apistar.schemas.jsonschema import JSON_SCHEMA
+import typesystem
 
 SCHEMA_REF = validators.Object(
     properties={"$ref": validators.String(pattern="^#/definitiions/")}
@@ -325,11 +326,11 @@ class Swagger:
         )
 
     def get_schema_definitions(self, data):
-        definitions = {}
+        definitions = typesystem.SchemaDefinitions()
         schemas = lookup(data, ["components", "schemas"], {})
         for key, value in schemas.items():
-            definitions[key] = JSONSchema().decode_from_data_structure(value)
-            definitions[key].def_name = key
+            ref = f"#/components/schemas/{key}"
+            definitions[ref] = typesystem.from_json_schema(value, definitions=definitions)
         return definitions
 
     def get_content(self, data, base_url, schema_definitions):
@@ -437,10 +438,10 @@ class Swagger:
 
         if schema is not None:
             if "$ref" in schema:
-                ref = schema["$ref"][len("#/definitions/") :]
+                ref = schema["$ref"]
                 schema = schema_definitions.get(ref)
             else:
-                schema = JSONSchema().decode_from_data_structure(schema)
+                schema = typesystem.from_json_schema(schema, definitions=schema_definitions)
 
         return Field(
             name=name,

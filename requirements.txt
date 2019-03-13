@@ -12,3 +12,4 @@ isort
 pytest
 pytest-cov
 starlette
+typesystem
