@@ -58,7 +58,7 @@ definitions["Info"] = typesystem.Object(
 
 definitions["Contact"] = typesystem.Object(
     properties={
-        "name": typesystem.String(),
+        "name": typesystem.String(allow_blank=True),
         "url": typesystem.String(format="url"),
         "email": typesystem.String(format="email"),
     },
@@ -76,7 +76,7 @@ definitions["License"] = typesystem.Object(
 definitions["Server"] = typesystem.Object(
     properties={
         "url": typesystem.String(),
-        "description": typesystem.Text(),
+        "description": typesystem.Text(allow_blank=True),
         "variables": typesystem.Object(
             additional_properties=typesystem.Reference(
                 "ServerVariable", definitions=definitions
@@ -92,7 +92,7 @@ definitions["ServerVariable"] = typesystem.Object(
     properties={
         "enum": typesystem.Array(items=typesystem.String()),
         "default": typesystem.String(),
-        "description": typesystem.Text(),
+        "description": typesystem.Text(allow_blank=True),
     },
     pattern_properties={"^x-": typesystem.Any()},
     additional_properties=False,
@@ -109,8 +109,8 @@ definitions["Paths"] = typesystem.Object(
 
 definitions["Path"] = typesystem.Object(
     properties={
-        "summary": typesystem.String(),
-        "description": typesystem.Text(),
+        "summary": typesystem.String(allow_blank=True),
+        "description": typesystem.Text(allow_blank=True),
         "get": typesystem.Reference("Operation", definitions=definitions),
         "put": typesystem.Reference("Operation", definitions=definitions),
         "post": typesystem.Reference("Operation", definitions=definitions),
@@ -134,8 +134,8 @@ definitions["Path"] = typesystem.Object(
 definitions["Operation"] = typesystem.Object(
     properties={
         "tags": typesystem.Array(items=typesystem.String()),
-        "summary": typesystem.String(),
-        "description": typesystem.Text(),
+        "summary": typesystem.String(allow_blank=True),
+        "description": typesystem.Text(allow_blank=True),
         "externalDocs": typesystem.Reference(
             "ExternalDocumentation", definitions=definitions
         ),
@@ -163,7 +163,7 @@ definitions["Operation"] = typesystem.Object(
 
 definitions["ExternalDocumentation"] = typesystem.Object(
     properties={
-        "description": typesystem.Text(),
+        "description": typesystem.Text(allow_blank=True),
         "url": typesystem.String(format="url"),
     },
     pattern_properties={"^x-": typesystem.Any()},
@@ -175,11 +175,11 @@ definitions["Parameter"] = typesystem.Object(
     properties={
         "name": typesystem.String(),
         "in": typesystem.Choice(choices=["query", "header", "path", "cookie"]),
-        "description": typesystem.Text(),
+        "description": typesystem.Text(allow_blank=True),
         "required": typesystem.Boolean(),
         "deprecated": typesystem.Boolean(),
         "allowEmptyValue": typesystem.Boolean(),
-        "style": typesystem.String(),
+        "style": typesystem.Choice(choices=["matrix", "label", "form", "simple", "spaceDelimited", "pipeDelimited", "deepObject"]),
         "schema": JSON_SCHEMA | SCHEMA_REF,
         "example": typesystem.Any(),
         # TODO: Other fields
@@ -191,7 +191,7 @@ definitions["Parameter"] = typesystem.Object(
 
 definitions["RequestBody"] = typesystem.Object(
     properties={
-        "description": typesystem.String(),
+        "description": typesystem.String(allow_blank=True),
         "content": typesystem.Object(
             additional_properties=typesystem.Reference(
                 "MediaType", definitions=definitions
@@ -220,7 +220,7 @@ definitions["Responses"] = typesystem.Object(
 
 definitions["Response"] = typesystem.Object(
     properties={
-        "description": typesystem.String(),
+        "description": typesystem.String(allow_blank=True),
         "content": typesystem.Object(
             additional_properties=typesystem.Reference(
                 "MediaType", definitions=definitions
@@ -254,7 +254,7 @@ definitions["Header"] = typesystem.Object(
         "required": typesystem.Boolean(),
         "deprecated": typesystem.Boolean(),
         "allowEmptyValue": typesystem.Boolean(),
-        "style": typesystem.String(),
+        "style": typesystem.Choice(choices=["matrix", "label", "form", "simple", "spaceDelimited", "pipeDelimited", "deepObject"]),
         "schema": JSON_SCHEMA | SCHEMA_REF,
         "example": typesystem.Any(),
         # TODO: Other fields
@@ -295,7 +295,7 @@ definitions["Components"] = typesystem.Object(
 definitions["Tag"] = typesystem.Object(
     properties={
         "name": typesystem.String(),
-        "description": typesystem.Text(),
+        "description": typesystem.Text(allow_blank=True),
         "externalDocs": typesystem.Reference(
             "ExternalDocumentation", definitions=definitions
         ),
@@ -314,13 +314,13 @@ definitions["SecurityScheme"] = typesystem.Object(
         "type": typesystem.Choice(
             choices=["apiKey", "http", "oauth2", "openIdConnect"]
         ),
-        "description": typesystem.Text(),
+        "description": typesystem.Text(allow_blank=True),
         "name": typesystem.String(),
         "in": typesystem.Choice(choices=["query", "header", "cookie"]),
         "scheme": typesystem.String(),
         "bearerFormat": typesystem.String(),
         "flows": typesystem.Any(),  # TODO: OAuthFlows
-        "openIdConnectUrl": typesystem.String(),
+        "openIdConnectUrl": typesystem.String(format="url"),
     },
     pattern_properties={"^x-": typesystem.Any()},
     additional_properties=False,

@@ -21,8 +21,8 @@ SWAGGER = typesystem.Object(
         "info": typesystem.Reference("Info", definitions=definitions),
         "paths": typesystem.Reference("Paths", definitions=definitions),
         "host": typesystem.String(),
-        "basePath": typesystem.String(),
-        "schemes": typesystem.Array(items=typesystem.String()),
+        "basePath": typesystem.String(pattern="^/"),
+        "schemes": typesystem.Array(items=typesystem.Choice(choices=["http", "https", "ws", "wss"])),
         "consumes": typesystem.Array(items=typesystem.String()),
         "produces": typesystem.Array(items=typesystem.String()),
         "definitions": typesystem.Object(additional_properties=typesystem.Any()),
@@ -72,7 +72,7 @@ definitions["Info"] = typesystem.Object(
 
 definitions["Contact"] = typesystem.Object(
     properties={
-        "name": typesystem.String(),
+        "name": typesystem.String(allow_blank=True),
         "url": typesystem.String(format="url"),
         "email": typesystem.String(format="email"),
     },
@@ -97,8 +97,8 @@ definitions["Paths"] = typesystem.Object(
 
 definitions["Path"] = typesystem.Object(
     properties={
-        "summary": typesystem.String(),
-        "description": typesystem.Text(),
+        "summary": typesystem.String(allow_blank=True),
+        "description": typesystem.Text(allow_blank=True),
         "get": typesystem.Reference("Operation", definitions=definitions),
         "put": typesystem.Reference("Operation", definitions=definitions),
         "post": typesystem.Reference("Operation", definitions=definitions),
@@ -118,7 +118,7 @@ definitions["Path"] = typesystem.Object(
 definitions["Operation"] = typesystem.Object(
     properties={
         "tags": typesystem.Array(items=typesystem.String()),
-        "summary": typesystem.String(),
+        "summary": typesystem.String(allow_blank=True),
         "description": typesystem.Text(allow_blank=True),
         "externalDocs": typesystem.Reference(
             "ExternalDocumentation", definitions=definitions
@@ -130,7 +130,7 @@ definitions["Operation"] = typesystem.Object(
             items=typesystem.Reference("Parameter", definitions=definitions)
         ),  # TODO: | ReferenceObject
         "responses": typesystem.Reference("Responses", definitions=definitions),
-        "schemes": typesystem.Array(items=typesystem.String()),
+        "schemes": typesystem.Array(items=typesystem.Choice(choices=["http", "https", "ws", "wss"])),
         "deprecated": typesystem.Boolean(),
         "security": typesystem.Array(
             typesystem.Reference("SecurityRequirement", definitions=definitions)
@@ -161,8 +161,8 @@ definitions["Parameter"] = typesystem.Object(
         # in: "body"
         "schema": JSON_SCHEMA | SCHEMA_REF,
         # in: "query"|"header"|"path"|"formData"
-        "type": typesystem.String(),
-        "format": typesystem.String(),
+        "type": typesystem.Choice(choices=["string", "number", "integer", "boolean", "array", "file"]),
+        "format": typesystem.String(allow_blank=True),
         "allowEmptyValue": typesystem.Boolean(),
         "items": JSON_SCHEMA,  # TODO: Should actually be a restricted subset
         "collectionFormat": typesystem.Choice(
@@ -175,7 +175,7 @@ definitions["Parameter"] = typesystem.Object(
         "exclusiveMinimum": typesystem.Boolean(),
         "maxLength": typesystem.Integer(),
         "minLength": typesystem.Integer(),
-        "pattern": typesystem.String(),
+        "pattern": typesystem.String(allow_blank=True),
         "maxItems": typesystem.Integer(),
         "minItems": typesystem.Integer(),
         "uniqueItems": typesystem.Boolean(),
@@ -189,7 +189,7 @@ definitions["Parameter"] = typesystem.Object(
 
 definitions["RequestBody"] = typesystem.Object(
     properties={
-        "description": typesystem.String(),
+        "description": typesystem.String(allow_blank=True),
         "content": typesystem.Object(
             additional_properties=typesystem.Reference(
                 "MediaType", definitions=definitions
@@ -218,7 +218,7 @@ definitions["Responses"] = typesystem.Object(
 
 definitions["Response"] = typesystem.Object(
     properties={
-        "description": typesystem.String(),
+        "description": typesystem.String(allow_blank=True),
         "content": typesystem.Object(
             additional_properties=typesystem.Reference(
                 "MediaType", definitions=definitions
@@ -249,13 +249,25 @@ definitions["MediaType"] = typesystem.Object(
 definitions["Header"] = typesystem.Object(
     properties={
         "description": typesystem.Text(),
-        "required": typesystem.Boolean(),
-        "deprecated": typesystem.Boolean(),
-        "allowEmptyValue": typesystem.Boolean(),
-        "style": typesystem.String(),
-        "schema": JSON_SCHEMA | SCHEMA_REF,
-        "example": typesystem.Any(),
-        # TODO: Other fields
+        "type": typesystem.Choice(choices=["string", "number", "integer", "boolean", "array", "file"]),
+        "format": typesystem.String(allow_blank=True),
+        "items": JSON_SCHEMA,  # TODO: Should actually be a restricted subset
+        "collectionFormat": typesystem.Choice(
+            choices=["csv", "ssv", "tsv", "pipes", "multi"]
+        ),
+        "default": typesystem.Any(),
+        "maximum": typesystem.Number(),
+        "exclusiveMaximum": typesystem.Boolean(),
+        "minimum": typesystem.Number(),
+        "exclusiveMinimum": typesystem.Boolean(),
+        "maxLength": typesystem.Integer(),
+        "minLength": typesystem.Integer(),
+        "pattern": typesystem.String(allow_blank=True),
+        "maxItems": typesystem.Integer(),
+        "minItems": typesystem.Integer(),
+        "uniqueItems": typesystem.Boolean(),
+        "enum": typesystem.Array(items=typesystem.Any()),
+        "multipleOf": typesystem.Integer(),
     },
     pattern_properties={"^x-": typesystem.Any()},
     additional_properties=False,
@@ -264,7 +276,7 @@ definitions["Header"] = typesystem.Object(
 definitions["Tag"] = typesystem.Object(
     properties={
         "name": typesystem.String(),
-        "description": typesystem.Text(),
+        "description": typesystem.Text(allow_blank=True),
         "externalDocs": typesystem.Reference(
             "ExternalDocumentation", definitions=definitions
         ),
@@ -281,7 +293,7 @@ definitions["SecurityRequirement"] = typesystem.Object(
 definitions["SecurityScheme"] = typesystem.Object(
     properties={
         "type": typesystem.Choice(choices=["basic", "apiKey", "oauth2"]),
-        "description": typesystem.Text(),
+        "description": typesystem.Text(allow_blank=True),
         "name": typesystem.String(),
         "in": typesystem.Choice(choices=["query", "header"]),
         "flow": typesystem.Choice(
