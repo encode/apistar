@@ -2,8 +2,6 @@ import re
 from urllib.parse import urljoin
 
 import typesystem
-from apistar import validators
-from apistar.compat import dict_type
 from apistar.document import Document, Field, Link, Section
 from apistar.schemas.jsonschema import JSON_SCHEMA
 
@@ -382,7 +380,7 @@ class OpenAPI:
         """
         Return all the links in the document, layed out by tag and operationId.
         """
-        links_by_tag = dict_type()
+        links_by_tag = {}
         links = []
 
         for path, path_info in data.get("paths", {}).items():

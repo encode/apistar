@@ -2,8 +2,6 @@ import collections
 import re
 import typing
 
-from apistar.validators import Validator
-
 LinkInfo = collections.namedtuple("LinkInfo", ["link", "name", "sections"])
 
 
@@ -186,7 +184,7 @@ class Field:
         title: str = "",
         description: str = "",
         required: bool = None,
-        schema: Validator = None,
+        schema: typing.Any = None,
         example: typing.Any = None,
     ):
         assert location in ("path", "query", "body", "cookie", "header", "formData")
@@ -205,7 +203,9 @@ class Field:
 
 
 class Response:
-    def __init__(self, encoding: str, status_code: int = 200, schema: Validator = None):
+    def __init__(
+        self, encoding: str, status_code: int = 200, schema: typing.Any = None
+    ):
         self.encoding = encoding
         self.status_code = status_code
         self.schema = schema
