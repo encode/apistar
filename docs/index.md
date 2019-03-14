@@ -28,7 +28,6 @@ API Star is a toolkit for working with OpenAPI or Swagger schemas. It allows you
 
 * Build API documentation, with a selection of available themes.
 * Validate API schema documents, and provide contextual errors.
-* Validate requests and responses, using the API Star type system.
 * Make API requests using the dynamic client library.
 
 You can use it to build static documentation, integrate it within a Web framework,
