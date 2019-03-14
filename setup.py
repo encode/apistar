@@ -69,7 +69,7 @@ setup(
     author_email="tom@tomchristie.com",
     packages=get_packages("apistar"),
     package_data=get_package_data("apistar"),
-    install_requires=["click", "jinja2", "requests", "pyyaml"],
+    install_requires=["click", "jinja2", "requests", "pyyaml", "typesystem"],
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Environment :: Web Environment",
