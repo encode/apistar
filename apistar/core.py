@@ -76,9 +76,14 @@ def validate(schema: typing.Union[dict, str, bytes], format: str=None, encoding:
     else:
         value = validator.validate(value)
 
-    if "swagger" in value:
+    if format is None:
+        format = "swagger" if "swagger" in value else "openapi"
+
+    if format == "swagger":
         return Swagger().load(value)
-    return OpenAPI().load(value)
+    elif format == "openapi":
+        return OpenAPI().load(value)
+    return value
 
 
 def docs(
