@@ -11,7 +11,7 @@ from apistar.client import Client
 from apistar.core import docs, validate
 from apistar.document import Document, Field, Link, Section
 
-__version__ = "0.6.0"
+__version__ = "0.7.0"
 __all__ = [
     "Client",
     "Document",
