@@ -10,7 +10,9 @@ import click
 import apistar
 from apistar.client import Client
 from apistar.client.debug import DebugSession
-from apistar.exceptions import ClientError, ErrorResponse, ParseError, ValidationError
+from apistar.exceptions import ClientError, ErrorResponse
+
+import typesystem
 
 
 def _encoding_from_filename(filename):
@@ -18,24 +20,24 @@ def _encoding_from_filename(filename):
     return {".json": "json", ".yml": "yaml", ".yaml": "yaml"}.get(extension)
 
 
-def _echo_error(exc, content, verbose=False):
+def _echo_error(exc, content, summary, verbose=False):
     if verbose:
         # Verbose output style.
         lines = content.splitlines()
-        for message in reversed(exc.messages):
-            error_str = " " * (message.position.column_no - 1)
+        for message in reversed(exc.messages()):
+            error_str = " " * (message.start_position.column_no - 1)
             error_str += "^ "
             error_str += message.text
             error_str = click.style(error_str, fg="red")
-            lines.insert(message.position.line_no, error_str)
+            lines.insert(message.start_position.line_no, error_str)
         for line in lines:
             click.echo(line)
 
         click.echo()
     else:
         # Compact output style.
-        for message in exc.messages:
-            pos = message.position
+        for message in exc.messages():
+            pos = message.start_position
             if message.code == "required":
                 index = message.index[:-1]
             else:
@@ -49,7 +51,7 @@ def _echo_error(exc, content, verbose=False):
                 output = fmt % (message.text, pos.line_no, pos.column_no)
                 click.echo(output)
 
-    click.echo(click.style("✘ ", fg="red") + exc.summary)
+    click.echo(click.style("✘ ", fg="red") + summary)
 
 
 def _copy_tree(src, dst, verbose=False):
@@ -133,8 +135,22 @@ def validate(path, format, encoding, verbose):
 
     try:
         apistar.validate(content, format=format, encoding=encoding)
-    except (ParseError, ValidationError) as exc:
-        _echo_error(exc, content, verbose=verbose)
+    except (typesystem.ParseError, typesystem.ValidationError) as exc:
+        if isinstance(exc, typesystem.ParseError):
+            summary = {
+                "json": "Invalid JSON.",
+                "yaml": "Invalid YAML.",
+                None: "Parse error.",
+            }[encoding]
+        else:
+            summary = {
+                "config": "Invalid APIStar config.",
+                "jsonschema": "Invalid JSONSchema document.",
+                "openapi": "Invalid OpenAPI schema.",
+                "swagger": "Invalid Swagger schema.",
+                None: "Invalid schema.",
+            }[format]
+        _echo_error(exc, content, summary=summary, verbose=verbose)
         sys.exit(1)
 
     success_summary = {
@@ -183,8 +199,22 @@ def docs(path, format, encoding, output_dir, theme, serve, verbose):
         index_html = apistar.docs(
             content, format=format, encoding=encoding, schema_url=schema_url
         )
-    except (ParseError, ValidationError) as exc:
-        _echo_error(exc, content, verbose=verbose)
+    except (typesystem.ParseError, typesystem.ValidationError) as exc:
+        if isinstance(exc, typesystem.ParseError):
+            summary = {
+                "json": "Invalid JSON.",
+                "yaml": "Invalid YAML.",
+                None: "Parse error.",
+            }[encoding]
+        else:
+            summary = {
+                "config": "Invalid APIStar config.",
+                "jsonschema": "Invalid JSONSchema document.",
+                "openapi": "Invalid OpenAPI schema.",
+                "swagger": "Invalid Swagger schema.",
+                None: "Invalid schema.",
+            }[format]
+        _echo_error(exc, content, summary=summary, verbose=verbose)
         sys.exit(1)
 
     if not os.path.exists(output_dir):
@@ -253,8 +283,22 @@ def request(ctx, operation, params, path, format, encoding, verbose):
 
     try:
         client = Client(schema, format=format, encoding=encoding, session=session)
-    except (ParseError, ValidationError) as exc:
-        _echo_error(exc, schema, verbose=verbose)
+    except (typesystem.ParseError, typesystem.ValidationError) as exc:
+        if isinstance(exc, typesystem.ParseError):
+            summary = {
+                "json": "Invalid JSON.",
+                "yaml": "Invalid YAML.",
+                None: "Parse error.",
+            }[encoding]
+        else:
+            summary = {
+                "config": "Invalid APIStar config.",
+                "jsonschema": "Invalid JSONSchema document.",
+                "openapi": "Invalid OpenAPI schema.",
+                "swagger": "Invalid Swagger schema.",
+                None: "Invalid schema.",
+            }[format]
+        _echo_error(exc, schema, summary=summary, verbose=verbose)
         sys.exit(1)
 
     try:

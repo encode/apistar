@@ -1,7 +1,7 @@
 import pytest
 
 from apistar.core import validate
-from apistar.exceptions import ValidationError
+import typesystem
 
 
 def test_validate_openapi():
@@ -49,7 +49,7 @@ def test_validate_autodetermine_failed():
         "paths": {}
     }
     """
-    with pytest.raises(ValidationError):
+    with pytest.raises(typesystem.ValidationError):
         validate(schema, encoding="json")
 
 
