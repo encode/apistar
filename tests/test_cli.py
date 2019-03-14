@@ -34,8 +34,8 @@ def test_invalid_document(tmpdir):
     result = runner.invoke(cli, ["validate", "--path", schema, "--format", "openapi"])
     assert result.exit_code != 0
     assert result.output == (
-        '* The "paths" field is required. (At line 1, column 1.)\n'
-        "* The \"title\" field is required. (At ['info'], line 1, column 30.)\n"
+        "* The field 'paths' is required. (At line 1, column 1.)\n"
+        "* The field 'title' is required. (At ['info'], line 1, column 30.)\n"
         "✘ Invalid OpenAPI schema.\n"
     )
 
@@ -52,8 +52,8 @@ def test_invalid_document_verbose(tmpdir):
     assert result.exit_code != 0
     assert result.output == (
         '{"openapi": "3.0.0", "info": {"version": ""}}\n'
-        '^ The "paths" field is required.\n'
-        '                             ^ The "title" field is required.\n'
+        "^ The field 'paths' is required.\n"
+        "                             ^ The field 'title' is required.\n"
         "\n"
         "✘ Invalid OpenAPI schema.\n"
     )

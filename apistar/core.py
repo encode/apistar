@@ -1,20 +1,20 @@
 import os
 import re
+import typing
 
 import jinja2
 
-from apistar.exceptions import ErrorMessage, ValidationError
+from apistar.schemas.autodetermine import AUTO_DETERMINE
 from apistar.schemas.config import APISTAR_CONFIG
 from apistar.schemas.jsonschema import JSON_SCHEMA
 from apistar.schemas.openapi import OPEN_API, OpenAPI
 from apistar.schemas.swagger import SWAGGER, Swagger
-from apistar.tokenize.tokenize_json import tokenize_json
-from apistar.tokenize.tokenize_yaml import tokenize_yaml
 
-__all__ = ["docs", "parse", "validate"]
+import typesystem
 
 
 FORMAT_CHOICES = ["config", "jsonschema", "openapi", "swagger", None]
+ENCODING_CHOICES = ["json", "yaml", None]
 
 # The regexs give us a best-guess for the encoding if none is specified.
 # They check to see if the document looks like it is probably a YAML object or
@@ -24,103 +24,65 @@ INFER_YAML = re.compile(r"^([ \t]*#.*\n|---[ \t]*\n)*\s*[A-Za-z0-9_-]+[ \t]*:")
 INFER_JSON = re.compile(r'^\s*{\s*"[A-Za-z0-9_-]+"\s*:')
 
 
-def parse(content, encoding=None, validator=None):
-    if encoding not in (None, "json", "yaml"):
-        raise ValueError('encoding must be either "json" or "yaml"')
-
-    if encoding is None:
-        if INFER_YAML.match(content):
-            encoding = "yaml"
-        elif INFER_JSON.match(content):
-            encoding = "json"
-        else:
-            message = ErrorMessage(
-                text="Unable to guess if encoding is JSON or YAML. Use the 'encoding' argument.",
-                code="unknown_encoding",
-            )
-            raise ValidationError(messages=[message])
-
-    if encoding == "json":
-        token = tokenize_json(content)
-    else:
-        token = tokenize_yaml(content)
-
-    value = token.get_value()
-
-    if validator is not None:
-        try:
-            value = validator.validate(value)
-        except ValidationError as exc:
-            for message in exc.messages:
-                if message.code == "required":
-                    message.position = token.lookup_position(message.index[:-1])
-                elif message.code in ["invalid_property", "invalid_key"]:
-                    message.position = token.lookup_key_position(message.index)
-                else:
-                    message.position = token.lookup_position(message.index)
-            exc.messages = sorted(exc.messages, key=lambda x: x.position.index)
-            raise exc
-
-    return (value, token)
-
-
-def validate(schema, format=None, encoding=None):
+def validate(schema: typing.Union[dict, str, bytes], format: str=None, encoding: str=None):
+    if not isinstance(schema, (dict, str, bytes)):
+        raise ValueError(f"schema must be either str, bytes, or dict.")
     if format not in FORMAT_CHOICES:
-        raise ValueError("format must be one of %s" % FORMAT_CHOICES)
+        raise ValueError(f"format must be one of {FORMAT_CHOICES!r}")
+    if encoding not in ENCODING_CHOICES:
+        raise ValueError(f"encoding must be one of {ENCODING_CHOICES!r}")
 
-    if isinstance(schema, (str, bytes)):
-        value, token = parse(schema, encoding)
-    elif isinstance(schema, dict):
-        if encoding is not None:
-            raise ValueError("encoding must be `None`.")
-        value, token = schema, None
+    if isinstance(schema, bytes):
+        schema = schema.decode("utf8", "ignore")
+
+    if isinstance(schema, str):
+        if encoding is None:
+            if INFER_YAML.match(schema):
+                encoding = "yaml"
+            elif INFER_JSON.match(schema):
+                encoding = "json"
+            else:
+                text = "Could not determine if content is JSON or YAML."
+                code = "unknown_encoding"
+                position = typesystem.Position(line_no=1, column_no=1, char_index=0)
+                raise typesystem.ParseError(text=text, code=code, position=position)
+
+        tokenize = {
+            "yaml": typesystem.tokenize_yaml,
+            "json": typesystem.tokenize_json
+        }[encoding]
+        token = tokenize(schema)
+        value = token.value
     else:
-        raise ValueError("schema must either be a dict, or a string/bytestring.")
+        token = None
+        value = schema
 
     if format is None:
-        if isinstance(value, dict) and "openapi" in value and "swagger" not in value:
-            format = "openapi"
-        elif isinstance(value, dict) and "swagger" in value and "openapi" not in value:
-            format = "swagger"
-        else:
-            message = ErrorMessage(
-                text="Unable to determine schema format. Use the 'format' argument.",
-                code="unknown_format",
-            )
-            raise ValidationError(messages=[message])
+        if "openapi" in value and "swagger" not in value:
+             format = "openapi"
+        elif "swagger" in value and "openapi" not in value:
+             format = "swagger"
 
     validator = {
         "config": APISTAR_CONFIG,
         "jsonschema": JSON_SCHEMA,
         "openapi": OPEN_API,
         "swagger": SWAGGER,
+        None: AUTO_DETERMINE
     }[format]
 
-    if validator is not None:
-        try:
-            value = validator.validate(value)
-        except ValidationError as exc:
-            exc.summary = {
-                "config": "Invalid configuration file.",
-                "jsonschema": "Invalid JSONSchema document.",
-                "openapi": "Invalid OpenAPI schema.",
-                "swagger": "Invalid Swagger schema.",
-            }[format]
-            if token is not None:
-                for message in exc.messages:
-                    if message.code == "required":
-                        message.position = token.lookup_position(message.index[:-1])
-                    elif message.code in ["invalid_property", "invalid_key"]:
-                        message.position = token.lookup_key_position(message.index)
-                    else:
-                        message.position = token.lookup_position(message.index)
-                exc.messages = sorted(exc.messages, key=lambda x: x.position.index)
-            raise exc
+    if token is not None:
+        value = typesystem.validate_with_positions(token=token, validator=validator)
+    else:
+        value = validator.validate(value)
 
-    if format in ["openapi", "swagger"]:
-        decoder = {"openapi": OpenAPI, "swagger": Swagger}[format]
-        value = decoder().load(value)
+    if format is None:
+        format = "swagger" if "swagger" in value else "openapi"
 
+    if format == "swagger":
+        return Swagger().load(value)
+    elif format == "openapi":
+        return OpenAPI().load(value)
     return value
 
 

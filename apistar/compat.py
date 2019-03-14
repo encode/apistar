@@ -1,11 +1,6 @@
 import collections
 import sys
 
-if sys.version_info < (3, 6):
-    dict_type = collections.OrderedDict
-else:
-    dict_type = dict
-
 
 try:
     import jinja2

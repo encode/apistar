@@ -1,33 +1,24 @@
-from apistar import validators
+import typesystem
 
-APISTAR_CONFIG = validators.Object(
-    properties=[
-        (
-            "schema",
-            validators.Object(
-                properties=[
-                    ("path", validators.String()),
-                    ("format", validators.String(enum=["openapi", "swagger"])),
-                    ("base_format", validators.String(enum=["json", "yaml"])),
-                ],
-                additional_properties=False,
-                required=["path", "format"],
-            ),
+APISTAR_CONFIG = typesystem.Object(
+    properties={
+        "schema": typesystem.Object(
+            properties={
+                "path": typesystem.String(),
+                "format": typesystem.Choice(choices=["openapi", "swagger"]),
+                "base_format": typesystem.Choice(choices=["json", "yaml"]),
+            },
+            additional_properties=False,
+            required=["path", "format"],
         ),
-        (
-            "docs",
-            validators.Object(
-                properties=[
-                    ("output_dir", validators.String()),
-                    (
-                        "theme",
-                        validators.String(enum=["apistar", "redoc", "swaggerui"]),
-                    ),
-                ],
-                additional_properties=False,
-            ),
+        "docs": typesystem.Object(
+            properties={
+                "output_dir": typesystem.String(),
+                "theme": typesystem.Choice(choices=["apistar", "redoc", "swaggerui"]),
+            },
+            additional_properties=False,
         ),
-    ],
+    },
     additional_properties=False,
     required=["schema"],
 )

@@ -1,7 +1,8 @@
 from urllib.parse import quote, urljoin, urlparse
 
 import apistar
-from apistar import exceptions, validators
+import typesystem
+from apistar import exceptions
 from apistar.client import transports
 
 
@@ -89,15 +90,15 @@ class Client:
     def request(self, operation_id: str, **params):
         link = self.lookup_operation(operation_id)
 
-        validator = validators.Object(
-            properties={field.name: validators.Any() for field in link.fields},
+        validator = typesystem.Object(
+            properties={field.name: typesystem.Any() for field in link.fields},
             required=[field.name for field in link.fields if field.required],
             additional_properties=False,
         )
         try:
             validator.validate(params)
-        except exceptions.ValidationError as exc:
-            raise exceptions.ClientError(messages=exc.messages) from None
+        except typesystem.ValidationError as exc:
+            raise exceptions.ClientError(messages=exc.messages()) from None
 
         method = link.method
         url = self.get_url(link, params)

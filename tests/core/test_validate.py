@@ -1,7 +1,7 @@
 import pytest
 
 from apistar.core import validate
-from apistar.exceptions import ValidationError
+import typesystem
 
 
 def test_validate_openapi():
@@ -49,7 +49,7 @@ def test_validate_autodetermine_failed():
         "paths": {}
     }
     """
-    with pytest.raises(ValidationError):
+    with pytest.raises(typesystem.ValidationError):
         validate(schema, encoding="json")
 
 
@@ -103,12 +103,3 @@ def test_infer_yaml():
         paths: {}
     """
     validate(schema, format="openapi")
-
-
-def test_validate_unneccessary_encoding():
-    """
-    Passing 'encoding=' is invalid if 'schema' is a dict already.
-    """
-    schema = {"openapi": "3.0.0", "info": {"title": "", "version": ""}, "paths": {}}
-    with pytest.raises(ValueError):
-        validate(schema, format="openapi", encoding="json")
