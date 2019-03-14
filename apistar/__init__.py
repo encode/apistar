@@ -20,6 +20,5 @@ __all__ = [
     "Field",
     "cli",
     "docs",
-    "parse",
     "validate",
 ]

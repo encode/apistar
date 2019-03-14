@@ -12,8 +12,6 @@ from apistar.schemas.swagger import SWAGGER, Swagger
 
 import typesystem
 
-__all__ = ["docs", "parse", "validate"]
-
 
 FORMAT_CHOICES = ["config", "jsonschema", "openapi", "swagger", None]
 ENCODING_CHOICES = ["json", "yaml", None]
