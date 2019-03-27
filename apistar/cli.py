@@ -197,7 +197,7 @@ def docs(path, format, encoding, output_dir, theme, serve, verbose):
 
     try:
         index_html = apistar.docs(
-            content, format=format, encoding=encoding, schema_url=schema_url
+            content, format=format, encoding=encoding, schema_url=schema_url, theme=theme
         )
     except (typesystem.ParseError, typesystem.ValidationError) as exc:
         if isinstance(exc, typesystem.ParseError):
