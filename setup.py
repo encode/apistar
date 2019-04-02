@@ -70,6 +70,7 @@ setup(
     packages=get_packages("apistar"),
     package_data=get_package_data("apistar"),
     install_requires=["click", "jinja2", "requests", "pyyaml", "typesystem"],
+    python_requires=">=3.6",
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Environment :: Web Environment",
@@ -79,8 +80,8 @@ setup(
         "Topic :: Internet :: WWW/HTTP",
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3 :: Only",
-        "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: Implementation :: PyPy",
         "Programming Language :: Python :: Implementation :: CPython",
     ],
