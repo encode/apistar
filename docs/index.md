@@ -14,6 +14,9 @@
 <a href="https://pypi.python.org/pypi/apistar">
     <img src="https://badge.fury.io/py/apistar.svg" alt="Package version">
 </a>
+<a href="https://pypi.python.org/pypi/apistar">
+    <img src="https://img.shields.io/pypi/pyversions/apistar.svg" alt="Python versions">
+</a>
 </p>
 
 ---
