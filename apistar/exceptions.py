@@ -63,6 +63,17 @@ class ErrorResponse(Exception):
         self.status_code = status_code
         self.content = content
 
+    def __repr__(self):
+        return '%s(%s, status_code=%s, content=%s)' % (
+            self.__class__.__name__,
+            repr(self.title),
+            repr(self.status_code),
+            repr(self.content),
+        )
+
+    def __str__(self):
+        return repr(self.content)
+
 
 class ClientError(Exception):
     """
@@ -72,3 +83,14 @@ class ClientError(Exception):
     def __init__(self, messages):
         self.messages = messages
         super().__init__(messages)
+
+    def __repr__(self):
+        return '%s(messages=%s)' % (
+            self.__class__.__name__,
+            repr(self.messages),
+        )
+
+    def __str__(self):
+        if len(self.messages) == 1 and not self.messages[0].index:
+            return self.messages[0].text
+        return str(self.messages)
