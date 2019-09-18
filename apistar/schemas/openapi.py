@@ -495,6 +495,7 @@ class OpenAPI:
         required = parameter.get("required", False)
         schema = parameter.get("schema")
         example = parameter.get("example")
+        examples = parameter.get("examples")
 
         if schema is not None:
             if "$ref" in schema:
@@ -512,4 +513,5 @@ class OpenAPI:
             required=required,
             schema=schema,
             example=example,
+            examples=examples
         )
