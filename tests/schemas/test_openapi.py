@@ -10,6 +10,7 @@ filenames = [
     # 'testcases/openapi/link-example.yaml',
     "testcases/openapi/petstore-expanded.yaml",
     "testcases/openapi/petstore.yaml",
+    "testcases/openapi/petstore-with-examples.yaml",
     "testcases/openapi/uspto.yaml",
 ]
 

@@ -2,6 +2,7 @@ import re
 from urllib.parse import urljoin
 
 import typesystem
+
 from apistar.document import Document, Field, Link, Section
 from apistar.schemas.jsonschema import JSON_SCHEMA
 
@@ -40,6 +41,17 @@ OPEN_API = typesystem.Object(
     pattern_properties={"^x-": typesystem.Any()},
     additional_properties=False,
     required=["openapi", "info", "paths"],
+)
+
+EXAMPLES = typesystem.Object(
+    pattern_properties={
+        "^[a-zA-Z0-9\-]+$": typesystem.Object(
+            properties={"value": typesystem.Any(), "summary": typesystem.Text()},
+            additional_properties=False,
+            required=["value"],
+        )
+    },
+    additional_properties=False,
 )
 
 definitions["Info"] = typesystem.Object(
@@ -182,6 +194,7 @@ definitions["Parameter"] = typesystem.Object(
         "style": typesystem.Choice(choices=["matrix", "label", "form", "simple", "spaceDelimited", "pipeDelimited", "deepObject"]),
         "schema": JSON_SCHEMA | SCHEMA_REF,
         "example": typesystem.Any(),
+        "examples": EXAMPLES,
         # TODO: Other fields
     },
     pattern_properties={"^x-": typesystem.Any()},
@@ -242,7 +255,8 @@ definitions["MediaType"] = typesystem.Object(
     properties={
         "schema": JSON_SCHEMA | SCHEMA_REF,
         "example": typesystem.Any(),
-        # TODO 'examples', 'encoding'
+        "examples": EXAMPLES,
+        # TODO 'encoding'
     },
     pattern_properties={"^x-": typesystem.Any()},
     additional_properties=False,
@@ -286,6 +300,7 @@ definitions["Components"] = typesystem.Object(
                 "SecurityScheme", definitions=definitions
             )
         ),
+        "examples": EXAMPLES,
         # TODO: Other fields
     },
     pattern_properties={"^x-": typesystem.Any()},
