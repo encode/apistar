@@ -324,3 +324,7 @@ def request(ctx, operation, params, path, format, encoding, verbose):
 cli.add_command(docs)
 cli.add_command(validate)
 cli.add_command(request)
+
+
+if __name__ == "__main__":
+    cli()
