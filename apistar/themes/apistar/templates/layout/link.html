@@ -24,7 +24,11 @@
                 {% endfor %}
             </tbody>
         </table>
-        {% include 'apistar/layout/examples.html' %}
+        {% for field in fields %}
+            {% with examples=field.examples %}
+                {% include 'apistar/layout/examples.html' %}
+            {% endwith %}
+        {% endfor %}
     {% endwith %}
 {% endif %}
 {% if link.get_query_fields() %}
@@ -41,7 +45,11 @@
                 {% endfor %}
             </tbody>
         </table>
-        {% include 'apistar/layout/examples.html' %}
+        {% for field in fields %}
+            {% with examples=field.examples %}
+                {% include 'apistar/layout/examples.html' %}
+            {% endwith %}
+        {% endfor %}
     {% endwith %}
 {% endif %}
 {% if link.get_body_field() %}
@@ -63,6 +71,9 @@
             {% endif %}
         </tbody>
     </table>
+    {% with examples=field.examples %}
+        {% include 'apistar/layout/examples.html' %}
+    {% endwith %}
 {% endif %}
     </div>
 

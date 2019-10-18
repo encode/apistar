@@ -1,20 +1,18 @@
-{% for field in fields %}
-    {% if field.examples %}
-        <h4>Examples</h4>
-        <p>parameter: <code>{{ field.name }}</code>
-        <table class="parameters table table-bordered table-striped">
-            <thead>
-                <tr><th>Name</th><th>Value</th><th>Summary</th></tr>
-            </thead>
-            <tbody>
-                {% for name, example in field.examples.items() %}
-                    <tr>
-                        <td>{{ name }}</td>
-                        <td ><code>{{ example.value|pprint }}</code></td>
-                        <td>{% if example.summary %}{{ example.summary }}{% endif %}</td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    {% endif %}
-{% endfor %}
+{% if examples %}
+    <h4>Examples</h4>
+    <p>parameter: <code>{{ field.name }}</code>
+    <table class="parameters table table-bordered table-striped">
+        <thead>
+            <tr><th>Name</th><th>Value</th><th>Summary</th></tr>
+        </thead>
+        <tbody>
+            {% for name, example in examples.items() %}
+                <tr>
+                    <td>{{ name }}</td>
+                    <td ><code>{{ example.value|pprint }}</code></td>
+                    <td>{% if example.summary %}{{ example.summary }}{% endif %}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endif %}
