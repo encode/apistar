@@ -454,9 +454,10 @@ class OpenAPI:
         ]
 
         # TODO: Handle media type generically here...
-        body_schema = lookup(
-            operation_info, ["requestBody", "content", "application/json", "schema"]
+        body_definition = lookup(
+            operation_info, ["requestBody", "content", "application/json"], {}
         )
+        body_schema = body_definition.get("schema")
 
         encoding = None
         if body_schema:
@@ -473,7 +474,13 @@ class OpenAPI:
             field_name = lookup(
                 operation_info, ["requestBody", "x-name"], default=field_name
             )
-            fields += [Field(name=field_name, location="body", schema=schema)]
+            fields += [
+                Field(
+                    name=field_name, location="body", schema=schema,
+                    example=body_definition.get("example"),
+                    examples=body_definition.get("examples")
+                )
+            ]
 
         return Link(
             name=name,
