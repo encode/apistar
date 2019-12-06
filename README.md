@@ -18,7 +18,7 @@
 
 ---
 
-**Community:** https://discuss.apistar.org 🤔 💭 🤓 💬 😎
+**Community:** https://discuss.encode.io/c/apistar 🤔 💭 🤓 💬 😎
 
 **Documentation:** https://docs.apistar.com 📘
 
