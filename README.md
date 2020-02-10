@@ -101,7 +101,7 @@ $ apistar request listWidgets search=cogwheel
 ## Where did the server go?
 
 With version 0.6 onwards the API Star project is being focused as a
-framework-agnositic suite of API tooling. The plan is to build out this
+framework-agnostic suite of API tooling. The plan is to build out this
 functionality in a way that makes it appropriate for use either as a stand-alone
 tool, or together with a large range of frameworks.
 
