@@ -439,13 +439,17 @@ class OpenAPI:
         ]
 
         # TODO: Handle media type generically here...
-        body_schema = lookup(
-            operation_info, ["requestBody", "content", "application/json", "schema"]
-        )
-
         encoding = None
+        supported_body_encodings = ["application/json", "multipart/form-data"]
+        for body_encoding in supported_body_encodings:
+            body_schema = lookup(
+                operation_info, ["requestBody", "content", body_encoding, "schema"]
+            )
+            if body_schema:
+                encoding = body_encoding
+                break
+
         if body_schema:
-            encoding = "application/json"
             if "$ref" in body_schema:
                 ref = body_schema["$ref"]
                 schema = schema_definitions.get(ref)
