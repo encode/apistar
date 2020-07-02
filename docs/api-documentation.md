@@ -70,7 +70,7 @@ paths:
           type: string
 """
 
-index_html = apistar.docs(schema, schema_url='/schema.yaml', static_url='/static/')
+index_html = apistar.docs(schema, schema_url='/schema.yml', static_url='/static/')
 ```
 
 If you're serving the documentation dynamically, then you'll also need to make

@@ -46,7 +46,7 @@ $ pip3 install apistar
 
 Let's take a look at some of the functionality the toolkit provides...
 
-We'll start by creating an OpenAPI schema, `schema.yaml`:
+We'll start by creating an OpenAPI schema, `schema.yml`:
 
 ```yaml
 openapi: 3.0.0
