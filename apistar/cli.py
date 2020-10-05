@@ -10,7 +10,7 @@ import click
 import apistar
 from apistar.client import Client
 from apistar.client.debug import DebugSession
-from apistar.exceptions import ClientError, ErrorResponse
+from apistar.exceptions import ClientError, ErrorResponse, ParseError, ValidationError
 
 import typesystem
 
