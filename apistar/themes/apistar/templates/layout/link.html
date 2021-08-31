@@ -11,32 +11,46 @@
         {% if link.description %}<p class="description">{{ link.description }}</p>{% endif %}
 
 {% if link.get_path_fields() %}
-    <h4>Path Parameters</h4>
-    <p>The following parameters should be included in the URL path.</p>
-    <table class="parameters table table-bordered table-striped">
-        <thead>
-            <tr><th>Parameter</th><th>Description</th></tr>
-        </thead>
-        <tbody>
-            {% for field in link.get_path_fields() %}
-            <tr><td class="parameter-name"><code>{{ field.name }}</code>{% if field.required %} <span class="label label-warning">required</span>{% endif %}</td><td>{% if field.description or field.schema.description %}{{ field.description or field.schema.description }}{% endif %}</td></tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    {% with fields=link.get_path_fields() %}
+        <h4>Path Parameters</h4>
+        <p>The following parameters should be included in the URL path.</p>
+        <table class="parameters table table-bordered table-striped">
+            <thead>
+                <tr><th>Parameter</th><th>Description</th></tr>
+            </thead>
+            <tbody>
+                {% for field in fields %}
+                <tr><td class="parameter-name"><code>{{ field.name }}</code>{% if field.required %} <span class="label label-warning">required</span>{% endif %}</td><td>{% if field.description or field.schema.description %}{{ field.description or field.schema.description }}{% endif %}{% if field.example %}<p>Example: <code>{{ field.example }}</code></p>{% endif %}</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% for field in fields %}
+            {% with examples=field.examples %}
+                {% include 'apistar/layout/examples.html' %}
+            {% endwith %}
+        {% endfor %}
+    {% endwith %}
 {% endif %}
 {% if link.get_query_fields() %}
-    <h4>Query Parameters</h4>
-    <p>The following parameters should be included as part of a URL query string.</p>
-    <table class="parameters table table-bordered table-striped">
-        <thead>
-            <tr><th>Parameter</th><th>Description</th></tr>
-        </thead>
-        <tbody>
-            {% for field in link.get_query_fields() %}
-            <tr><td class="parameter-name"><code>{{ field.name }}</code>{% if field.required %} <span class="label label-warning">required</span>{% endif %}</td><td>{% if field.description or field.schema.description %}{{ field.description or field.schema.description }}{% endif %}</td></tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    {% with fields=link.get_query_fields() %}
+        <h4>Query Parameters</h4>
+        <p>The following parameters should be included as part of a URL query string.</p>
+        <table class="parameters table table-bordered table-striped">
+            <thead>
+                <tr><th>Parameter</th><th>Description</th></tr>
+            </thead>
+            <tbody>
+                {% for field in fields %}
+                <tr><td class="parameter-name"><code>{{ field.name }}</code>{% if field.required %} <span class="label label-warning">required</span>{% endif %}</td><td>{% if field.description or field.schema.description %}{{ field.description or field.schema.description }}{% endif %}{% if field.example %}<p>Example: <code>{{ field.example }}</code></p>{% endif %}</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% for field in fields %}
+            {% with examples=field.examples %}
+                {% include 'apistar/layout/examples.html' %}
+            {% endwith %}
+        {% endfor %}
+    {% endwith %}
 {% endif %}
 {% if link.get_body_field() %}
     {% set field=link.get_body_field() %}
@@ -57,8 +71,10 @@
             {% endif %}
         </tbody>
     </table>
+    {% with examples=field.examples %}
+        {% include 'apistar/layout/examples.html' %}
+    {% endwith %}
 {% endif %}
-
     </div>
 
     <div class="col-md-6 section-secondary">

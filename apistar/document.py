@@ -186,6 +186,7 @@ class Field:
         required: bool = None,
         schema: typing.Any = None,
         example: typing.Any = None,
+        examples: typing.Any = None,
     ):
         assert location in ("path", "query", "body", "cookie", "header", "formData")
         if required is None:
@@ -200,6 +201,7 @@ class Field:
         self.required = required
         self.schema = schema
         self.example = example
+        self.examples = examples
 
 
 class Response:
