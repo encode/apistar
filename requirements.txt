@@ -3,7 +3,7 @@ click
 jinja2
 requests
 pyyaml
-typesystem=0.2.4
+typesystem<=0.3
 
 # Testing requirements
 black
