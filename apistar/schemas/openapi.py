@@ -15,7 +15,7 @@ RESPONSE_REF = typesystem.Object(
     properties={"$ref": typesystem.String(pattern="^#/components/responses/")}
 )
 
-definitions = typesystem.SchemaDefinitions()
+definitions = typesystem.Definitions()
 
 OPEN_API = typesystem.Object(
     title="OpenAPI",
@@ -367,7 +367,7 @@ class OpenAPI:
         )
 
     def get_schema_definitions(self, data):
-        definitions = typesystem.SchemaDefinitions()
+        definitions = typesystem.Definitions()
         schemas = lookup(data, ["components", "schemas"], {})
         for key, value in schemas.items():
             ref = f"#/components/schemas/{key}"

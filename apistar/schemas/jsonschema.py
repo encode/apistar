@@ -1,6 +1,6 @@
 import typesystem
 
-definitions = typesystem.SchemaDefinitions()
+definitions = typesystem.Definitions()
 
 JSON_SCHEMA = (
     typesystem.Object(
