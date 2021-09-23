@@ -1,5 +1,4 @@
 import os
-
 import pytest
 
 import apistar
@@ -21,4 +20,7 @@ def test_openapi(filename):
 
     path, extension = os.path.splitext(filename)
     encoding = {".json": "json", ".yaml": "yaml"}[extension]
-    apistar.validate(content, format="openapi", encoding=encoding)
+    document = apistar.validate(content, format="openapi", encoding=encoding)
+    if document.url is not None:
+        for link_info in document.walk_links():
+            assert document.url in link_info.link.url

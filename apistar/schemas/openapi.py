@@ -1,7 +1,6 @@
 import re
-from urllib.parse import urljoin
-
 import typesystem
+
 from apistar.document import Document, Field, Link, Section
 from apistar.schemas.jsonschema import JSON_SCHEMA
 
@@ -462,7 +461,7 @@ class OpenAPI:
 
         return Link(
             name=name,
-            url=urljoin(base_url, path),
+            url=(base_url or "") + path,
             method=operation,
             title=title,
             description=description,
