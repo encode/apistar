@@ -12,7 +12,7 @@ RESPONSE_REF = typesystem.Object(
     properties={"$ref": typesystem.String(pattern="^#/responses/")}
 )
 
-definitions = typesystem.SchemaDefinitions()
+definitions = typesystem.Definitions()
 
 SWAGGER = typesystem.Object(
     title="Swagger",
@@ -357,7 +357,7 @@ class Swagger:
         )
 
     def get_schema_definitions(self, data):
-        definitions = typesystem.SchemaDefinitions()
+        definitions = typesystem.Definitions()
         schemas = lookup(data, ["components", "schemas"], {})
         for key, value in schemas.items():
             ref = f"#/components/schemas/{key}"
